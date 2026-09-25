@@ -1,2 +1,0 @@
-#!/usr/bin/env node
-import("file:///Users/parsas/allGitHubRepos/dcouple/agent-farm/worktrees/new-profile/.agent-farm/generated/claude-pr-reviewer-none-d9fdbc3c937f0bd5bccc/runtime.mjs").then(m=>m.run("/Users/parsas/allGitHubRepos/dcouple/agent-farm/worktrees/new-profile/.agent-farm/generated/claude-pr-reviewer-none-d9fdbc3c937f0bd5bccc","main/children/codebase-explorer",["--exec",...process.argv.slice(2)])).catch(e=>{console.error("error:",e.message);process.exitCode=1;});
