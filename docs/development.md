@@ -46,8 +46,10 @@ combine `pnpm test` with a temporary `HOME`: pnpm then looks for its store and
 cache in the new `HOME` and tries to reinstall.
 
 For manual checks, pass a temporary root to every command, for example
-`node dist/cli.js plugin install greenfield --config-root "$(mktemp -d)"`. To
-try the bare menu or `doctor`, set `HOME` to a temporary directory.
+`node dist/cli.js plugin install greenfield --config-root "$(mktemp -d)"`.
+Launches (even `--explain`), `workspace trust`, the bare menu, `init`, and
+`doctor` can also create telemetry, trust, or cache directories under `~/.local/state`
+and `~/.cache`, so set `HOME` to a temporary directory for those too.
 
 ## This repository's own workspace
 
