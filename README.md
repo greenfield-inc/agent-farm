@@ -88,7 +88,10 @@ and a Codex planner. They're one profile with variants, and the menu shows
 how many: `greenfield/planner (2)`. `agent-farm run` asks which one you want
 and shows each variant's model; `agent-farm profiles list` shows every variant's
 name. Add the variant name to skip the question, as in `greenfield/planner:codex`;
-without it, scripts get the profile's default variant.
+without it, scripts get the profile's default variant. Resuming with
+`--resume ID` never asks: it reopens the variant that started the session,
+and Pane uses it to restore panels
+([details](CONFIGURATION.md#resuming-a-session)).
 
 ## Four entry points
 

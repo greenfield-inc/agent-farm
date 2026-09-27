@@ -6,8 +6,8 @@ import {validatePlugin,packPlugin,installPlugin,listPlugins,uninstallPlugin} fro
 import os from 'node:os';
 import {parseArgs} from 'node:util';
 import {resolveWorkspace,resolveInteractiveWorkspace,trustWorkspace,untrustWorkspace,showWorkspace} from './workspaces.js';
-import {build,variantLabel} from './compiler.js';
-import {run,execute} from './runtime.js';
+import {build,variantLabel,resolveProfile,splitVariant} from './compiler.js';
+import {run,execute,nativeResume,readLaunchRecord} from './runtime.js';
 import {loginCommand} from './mcp-auth.js';
 import {loadWorkspace,unloadWorkspace,loadedWorkspaces} from './user-workspaces.js';
 import {inspectProfile,listProfiles} from './inspect.js';
@@ -41,6 +41,13 @@ if (rawArgs[0] === 'doctor' && rawArgs.length === 1) {
   process.exit(0);
 }
 
+/** The profile variant that launched a recorded session, unless the command names one. */
+function resumedProfile(root:string,requested:string,id:string,workspace:Parameters<typeof resolveProfile>[2]):string {
+  const record=readLaunchRecord(id);
+  if (splitVariant(requested).variant!==undefined || !record?.variant) return requested;
+  return resolveProfile(root,requested,workspace).profile===record.profile ? `${requested}:${record.variant}` : requested;
+}
+
 try {
   if(rawArgs[0]==='ui'||rawArgs[0]==='traces'||rawArgs[0]==='telemetry'){
     await (await import('./telemetry-cli.js')).telemetryCommand(rawArgs);
@@ -49,13 +56,13 @@ try {
     'config-root':{type:'string',default:path.join(os.homedir(),'.config/agent-farm')},
     save:{type:'string'},model:{type:'string'},reasoning:{type:'string'},speed:{type:'string'},arg:{type:'string',multiple:true},harness:{type:'string'},'no-workspace':{type:'boolean'},yes:{type:'boolean'},directory:{type:'string',default:process.cwd()},'base-url':{type:'string'},'api-key-env':{type:'string'},
     build:{type:'boolean'},exec:{type:'boolean'},message:{type:'string'},explain:{type:'boolean'},
-    'print-launch':{type:'boolean'},'native-arg':{type:'string',multiple:true}
+    'print-launch':{type:'boolean'},'native-arg':{type:'string',multiple:true},resume:{type:'string'}
   }});
   const separator=tokens.find(t=>t.kind==='option-terminator')?.index ?? rawArgs.length;
   const positionals=tokens.flatMap(t=>t.kind==='positional' && t.index<separator ? [t.value] : []);
   const nativeArgs=[...(values['native-arg'] ?? []),...rawArgs.slice(separator+1)];
   const runCommand=['run','agent'].includes(positionals[0] ?? '');
-  if ((values['print-launch'] || values['native-arg'] || separator<rawArgs.length) && !['run','agent'].includes(positionals[0] ?? '')) throw new Error('Prepared launches and native arguments require run or agent');
+  if ((values['print-launch'] || values['native-arg'] || values.resume!==undefined || separator<rawArgs.length) && !['run','agent'].includes(positionals[0] ?? '')) throw new Error('Prepared launches, --resume and native arguments require run or agent');
   const globalCommand=['set','unset','status'].includes(positionals[0] ?? '') && positionals[1]==='global';
   if(values.yes && !(positionals[0]==='workspace'&&positionals[1]==='trust'))throw new Error('--yes is only supported by workspace trust');
   if(values['no-workspace'] && !runCommand && positionals[0]!=='inspect' && !(positionals[0]==='mcp'&&positionals[1]==='login') && !(positionals[0]==='workspace'&&positionals[1]==='show'))throw new Error('--no-workspace is supported by run, inspect, mcp login, and workspace show');
@@ -193,12 +200,14 @@ try {
     if (positionals.length!==2 || !['run','agent'].includes(positionals[0]!)) throw new Error('Unknown command. Run agent-farm help for usage.');
     if ([values.build,values.explain,values.exec,values['print-launch']].filter(Boolean).length>1) throw new Error('Choose only one of --build, --explain, --exec or --print-launch');
     if (values.build && nativeArgs.length) throw new Error('--build does not accept native arguments');
-    if (values.build && (values.model!==undefined || values.reasoning!==undefined || values.speed!==undefined || values.arg!==undefined)) throw new Error('--build does not accept launch overrides or arguments');
+    if (values.build && (values.model!==undefined || values.reasoning!==undefined || values.speed!==undefined || values.arg!==undefined || values.resume!==undefined)) throw new Error('--build does not accept launch overrides, arguments or --resume');
     const root=path.resolve(values['config-root']!),directory=path.resolve(values.directory!),options={directory,noWorkspace:values['no-workspace']};
     const interactive=!values.exec&&!values['print-launch']&&!values.build&&!values.explain&&!!process.stdin.isTTY&&!!process.stderr.isTTY;
     const workspace=interactive?await resolveInteractiveWorkspace(root,options):resolveWorkspace(root,options);
-    // Interactive launches ask which variant to run; scripts get the profile's default.
-    const requested=interactive?await chooseVariant(root,positionals[1]!,workspace):positionals[1]!;
+    // A first interactive launch asks which variant to run. A resume reopens the
+    // variant that started the session, and scripts get the profile's default.
+    const requested=values.resume!==undefined ? resumedProfile(root,positionals[1]!,values.resume,workspace)
+      : interactive && !nativeResume(nativeArgs) ? await chooseVariant(root,positionals[1]!,workspace) : positionals[1]!;
     const bundle=build(root,requested,directory,workspace);
     if (!values.build && !values.explain && !values['print-launch']) {
       const manifest=JSON.parse(fs.readFileSync(path.join(bundle,'manifest.json'),'utf8'));
@@ -218,6 +227,7 @@ try {
       if (values.speed!==undefined) args.push('--speed='+values.speed);
       for (const value of values.arg ?? []) args.push('--arg='+value);
       if (values.message!==undefined) args.push('--message='+values.message);
+      if (values.resume!==undefined) args.push('--resume='+values.resume);
       if (nativeArgs.length) args.push('--',...nativeArgs);
       run(bundle,'main',args,undefined,path.resolve(values['config-root']!));
     }
