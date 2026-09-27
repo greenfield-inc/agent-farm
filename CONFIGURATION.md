@@ -112,8 +112,9 @@ because instructions are tuned per harness; the profile only groups them.
 
 Select a variant with `NAME:VARIANT`, for example `agent-farm run
 greenfield/planner:codex`. A name without a variant runs the default, so scripts,
-orchestrators, and headless launches never prompt. An interactive `agent-farm
-run` of a profile with more than one variant asks which to launch, and the
+orchestrators, and headless launches never prompt. A first interactive `agent-farm
+run` of a profile with more than one variant asks which to launch; `--resume`
+never asks (see [Resuming a session](#resuming-a-session)). The
 picker and `profiles list` show each variant with its model and reasoning,
 default first: `greenfield/planner (claude: claude-opus-5-5 high · codex:
 gpt-6-astra high)`. `run`, `inspect`, `load`, and `set
@@ -298,6 +299,34 @@ profile edits, and Agent Farm upgrades, so later launches can resume the same
 thread. A different profile, workspace, or directory uses a different home;
 process child routes also have separate homes. Bundles remain content-addressed
 and integrity-checked, while skill links in the runtime home refresh on launch.
+
+### Resuming a session
+
+Every interactive launch gets a session ID, recorded with the profile, variant,
+harness and directory under `~/.local/state/agent-farm/launches/`. Claude uses
+that ID as its own session ID. Codex picks its own, so Agent Farm finds the
+top-level Codex session the launch started in its runtime Codex home.
+`--resume ID` reopens that conversation:
+
+```bash
+agent-farm run greenfield/free-range --resume 0c6d0d57-2f8b-4c8e-9a47-5b1f9e2f3a10
+```
+
+A resume never asks for a variant. With a bare profile name it uses the variant
+that started the session, so a session begun on `:codex` resumes on Codex even
+when the default is Claude. Naming a different variant, or a different profile,
+is an error, because the conversation belongs to the other harness. If the
+session closed before anything was saved, Agent Farm starts a new conversation
+under the same ID. An ID Agent Farm did not record is passed to the harness as
+a native session ID. `--resume` works only for interactive launches, and it
+cannot be combined with native resume arguments such as `-- --continue`; those
+leave session identity to the harness and skip the variant question too.
+
+Under Pane (when `PANE_PANEL_ID` is set), each
+interactive launch prints `PANE_AGENT_SESSION_ID=ID` before the harness starts.
+Set the command's resume to **CLI reports its ID** with the resume template
+`{command} --resume {sessionId}`, and Pane restores the panel into the same
+conversation without the variant question.
 
 ## Local OpenTelemetry collection
 
