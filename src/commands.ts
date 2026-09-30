@@ -252,6 +252,17 @@ export const commands: Command[] = [
       'agent-farm help run',
     ],
   },
+  {
+    name: 'version',
+    usage: 'agent-farm version | agent-farm --version | agent-farm -v',
+    group: 'start',
+    description: 'Print the installed Agent Farm version.',
+    examples: [
+      'agent-farm version',
+      'agent-farm --version',
+      'agent-farm -v',
+    ],
+  },
 ];
 
 export function findCommand(name: string): Command | undefined {

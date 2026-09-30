@@ -20,6 +20,12 @@ const rawArgs = process.argv.slice(2);
 const isInit = rawArgs[0] === 'init';
 const isInitFull = isInit && rawArgs.includes('--full');
 const isHelp = rawArgs[0] === 'help';
+const isVersion = ['version', '--version', '-v'].includes(rawArgs[0] ?? '');
+if (isVersion && rawArgs.length === 1) {
+  const packageJson=JSON.parse(fs.readFileSync(fileURLToPath(new URL('../package.json',import.meta.url)),'utf8')) as {version:string};
+  console.log(packageJson.version);
+  process.exit(0);
+}
 if (rawArgs.length === 0 || (isInit && rawArgs.filter(a => a !== '--full').length === 1)) {
   const configRoot = path.join(os.homedir(), '.config/agent-farm');
   const {bareCommand, initCommand} = await import('./interactive.js');
