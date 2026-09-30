@@ -559,7 +559,9 @@ test('concurrent launches sharing a runtime home all succeed',async t=>{
   const bundle=build(f.root,'planner',f.target);
   if(runtime&&index%2===0)codexWritesSystem(runtime);
   if(runtime&&index%2===1){fs.rmSync(path.join(runtime,'skills/.system'),{recursive:true,force:true});fs.symlinkSync(native,path.join(runtime,'skills/.system'));}
-  const results=await Promise.all(Array.from({length:8},()=>prepare(bundle)));
+  // Codex may replace a legacy link with its own folder while siblings prepare.
+  const codex=index%2===1?promisify(execFile)(process.execPath,['--eval',`const fs=require('node:fs'),s=${JSON.stringify(path.join(runtime,'skills/.system'))};try{fs.unlinkSync(s)}catch{}fs.mkdirSync(s,{recursive:true});fs.writeFileSync(s+'/.codex-system-skills.marker','B');`]):undefined;
+  const results=await Promise.all(Array.from({length:8},()=>prepare(bundle)));await codex;
   runtime=results[0].stdout;
   for(const result of results)assert.equal(result.stdout,runtime);
   const skills=path.join(runtime,'skills');

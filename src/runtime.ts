@@ -267,7 +267,10 @@ export function codexHome(bundle: string, route: string, env: NodeJS.ProcessEnv,
     const destination=path.join(skills,name);
     const target=managedLink(destination);
     if (target===undefined) { if (name===codexSystemSkills) continue; throw conflict(destination); }
-    if (target!==null && path.resolve(skills,target)!==desired.get(name)) try { fs.unlinkSync(destination); } catch (e) { if (!missing(e)) throw e; }
+    if (target!==null && path.resolve(skills,target)!==desired.get(name)) try { fs.unlinkSync(destination); } catch (e) {
+      // A sibling may have removed the link and Codex written its folder since.
+      if (!missing(e) && !(name===codexSystemSkills && managedLink(destination)===undefined)) throw e;
+    }
   }
   for (const [name,source] of desired) link(source,path.join(skills,name));
   env.CODEX_HOME=runtime; env.AGENT_FARM_NATIVE_CODEX_HOME=original; return runtime;
