@@ -1,7 +1,7 @@
 ---
 harness: codex
 model:
-  name: gpt-5.6-sol
+  name: gpt-6.1-sol
   reasoning: medium
 description: Drive the running application to prove journeys, capture screenshots for visual checks, read back external effects, or reproduce a bug. Reports a verdict with evidence. Never fixes code.
 skills:

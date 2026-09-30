@@ -8,6 +8,7 @@ import {spawnSync} from 'node:child_process';
 import {build,resolveProfile} from '../dist/compiler.js';
 import {command,verify} from '../dist/runtime.js';
 import {validatePlugin} from '../dist/plugins.js';
+import {parse} from 'yaml';
 
 const root=fileURLToPath(new URL('../plugins/greenfield/',import.meta.url));
 
@@ -33,7 +34,7 @@ test('Greenfield compiles a single Astra Low writer with verification and cross-
   assert.equal(review.argv[review.argv.indexOf('--model')+1],'claude-fable-5-1');
   assert.equal(review.argv[review.argv.indexOf('--effort')+1],'high');
   const frontend=resolved.nodes[main.children['frontend-verifier']];
-  assert.equal(frontend.mode,'native');assert.equal(frontend.model,'gpt-5.6-sol');assert.equal(frontend.reasoning_effort,'low');
+  assert.equal(frontend.mode,'native');assert.equal(frontend.model,'gpt-6.1-sol');assert.equal(frontend.reasoning_effort,'low');
   assert.equal(fs.existsSync(path.join(bundle,'main/dispatch/worker')),false);
  }
 });
@@ -46,12 +47,32 @@ test('the default Claude implementer variant runs Opus 5.5 with an Astra reviewe
  assert.equal(main.harness,'claude');assert.equal(main.model,'claude-opus-5-5');assert.equal(main.reasoning_effort,'medium');
  assert.deepEqual(Object.keys(main.children).sort(),['frontend-verifier','reviewer','second-reviewer']);
  const node=name=>resolved.nodes[main.children[name]];
- assert.deepEqual([node('reviewer').mode,node('reviewer').harness,node('reviewer').model],['process','codex','gpt-6-astra']);
+ assert.deepEqual([node('reviewer').mode,node('reviewer').harness,node('reviewer').model,node('reviewer').reasoning_effort],['process','codex','gpt-6-astra','high']);
  assert.deepEqual([node('second-reviewer').mode,node('second-reviewer').harness,node('second-reviewer').model,node('second-reviewer').reasoning_effort],['native','claude','claude-opus-5-5','high']);
  assert.deepEqual([node('frontend-verifier').mode,node('frontend-verifier').harness,node('frontend-verifier').model,node('frontend-verifier').reasoning_effort],['native','claude','claude-opus-5-5','medium']);
  const bundle=build(root,'implementer:claude',target);verify(bundle);
  const launch=command(bundle,'main',{prepare:false});
  assert.equal(launch.argv[launch.argv.indexOf('--model')+1],'claude-opus-5-5');
+});
+
+test('Codex roles formerly on gpt-5.6 run gpt-6.1-sol and reviewers keep their pins',()=>{
+ const profiles=fs.readdirSync(path.join(root,'profiles')).map(file=>{
+  const name=file.replace(/\.yaml$/,''),variants=Object.keys(parse(fs.readFileSync(path.join(root,'profiles',file),'utf8')).variants??{});
+  return [name,...variants.map(variant=>name+':'+variant)];
+ }).flat();
+ const summary=node=>[node.mode,node.harness,node.model,node.reasoning_effort];
+ const child=(profile,name)=>{const resolved=resolveProfile(root,profile);return resolved.nodes[resolved.nodes.main.children[name]];};
+ for(const profile of profiles)for(const node of Object.values(resolveProfile(root,profile).nodes))assert.doesNotMatch(node.model,/^gpt-5\.6-/,`${profile} ${node.name}`);
+ assert.deepEqual(summary(child('planner:claude','mockup-artist')),['process','codex','gpt-6.1-sol','medium']);
+ for(const profile of ['implementer:standard','implementer:fast']){
+  assert.deepEqual(summary(child(profile,'frontend-verifier')),['native','codex','gpt-6.1-sol','low']);
+  assert.deepEqual(summary(child(profile,'second-reviewer')),['native','codex','gpt-6-astra','high']);
+  assert.deepEqual(summary(child(profile,'reviewer')).slice(1),['claude','claude-fable-5-1','high']);
+ }
+ for(const name of ['investigator','researcher'])assert.deepEqual(summary(child('planner:codex',name)),['native','codex','gpt-6.1-sol','max']);
+ assert.deepEqual(summary(child('implementer:claude','reviewer')),['process','codex','gpt-6-astra','high']);
+ const qa=parse(/^---\n([\s\S]*?)\n---/.exec(fs.readFileSync(path.join(root,'agents/qa.md'),'utf8'))[1]);
+ assert.deepEqual([qa.harness,qa.model.name,qa.model.reasoning],['codex','gpt-6.1-sol','medium']);
 });
 
 test('free-range defaults to Opus 5.5 and keeps an Astra variant',()=>{

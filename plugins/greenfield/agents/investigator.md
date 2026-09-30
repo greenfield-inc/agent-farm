@@ -1,7 +1,7 @@
 ---
 harness: codex
 model:
-  name: gpt-5.6-luna
+  name: gpt-6.1-sol
   reasoning: max
 description: Gather evidence for one question. Reproduce, trace code, collect logs, and name failing tests, with file references.
 skills:

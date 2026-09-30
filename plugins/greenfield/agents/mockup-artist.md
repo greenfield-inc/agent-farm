@@ -1,7 +1,7 @@
 ---
 harness: codex
 model:
-  name: gpt-5.6-sol
+  name: gpt-6.1-sol
   reasoning: medium
 description: Produce interface mock-up images with the image generation tool, from a written brief and reference screenshots. Saves files and reports their paths.
 ---
