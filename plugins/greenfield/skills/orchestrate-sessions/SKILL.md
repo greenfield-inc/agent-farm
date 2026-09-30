@@ -60,6 +60,17 @@ A quiet worker or a long-running step is normal. On a reported failure, explicit
 
 Answer from an existing approved source when you can, and cite where. Leave routine in-scope technical decisions to the assigned worker. Consult `advisor` only for a bounded, unresolved technical question that merits another model. Send product and architecture changes, and ask-first actions, to the user.
 
+## Presenting decisions to the user
+
+Relay every key decision in the frame set by **Presenting decisions** in the standing rules: real options, each with the functional difference, the engineering complexity and maintenance, and verified or explicitly unverified prior art, then a recommendation with its reason. You are a check, not a pipe:
+
+- Before relaying, test the worker's premises. Is the assumed constraint real? Is a simpler mechanism, or doing nothing, missing from the options? Is each comparison with another product true? If the worker's options fall short of the frame, send them back to the worker rather than filling the gaps with guesses.
+- Pull product decisions (what users see, or the system acting on a user's behalf) out of any batch and present each on its own. Technical items can stay a compact list.
+- Add no analogy or claim about another product that you haven't checked. Label what you couldn't check as unverified.
+- Keep it proportionate: small, reversible choices stay one line.
+
+[references/decision-framing.md](references/decision-framing.md) shows a relayed decision before and after, from a real postmortem.
+
 Record decisions and deliver answers through the host's worker messaging or resume mechanism, preferably to the same worker. Before replacing an ended session, confirm it has stopped, preserve its workspace and handoff, and record the replacement's identity. Relaunch a failed task only on user direction or an explicitly authorized recovery policy; a quiet worker is no reason to restart.
 
 ## Ledger, board and completion

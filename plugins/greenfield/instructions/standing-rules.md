@@ -10,6 +10,22 @@ Chat is scratch. Decisions, plans, and reports live in documents, and work is ha
 
 Prefer the lowest rung that solves the problem, and state a reason for every rung climbed: 1 configuration or copy, 2 reuse an existing pattern, 3 new code inside one module, 4 a new contract between modules, 5 a schema change or migration, 6 a new dependency or new infrastructure.
 
+## Presenting decisions
+
+This is the canonical decision frame. Skills link here rather than restating it. It applies whenever a key decision goes to the person, whether a planner writes it or an orchestrator relays it.
+
+A decision is **key** when it is hard to reverse, changes what users see, adds architecture, schema or infrastructure, touches security or sensitive data such as health records, or makes the system act on a user's behalf. Small, reversible choices can stay one line: state the choice and move on.
+
+For every key decision:
+
+- **Options, not a bare yes/no.** Give at least two real alternatives, including doing nothing or the simplest workable option when relevant. For each one, state:
+  - **Functional differences:** what the person and their customers will experience, including failure and edge states.
+  - **Engineering complexity, architecture and maintainability:** new moving parts, background jobs, schema, infrastructure and operating cost, and what we would have to maintain afterwards. Use the complexity ladder above.
+  - **Prior art:** what leading apps or products do for the same behaviour. Mark each claim **verified** (with a source or checked behaviour) or **unverified**. Never lean on an unchecked analogy.
+- **Recommend one option, with the reason**, and say what the person accepts by taking it.
+- **Product decisions stand alone.** A decision that changes what users see, or makes the system act on a user's behalf (posting, sending, deleting, charging), is labelled a product decision and presented on its own. Never bundle it into a list of technical yes/no items.
+- **Check the premises before relaying.** Whoever passes a decision on checks the worker's framing first: is the assumed constraint real, is a simpler mechanism missing, is the comparison true? Challenge a recommendation rather than passing it through.
+
 ## What needs asking
 
 Go ahead without asking: reading and searching, local tests, lint, type-checks, builds, a local dev server, commits and pushes to your own branch, opening a draft pull request.
