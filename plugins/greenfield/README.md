@@ -83,12 +83,12 @@ Done requires all required criteria to pass with applicable current-code evidenc
 
 | Child | Bound to | Model and task |
 | --- | --- | --- |
-| `frontend-verifier` | implementer | Sol low, native (Opus 5.5 medium under Claude implementer); focused UI navigation, journeys, visual evidence during stages and after fixes; read-only |
+| `frontend-verifier` | implementer | Sol 6.1 low, native (Opus 5.5 medium under Claude implementer); focused UI navigation, journeys, visual evidence during stages and after fixes; read-only |
 | `reviewer` | implementer | Fable 5.1 high, process (Astra high under Claude implementer); one final review and targeted follow-ups; read-only |
 | `second-reviewer` | implementer | Astra high, native (Opus 5.5 high under Claude implementer); only explicit dual review or documented fallback when `reviewer` cannot launch |
 | `socrates` | planner | Opus 5.5 high (Astra high under Codex planner); challenge unnecessary scope |
-| `investigator`, `researcher` | planner; `investigator` also under bug-reporter | Opus 5.5 high (Luna max under Codex planner); bounded evidence questions |
-| `mockup-artist` | Claude planner | Sol medium, process; generated design assets when needed |
+| `investigator`, `researcher` | planner; `investigator` also under bug-reporter | Opus 5.5 high (Sol 6.1 max under Codex planner); bounded evidence questions |
+| `mockup-artist` | Claude planner | Sol 6.1 medium, process; generated design assets when needed |
 | `qa` | bug-reporter | Opus 5.5 medium; reproduce a bug in the app |
 | `advisor` | orchestrator | Astra high, process; advice about session coordination |
 

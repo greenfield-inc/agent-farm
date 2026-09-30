@@ -498,3 +498,87 @@ test('conflicting modes and non-launch passthrough fail before generation',t=>{
  assert.equal(result.status,1);assert.match(result.stderr,/require run or agent/);
  assert.equal(fs.existsSync(path.join(f.target,'.agent-farm')),false);
 });
+
+// Codex owns skills/.system in its CODEX_HOME: it replaces whatever is there
+// with its own folder whenever the marker differs from its build.
+function nativeSystem(f,marker='A') {
+ const system=path.join(f.home,'.codex/skills/.system');
+ fs.mkdirSync(path.join(system,'imagegen'),{recursive:true});
+ fs.writeFileSync(path.join(system,'.codex-system-skills.marker'),marker);
+ fs.writeFileSync(path.join(system,'imagegen/SKILL.md'),'Native imagegen');
+ return system;
+}
+const snapshot=folder=>Object.fromEntries(files(folder).map(p=>[path.relative(folder,p),fs.readFileSync(p,'utf8')]));
+function files(folder){return fs.readdirSync(folder,{recursive:true}).map(p=>path.join(folder,p)).filter(p=>fs.lstatSync(p).isFile()).sort();}
+function codexWritesSystem(runtime,marker='B') {
+ const system=path.join(runtime,'skills/.system');
+ fs.rmSync(system,{recursive:true,force:true});
+ fs.mkdirSync(path.join(system,'plugin-creator'),{recursive:true});
+ fs.writeFileSync(path.join(system,'.codex-system-skills.marker'),marker);
+ fs.writeFileSync(path.join(system,'plugin-creator/SKILL.md'),'Codex plugin-creator');
+ return system;
+}
+
+test('a real skills/.system written by Codex does not break the next launch',t=>{
+ const f=fixture(t),native=nativeSystem(f),before=snapshot(native);
+ const bundle=build(f.root,'planner',f.target);
+ const runtime=codexHome(bundle,'main',{...f.env},f.home);
+ const system=codexWritesSystem(runtime),written=snapshot(system);
+ assert.equal(codexHome(bundle,'main',{...f.env},f.home),runtime);
+ assert.equal(fs.lstatSync(system).isSymbolicLink(),false);
+ assert.deepEqual(snapshot(system),written);
+ assert.deepEqual(snapshot(native),before);
+ assert.equal(fs.readFileSync(path.join(runtime,'skills/proof/SKILL.md'),'utf8'),'Proof skill');
+});
+
+test('legacy skills/.system links are removed without touching native skills; fresh homes never get one',t=>{
+ const f=fixture(t),native=nativeSystem(f),before=snapshot(native);
+ fs.mkdirSync(path.join(f.home,'.codex/skills/mine'));fs.writeFileSync(path.join(f.home,'.codex/skills/mine/SKILL.md'),'Mine');
+ const bundle=build(f.root,'planner',f.target);
+ const runtime=codexHome(bundle,'main',{...f.env},f.home),skills=path.join(runtime,'skills');
+ assert.deepEqual(fs.readdirSync(skills).sort(),['mine','proof']);
+ fs.symlinkSync(native,path.join(skills,'.system'));
+ codexHome(bundle,'main',{...f.env},f.home);
+ assert.deepEqual(fs.readdirSync(skills).sort(),['mine','proof']);
+ assert.equal(fs.readlinkSync(path.join(skills,'mine')),path.join(f.home,'.codex/skills/mine'));
+ assert.equal(fs.readFileSync(path.join(skills,'proof/SKILL.md'),'utf8'),'Proof skill');
+ assert.deepEqual(snapshot(native),before);
+});
+
+test('concurrent launches sharing a runtime home all succeed',async t=>{
+ const {execFile}=await import('node:child_process'),{promisify}=await import('node:util');
+ const f=fixture(t),native=nativeSystem(f),before=snapshot(native);
+ for(const name of ['one','two','three']){fs.mkdirSync(path.join(f.root,'skills',name));fs.writeFileSync(path.join(f.root,'skills',name,'SKILL.md'),name);}
+ const runtimeModule=pathToFileURL(fileURLToPath(new URL('../dist/runtime.js',import.meta.url))).href;
+ const prepare=bundle=>promisify(execFile)(process.execPath,['--input-type=module','--eval',
+  `import {codexHome} from ${JSON.stringify(runtimeModule)};process.stdout.write(codexHome(${JSON.stringify(bundle)},'main',{...process.env},${JSON.stringify(f.home)}));`],{env:f.env});
+ const rounds=[['proof','one'],['proof','two','three'],['three'],[]];
+ let runtime;
+ for(const [index,selected] of rounds.entries()) {
+  fs.writeFileSync(path.join(f.root,'agents/planner.yaml'),`harness: codex\nmodel: test\nskills: [${selected.join(', ')}]\n`);
+  const bundle=build(f.root,'planner',f.target);
+  if(runtime&&index%2===0)codexWritesSystem(runtime);
+  if(runtime&&index%2===1){fs.rmSync(path.join(runtime,'skills/.system'),{recursive:true,force:true});fs.symlinkSync(native,path.join(runtime,'skills/.system'));}
+  const results=await Promise.all(Array.from({length:8},()=>prepare(bundle)));
+  runtime=results[0].stdout;
+  for(const result of results)assert.equal(result.stdout,runtime);
+  const skills=path.join(runtime,'skills');
+  assert.deepEqual(fs.readdirSync(skills).filter(name=>name!=='.system').sort(),[...selected].sort());
+  for(const name of selected)assert.equal(fs.readlinkSync(path.join(skills,name)),path.join(bundle,'main/skills',name));
+  if(fs.readdirSync(skills).includes('.system'))assert.equal(fs.lstatSync(path.join(skills,'.system')).isSymbolicLink(),false);
+ }
+ assert.deepEqual(snapshot(native),before);
+});
+
+test('a Codex .system folder written while a legacy link is being removed is accepted',t=>{
+ const f=fixture(t),native=nativeSystem(f),bundle=build(f.root,'planner',f.target);
+ const runtime=codexHome(bundle,'main',{...f.env},f.home),system=path.join(runtime,'skills/.system');
+ fs.symlinkSync(native,system);
+ // A sibling removes the link and Codex writes its folder just before this unlink.
+ const unlink=fs.unlinkSync;t.after(()=>{fs.unlinkSync=unlink;});
+ fs.unlinkSync=(target,...rest)=>{if(target===system&&fs.lstatSync(system).isSymbolicLink()){unlink(system);codexWritesSystem(runtime);}return unlink(target,...rest);};
+ codexHome(bundle,'main',{...f.env},f.home);
+ fs.unlinkSync=unlink;
+ assert.equal(fs.lstatSync(system).isDirectory(),true);
+ assert.equal(fs.readFileSync(path.join(system,'.codex-system-skills.marker'),'utf8'),'B');
+});

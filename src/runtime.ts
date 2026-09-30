@@ -159,13 +159,24 @@ function materializeLaunch(bundle: string, route: string, launch: LaunchMetadata
   } finally { fs.rmSync(staging,{recursive:true,force:true}); }
   return destination;
 }
+const missing = (e: unknown): boolean => (e as NodeJS.ErrnoException).code === 'ENOENT';
+const conflict = (destination: string): Error => new Error(`Conflicting runtime path: ${destination} is not a link Agent Farm manages; move it aside to continue`);
+// Idempotent under a sibling launch preparing the same runtime home at once.
 function link(source: string, destination: string): void {
   if (!fs.existsSync(source)) return;
-  let current: fs.Stats | undefined;
-  try { current = fs.lstatSync(destination); } catch (e) { if ((e as NodeJS.ErrnoException).code !== 'ENOENT') throw e; }
-  if (current) {
-    if (!current.isSymbolicLink() || fs.realpathSync(destination) !== fs.realpathSync(source)) throw new Error(`Conflicting runtime path: ${destination}`);
-  } else fs.symlinkSync(source,destination);
+  for (let attempt=0;;attempt++) {
+    let current: fs.Stats | undefined;
+    try { current = fs.lstatSync(destination); } catch (e) { if (!missing(e)) throw e; }
+    if (!current) {
+      try { fs.symlinkSync(source,destination); return; } catch (e) { if ((e as NodeJS.ErrnoException).code !== 'EEXIST' || attempt>=3) throw e; }
+      continue;
+    }
+    let same: boolean;
+    try { same = current.isSymbolicLink() && fs.realpathSync(destination) === fs.realpathSync(source); }
+    catch (e) { if (missing(e) && attempt<3) continue; throw e; }
+    if (!same) throw conflict(destination);
+    return;
+  }
 }
 export interface Provider { name: string; base_url: string; api_key_env: string; match?: 'all' | 'slash-models' }
 export function loadProvider(root: string): Provider | undefined {
@@ -215,6 +226,20 @@ function codexConfig(original: string, runtime: string, provider?: Provider): vo
   fs.writeFileSync(temporary,content,{mode:0o600,flag:'wx'});
   try { fs.renameSync(temporary,destination); } finally { if (fs.existsSync(temporary)) fs.unlinkSync(temporary); }
 }
+const codexSystemSkills='.system';
+/** Link target, null when a sibling launch removed the entry, undefined when it is not a link. */
+function managedLink(destination: string): string | null | undefined {
+  for (let attempt=0;;attempt++) {
+    try {
+      if (!fs.lstatSync(destination).isSymbolicLink()) return undefined;
+      return fs.readlinkSync(destination);
+    } catch (e) {
+      if (missing(e)) return null;
+      // macOS can report EINVAL for a link a sibling is removing; look again.
+      if ((e as NodeJS.ErrnoException).code!=='EINVAL' || attempt>=3) throw e;
+    }
+  }
+}
 export function codexHome(bundle: string, route: string, env: NodeJS.ProcessEnv, home = os.homedir(), provider?: Provider): string {
   const manifest: Manifest=JSON.parse(fs.readFileSync(path.join(bundle,'manifest.json'),'utf8'));
   const native=env.AGENT_FARM_NATIVE_CODEX_HOME ?? env.ORCHESTRA_NATIVE_CODEX_HOME ?? env.CODEX_HOME ?? path.join(home,'.codex');
@@ -233,12 +258,19 @@ export function codexHome(bundle: string, route: string, env: NodeJS.ProcessEnv,
     desired.set(name,path.join(original,'skills',name));
   }
   for (const name of names) desired.set(name,path.join(selected,name));
+  // Codex installs its own system skills here and replaces a link with a real
+  // folder, so it owns this entry. Older launchers linked it; unlink only.
+  desired.delete(codexSystemSkills);
   // This private directory owns skill links, not session data. Refresh changed
   // targets (including dangling links) and remove skills no longer selected.
   for (const name of fs.readdirSync(skills)) {
     const destination=path.join(skills,name);
-    if (!fs.lstatSync(destination).isSymbolicLink()) throw new Error(`Conflicting runtime path: ${destination}`);
-    if (path.resolve(skills,fs.readlinkSync(destination))!==desired.get(name)) fs.unlinkSync(destination);
+    const target=managedLink(destination);
+    if (target===undefined) { if (name===codexSystemSkills) continue; throw conflict(destination); }
+    if (target!==null && path.resolve(skills,target)!==desired.get(name)) try { fs.unlinkSync(destination); } catch (e) {
+      // A sibling may have removed the link and Codex written its folder since.
+      if (!missing(e) && !(name===codexSystemSkills && managedLink(destination)===undefined)) throw e;
+    }
   }
   for (const [name,source] of desired) link(source,path.join(skills,name));
   env.CODEX_HOME=runtime; env.AGENT_FARM_NATIVE_CODEX_HOME=original; return runtime;

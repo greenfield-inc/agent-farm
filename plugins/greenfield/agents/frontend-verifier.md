@@ -1,7 +1,7 @@
 ---
 harness: codex
 model:
-  name: gpt-5.6-sol
+  name: gpt-6.1-sol
   reasoning: low
 description: Quickly navigate the running frontend and verify specified validation criteria on a known revision. Reports evidence and findings; never implements.
 skills:
