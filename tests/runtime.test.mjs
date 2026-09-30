@@ -559,9 +559,7 @@ test('concurrent launches sharing a runtime home all succeed',async t=>{
   const bundle=build(f.root,'planner',f.target);
   if(runtime&&index%2===0)codexWritesSystem(runtime);
   if(runtime&&index%2===1){fs.rmSync(path.join(runtime,'skills/.system'),{recursive:true,force:true});fs.symlinkSync(native,path.join(runtime,'skills/.system'));}
-  // Codex may replace a legacy link with its own folder while siblings prepare.
-  const codex=index%2===1?promisify(execFile)(process.execPath,['--eval',`const fs=require('node:fs'),s=${JSON.stringify(path.join(runtime,'skills/.system'))};try{fs.unlinkSync(s)}catch{}fs.mkdirSync(s,{recursive:true});fs.writeFileSync(s+'/.codex-system-skills.marker','B');`]):undefined;
-  const results=await Promise.all(Array.from({length:8},()=>prepare(bundle)));await codex;
+  const results=await Promise.all(Array.from({length:8},()=>prepare(bundle)));
   runtime=results[0].stdout;
   for(const result of results)assert.equal(result.stdout,runtime);
   const skills=path.join(runtime,'skills');
@@ -570,4 +568,17 @@ test('concurrent launches sharing a runtime home all succeed',async t=>{
   if(fs.readdirSync(skills).includes('.system'))assert.equal(fs.lstatSync(path.join(skills,'.system')).isSymbolicLink(),false);
  }
  assert.deepEqual(snapshot(native),before);
+});
+
+test('a Codex .system folder written while a legacy link is being removed is accepted',t=>{
+ const f=fixture(t),native=nativeSystem(f),bundle=build(f.root,'planner',f.target);
+ const runtime=codexHome(bundle,'main',{...f.env},f.home),system=path.join(runtime,'skills/.system');
+ fs.symlinkSync(native,system);
+ // A sibling removes the link and Codex writes its folder just before this unlink.
+ const unlink=fs.unlinkSync;t.after(()=>{fs.unlinkSync=unlink;});
+ fs.unlinkSync=(target,...rest)=>{if(target===system&&fs.lstatSync(system).isSymbolicLink()){unlink(system);codexWritesSystem(runtime);}return unlink(target,...rest);};
+ codexHome(bundle,'main',{...f.env},f.home);
+ fs.unlinkSync=unlink;
+ assert.equal(fs.lstatSync(system).isDirectory(),true);
+ assert.equal(fs.readFileSync(path.join(system,'.codex-system-skills.marker'),'utf8'),'B');
 });
