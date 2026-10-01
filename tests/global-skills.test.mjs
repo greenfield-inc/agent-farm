@@ -4,7 +4,7 @@ import fs from 'node:fs';import os from 'node:os';import path from 'node:path';
 import {spawnSync} from 'node:child_process';import {fileURLToPath} from 'node:url';
 import {globalSkills,globalSkillWarning,saveGlobalSkills,loadProfile,unloadProfile} from '../dist/user-skills.js';
 import {resolve} from '../dist/compiler.js';
-import {writeHarness} from './harness.mjs';
+import {writeHarness,writeLink} from './harness.mjs';
 const cli=fileURLToPath(new URL('../dist/cli.js',import.meta.url));
 function fixture(t,harness='codex') {
  const home=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-save-')));t.after(()=>fs.rmSync(home,{recursive:true,force:true}));
@@ -32,7 +32,7 @@ for(const harness of ['codex','claude'])test(`${harness}: save/unmount unmanaged
 });
 test('shared Codex user root and external symlink skills are captured without moving targets',t=>{
  const f=fixture(t);f.put('external/SKILL.md','skill');f.put('external/references/a.md','reference');
- fs.mkdirSync(path.join(f.home,'.agents/skills'),{recursive:true});fs.symlinkSync(path.join(f.home,'external'),path.join(f.home,'.agents/skills/linked'));
+ fs.mkdirSync(path.join(f.home,'.agents/skills'),{recursive:true});writeLink(path.join(f.home,'external'),path.join(f.home,'.agents/skills/linked'));
  const saved=saveGlobalSkills(f.root,'saved','test',f.options);
  assert.ok(fs.lstatSync(path.join(saved.backup,'0')).isSymbolicLink());assert.ok(fs.existsSync(path.join(f.home,'external/SKILL.md')));
  assert.equal(fs.readFileSync(path.join(f.root,'skills/linked/references/a.md'),'utf8'),'reference');

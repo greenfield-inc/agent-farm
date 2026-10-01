@@ -11,6 +11,7 @@ import {TelemetryStore,telemetryProject} from '../dist/telemetry-query.js';
 import {startTelemetryUI} from '../dist/telemetry-ui.js';
 import {validateTelemetry,mergeTelemetry,telemetryAccess,resolveTelemetry,command,verify} from '../dist/runtime.js';
 import {build} from '../dist/compiler.js';
+import {writeLink} from './harness.mjs';
 
 function fixture(t){
   const base=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'farm-query-')));t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
@@ -52,8 +53,8 @@ test('linked worktrees share project scope; symlink records and unrelated reposi
   const linked=path.join(f.base,'linked');execFileSync('git',['-C',f.options.projectDirectory,'worktree','add','-qb','linked',linked]);
   const s=f.session(linked);assert.equal(telemetryProject(linked).id,telemetryProject(f.options.projectDirectory).id);
   const store=new TelemetryStore(f.options);assert.equal((await store.query('list_sessions')).items[0].id,s.id);
-  const symlink=randomUUID();fs.symlinkSync(s.dir,path.join(f.options.directory,symlink));assert.equal((await store.query('list_sessions')).items.length,1);
-  fs.renameSync(path.join(s.dir,'session.json'),path.join(f.base,'metadata'));fs.symlinkSync(path.join(f.base,'metadata'),path.join(s.dir,'session.json'));
+  const symlink=randomUUID();writeLink(s.dir,path.join(f.options.directory,symlink));assert.equal((await store.query('list_sessions')).items.length,1);
+  fs.renameSync(path.join(s.dir,'session.json'),path.join(f.base,'metadata'));writeLink(path.join(f.base,'metadata'),path.join(s.dir,'session.json'));
   await assert.rejects(store.query('get_session',{session_id:s.id}),/unreadable/);
 });
 test('span and event queries tolerate partial exports, preserve native usage, and bound results',async t=>{

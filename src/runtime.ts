@@ -161,21 +161,36 @@ function materializeLaunch(bundle: string, route: string, launch: LaunchMetadata
   return destination;
 }
 const missing = (e: unknown): boolean => (e as NodeJS.ErrnoException).code === 'ENOENT';
+/** Reading a link a sibling launch is removing reports EINVAL on macOS and EPERM on Windows. */
+const vanishing = (e: unknown): boolean => ['EINVAL','EPERM'].includes((e as NodeJS.ErrnoException).code ?? '');
 const conflict = (destination: string): Error => new Error(`Conflicting runtime path: ${destination} is not a link Agent Farm manages; move it aside to continue`);
-/** A Windows file link is a hard link, which lstat cannot flag, so the shared inode is its identity. */
+/** A Windows file link is a hard link, which lstat cannot flag, so the shared inode is its identity.
+ *  Link counts are not: a contended lstat can report 1 for a file that has two names. */
 export function hardLinked(source: string, current: fs.Stats): boolean {
-  if (current.isSymbolicLink() || !current.isFile() || current.nlink<2) return false;
+  if (current.isSymbolicLink() || !current.isFile()) return false;
   let target: fs.Stats;
   try { target=fs.statSync(source); } catch (e) { if (missing(e)) return false; throw e; }
   return target.dev===current.dev && target.ino===current.ino;
 }
+/** Waits for a sibling launch to finish publishing a link, then reports whether another look is worth taking.
+ *  Windows creates a junction in two steps, so a sibling can see a bare directory where a link is appearing. */
+function settling(attempt: number): boolean {
+  if (attempt>=3) return false;
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,5<<attempt);
+  return true;
+}
+/** Takes the file fallback below even where a symlink would succeed, so a machine that holds the Windows
+ *  symlink privilege — an elevated shell, or any GitHub Windows runner — can still exercise that path. */
+const forcedFallback = (): boolean => process.env.AGENT_FARM_FORCE_LINK_FALLBACK==='1';
 /** Links folders as junctions, which Windows allows without Developer Mode; a file symlink needs a privilege a
  *  default install withholds, so files fall back to a hard link, which the harness still writes through.
  *  Elsewhere the type is ignored. */
 export function symlink(source: string, destination: string): void {
   const directory=fs.statSync(source).isDirectory();
-  try { fs.symlinkSync(source,destination,directory?'junction':'file'); return; }
-  catch (e) { if (directory || process.platform!=='win32' || (e as NodeJS.ErrnoException).code!=='EPERM') throw e; }
+  if (directory || !forcedFallback()) {
+    try { fs.symlinkSync(source,destination,directory?'junction':'file'); return; }
+    catch (e) { if (directory || process.platform!=='win32' || (e as NodeJS.ErrnoException).code!=='EPERM') throw e; }
+  }
   // A hard link needs no privilege, but it cannot cross volumes (EXDEV).
   try { fs.linkSync(source,destination); }
   catch (e) {
@@ -201,9 +216,10 @@ function link(source: string, destination: string): void {
     }
     let same: boolean;
     try { same = current.isSymbolicLink() ? fs.realpathSync(destination) === fs.realpathSync(source) : hardLinked(source,current); }
-    catch (e) { if (missing(e) && attempt<3) continue; throw e; }
-    if (!same) throw conflict(destination);
-    return;
+    catch (e) { if ((missing(e) || vanishing(e)) && settling(attempt)) continue; throw e; }
+    if (same) return;
+    // A path that never settles into this link is one Agent Farm does not own.
+    if (!settling(attempt)) throw conflict(destination);
   }
 }
 export interface Provider { name: string; base_url: string; api_key_env: string; match?: 'all' | 'slash-models' }
@@ -229,21 +245,38 @@ export function loadProvider(root: string): Provider | undefined {
   return {name:value.name,base_url:value.base_url,api_key_env:value.api_key_env,...(value.match===undefined ? {} : {match:value.match})};
 }
 const providerConfigMarker='# Agent Farm generated provider configuration\n';
+/** True only for a provider configuration a launch generated here; a link to the native config is not one. */
+function generatedConfig(destination: string, native: string): boolean {
+  try {
+    const current=fs.lstatSync(destination);
+    // A Windows fallback link is a hard link, so it reads as a plain file holding the user's own settings.
+    if (current.isSymbolicLink() || !current.isFile() || hardLinked(native,current)) return false;
+    return fs.readFileSync(destination,'utf8').startsWith(providerConfigMarker);
+  } catch (e) { if (missing(e)) return false; throw e; }
+}
 function codexConfig(original: string, runtime: string, provider?: Provider): void {
   const destination=path.join(runtime,'config.toml'),native=path.join(original,'config.toml');
-  let current: fs.Stats | undefined;
-  try { current=fs.lstatSync(destination); } catch (e) { if ((e as NodeJS.ErrnoException).code!=='ENOENT') throw e; }
-  // A Windows fallback link is a hard link to the native config, so it reads as a plain file holding the user's settings.
-  const managed=!!current && (current.isSymbolicLink() || hardLinked(native,current));
-  if (current && !managed && (!current.isFile() || !fs.readFileSync(destination,'utf8').startsWith(providerConfigMarker))) throw new Error(`Conflicting runtime path: ${destination}`);
   if (!provider) {
-    if (current && !managed) fs.unlinkSync(destination);
     // Codex writes its settings through this link, so it needs a file to point at.
     fs.closeSync(fs.openSync(native,'a'));
+    // Retire a provider configuration an earlier launch generated here; link() judges every other path.
+    if (generatedConfig(destination,native)) try { fs.unlinkSync(destination); } catch (e) { if (!missing(e)) throw e; }
     link(native,destination);
     return;
   }
-  if (current?.isSymbolicLink() && path.resolve(runtime,fs.readlinkSync(destination))!==native) throw new Error(`Conflicting runtime path: ${destination}`);
+  // Refuse a path this launch does not own, giving a sibling publishing the native-config link time to appear.
+  for (let attempt=0;;attempt++) {
+    let current: fs.Stats | undefined;
+    try { current=fs.lstatSync(destination); } catch (e) { if (!missing(e)) throw e; }
+    let owned: boolean;
+    try {
+      owned = !current || (current.isSymbolicLink()
+        ? path.resolve(runtime,fs.readlinkSync(destination))===native
+        : hardLinked(native,current) || generatedConfig(destination,native));
+    } catch (e) { if (!missing(e)) throw e; owned=false; }
+    if (owned) break;
+    if (!settling(attempt)) throw new Error(`Conflicting runtime path: ${destination}`);
+  }
   const content=providerConfigMarker+[
     `model_provider = ${toml(provider.name)}`,
     `[model_providers.${provider.name}]`,
@@ -269,8 +302,7 @@ function managedLink(destination: string, source?: string): string | null | unde
       return fs.readlinkSync(destination);
     } catch (e) {
       if (missing(e)) return null;
-      // macOS can report EINVAL for a link a sibling is removing; look again.
-      if ((e as NodeJS.ErrnoException).code!=='EINVAL' || attempt>=3) throw e;
+      if (!vanishing(e) || !settling(attempt)) throw e;
     }
   }
 }
@@ -301,7 +333,9 @@ export function codexHome(bundle: string, route: string, env: NodeJS.ProcessEnv,
   // targets (including dangling links) and remove skills no longer selected.
   for (const name of fs.readdirSync(skills)) {
     const destination=path.join(skills,name);
-    const target=managedLink(destination,desired.get(name));
+    let target=managedLink(destination,desired.get(name));
+    // Codex owns .system outright, so a folder there is expected; anything else should settle into a link.
+    if (target===undefined && name!==codexSystemSkills) for (let attempt=0;target===undefined && settling(attempt);attempt++) target=managedLink(destination,desired.get(name));
     if (target===undefined) { if (name===codexSystemSkills) continue; throw conflict(destination); }
     if (target!==null && path.resolve(skills,target)!==desired.get(name)) try { unlink(destination); } catch (e) {
       // A sibling may have removed the link and Codex written its folder since.

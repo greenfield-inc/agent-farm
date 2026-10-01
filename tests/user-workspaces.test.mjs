@@ -4,6 +4,7 @@ import fs from 'node:fs';import path from 'node:path';import os from 'node:os';
 import {spawnSync} from 'node:child_process';import {fileURLToPath} from 'node:url';
 import {parse} from 'smol-toml';
 import {loadWorkspace,unloadWorkspace,loadedWorkspaces} from '../dist/user-workspaces.js';
+import {writeLink} from './harness.mjs';
 const cli=fileURLToPath(new URL('../dist/cli.js',import.meta.url));
 function fixture(t,harness){
  const home=fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-global-'));t.after(()=>fs.rmSync(home,{recursive:true,force:true}));
@@ -83,7 +84,7 @@ test('global workspace CLI load/list/unload operates on isolated user files',t=>
  result=run(['workspace','unload','--directory',f.root,'--harness','claude']);assert.equal(result.status,0,result.stderr);
 });
 test('symlink native configuration is refused without replacing it',t=>{
- const f=fixture(t,'codex'),other=path.join(f.home,'other-config');fs.renameSync(f.config,other);fs.symlinkSync(other,f.config);
+ const f=fixture(t,'codex'),other=path.join(f.home,'other-config');fs.renameSync(f.config,other);writeLink(other,f.config);
  assert.throws(()=>loadWorkspace(f.root,f.root,f.options),/symlink/);
  assert.equal(fs.readFileSync(other,'utf8'),f.original);
 });

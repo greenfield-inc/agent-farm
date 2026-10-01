@@ -6,6 +6,7 @@ import path from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {exportTelemetry} from '../dist/telemetry-export.js';
+import {writeLink} from './harness.mjs';
 
 function fixture(t){
   const base=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'farm-export-')));
@@ -59,13 +60,13 @@ test('content export requires explicit consent, and rejects invalid roots and un
   assert.throws(()=>exportTelemetry(f.options,{bundle:f.bundle}),/explicit session/);
   assert.throws(()=>exportTelemetry(f.options,{bundle:f.bundle,sessionIds:['../secret']}),/session ID/);
   exportTelemetry(f.options,{bundle:f.bundle,sessionIds:[s.id],includeContent:true});
-  const target=path.join(f.bundle,'evidence/telemetry',s.id,'traces.jsonl');fs.unlinkSync(target);fs.symlinkSync(path.join(s.dir,'traces.jsonl'),target);
+  const target=path.join(f.bundle,'evidence/telemetry',s.id,'traces.jsonl');fs.unlinkSync(target);writeLink(s.dir,target);
   assert.throws(()=>exportTelemetry(f.options,{bundle:f.bundle,includeContent:true}),/symlinks/);
 });
 
 test('source symlinks, locked bundles, and oversized signals fail without a successful snapshot',t=>{
   const f=fixture(t),s=f.session(),signal=path.join(s.dir,'logs.jsonl');
-  fs.unlinkSync(signal);fs.symlinkSync(path.join(s.dir,'traces.jsonl'),signal);
+  fs.unlinkSync(signal);writeLink(s.dir,signal);
   assert.throws(()=>exportTelemetry(f.options,{bundle:f.bundle,sessionIds:[s.id]}));
   fs.unlinkSync(signal);fs.writeFileSync(signal,'');fs.truncateSync(signal,65*1024*1024);
   assert.throws(()=>exportTelemetry(f.options,{bundle:f.bundle,sessionIds:[s.id]}),/byte limits/);

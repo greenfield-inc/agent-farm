@@ -7,7 +7,7 @@ import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {build} from '../dist/compiler.js';
 import {command,fileMap,verify} from '../dist/runtime.js';
-import {writeHarness} from './harness.mjs';
+import {writeHarness,writeLink,assertLinked} from './harness.mjs';
 const cli=fileURLToPath(new URL('../dist/cli.js',import.meta.url));
 function fixture(t) {
  const base=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-ts-')));t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
@@ -52,7 +52,7 @@ test('conflicting endpoints and secret URLs fail',t=>{
  f.put('workspace.yaml','connections:\n  docs:\n    type: mcp\n    auth: native\n    url: https://example.com/mcp?token=secret\n');assert.throws(f.build,/credentials/);
 });
 test('symlink skill inputs fail',t=>{
- const f=fixture(t);fs.symlinkSync(path.join(f.root,'skills/proof/helper.txt'),path.join(f.root,'skills/proof/link'));assert.throws(f.build,/Symlink/);
+ const f=fixture(t);writeLink(path.join(f.root,'skills/proof/helper.txt'),path.join(f.root,'skills/proof/link'));assert.throws(f.build,/Symlink/);
 });
 test('Claude command preserves cwd and literal starter',t=>{
  const f=fixture(t),b=f.build(),r=command(b,'main',{message:'$(not-a-command)',prepare:false});
@@ -75,8 +75,7 @@ test('Codex references native auth without copying payloads',t=>{
  const f=fixture(t),b=f.build(),home=path.join(f.base,'home'),original=path.join(home,'.codex');fs.mkdirSync(original,{recursive:true});
  fs.writeFileSync(path.join(original,'auth.json'),'SECRET-FIXTURE');fs.writeFileSync(path.join(original,'config.toml'),'');
  const r=command(b,'main/children/worker',{home,env:{CODEX_HOME:original}});
- assert.equal(fs.realpathSync(path.join(r.env.CODEX_HOME,'auth.json')),path.join(original,'auth.json'));
- assert.ok(fs.lstatSync(path.join(r.env.CODEX_HOME,'auth.json')).isSymbolicLink());
+ assertLinked(path.join(r.env.CODEX_HOME,'auth.json'),path.join(original,'auth.json'));
  for (const p of Object.keys(fileMap(b))) assert.equal(fs.readFileSync(path.join(b,p),'utf8').includes('SECRET-FIXTURE'),false);
 });
 test('profiles coexist without changing repo instructions',t=>{
