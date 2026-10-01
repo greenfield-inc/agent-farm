@@ -7,7 +7,7 @@ import os from 'node:os';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {build} from '../dist/compiler.js';
-import {command,codexHome,loadProvider,fileMap,verify} from '../dist/runtime.js';
+import {command,codexHome,hardLinked,loadProvider,fileMap,verify} from '../dist/runtime.js';
 import {parse as parseToml} from 'smol-toml';
 import {writeHarness} from './harness.mjs';
 
@@ -583,4 +583,86 @@ test('a Codex .system folder written while a legacy link is being removed is acc
  fs.unlinkSync=unlink;
  assert.equal(fs.lstatSync(system).isDirectory(),true);
  assert.equal(fs.readFileSync(path.join(system,'.codex-system-skills.marker'),'utf8'),'B');
+});
+
+// A default Windows install withholds SeCreateSymbolicLinkPrivilege, so file symlinks fail with EPERM while
+// junctions and hard links succeed. This fake reproduces that on POSIX so both platforms run the fallback.
+function withoutFileSymlinks(t) {
+ const platform=process.platform,symlinkSync=fs.symlinkSync;
+ Object.defineProperty(process,'platform',{value:'win32',configurable:true});
+ fs.symlinkSync=(source,destination,type)=>{
+  if(type!=='file')return symlinkSync(source,destination,type);
+  throw Object.assign(new Error(`EPERM: operation not permitted, symlink '${source}' -> '${destination}'`),{code:'EPERM'});
+ };
+ t.after(()=>{fs.symlinkSync=symlinkSync;Object.defineProperty(process,'platform',{value:platform,configurable:true});});
+}
+const inode=file=>{const s=fs.statSync(file);return `${s.dev}:${s.ino}`;};
+
+test('Windows links Codex config files as hard links it still recognizes on the next launch',t=>{
+ const f=fixture(t),bundle=build(f.root,'planner',f.target);
+ withoutFileSymlinks(t);
+ const runtime=codexHome(bundle,'main',{...f.env},f.home);
+ const config=path.join(runtime,'config.toml'),native=path.join(f.home,'.codex/config.toml');
+ const current=fs.lstatSync(config);
+ assert.equal(current.isSymbolicLink(),false);
+ assert.equal(inode(config),inode(native));
+ assert.equal(hardLinked(native,current),true);
+ // Codex writes its settings through this link, so a copy would silently drop them.
+ fs.appendFileSync(config,'model = "written-through"\n');
+ assert.equal(fs.readFileSync(native,'utf8'),'model = "written-through"\n');
+ assert.equal(inode(path.join(runtime,'auth.json')),inode(path.join(f.home,'.codex/auth.json')));
+ // Directories are junctions on Windows, so they stay real links.
+ assert.equal(fs.lstatSync(path.join(runtime,'skills/proof')).isSymbolicLink(),true);
+ // A second launch must reuse the home, not call its own hard links a conflict.
+ assert.equal(codexHome(bundle,'main',{...f.env},f.home),runtime);
+ assert.equal(inode(config),inode(native));
+ assert.equal(fs.readFileSync(native,'utf8'),'model = "written-through"\n');
+ assert.equal(fs.readFileSync(path.join(runtime,'skills/proof/SKILL.md'),'utf8'),'Proof skill');
+});
+
+test('hard-linked runtime paths keep refusing files Agent Farm does not own',t=>{
+ const f=fixture(t),bundle=build(f.root,'implementer',f.target);
+ withoutFileSymlinks(t);
+ const runtime=codexHome(bundle,'main',{...f.env},f.home);
+ const config=path.join(runtime,'config.toml'),native=path.join(f.home,'.codex/config.toml');
+ fs.unlinkSync(config);fs.writeFileSync(config,'# unmanaged\n');
+ assert.throws(()=>codexHome(bundle,'main',{...f.env},f.home),/Conflicting runtime path/);
+ assert.equal(fs.readFileSync(config,'utf8'),'# unmanaged\n');
+ // A hard link to something else is not this link either.
+ const other=path.join(f.base,'other.toml');fs.writeFileSync(other,'# other\n');
+ fs.unlinkSync(config);fs.linkSync(other,config);
+ assert.throws(()=>codexHome(bundle,'main',{...f.env},f.home),/Conflicting runtime path/);
+ assert.equal(fs.readFileSync(other,'utf8'),'# other\n');
+ fs.unlinkSync(config);fs.linkSync(native,config);
+ const auth=path.join(runtime,'auth.json');fs.unlinkSync(auth);fs.writeFileSync(auth,'planted');
+ assert.throws(()=>codexHome(bundle,'main',{...f.env},f.home),/is not a link Agent Farm manages/);
+ assert.equal(fs.readFileSync(auth,'utf8'),'planted');
+ assert.equal(fs.readFileSync(path.join(f.home,'.codex/auth.json'),'utf8'),'AUTH-SECRET-FIXTURE');
+});
+
+test('a file link that cannot be hard linked either names Developer Mode and an elevated shell',t=>{
+ const f=fixture(t),bundle=build(f.root,'planner',f.target);
+ withoutFileSymlinks(t);
+ const linkSync=fs.linkSync;t.after(()=>{fs.linkSync=linkSync;});
+ // The runtime cache and the native Codex home can sit on different volumes.
+ fs.linkSync=(source,destination)=>{throw Object.assign(new Error(`EXDEV: cross-device link, link '${source}' -> '${destination}'`),{code:'EXDEV'});};
+ assert.throws(()=>codexHome(bundle,'main',{...f.env},f.home),/requires Developer Mode \(Settings > System > For developers\) or an elevated shell/);
+ assert.throws(()=>codexHome(bundle,'main',{...f.env},f.home),/\(EXDEV\)$/m);
+});
+
+test('a launcher that exits straight after execute still runs the harness and reports its status',t=>{
+ const f=fixture(t),runtimeModule=pathToFileURL(fileURLToPath(new URL('../dist/runtime.js',import.meta.url))).href;
+ // The interactive entry point exits as soon as its prompts finish. POSIX never gets there because execve
+ // replaced this process; Windows only spawned the harness, so the launcher has to wait for it first.
+ const script=`import {execute} from ${JSON.stringify(runtimeModule)};
+ const child=execute(['codex','probe'],${JSON.stringify(f.target)},process.env);
+ console.error('returned '+typeof child?.pid);
+ if (child) await new Promise(resolve=>child.on('close',resolve).on('error',resolve));
+ process.exit(process.exitCode ?? 0);`;
+ const result=spawnSync(process.execPath,['--input-type=module','--eval',script],{env:f.env,encoding:'utf8'});
+ assert.equal(result.status,7,result.stderr);
+ assert.equal(result.stdout,stdout);
+ assert.ok(result.stderr.includes(stderr),result.stderr);
+ assert.deepEqual(JSON.parse(fs.readFileSync(f.record,'utf8')).args,['probe']);
+ assert.equal(result.stderr.includes('returned number'),process.platform==='win32');
 });
