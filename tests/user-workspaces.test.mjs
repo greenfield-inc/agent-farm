@@ -57,7 +57,7 @@ for(const harness of ['claude','codex']){
 }
 test('global workspace enforces one selection per harness and rolls back on receipt failure',t=>{
  const f=fixture(t,'codex');const originalRename=fs.renameSync;
- fs.renameSync=(from,to)=>{if(to.endsWith('/user-workspaces/state.json'))throw Error('simulated storage failure');return originalRename(from,to);};
+ fs.renameSync=(from,to)=>{if(to.endsWith(path.join('user-workspaces','state.json')))throw Error('simulated storage failure');return originalRename(from,to);};
  try{assert.throws(()=>loadWorkspace(f.root,f.root,f.options),/simulated/);}finally{fs.renameSync=originalRename;}
  assert.equal(fs.readFileSync(f.config,'utf8'),f.original);
  assert.equal(fs.readFileSync(f.instructions,'utf8'),'Existing user instructions.\n');
@@ -74,7 +74,7 @@ test('native config overrides and user instruction override file are respected',
 });
 test('global workspace CLI load/list/unload operates on isolated user files',t=>{
  const f=fixture(t,'claude');
- const env={...process.env,HOME:f.home,CLAUDE_CONFIG_DIR:path.join(f.home,'.claude'),CODEX_HOME:path.join(f.home,'.codex')};
+ const env={...process.env,HOME:f.home,USERPROFILE:f.home,CLAUDE_CONFIG_DIR:path.join(f.home,'.claude'),CODEX_HOME:path.join(f.home,'.codex')};
  delete env.AGENT_FARM_NATIVE_CODEX_HOME;delete env.ORCHESTRA_NATIVE_CODEX_HOME;
  const run=args=>spawnSync(process.execPath,[cli,...args],{env,encoding:'utf8'});
  let result=run(['workspace','load','--directory',f.root,'--harness','claude','--config-root',f.root]);assert.equal(result.status,0,result.stderr);

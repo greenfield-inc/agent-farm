@@ -10,7 +10,7 @@ import {installPlugin,validatePlugin} from '../dist/plugins.js';
 import {inspectProfile} from '../dist/inspect.js';
 
 function fixture(t) {
- const base=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-refs-')));t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
+ const base=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-refs-')));t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
  const root=path.join(base,'config'),target=path.join(base,'repo');fs.mkdirSync(target);
  const put=(p,s)=>{const f=path.join(root,p);fs.mkdirSync(path.dirname(f),{recursive:true});fs.writeFileSync(f,s);};
  put('skills/proof/SKILL.md','---\nname: proof\ndescription: Test\n---\nRead `.references/zones.md`.\n');
@@ -21,7 +21,7 @@ function fixture(t) {
  put('agents/plain.yaml','harness: codex\nmodel: gpt-6-astra\n');
  return {base,root,target,put,build:()=>build(root,'lead',target)};
 }
-const note=dir=>`Bundled references: ${dir}.`;
+const note=dir=>`Bundled references: ${dir}.`,escaped=text=>JSON.stringify(text).slice(1,-1);
 
 test('selected references are bundled per agent and named in every launch',t=>{
  const f=fixture(t),b=f.build();verify(b);
@@ -37,7 +37,7 @@ test('selected references are bundled per agent and named in every launch',t=>{
  const roles=JSON.parse(claude.argv[claude.argv.indexOf('--agents')+1]);
  assert.ok(roles.helper.prompt.includes(note(path.join(b,'main/children/helper/references'))));
  const codex=command(b,'main/children/worker',{prepare:false});
- assert.ok(codex.argv.find(a=>a.startsWith('developer_instructions=')).includes(note(path.join(b,'main/children/worker/references'))));
+ assert.ok(codex.argv.find(a=>a.startsWith('developer_instructions=')).includes(escaped(note(path.join(b,'main/children/worker/references')))));
  const plain=command(b,'main/children/plain',{prepare:false});
  assert.ok(!plain.argv.some(a=>a.includes('Bundled references')));
 });
@@ -79,14 +79,14 @@ test('cross-plugin references reach native Codex children and are recorded as de
  const b=build(host,'app/lead',f.target),m=JSON.parse(fs.readFileSync(path.join(b,'manifest.json'),'utf8'));
  assert.deepEqual(m.cross_plugin_dependencies,[{plugin:'lib',version:'1.0.0',references:['reference:lib/orch']}]);
  assert.equal(fs.readFileSync(path.join(b,'main/children/helper/references/zones.md'),'utf8'),'LIB ZONES');
- assert.ok(fs.readFileSync(path.join(b,'main/native-agents/helper.toml'),'utf8').includes(note(path.join(b,'main/children/helper/references'))));
+ assert.ok(fs.readFileSync(path.join(b,'main/native-agents/helper.toml'),'utf8').includes(escaped(note(path.join(b,'main/children/helper/references')))));
 });
 
 test('launch-specific bundles carry references and name their own copy',t=>{
  const f=fixture(t),b=f.build(),dispatch=path.join(b,'main/dispatch/worker'),home=path.join(f.base,'home'),codex=path.join(home,'.codex');fs.mkdirSync(codex,{recursive:true});
- const result=spawnSync(process.execPath,[dispatch,'--model','gpt-6-astra-override','--print-launch'],{encoding:'utf8',env:{...process.env,HOME:home,CODEX_HOME:codex,AGENT_FARM_NATIVE_CODEX_HOME:codex,AGENT_FARM_TELEMETRY:'off',AGENT_FARM_CONFIG_ROOT:f.root}});
+ const result=spawnSync(process.execPath,[dispatch,'--model','gpt-6-astra-override','--print-launch'],{encoding:'utf8',env:{...process.env,HOME:home,USERPROFILE:home,CODEX_HOME:codex,AGENT_FARM_NATIVE_CODEX_HOME:codex,AGENT_FARM_TELEMETRY:'off',AGENT_FARM_CONFIG_ROOT:f.root}});
  assert.equal(result.status,0,result.stderr);
  const launch=JSON.parse(result.stdout);assert.notEqual(launch.bundle,b);
  assert.equal(fs.readFileSync(path.join(launch.bundle,'main/children/worker/references/zones.md'),'utf8'),'ZONES');
- assert.ok(launch.argv.find(a=>a.startsWith('developer_instructions=')).includes(note(path.join(launch.bundle,'main/children/worker/references'))));
+ assert.ok(launch.argv.find(a=>a.startsWith('developer_instructions=')).includes(escaped(note(path.join(launch.bundle,'main/children/worker/references')))));
 });

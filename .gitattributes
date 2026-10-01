@@ -1,0 +1,3 @@
+# Plugin checksums hash file bytes, so checkouts keep LF on every platform.
+* text=auto eol=lf
+*.png binary

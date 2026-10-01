@@ -6,7 +6,7 @@ import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {repository,repositoryFile,workspaceDocument,validateWorkspace} from '../dist/workspaces.js';
 function fixture(t){
- const base=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'af-workspace-')));
+ const base=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'af-workspace-')));
  t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
  const repo=path.join(base,'repo');fs.mkdirSync(repo);execFileSync('git',['init','-q',repo]);
  const put=(p,s)=>{const f=path.join(base,p);fs.mkdirSync(path.dirname(f),{recursive:true});fs.writeFileSync(f,s);return f;};
@@ -14,7 +14,7 @@ function fixture(t){
 }
 test('nearest git checkout and linked worktree share canonical common directory',t=>{
  const f=fixture(t);f.put('repo/file','x');execFileSync('git',['-C',f.repo,'add','.']);execFileSync('git',['-C',f.repo,'-c','user.name=Test','-c','user.email=test@example.com','commit','-qm','initial']);
- const linked=path.join(f.base,'linked');execFileSync('git',['-C',f.repo,'worktree','add','-qb','linked',linked]);
+ const linked=path.join(f.base,'linked');execFileSync('git',['-C',f.repo,'-c','core.autocrlf=false','worktree','add','-qb','linked',linked]);
  fs.mkdirSync(path.join(linked,'nested'));
  assert.deepEqual(repository(path.join(linked,'nested')),{root:linked,common:path.join(f.repo,'.git')});
  assert.equal(repository(f.base),undefined);
@@ -76,16 +76,16 @@ connections:
 `;
 function project(t){
  const f=fixture(t),home=path.join(f.base,'home'),root=path.join(f.base,'config');fs.mkdirSync(home);fs.mkdirSync(root);
- const previous=process.env.HOME;process.env.HOME=home;t.after(()=>{if(previous===undefined)delete process.env.HOME;else process.env.HOME=previous;});
+ for(const key of ['HOME','USERPROFILE']){const previous=process.env[key];process.env[key]=home;t.after(()=>{if(previous===undefined)delete process.env[key];else process.env[key]=previous;});}
  f.put('config/agents/main.yaml','harness: claude\nmodel: test\nsubagents:\n  child:\n    agent: child\n    mode: process\n');
  f.put('config/agents/child.yaml','harness: claude\nmodel: test\n');
  const file=f.put('repo/.agent-farm/workspace.yaml',shared);
- const run=(args,directory=f.repo)=>spawnSync(process.execPath,[cli,...args,'--config-root',root,'--directory',directory],{encoding:'utf8',env:{...process.env,HOME:home},cwd:f.base});
+ const run=(args,directory=f.repo)=>spawnSync(process.execPath,[cli,...args,'--config-root',root,'--directory',directory],{encoding:'utf8',env:{...process.env,HOME:home,USERPROFILE:home},cwd:f.base});
  return {...f,root,home,file,run};
 }
 test('fallback applies outside repositories and when repository has no file; opt-out loads nothing',t=>{
  const f=project(t);f.put('config/workspace.yaml','instructions: Personal fallback\nconnections: {}');
- assert.equal(resolveWorkspace(f.root,{directory:f.base}).metadata.source,`user:${f.root}/workspace.yaml`);
+ assert.equal(resolveWorkspace(f.root,{directory:f.base}).metadata.source,`user:${path.join(f.root,'workspace.yaml')}`);
  fs.unlinkSync(f.file);assert.equal(resolveWorkspace(f.root,{directory:f.repo}).instructions,'Personal fallback');
  f.put('repo/.agent-farm/workspace.yaml',shared);assert.deepEqual(resolveWorkspace(f.root,{directory:f.repo,noWorkspace:true}),noWorkspace());
  fs.unlinkSync(path.join(f.root,'workspace.yaml'));assert.equal(resolveWorkspace(f.root,{directory:f.base}).metadata.source,'none');
@@ -111,7 +111,7 @@ test('interactive refusal continues with no workspace and approval shows command
 test('approval covers linked worktrees, reports changes, and revocation blocks all versions',async t=>{
  const f=project(t);await trustWorkspace(f.repo,{confirm:async()=>true});
  execFileSync('git',['-C',f.repo,'add','.']);execFileSync('git',['-C',f.repo,'-c','user.name=Test','-c','user.email=test@example.com','commit','-qm','workspace']);
- const linked=path.join(f.base,'linked');execFileSync('git',['-C',f.repo,'worktree','add','-qb','linked',linked]);
+ const linked=path.join(f.base,'linked');execFileSync('git',['-C',f.repo,'-c','core.autocrlf=false','worktree','add','-qb','linked',linked]);
  assert.equal(resolveWorkspace(f.root,{directory:linked}).metadata.trust,'trusted');
  const a=f.run(['run','main','--explain']),b=f.run(['run','main','--explain'],linked);assert.equal(a.status,0,a.stderr);assert.equal(b.status,0,b.stderr);
  const identity=r=>JSON.parse(r.stdout).argv[JSON.parse(r.stdout).argv.indexOf('--append-system-prompt')+1].split('Bundled children')[0];assert.equal(identity(a),identity(b));
@@ -150,7 +150,7 @@ test('merged workspace still conflicts with different agent connections',async t
 test('process children use parent workspace and refuse changed or revoked approval',async t=>{
  const f=project(t);await trustWorkspace(f.repo,{confirm:async()=>true});
  const bundle=build(f.root,'main',f.repo),dispatch=path.join(bundle,'main/dispatch/child');
- const run=()=>spawnSync(process.execPath,[dispatch,'--explain'],{cwd:f.base,encoding:'utf8',env:{...process.env,HOME:f.home}});
+ const run=()=>spawnSync(process.execPath,[dispatch,'--explain'],{cwd:f.base,encoding:'utf8',env:{...process.env,HOME:f.home,USERPROFILE:f.home}});
  let r=run();assert.equal(r.status,0,r.stderr);const output=JSON.parse(r.stdout);assert.equal(output.workspace_source.source,`repository:${f.file}`);assert.equal(output.cwd,f.repo);assert.ok(output.argv.some(v=>v.includes('Shared project instructions.')));
  fs.appendFileSync(f.file,'\n# edit');r=run();assert.equal(r.status,1);assert.match(r.stderr,/workspace trust/);
  fs.writeFileSync(f.file,shared);untrustWorkspace(f.repo);r=run();assert.equal(r.status,1);assert.match(r.stderr,/workspace trust/);
@@ -176,7 +176,7 @@ test('directory selection uses the other repository, and personal fallback never
  const f=project(t),other=path.join(f.base,'other');fs.mkdirSync(other);execFileSync('git',['init','-q',other]);
  f.put('other/.agent-farm/workspace.yaml',shared.replace('name: project','name: another').replace('Shared project instructions.','Other repository instructions.'));
  await trustWorkspace(other,{confirm:async()=>true});
- const r=f.run(['run','main','--explain'],other);assert.equal(r.status,0,r.stderr);const output=JSON.parse(r.stdout);assert.equal(output.workspace_source.source,`repository:${other}/.agent-farm/workspace.yaml`);assert.ok(output.argv.some(v=>v.includes('Other repository instructions.')));
+ const r=f.run(['run','main','--explain'],other);assert.equal(r.status,0,r.stderr);const output=JSON.parse(r.stdout);assert.equal(output.workspace_source.source,`repository:${path.join(other,'.agent-farm','workspace.yaml')}`);assert.ok(output.argv.some(v=>v.includes('Other repository instructions.')));
  f.put('config/workspace.yaml','name: project\ninstructions: Fallback');f.put('config/overlays/project.yaml','instructions: Overlay');
  const fallback=resolveWorkspace(f.root,{directory:f.base});assert.equal(fallback.instructions,'Fallback');assert.equal(fallback.metadata.overlay,undefined);
 });
@@ -187,7 +187,7 @@ test('bare repositories use fallback and malformed Git markers fail explicitly',
 });
 test('show exposes default and merged field provenance without granting trust',t=>{
  const f=project(t);f.put('config/overlays/project.yaml','connections:\n  local:\n    env: {ACCOUNT: personal}\n  added:\n    type: mcp\n    command: extra');
- const preview=showWorkspace(f.root,{directory:f.repo});assert.equal(preview.metadata.trust,'untrusted');assert.deepEqual(preview.provenance['connections.local.env'],[`repository:${f.file}`,`overlay:${f.root}/overlays/project.yaml`]);assert.equal(preview.provenance['connections.added.args'],`overlay:${f.root}/overlays/project.yaml`);
+ const preview=showWorkspace(f.root,{directory:f.repo});assert.equal(preview.metadata.trust,'untrusted');assert.deepEqual(preview.provenance['connections.local.env'],[`repository:${f.file}`,`overlay:${path.join(f.root,'overlays','project.yaml')}`]);assert.equal(preview.provenance['connections.added.args'],`overlay:${path.join(f.root,'overlays','project.yaml')}`);
  assert.throws(()=>resolveWorkspace(f.root,{directory:f.repo}),/Untrusted/);
 });
 
@@ -217,7 +217,7 @@ test('personal fallback telemetry merges with host defaults, environment wins, a
  f.put('config/overlays/project.yaml','telemetry: {enabled: false}');
  const fallback=resolveWorkspace(f.root,{directory:f.base});
  assert.deepEqual(resolveTelemetry(f.root,fallback.telemetry,{},f.home),{enabled:true,directory:hostDirectory});
- assert.equal(fallback.provenance['telemetry.enabled'],`user:${f.root}/workspace.yaml`);
+ assert.equal(fallback.provenance['telemetry.enabled'],`user:${path.join(f.root,'workspace.yaml')}`);
  assert.equal(resolveTelemetry(f.root,fallback.telemetry,{AGENT_FARM_TELEMETRY:'off'},f.home).enabled,false);
  const none=resolveWorkspace(f.root,{directory:f.base,noWorkspace:true});
  assert.deepEqual(resolveTelemetry(f.root,none.telemetry,{},f.home),{enabled:false,directory:hostDirectory});
@@ -236,7 +236,7 @@ test('workspace telemetry appears in trust review, merges fieldwise with overlay
  assert.deepEqual(preview.provenance.telemetry,[`repository:${f.file}`,`overlay:${overlay}`]);
  const untrusted=f.run(['run','main','--print-launch']);assert.equal(untrusted.status,1);assert.match(untrusted.stderr,/Untrusted/);
  let summary;await trustWorkspace(f.repo,{confirm:async value=>{summary=value;return true;}});
- assert.match(summary,/telemetry settings/);assert.ok(summary.includes(sharedDirectory));assert.ok(summary.includes('"enabled": false'));
+ assert.match(summary,/telemetry settings/);assert.ok(summary.includes(JSON.stringify(sharedDirectory)));assert.ok(summary.includes('"enabled": false'));
  for(const args of [['inspect','main'],['run','main','--explain'],['run','main','--print-launch']]){
   const r=f.run(args);assert.equal(r.status,0,r.stderr);const result=JSON.parse(r.stdout);
   assert.deepEqual(result.telemetry,{enabled:false,directory:personalDirectory});
@@ -261,7 +261,7 @@ test('process dispatch retains workspace telemetry snapshot and rejects changed 
  assert.deepEqual(manifest.workspace_telemetry,{enabled:true,directory});
  fs.writeFileSync(overlay,'telemetry: '+JSON.stringify({enabled:false,directory:path.join(f.base,'new-traces')}));
  const dispatch=path.join(parent.bundle,'main/dispatch/child');
- const child=()=>spawnSync(dispatch,['--print-launch'],{cwd:f.base,env:{...process.env,...parent.env,HOME:f.home},encoding:'utf8'});
+ const child=()=>spawnSync(process.execPath,[dispatch,'--print-launch'],{cwd:f.base,env:{...process.env,...parent.env,HOME:f.home,USERPROFILE:f.home},encoding:'utf8'});
  let result=child();assert.equal(result.status,0,result.stderr);assert.deepEqual(JSON.parse(result.stdout).telemetry,parent.telemetry);
  const rebuilt=f.run(['run','main','--print-launch']);assert.equal(rebuilt.status,0,rebuilt.stderr);
  assert.notEqual(JSON.parse(rebuilt.stdout).bundle,parent.bundle);assert.equal(JSON.parse(rebuilt.stdout).telemetry.enabled,false);

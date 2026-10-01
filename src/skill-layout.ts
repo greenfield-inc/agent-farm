@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import {files,hash} from './runtime.js';
+import {files,hash,symlink} from './runtime.js';
 
 /** Authoring names are independent of the harness's on-disk skill convention. */
 export function skillFiles(folder: string, harness: 'claude'|'codex'): {relative:string;source:string}[] {
@@ -36,7 +36,7 @@ export function userSkillSource(folder: string, harness: 'claude'|'codex', home:
   const temporary=fs.mkdtempSync(path.join(cache,'.building-'));
   try {
     for (const entry of entries) {
-      const file=path.join(temporary,entry.relative);fs.mkdirSync(path.dirname(file),{recursive:true});fs.symlinkSync(entry.source,file);
+      const file=path.join(temporary,entry.relative);fs.mkdirSync(path.dirname(file),{recursive:true});symlink(entry.source,file);
     }
     fs.renameSync(temporary,destination);
   } finally { fs.rmSync(temporary,{recursive:true,force:true}); }

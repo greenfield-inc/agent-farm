@@ -7,7 +7,7 @@ import * as p from '@clack/prompts';
 import {listProfiles, inspectProfile} from './inspect.js';
 import {build,modelSummary,orderedVariants,resolveProfile,splitVariant} from './compiler.js';
 import type {ResolvedWorkspace} from './workspaces.js';
-import {run} from './runtime.js';
+import {nativeCommand,run} from './runtime.js';
 import {installPlugin} from './plugins.js';
 import {fileURLToPath} from 'node:url';
 import {stringify} from 'yaml';
@@ -37,7 +37,7 @@ function bail(): never {
 }
 
 function which(name: string): boolean {
-  try { execSync(`which ${name}`, {stdio: 'ignore'}); return true; } catch { return false; }
+  return path.isAbsolute(nativeCommand([name],process.env)[0]!);
 }
 
 function listSkills(configRoot: string): string[] {
@@ -50,8 +50,8 @@ function listSkills(configRoot: string): string[] {
 }
 
 function openInEditor(file: string) {
-  const editor = process.env.EDITOR ?? process.env.VISUAL ?? 'nano';
-  try { execSync(`${editor} ${JSON.stringify(file)}`, {stdio: 'inherit'}); }
+  const editor = process.env.EDITOR ?? process.env.VISUAL ?? (process.platform==='win32' ? 'notepad' : 'nano');
+  try { execSync(`${editor} "${file}"`, {stdio: 'inherit'}); }
   catch { p.log.warn(`Could not open ${editor}. Edit manually: ${file}`); }
 }
 

@@ -3,7 +3,7 @@ import path from 'node:path';
 import os from 'node:os';
 import {resolve,resolveProfile,splitVariant} from './compiler.js';
 import {stringify} from 'yaml';
-import {files,hash} from './runtime.js';
+import {files,hash,symlink,unlink} from './runtime.js';
 import {userSkillSource} from './skill-layout.js';
 import {namespaces} from './config.js';
 
@@ -73,11 +73,11 @@ export function loadProfile(root: string, profile: string, options: UserSkillOpt
     const created: Entry[]=[];
     try {
       for (const entry of item.skills) if (!tracked.some(e=>e.destination===entry.destination)) {
-        fs.symlinkSync(entry.source,entry.destination); created.push(entry);
+        symlink(entry.source,entry.destination); created.push(entry);
       }
       state.profiles[key]=item;save();
     } catch (e) {
-      for (const entry of created.reverse()) if (owned(entry)) fs.unlinkSync(entry.destination);
+      for (const entry of created.reverse()) if (owned(entry)) unlink(entry.destination);
       throw e;
     }
     return item;
@@ -98,11 +98,11 @@ export function unloadProfile(profile: string, options: UserSkillOptions={}): Lo
     for (const entry of removals) if (stat(entry.destination) && !owned(entry)) throw new Error(`Managed skill was replaced; preserving it: ${entry.destination}`);
     const removed: Entry[]=[];
     try {
-      for (const entry of removals) if (owned(entry)) { fs.unlinkSync(entry.destination); removed.push(entry); }
+      for (const entry of removals) if (owned(entry)) { unlink(entry.destination); removed.push(entry); }
       for (const [key] of matches) delete state.profiles[key];
       save();
     } catch (e) {
-      for (const entry of removed) if (!stat(entry.destination)) fs.symlinkSync(entry.source,entry.destination);
+      for (const entry of removed) if (!stat(entry.destination)) symlink(entry.source,entry.destination);
       throw e;
     }
     return matches.map(([,p])=>p);

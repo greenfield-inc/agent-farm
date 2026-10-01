@@ -43,12 +43,19 @@ to the work.
 
 ## Install
 
-Requires **Node 22.15+**, macOS or Linux, and the Claude Code and/or Codex CLI
-installed and authenticated.
+Requires **Node 22.15+** on macOS, Linux, or Windows, and the Claude Code and/or
+Codex CLI installed and authenticated. On Windows, turn on Developer Mode
+(Settings > System > For developers) before launching Codex profiles or running
+`agent-farm set global`, because those link individual files.
 
 ```sh
 npm install --global @greenfieldco/agent-farm
+agent-farm init
 ```
+
+`agent-farm init` checks your prerequisites, installs the default profiles and
+skills, explains how everything fits together, and offers to launch your first
+session.
 
 Or install from source:
 
@@ -60,16 +67,9 @@ mkdir -p ~/.local/bin
 ln -s "$PWD/dist/cli.js" ~/.local/bin/agent-farm
 ```
 
-Add `~/.local/bin` to your shell's `PATH`, then:
-
-```sh
-agent-farm init
-```
+Add `~/.local/bin` to your shell's `PATH`, then run `agent-farm init`.
 
 After pulling updates, run `agent-farm plugin install` to sync new profiles.
-
-It checks your prerequisites, installs the default profiles and skills, explains
-how everything fits together, and offers to launch your first session.
 
 ## Profiles
 

@@ -8,7 +8,7 @@ import {spawnSync} from 'node:child_process';
 import {exportTelemetry} from '../dist/telemetry-export.js';
 
 function fixture(t){
-  const base=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'farm-export-')));
+  const base=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'farm-export-')));
   t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
   const directory=path.join(base,'store'),projectDirectory=path.join(base,'project'),bundle=path.join(base,'bundle');
   for(const dir of [directory,projectDirectory,bundle])fs.mkdirSync(dir);
@@ -35,7 +35,7 @@ test('export preserves raw signals and artifact identity, selecting only roots a
   for(const s of [root,child,grandchild])for(const name of ['traces.jsonl','logs.jsonl','metrics.jsonl']){
     const target=path.join(f.bundle,'evidence/telemetry',s.id,name);
     assert.deepEqual(fs.readFileSync(target),fs.readFileSync(path.join(s.dir,name)));
-    assert.equal(fs.statSync(target).mode&0o777,0o600);
+    if(process.platform!=='win32')assert.equal(fs.statSync(target).mode&0o777,0o600);
   }
   for(const s of [unrelated,foreign])assert.equal(fs.existsSync(path.join(f.bundle,'evidence/telemetry',s.id)),false);
   assert.throws(()=>exportTelemetry({...f.options,scope:'machine'},{bundle:f.bundle,sessionIds:[foreign.id]}),/scope/);

@@ -13,7 +13,7 @@ import {parse} from 'yaml';
 const root=fileURLToPath(new URL('../plugins/greenfield/',import.meta.url));
 
 test('Greenfield compiles a single Astra Low writer with verification and cross-harness review',t=>{
- const target=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-profile-')));
+ const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-profile-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
  validatePlugin(root);
  for(const profile of ['implementer:standard','implementer:fast']){
@@ -41,7 +41,7 @@ test('Greenfield compiles a single Astra Low writer with verification and cross-
 
 test('the default Claude implementer variant runs Opus 5.5 with an Astra reviewer and Claude-native helpers',t=>{
  assert.equal(resolveProfile(root,'implementer').nodes.main.model,'claude-opus-5-5');
- const target=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-claude-')));
+ const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-claude-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
  const resolved=resolveProfile(root,'implementer:claude'),main=resolved.nodes.main;
  assert.equal(main.harness,'claude');assert.equal(main.model,'claude-opus-5-5');assert.equal(main.reasoning_effort,'medium');
@@ -95,7 +95,7 @@ test('planners leave implementation launches to the person',()=>{
 });
 
 test('orchestrator accepts host guidance and planners accept coordinated handoffs',t=>{
- const target=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-host-')));
+ const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-host-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
  const policy=path.join(target,'host.md'),source=path.join(target,'brief.html'),parent=path.join(target,'status.json');
  fs.writeFileSync(policy,'Use the host workspace and event tools.');
@@ -122,13 +122,13 @@ test('planners retain small-fix skills and the removed one-shot route cannot res
 
 
 test('Greenfield CLI arguments reach both harnesses and reject invalid profile inputs',t=>{
- const target=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-cli-args-')));
+ const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-cli-args-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
  const home=path.join(target,'home');fs.mkdirSync(home);
  const cli=fileURLToPath(new URL('../dist/cli.js',import.meta.url));
  const source='https://example.test/plan?revision=3&mode=review';
  const parent=path.join(target,'status files','task.json'),policy=path.join(target,'host guidance.md');
- const invoke=(profile,args)=>spawnSync(process.execPath,[cli,'run',profile,'--config-root',root,'--directory',target,'--no-workspace','--explain',...args.flatMap(a=>['--arg',a])],{encoding:'utf8',env:{...process.env,HOME:home,AGENT_FARM_TELEMETRY:'off'}});
+ const invoke=(profile,args)=>spawnSync(process.execPath,[cli,'run',profile,'--config-root',root,'--directory',target,'--no-workspace','--explain',...args.flatMap(a=>['--arg',a])],{encoding:'utf8',env:{...process.env,HOME:home,USERPROFILE:home,AGENT_FARM_TELEMETRY:'off'}});
  for(const [profile,args] of [['planner',[`source=${source}`,`parent=${parent}`]],['planner:codex',[`source=${source}`,`parent=${parent}`]],['orchestrator',[`host_policy=${policy}`]],['implementer',[`source=${source}`,`parent=${parent}`]],['implementer:fast',[`source=${source}`]],['implementer:claude',[`source=${source}`,`parent=${parent}`]]]){
   const result=invoke(profile,args);assert.equal(result.status,0,result.stderr);
   const launch=JSON.parse(result.stdout);

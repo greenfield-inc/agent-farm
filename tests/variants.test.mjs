@@ -14,7 +14,7 @@ import {chooseVariant} from '../dist/interactive.js';
 const cli=fileURLToPath(new URL('../dist/cli.js',import.meta.url));
 
 function fixture(t) {
- const base=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-variants-')));t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
+ const base=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-variants-')));t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
  const root=path.join(base,'config'),target=path.join(base,'repo');fs.mkdirSync(target);
  const put=(p,s)=>{const f=path.join(root,p);fs.mkdirSync(path.dirname(f),{recursive:true});fs.writeFileSync(f,s);};
  put('agents/planner-claude.md','---\nharness: claude\nmodel: claude-fable-5-1\n---\nClaude planner.\n');

@@ -10,6 +10,7 @@ import {setTimeout as delay} from 'node:timers/promises';
 import {build} from '../dist/compiler.js';
 import {command,verify} from '../dist/runtime.js';
 import {startSession,redactArgs} from '../dist/telemetry.js';
+import {writeHarness} from './harness.mjs';
 
 const cli=fileURLToPath(new URL('../dist/cli.js',import.meta.url));
 const fake=`#!${process.execPath}
@@ -18,7 +19,7 @@ const fs=require('node:fs');
  const args=process.argv.slice(2),env=process.env;
  if(env.WAIT_FOR_SIGNAL){fs.writeFileSync(env.READY,'ready');setInterval(()=>{},1000);return;}
  if(env.DISPATCH && !env.IN_CHILD){
-   const r=require('node:child_process').spawnSync(env.DISPATCH,[],{env:{...env,IN_CHILD:'1'},stdio:'inherit'});
+   const r=require('node:child_process').spawnSync(process.execPath,[env.DISPATCH],{env:{...env,IN_CHILD:'1'},stdio:'inherit'});
    if(r.status!==0)throw new Error('child failed');
  }
  for(const [signal,key] of [['traces','resourceSpans'],['logs','resourceLogs'],['metrics','resourceMetrics']]){
@@ -41,15 +42,15 @@ const fs=require('node:fs');
 })().catch(e=>{console.error(e);process.exitCode=1});
 `;
 function fixture(t,harness='claude'){
- const base=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-otel-')));
+ const base=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-otel-')));
  t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
  const root=path.join(base,'config'),cwd=path.join(base,'worktree'),home=path.join(base,'home'),bin=path.join(base,'bin'),directory=path.join(base,'telemetry');
  for(const d of [path.join(root,'agents'),cwd,path.join(home,'.codex'),bin])fs.mkdirSync(d,{recursive:true});
  fs.writeFileSync(path.join(root,'agents/main.yaml'),`harness: ${harness}\nmodel: test\nskills: []\nargs:\n  mode: {values: [review, build], default: review}\n  api_key: {type: string}\n`);
  fs.writeFileSync(path.join(root,'settings.json'),JSON.stringify({telemetry:{directory}}));
  fs.writeFileSync(path.join(home,'.codex/config.toml'),'');
- for(const h of ['claude','codex'])fs.writeFileSync(path.join(bin,h),fake,{mode:0o755});
- const env={...process.env,HOME:home,CODEX_HOME:path.join(home,'.codex'),AGENT_FARM_NATIVE_CODEX_HOME:path.join(home,'.codex'),AGENT_FARM_CONFIG_ROOT:root,PATH:bin+path.delimiter+process.env.PATH,RECORD:path.join(base,'record')};
+ for(const h of ['claude','codex'])writeHarness(bin,h,fake);
+ const env={...process.env,HOME:home,USERPROFILE:home,CODEX_HOME:path.join(home,'.codex'),AGENT_FARM_NATIVE_CODEX_HOME:path.join(home,'.codex'),AGENT_FARM_CONFIG_ROOT:root,PATH:bin+path.delimiter+process.env.PATH,RECORD:path.join(base,'record')};
  for(const k of ['AGENT_FARM_TELEMETRY','AGENT_FARM_TRACEPARENT','AGENT_FARM_SESSION_ID','TRACEPARENT'])delete env[k];
  const invoke=(args)=>spawnSync(process.execPath,[cli,'run','main','--config-root',root,'--directory',cwd,...args],{env,encoding:'utf8',timeout:15000});
  const sessions=()=>fs.readdirSync(directory).map(id=>({directory:path.join(directory,id),...JSON.parse(fs.readFileSync(path.join(directory,id,'session.json')))}));
@@ -99,9 +100,9 @@ for(const harness of ['claude','codex'])test(`${harness}: prepared launches coll
    for(const name of fs.readdirSync(s.directory)){
      const p=path.join(s.directory,name),text=fs.readFileSync(p,'utf8');
      for(const secret of ['ARG-SECRET','NATIVE-SECRET','PROMPT-SECRET'])assert.equal(text.includes(secret),false,`${secret} in ${name}`);
-     assert.equal(fs.statSync(p).mode&0o777,0o600);
+     if(process.platform!=='win32')assert.equal(fs.statSync(p).mode&0o777,0o600);
    }
-   assert.equal(fs.statSync(s.directory).mode&0o777,0o700);
+   if(process.platform!=='win32')assert.equal(fs.statSync(s.directory).mode&0o777,0o700);
  }
 });
 
@@ -166,7 +167,7 @@ test('disabled host setting propagates to standalone process children',t=>{
  delete f.env.AGENT_FARM_CONFIG_ROOT;
  const printed=f.invoke(['--print-launch']),launch=JSON.parse(printed.stdout);
  assert.equal(launch.env.AGENT_FARM_CONFIG_ROOT,f.root);
- const result=spawnSync(path.join(launch.bundle,'main/dispatch/worker'),['--print-launch'],{env:{...f.env,...launch.env},encoding:'utf8'});
+ const result=spawnSync(process.execPath,[path.join(launch.bundle,'main/dispatch/worker'),'--print-launch'],{env:{...f.env,...launch.env},encoding:'utf8'});
  assert.equal(result.status,0,result.stderr);assert.equal(JSON.parse(result.stdout).argv[0],'claude');
 });
 
@@ -203,18 +204,18 @@ test('receiver rejects malformed, unauthenticated and unsupported payloads and a
 });
 
 test('missing harness records launch failure',t=>{
- const f=fixture(t);fs.unlinkSync(path.join(f.bin,'claude'));f.env.PATH=f.bin;
+ const f=fixture(t);for(const file of fs.readdirSync(f.bin))if(file.startsWith('claude'))fs.unlinkSync(path.join(f.bin,file));f.env.PATH=f.bin;
  const r=f.invoke(['--exec']);assert.equal(r.status,1,r.stderr);
  assert.equal(f.sessions()[0].error,'ENOENT');assert.equal(f.sessions()[0].state,'finished');
 });
 
 test('unavailable storage fails open and preserves harness exit status',t=>{
  const f=fixture(t);fs.writeFileSync(f.directory,'not a directory');
- fs.writeFileSync(path.join(f.bin,'claude'),`#!${process.execPath}\nprocess.stdout.write('ok');process.exit(7);\n`,{mode:0o755});
+ writeHarness(f.bin,'claude',`process.stdout.write('ok');process.exit(7);\n`);
  const r=f.invoke(['--exec']);assert.equal(r.status,7);assert.equal(r.stdout,'ok');assert.match(r.stderr,/telemetry unavailable/);
 });
 
-test('supervisor forwards termination, records it, and exits with the same signal',async t=>{
+test('supervisor forwards termination, records it, and exits with the same signal',{skip:process.platform==='win32'&&'Windows has no POSIX signals'},async t=>{
  const f=fixture(t);f.env.WAIT_FOR_SIGNAL='1';f.env.READY=path.join(f.base,'ready');
  const printed=f.invoke(['--print-launch']),launch=JSON.parse(printed.stdout);
  const child=spawn(launch.argv[0],launch.argv.slice(1),{env:{...f.env,...launch.env},stdio:'ignore'});
@@ -246,7 +247,7 @@ test('a workspace-selected directory collects parent and child telemetry outside
  const sessions=fs.readdirSync(directory).map(id=>({directory:path.join(directory,id),...JSON.parse(fs.readFileSync(path.join(directory,id,'session.json')))}));
  assert.equal(sessions.length,2);
  for(const s of sessions){
-  assert.equal(s.state,'finished');assert.equal(s.attributes['agent_farm.workspace'],`user:${f.root}/workspace.yaml`);
+  assert.equal(s.state,'finished');assert.equal(s.attributes['agent_farm.workspace'],`user:${path.join(f.root,'workspace.yaml')}`);
   assert.equal(s.attributes['agent_farm.workspace.trust'],'personal');assert.equal(lines(s,'traces').length,2);
  }
  const fresh=f.invoke(['--print-launch']);assert.equal(fresh.status,0,fresh.stderr);assert.equal(JSON.parse(fresh.stdout).argv[0],'claude');

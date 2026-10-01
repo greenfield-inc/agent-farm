@@ -7,7 +7,7 @@ import http from 'node:http';
 import {randomBytes,randomUUID} from 'node:crypto';
 import {spawn,execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import type {LaunchMetadata,Manifest} from './runtime.js';
+import {nativeCommand,type LaunchMetadata,type Manifest} from './runtime.js';
 import {telemetryProject} from './telemetry-query.js';
 import {exportTelemetry} from './telemetry-export.js';
 
@@ -39,7 +39,9 @@ export function redactArgs(argv:string[]):string[] {
 
 function gitMetadata(cwd:string):Record<string,string|undefined> {
   const git=(...args:string[])=>{try{return execFileSync('git',['-C',cwd,...args],{encoding:'utf8',stdio:['ignore','pipe','ignore'],timeout:1500}).trim()||undefined;}catch{return undefined;}};
-  return {'agent_farm.project.directory':git('rev-parse','--path-format=absolute','--git-common-dir'),'vcs.worktree':git('rev-parse','--show-toplevel'),'vcs.ref.head.name':git('symbolic-ref','--quiet','--short','HEAD'),'vcs.ref.head.revision':git('rev-parse','--verify','HEAD')};
+  // Git prints forward slashes on Windows; resolve them to the same native paths as workspace identity.
+  const native=(value:string|undefined)=>value&&fs.realpathSync.native(path.resolve(value));
+  return {'agent_farm.project.directory':native(git('rev-parse','--path-format=absolute','--git-common-dir')),'vcs.worktree':native(git('rev-parse','--show-toplevel')),'vcs.ref.head.name':git('symbolic-ref','--quiet','--short','HEAD'),'vcs.ref.head.revision':git('rev-parse','--verify','HEAD')};
 }
 
 function parentContext(value:string|undefined) {
@@ -169,9 +171,12 @@ async function supervise(descriptor:Descriptor,argv:string[]) {
   catch {console.error('agent-farm: local telemetry unavailable; continuing session');}
   const artifactSession=process.env.AGENT_FARM_ARTIFACT_SESSION_ID??session?.id;
   if(session&&process.env.AGENT_FARM_ARTIFACT_BUNDLE&&artifactSession)env.AGENT_FARM_ARTIFACT_SESSION_ID=artifactSession;
-  const child=spawn(argv[0]!,argv.slice(1),{cwd:JSON.parse(fs.readFileSync(path.join(descriptor.bundle,'manifest.json'),'utf8')).directory,env,stdio:'inherit'});
+  const [file,...args]=nativeCommand(argv,env);
+  const child=spawn(file!,args,{cwd:JSON.parse(fs.readFileSync(path.join(descriptor.bundle,'manifest.json'),'utf8')).directory,env,stdio:'inherit'});
   const handlers=new Map<NodeJS.Signals,()=>void>();
-  for(const signal of ['SIGINT','SIGTERM','SIGHUP','SIGQUIT'] as NodeJS.Signals[]) {
+  // Windows sends Ctrl+C to the whole console and kill() terminates outright, so there the supervisor only stays alive.
+  if(process.platform==='win32')process.on('SIGINT',()=>{});
+  else for(const signal of ['SIGINT','SIGTERM','SIGHUP','SIGQUIT'] as NodeJS.Signals[]) {
     const handler=()=>{child.kill(signal);};handlers.set(signal,handler);process.on(signal,handler);
   }
   let failure:string|undefined;

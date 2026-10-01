@@ -12,7 +12,7 @@ test('npm package contains every checksummed bundled plugin file',()=>{
  const checksums=Object.keys(manifest.checksums);
  assert.ok(checksums.length>0,'Bundled plugin must declare checksums');
  // npm 12 keys the report by package name; earlier versions return an array.
- const report=JSON.parse(execFileSync('npm',['pack','--dry-run','--json'],{cwd:root,encoding:'utf8'}));
+ const report=JSON.parse(execFileSync('npm',['pack','--dry-run','--json','--ignore-scripts'],{cwd:root,encoding:'utf8',shell:process.platform==='win32'}));
  const [pack]=Array.isArray(report)?report:Object.values(report);
  const files=new Set(pack.files.map(file=>file.path));
  const missing=checksums.map(relative=>`plugins/dcouple/${relative}`).filter(file=>!files.has(file));

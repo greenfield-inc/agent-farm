@@ -16,7 +16,7 @@ test('trace foregrounds escaped conversation text while tool details remain coll
  const rows=[row(0,'session_meta',{id:'fixture',cwd:dir}),row(1,'response_item',message('user','Please fix <script>alert(1)</script>')),row(2,'response_item',message('assistant','Checking the renderer.')),row(3,'response_item',{type:'function_call',name:'exec',call_id:'c1',arguments:'{"cmd":"echo checked"}'}),row(4,'response_item',{type:'function_call_output',call_id:'c1',output:'checked'}),row(5,'response_item',message('assistant','Fixed the rendering.'))];
  rows.splice(2,0,row(1,'response_item',{...message('assistant','PRIVATE REASONING'),channel:'analysis'}));
  fs.writeFileSync(session,rows.map(x=>JSON.stringify(x)).join('\n'));
- const result=spawnSync(process.execPath,[script,'--session',session,'--out',dir],{encoding:'utf8',env:{...process.env,HOME:dir}});
+ const result=spawnSync(process.execPath,[script,'--session',session,'--out',dir],{encoding:'utf8',env:{...process.env,HOME:dir,USERPROFILE:dir}});
  assert.equal(result.status,0,result.stderr);
  const html=fs.readFileSync(path.join(dir,'trace.html'),'utf8');
  assert.match(html,/<details class="turn" open id="t0"/);

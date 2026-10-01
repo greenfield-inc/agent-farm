@@ -14,7 +14,7 @@ function manifest(root:string):Plugin{
  const file=path.join(root,'plugin.yaml'),doc=parseDocument(fs.readFileSync(file,'utf8'),{uniqueKeys:true});if(doc.errors.length)throw new Error(doc.errors.map(e=>e.message).join('; '));const value=doc.toJS() as Plugin;
  configurationName(value?.name,'plugin name');if(!/^\d+\.\d+\.\d+$/.test(value?.version??'')||value?.cli_major!==0)throw new Error(`Expected a valid plugin name, semantic version, and cli_major: 0 in ${file}`);return value;
 }
-function inventory(root:string){const entries:Record<string,string>={};for(const section of sections){const folder=path.join(root,section);if(!fs.existsSync(folder))continue;for(const file of files(folder))entries[path.relative(root,file)]=hash(fs.readFileSync(file));}return entries;}
+function inventory(root:string){const entries:Record<string,string>={};for(const section of sections){const folder=path.join(root,section);if(!fs.existsSync(folder))continue;for(const file of files(folder))entries[path.relative(root,file).split(path.sep).join('/')]=hash(fs.readFileSync(file));}return entries;}
 function validRelative(relative:string){const parts=relative.split(/[\\/]/);if((!sections.includes(parts[0]!)&&relative!=='plugin.yaml')||parts.includes('..')||path.isAbsolute(relative))throw new Error(`Invalid plugin receipt path: ${relative}`);}
 function assertSafeTarget(root:string,relative:string){let cursor=root;for(const part of relative.split(/[\\/]/)){cursor=path.join(cursor,part);try{if(fs.lstatSync(cursor).isSymbolicLink())throw new Error(`Symlink destination: ${cursor}`);}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}}}
 
