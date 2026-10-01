@@ -27,7 +27,7 @@ export function telemetryProject(directory:string):{id:string;workingDirectory:s
       }else if(!stat.isDirectory())throw new Error('Unsupported Git directory entry');
       git=fs.realpathSync(git);
       const common=path.join(git,'commondir');
-      return {id:fs.realpathSync(fs.existsSync(common)?path.resolve(git,fs.readFileSync(common,'utf8').trim()):git),workingDirectory,git:true};
+      return {id:fs.realpathSync.native(fs.existsSync(common)?path.resolve(git,fs.readFileSync(common,'utf8').trim()):git),workingDirectory,git:true};
     }
     const parent=path.dirname(root);if(parent===root)return {id:workingDirectory,workingDirectory,git:false};root=parent;
   }
@@ -88,8 +88,9 @@ export class TelemetryStore {
     return path.join(directory,name);
   }
   private open(id:string,name:string):number {
-    const fd=fs.openSync(this.file(id,name),fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW);
-    if(!fs.fstatSync(fd).isFile()){fs.closeSync(fd);throw new Error('Not a telemetry file');}return fd;
+    const file=this.file(id,name),fd=fs.openSync(file,fs.constants.O_RDONLY|(fs.constants.O_NOFOLLOW??0));
+    // Windows has no O_NOFOLLOW, so check the entry itself there.
+    if(!fs.fstatSync(fd).isFile()||(fs.constants.O_NOFOLLOW===undefined&&fs.lstatSync(file).isSymbolicLink())){fs.closeSync(fd);throw new Error('Not a telemetry file');}return fd;
   }
   private read(id:string):ObjectMap {
     const fd=this.open(id,'session.json');let data:ObjectMap;

@@ -15,7 +15,7 @@ const cli=fileURLToPath(new URL('../dist/cli.js',import.meta.url));
 const stdout='{"type":"rate_limit_event","status":429}\n{"type":"turn.failed"}\n';
 const stderr='HTTP 529\napi_retry: literal $(echo untouched)\n';
 function fixture(t,harness='codex') {
- const base=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-launch-')));
+ const base=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-launch-')));
  t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
  const root=path.join(base,'config'),target=path.join(base,'repo with spaces'),home=path.join(base,'home'),bin=path.join(base,'bin'),record=path.join(base,'record.json');
  for(const directory of [target,bin,path.join(root,'agents'),path.join(home,'.codex'),path.join(root,'skills/proof')])fs.mkdirSync(directory,{recursive:true});
@@ -432,7 +432,7 @@ test('repeatable native arguments precede terminator arguments and native help b
  assert.equal(repeated.status,0,repeated.stderr);assert.deepEqual(JSON.parse(repeated.stdout).argv.slice(-2),['exec','--help']);
 });
 
-test('print-launch preserves a wrapper executable and prefix for verbatim spawning before native flags and message',t=>{
+test('print-launch preserves a wrapper executable and prefix for verbatim spawning before native flags and message',{skip:process.platform==='win32'&&'the wrapper is a shebang script'},t=>{
  for(const harness of ['claude','codex']) {
   const f=fixture(t,harness),bundle=build(f.root,'planner',f.target);
   const wrapper=path.join(f.bin,'launch-wrapper'),wrapperRecord=path.join(f.base,'wrapper.json');

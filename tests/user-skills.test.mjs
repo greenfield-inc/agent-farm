@@ -9,7 +9,7 @@ import {loadProfile,unloadProfile,loadedProfiles} from '../dist/user-skills.js';
 import {installPlugin} from '../dist/plugins.js';
 const cli=fileURLToPath(new URL('../dist/cli.js',import.meta.url));
 function fixture(t){
- const base=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-user-skills-')));
+ const base=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-user-skills-')));
  t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
  const root=path.join(base,'config'),home=path.join(base,'home');fs.mkdirSync(home);
  const put=(file,text)=>{const p=path.join(root,file);fs.mkdirSync(path.dirname(p),{recursive:true});fs.writeFileSync(p,text);};

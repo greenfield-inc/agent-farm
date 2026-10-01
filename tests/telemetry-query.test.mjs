@@ -13,7 +13,7 @@ import {validateTelemetry,mergeTelemetry,telemetryAccess,resolveTelemetry,comman
 import {build} from '../dist/compiler.js';
 
 function fixture(t){
-  const base=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'farm-query-')));t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
+  const base=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'farm-query-')));t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
   const directory=path.join(base,'traces'),projectDirectory=path.join(base,'project');fs.mkdirSync(directory);fs.mkdirSync(projectDirectory);
   const options={directory,projectDirectory,scope:'project'};
   function session(project=projectDirectory,extra={}){const id=randomUUID(),dir=path.join(directory,id);fs.mkdirSync(dir);fs.writeFileSync(path.join(dir,'session.json'),JSON.stringify({id,traceId:'a'.repeat(32),spanId:'b'.repeat(16),startTimeUnixNano:'1700000000000000000',endTimeUnixNano:'1700000001000000000',state:'finished',exitCode:0,attributes:{'agent_farm.project.directory':telemetryProject(project).id,'process.working_directory':project,'agent_farm.profile':'test','agent_farm.harness':'claude'},...extra}));return {id,dir};}

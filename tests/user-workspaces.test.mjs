@@ -57,7 +57,7 @@ for(const harness of ['claude','codex']){
 }
 test('global workspace enforces one selection per harness and rolls back on receipt failure',t=>{
  const f=fixture(t,'codex');const originalRename=fs.renameSync;
- fs.renameSync=(from,to)=>{if(to.endsWith('/user-workspaces/state.json'))throw Error('simulated storage failure');return originalRename(from,to);};
+ fs.renameSync=(from,to)=>{if(to.endsWith(path.join('user-workspaces','state.json')))throw Error('simulated storage failure');return originalRename(from,to);};
  try{assert.throws(()=>loadWorkspace(f.root,f.root,f.options),/simulated/);}finally{fs.renameSync=originalRename;}
  assert.equal(fs.readFileSync(f.config,'utf8'),f.original);
  assert.equal(fs.readFileSync(f.instructions,'utf8'),'Existing user instructions.\n');

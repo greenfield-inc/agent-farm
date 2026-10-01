@@ -170,6 +170,11 @@ export function symlink(source: string, destination: string): void {
     throw e;
   }
 }
+/** Removes a link without touching its target. Windows removes a junction with rmdir. */
+export function unlink(destination: string): void {
+  try { fs.unlinkSync(destination); }
+  catch (e) { if (process.platform!=='win32' || (e as NodeJS.ErrnoException).code!=='EPERM') throw e; fs.rmdirSync(destination); }
+}
 // Idempotent under a sibling launch preparing the same runtime home at once.
 function link(source: string, destination: string): void {
   if (!fs.existsSync(source)) return;
@@ -217,6 +222,8 @@ function codexConfig(original: string, runtime: string, provider?: Provider): vo
   if (current && !current.isSymbolicLink() && (!current.isFile() || !fs.readFileSync(destination,'utf8').startsWith(providerConfigMarker))) throw new Error(`Conflicting runtime path: ${destination}`);
   if (!provider) {
     if (current && !current.isSymbolicLink()) fs.unlinkSync(destination);
+    // Codex writes its settings through this link, so it needs a file to point at.
+    fs.closeSync(fs.openSync(path.join(original,'config.toml'),'a'));
     link(path.join(original,'config.toml'),destination);
     return;
   }
@@ -252,7 +259,9 @@ function managedLink(destination: string): string | null | undefined {
 export function codexHome(bundle: string, route: string, env: NodeJS.ProcessEnv, home = os.homedir(), provider?: Provider): string {
   const manifest: Manifest=JSON.parse(fs.readFileSync(path.join(bundle,'manifest.json'),'utf8'));
   const native=env.AGENT_FARM_NATIVE_CODEX_HOME ?? env.ORCHESTRA_NATIVE_CODEX_HOME ?? env.CODEX_HOME ?? path.join(home,'.codex');
-  const original = fs.existsSync(native) ? fs.realpathSync(native) : path.resolve(native);
+  // Without a provider, the runtime home mirrors the native one, so create it the way Codex would on first run.
+  if (!provider) fs.mkdirSync(native,{recursive:true,mode:0o700});
+  const original = provider && !fs.existsSync(native) ? path.resolve(native) : fs.realpathSync(native);
   // Resume identity must survive bundle rebuilds and changes to the selected agent.
   const identity={profile:manifest.profile,workspace:manifest.workspace_source?.source ?? null,directory:manifest.directory,route};
   const runtime = path.join(home,'.cache/agent-farm/native-proof',hash(canonical(identity)).slice(0,24));
@@ -276,7 +285,7 @@ export function codexHome(bundle: string, route: string, env: NodeJS.ProcessEnv,
     const destination=path.join(skills,name);
     const target=managedLink(destination);
     if (target===undefined) { if (name===codexSystemSkills) continue; throw conflict(destination); }
-    if (target!==null && path.resolve(skills,target)!==desired.get(name)) try { fs.unlinkSync(destination); } catch (e) {
+    if (target!==null && path.resolve(skills,target)!==desired.get(name)) try { unlink(destination); } catch (e) {
       // A sibling may have removed the link and Codex written its folder since.
       if (!missing(e) && !(name===codexSystemSkills && managedLink(destination)===undefined)) throw e;
     }
@@ -449,6 +458,7 @@ export function run(bundle: string, route: string, args: string[], launchCommand
   const launch=launchCommand(bundle,route,{...requested,nativeArgs:[...(values['native-arg'] ?? []),...args.slice(separator+1)],message:values.message,prepare:!values.explain,configRoot});
   const metadata={workspace_source:manifest.workspace_source,telemetry:launch.telemetry,telemetry_access:launch.telemetry_access,profile:manifest.profile,...(manifest.variant?{variant:manifest.variant}:{}),plugin:manifest.plugin,plugin_version:manifest.plugin_version,trace_identity:manifest.trace_identity,cross_plugin_dependencies:manifest.cross_plugin_dependencies};
   if (values.explain) console.log(JSON.stringify({...metadata,argv:launch.argv,cwd:launch.cwd,bundle,launch:launch.launch},null,2));
-  else if (values['print-launch']) console.log(JSON.stringify({...metadata,argv:launch.argv,cwd:launch.cwd,bundle,env:launch.envOverrides,launch:launch.launch},null,2));
+  // Consumers spawn printed argv verbatim, and Windows cannot spawn an npm .cmd shim by name.
+  else if (values['print-launch']) console.log(JSON.stringify({...metadata,argv:process.platform==='win32'?nativeCommand(launch.argv,launch.env):launch.argv,cwd:launch.cwd,bundle,env:launch.envOverrides,launch:launch.launch},null,2));
   else execute(launch.argv,launch.cwd,launch.env);
 }

@@ -34,7 +34,7 @@ test('Codex explicit turn IDs group log-only activity without inventing duration
 });
 
 function storeFixture(t){
- const dir=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'farm-hierarchy-'))),project=path.join(dir,'project'),telemetry=path.join(dir,'telemetry');fs.mkdirSync(project);fs.mkdirSync(telemetry);t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+ const dir=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'farm-hierarchy-'))),project=path.join(dir,'project'),telemetry=path.join(dir,'telemetry');fs.mkdirSync(project);fs.mkdirSync(telemetry);t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
  const rootId=randomUUID(),childId=randomUUID(),foreignId=randomUUID();
  const attrs=a=>Object.entries(a).map(([key,v])=>({key,value:typeof v==='number'?{doubleValue:v}:{stringValue:String(v)}}));
  const save=(id,parent,foreign=false)=>{const folder=path.join(telemetry,id);fs.mkdirSync(folder);fs.writeFileSync(path.join(folder,'session.json'),JSON.stringify({id,traceId:trace,spanId:id===rootId?'root-span':'child-span',parentSpanId:parent?'impl':undefined,startTimeUnixNano:nanos(0),endTimeUnixNano:nanos(272000),state:'finished',exitCode:0,attributes:{'agent_farm.parent.session.id':parent,'agent_farm.profile':parent?'child':'implementer','agent_farm.project.directory':foreign?'/outside':project}}));return folder;};

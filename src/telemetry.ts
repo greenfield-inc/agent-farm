@@ -39,7 +39,9 @@ export function redactArgs(argv:string[]):string[] {
 
 function gitMetadata(cwd:string):Record<string,string|undefined> {
   const git=(...args:string[])=>{try{return execFileSync('git',['-C',cwd,...args],{encoding:'utf8',stdio:['ignore','pipe','ignore'],timeout:1500}).trim()||undefined;}catch{return undefined;}};
-  return {'agent_farm.project.directory':git('rev-parse','--path-format=absolute','--git-common-dir'),'vcs.worktree':git('rev-parse','--show-toplevel'),'vcs.ref.head.name':git('symbolic-ref','--quiet','--short','HEAD'),'vcs.ref.head.revision':git('rev-parse','--verify','HEAD')};
+  // Git prints forward slashes on Windows; resolve them to the same native paths as workspace identity.
+  const native=(value:string|undefined)=>value&&fs.realpathSync.native(path.resolve(value));
+  return {'agent_farm.project.directory':native(git('rev-parse','--path-format=absolute','--git-common-dir')),'vcs.worktree':native(git('rev-parse','--show-toplevel')),'vcs.ref.head.name':git('symbolic-ref','--quiet','--short','HEAD'),'vcs.ref.head.revision':git('rev-parse','--verify','HEAD')};
 }
 
 function parentContext(value:string|undefined) {

@@ -10,7 +10,7 @@ import {command,fileMap,verify} from '../dist/runtime.js';
 import {writeHarness} from './harness.mjs';
 const cli=fileURLToPath(new URL('../dist/cli.js',import.meta.url));
 function fixture(t) {
- const base=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-ts-')));t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
+ const base=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-ts-')));t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
  const root=path.join(base,'config'),target=path.join(base,'repo with spaces');fs.mkdirSync(target);
  const put=(p,s)=>{const f=path.join(root,p);fs.mkdirSync(path.dirname(f),{recursive:true});fs.writeFileSync(f,s);};
  put('agents/planner.yaml','harness: claude\nmodel: sonnet\nskills: [proof]\nsubagents: {worker: {agent: worker, mode: process}}\n');
@@ -98,7 +98,7 @@ test('native exec preserves args, cwd, environment and exit status; dispatch run
  assert.equal(run.status,7,run.stderr);let result=JSON.parse(fs.readFileSync(out));assert.ok(result.args.includes('--dangerously-skip-permissions'));assert.equal(result.cwd,f.target);assert.deepEqual(result.args.slice(-2),['--',message]);
  const b=f.build();const child=spawnSync(process.execPath,[path.join(b,'main/dispatch/worker'),'--message',message],{env,encoding:'utf8'});
  assert.equal(child.status,7,child.stderr);result=JSON.parse(fs.readFileSync(out));assert.equal(result.cwd,f.target);assert.equal(result.args[0],'exec');assert.ok(result.args.includes('--yolo'));assert.deepEqual(result.args.slice(-2),['--',message]);
- assert.ok(result.home.includes('.cache/agent-farm/native-proof'));assert.equal(fs.existsSync(path.join(f.target,'NEVER')),false);verify(b);
+ assert.ok(result.home.includes(path.join('.cache','agent-farm','native-proof')));assert.equal(fs.existsSync(path.join(f.target,'NEVER')),false);verify(b);
 });
 test('profile model settings reach both native harnesses and override legacy entrypoints',t=>{
  const f=fixture(t);
@@ -157,7 +157,7 @@ test('native Codex roles retain child model and skill paths and inherit parent c
  assert.ok(r.argv.includes('agents.proof-worker.config_file='+JSON.stringify(file)));
  assert.match(s,/model = "child"/);assert.match(s,/model_reasoning_effort = "max"/);
  assert.match(s,/service_tier = "default"/);assert.match(s,/extra.example/);assert.match(s,/example.com/);
- assert.ok(s.includes(path.join(b,'main/children/proof-worker/skills/proof/SKILL.md')));
+ assert.ok(s.includes(JSON.stringify(path.join(b,'main/children/proof-worker/skills/proof/SKILL.md')).slice(1,-1)));
  assert.equal(fs.existsSync(path.join(b,'main/dispatch/proof-worker')),false);
 });
 test('native Claude definitions use configured model effort and child prompt',t=>{
@@ -166,7 +166,7 @@ test('native Claude definitions use configured model effort and child prompt',t=
  const b=f.build(),r=command(b,'main',{prepare:false});
  const roles=JSON.parse(r.argv[r.argv.indexOf('--agents')+1]);
  assert.equal(roles.worker.model,'claude-fable-5-1');assert.equal(roles.worker.effort,'high');
- assert.ok(roles.worker.prompt.includes('/skills/proof/SKILL.md'));
+ assert.ok(roles.worker.prompt.includes(path.join('skills','proof','SKILL.md')));
 });
 test('unsupported native delegation cannot silently become a process',t=>{
  const f=fixture(t);

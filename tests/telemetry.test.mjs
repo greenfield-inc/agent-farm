@@ -42,7 +42,7 @@ const fs=require('node:fs');
 })().catch(e=>{console.error(e);process.exitCode=1});
 `;
 function fixture(t,harness='claude'){
- const base=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-otel-')));
+ const base=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-otel-')));
  t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
  const root=path.join(base,'config'),cwd=path.join(base,'worktree'),home=path.join(base,'home'),bin=path.join(base,'bin'),directory=path.join(base,'telemetry');
  for(const d of [path.join(root,'agents'),cwd,path.join(home,'.codex'),bin])fs.mkdirSync(d,{recursive:true});
@@ -100,9 +100,9 @@ for(const harness of ['claude','codex'])test(`${harness}: prepared launches coll
    for(const name of fs.readdirSync(s.directory)){
      const p=path.join(s.directory,name),text=fs.readFileSync(p,'utf8');
      for(const secret of ['ARG-SECRET','NATIVE-SECRET','PROMPT-SECRET'])assert.equal(text.includes(secret),false,`${secret} in ${name}`);
-     assert.equal(fs.statSync(p).mode&0o777,0o600);
+     if(process.platform!=='win32')assert.equal(fs.statSync(p).mode&0o777,0o600);
    }
-   assert.equal(fs.statSync(s.directory).mode&0o777,0o700);
+   if(process.platform!=='win32')assert.equal(fs.statSync(s.directory).mode&0o777,0o700);
  }
 });
 
@@ -204,7 +204,7 @@ test('receiver rejects malformed, unauthenticated and unsupported payloads and a
 });
 
 test('missing harness records launch failure',t=>{
- const f=fixture(t);fs.unlinkSync(path.join(f.bin,'claude'));f.env.PATH=f.bin;
+ const f=fixture(t);for(const file of fs.readdirSync(f.bin))if(file.startsWith('claude'))fs.unlinkSync(path.join(f.bin,file));f.env.PATH=f.bin;
  const r=f.invoke(['--exec']);assert.equal(r.status,1,r.stderr);
  assert.equal(f.sessions()[0].error,'ENOENT');assert.equal(f.sessions()[0].state,'finished');
 });
@@ -215,7 +215,7 @@ test('unavailable storage fails open and preserves harness exit status',t=>{
  const r=f.invoke(['--exec']);assert.equal(r.status,7);assert.equal(r.stdout,'ok');assert.match(r.stderr,/telemetry unavailable/);
 });
 
-test('supervisor forwards termination, records it, and exits with the same signal',async t=>{
+test('supervisor forwards termination, records it, and exits with the same signal',{skip:process.platform==='win32'&&'Windows has no POSIX signals'},async t=>{
  const f=fixture(t);f.env.WAIT_FOR_SIGNAL='1';f.env.READY=path.join(f.base,'ready');
  const printed=f.invoke(['--print-launch']),launch=JSON.parse(printed.stdout);
  const child=spawn(launch.argv[0],launch.argv.slice(1),{env:{...f.env,...launch.env},stdio:'ignore'});
@@ -247,7 +247,7 @@ test('a workspace-selected directory collects parent and child telemetry outside
  const sessions=fs.readdirSync(directory).map(id=>({directory:path.join(directory,id),...JSON.parse(fs.readFileSync(path.join(directory,id,'session.json')))}));
  assert.equal(sessions.length,2);
  for(const s of sessions){
-  assert.equal(s.state,'finished');assert.equal(s.attributes['agent_farm.workspace'],`user:${f.root}/workspace.yaml`);
+  assert.equal(s.state,'finished');assert.equal(s.attributes['agent_farm.workspace'],`user:${path.join(f.root,'workspace.yaml')}`);
   assert.equal(s.attributes['agent_farm.workspace.trust'],'personal');assert.equal(lines(s,'traces').length,2);
  }
  const fresh=f.invoke(['--print-launch']);assert.equal(fresh.status,0,fresh.stderr);assert.equal(JSON.parse(fresh.stdout).argv[0],'claude');

@@ -27,7 +27,8 @@ export function repository(directory:string):Repository|undefined {
       git=fs.realpathSync(git);
       if(!fs.statSync(git).isDirectory())throw new Error(`Invalid Git directory: ${git}`);
       const commonFile=path.join(git,'commondir');
-      const common=fs.realpathSync(fs.existsSync(commonFile)?path.resolve(git,fs.readFileSync(commonFile,'utf8').trim()):git);
+      // The native realpath expands Windows short names, so every worktree of a repository shares one identity.
+      const common=fs.realpathSync.native(fs.existsSync(commonFile)?path.resolve(git,fs.readFileSync(commonFile,'utf8').trim()):git);
       return {root,common};
     }
     const parent=path.dirname(root);if(parent===root)return;root=parent;

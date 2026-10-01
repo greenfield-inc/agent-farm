@@ -6,7 +6,7 @@ import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {repository,repositoryFile,workspaceDocument,validateWorkspace} from '../dist/workspaces.js';
 function fixture(t){
- const base=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'af-workspace-')));
+ const base=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'af-workspace-')));
  t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
  const repo=path.join(base,'repo');fs.mkdirSync(repo);execFileSync('git',['init','-q',repo]);
  const put=(p,s)=>{const f=path.join(base,p);fs.mkdirSync(path.dirname(f),{recursive:true});fs.writeFileSync(f,s);return f;};
@@ -85,7 +85,7 @@ function project(t){
 }
 test('fallback applies outside repositories and when repository has no file; opt-out loads nothing',t=>{
  const f=project(t);f.put('config/workspace.yaml','instructions: Personal fallback\nconnections: {}');
- assert.equal(resolveWorkspace(f.root,{directory:f.base}).metadata.source,`user:${f.root}/workspace.yaml`);
+ assert.equal(resolveWorkspace(f.root,{directory:f.base}).metadata.source,`user:${path.join(f.root,'workspace.yaml')}`);
  fs.unlinkSync(f.file);assert.equal(resolveWorkspace(f.root,{directory:f.repo}).instructions,'Personal fallback');
  f.put('repo/.agent-farm/workspace.yaml',shared);assert.deepEqual(resolveWorkspace(f.root,{directory:f.repo,noWorkspace:true}),noWorkspace());
  fs.unlinkSync(path.join(f.root,'workspace.yaml'));assert.equal(resolveWorkspace(f.root,{directory:f.base}).metadata.source,'none');
@@ -176,7 +176,7 @@ test('directory selection uses the other repository, and personal fallback never
  const f=project(t),other=path.join(f.base,'other');fs.mkdirSync(other);execFileSync('git',['init','-q',other]);
  f.put('other/.agent-farm/workspace.yaml',shared.replace('name: project','name: another').replace('Shared project instructions.','Other repository instructions.'));
  await trustWorkspace(other,{confirm:async()=>true});
- const r=f.run(['run','main','--explain'],other);assert.equal(r.status,0,r.stderr);const output=JSON.parse(r.stdout);assert.equal(output.workspace_source.source,`repository:${other}/.agent-farm/workspace.yaml`);assert.ok(output.argv.some(v=>v.includes('Other repository instructions.')));
+ const r=f.run(['run','main','--explain'],other);assert.equal(r.status,0,r.stderr);const output=JSON.parse(r.stdout);assert.equal(output.workspace_source.source,`repository:${path.join(other,'.agent-farm','workspace.yaml')}`);assert.ok(output.argv.some(v=>v.includes('Other repository instructions.')));
  f.put('config/workspace.yaml','name: project\ninstructions: Fallback');f.put('config/overlays/project.yaml','instructions: Overlay');
  const fallback=resolveWorkspace(f.root,{directory:f.base});assert.equal(fallback.instructions,'Fallback');assert.equal(fallback.metadata.overlay,undefined);
 });
@@ -187,7 +187,7 @@ test('bare repositories use fallback and malformed Git markers fail explicitly',
 });
 test('show exposes default and merged field provenance without granting trust',t=>{
  const f=project(t);f.put('config/overlays/project.yaml','connections:\n  local:\n    env: {ACCOUNT: personal}\n  added:\n    type: mcp\n    command: extra');
- const preview=showWorkspace(f.root,{directory:f.repo});assert.equal(preview.metadata.trust,'untrusted');assert.deepEqual(preview.provenance['connections.local.env'],[`repository:${f.file}`,`overlay:${f.root}/overlays/project.yaml`]);assert.equal(preview.provenance['connections.added.args'],`overlay:${f.root}/overlays/project.yaml`);
+ const preview=showWorkspace(f.root,{directory:f.repo});assert.equal(preview.metadata.trust,'untrusted');assert.deepEqual(preview.provenance['connections.local.env'],[`repository:${f.file}`,`overlay:${path.join(f.root,'overlays','project.yaml')}`]);assert.equal(preview.provenance['connections.added.args'],`overlay:${path.join(f.root,'overlays','project.yaml')}`);
  assert.throws(()=>resolveWorkspace(f.root,{directory:f.repo}),/Untrusted/);
 });
 
@@ -217,7 +217,7 @@ test('personal fallback telemetry merges with host defaults, environment wins, a
  f.put('config/overlays/project.yaml','telemetry: {enabled: false}');
  const fallback=resolveWorkspace(f.root,{directory:f.base});
  assert.deepEqual(resolveTelemetry(f.root,fallback.telemetry,{},f.home),{enabled:true,directory:hostDirectory});
- assert.equal(fallback.provenance['telemetry.enabled'],`user:${f.root}/workspace.yaml`);
+ assert.equal(fallback.provenance['telemetry.enabled'],`user:${path.join(f.root,'workspace.yaml')}`);
  assert.equal(resolveTelemetry(f.root,fallback.telemetry,{AGENT_FARM_TELEMETRY:'off'},f.home).enabled,false);
  const none=resolveWorkspace(f.root,{directory:f.base,noWorkspace:true});
  assert.deepEqual(resolveTelemetry(f.root,none.telemetry,{},f.home),{enabled:false,directory:hostDirectory});
@@ -236,7 +236,7 @@ test('workspace telemetry appears in trust review, merges fieldwise with overlay
  assert.deepEqual(preview.provenance.telemetry,[`repository:${f.file}`,`overlay:${overlay}`]);
  const untrusted=f.run(['run','main','--print-launch']);assert.equal(untrusted.status,1);assert.match(untrusted.stderr,/Untrusted/);
  let summary;await trustWorkspace(f.repo,{confirm:async value=>{summary=value;return true;}});
- assert.match(summary,/telemetry settings/);assert.ok(summary.includes(sharedDirectory));assert.ok(summary.includes('"enabled": false'));
+ assert.match(summary,/telemetry settings/);assert.ok(summary.includes(JSON.stringify(sharedDirectory)));assert.ok(summary.includes('"enabled": false'));
  for(const args of [['inspect','main'],['run','main','--explain'],['run','main','--print-launch']]){
   const r=f.run(args);assert.equal(r.status,0,r.stderr);const result=JSON.parse(r.stdout);
   assert.deepEqual(result.telemetry,{enabled:false,directory:personalDirectory});

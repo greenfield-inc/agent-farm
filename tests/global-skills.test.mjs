@@ -7,7 +7,7 @@ import {resolve} from '../dist/compiler.js';
 import {writeHarness} from './harness.mjs';
 const cli=fileURLToPath(new URL('../dist/cli.js',import.meta.url));
 function fixture(t,harness='codex') {
- const home=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-save-')));t.after(()=>fs.rmSync(home,{recursive:true,force:true}));
+ const home=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-save-')));t.after(()=>fs.rmSync(home,{recursive:true,force:true}));
  const root=path.join(home,'library'),native=path.join(home,harness==='codex'?'.codex':'.claude');
  fs.mkdirSync(root);const options={home,harness,env:{}};
  const put=(relative,text)=>{const file=path.join(home,relative);fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,text);return file;};
@@ -24,7 +24,7 @@ for(const harness of ['codex','claude'])test(`${harness}: save/unmount unmanaged
  assert.equal(saved.skills,1);assert.equal(globalSkills(f.options).length,0);
  assert.equal(fs.readFileSync(path.join(saved.backup,'0/SKILL.md'),'utf8').includes('Research.'),true);
  assert.equal(resolve(f.root,'saved').main.model,'test-model');
- assert.equal(fs.statSync(path.join(f.root,'skills/research/scripts/run.sh')).mode&0o777,0o755);
+ if(process.platform!=='win32')assert.equal(fs.statSync(path.join(f.root,'skills/research/scripts/run.sh')).mode&0o777,0o755);
  loadProfile(f.root,'saved',f.options);assert.equal(globalSkills(f.options)[0].status,'managed');
  assert.match(globalSkillWarning(f.options),/unset global saved/);unloadProfile('saved',f.options);
  assert.equal(globalSkillWarning(f.options),undefined);
