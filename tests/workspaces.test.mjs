@@ -14,7 +14,7 @@ function fixture(t){
 }
 test('nearest git checkout and linked worktree share canonical common directory',t=>{
  const f=fixture(t);f.put('repo/file','x');execFileSync('git',['-C',f.repo,'add','.']);execFileSync('git',['-C',f.repo,'-c','user.name=Test','-c','user.email=test@example.com','commit','-qm','initial']);
- const linked=path.join(f.base,'linked');execFileSync('git',['-C',f.repo,'worktree','add','-qb','linked',linked]);
+ const linked=path.join(f.base,'linked');execFileSync('git',['-C',f.repo,'-c','core.autocrlf=false','worktree','add','-qb','linked',linked]);
  fs.mkdirSync(path.join(linked,'nested'));
  assert.deepEqual(repository(path.join(linked,'nested')),{root:linked,common:path.join(f.repo,'.git')});
  assert.equal(repository(f.base),undefined);
@@ -111,7 +111,7 @@ test('interactive refusal continues with no workspace and approval shows command
 test('approval covers linked worktrees, reports changes, and revocation blocks all versions',async t=>{
  const f=project(t);await trustWorkspace(f.repo,{confirm:async()=>true});
  execFileSync('git',['-C',f.repo,'add','.']);execFileSync('git',['-C',f.repo,'-c','user.name=Test','-c','user.email=test@example.com','commit','-qm','workspace']);
- const linked=path.join(f.base,'linked');execFileSync('git',['-C',f.repo,'worktree','add','-qb','linked',linked]);
+ const linked=path.join(f.base,'linked');execFileSync('git',['-C',f.repo,'-c','core.autocrlf=false','worktree','add','-qb','linked',linked]);
  assert.equal(resolveWorkspace(f.root,{directory:linked}).metadata.trust,'trusted');
  const a=f.run(['run','main','--explain']),b=f.run(['run','main','--explain'],linked);assert.equal(a.status,0,a.stderr);assert.equal(b.status,0,b.stderr);
  const identity=r=>JSON.parse(r.stdout).argv[JSON.parse(r.stdout).argv.indexOf('--append-system-prompt')+1].split('Bundled children')[0];assert.equal(identity(a),identity(b));

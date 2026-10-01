@@ -410,7 +410,7 @@ test('Claude passthrough keeps strict MCP and caller streaming, resume, hooks an
  assert.deepEqual(JSON.parse(fs.readFileSync(f.record)).args,launch.argv.slice(1));
 });
 
-test('printed Codex resume argv spawns unchanged with caller-owned streams and environment',t=>{
+test('printed Codex resume argv spawns unchanged with caller-owned streams and environment',{skip:process.platform==='win32'&&'printed argv names the harness, and Windows consumers resolve npm shims themselves'},t=>{
  const f=fixture(t),message='Continue ENG-123\n$(literal)',native=['exec','resume','thread with spaces','--json'];
  const result=f.invoke(['--print-launch','--message',message,'--',...native],'implementer');
  assert.equal(result.status,0,result.stderr);const launch=JSON.parse(result.stdout);
