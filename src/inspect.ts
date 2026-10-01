@@ -17,6 +17,7 @@ export function inspectProfile(root:string,profile:string,options:WorkspaceOptio
 }
 
 export function listProfiles(root:string){
+ if(!fs.existsSync(root))return [];
  root=fs.realpathSync(root);const entries=namespaces(root).flatMap(context=>{const directory=path.join(context.root,'profiles');if(!fs.existsSync(directory))return [];return fs.readdirSync(directory).filter(file=>file.endsWith('.yaml')).sort().map(file=>({context,profile:file.slice(0,-5)}));}),counts=new Map<string,number>();
  for(const entry of entries)counts.set(entry.profile,(counts.get(entry.profile)??0)+1);
  return entries.map(({context,profile})=>{const qualified=context.plugin?`${context.plugin}/${profile}`:profile,resolved=resolveProfile(root,profile,undefined,{namespace:context}),agent=resolved.nodes.main!;return {profile,qualified,...(resolved.variants?{variants:resolved.variants,default_variant:resolved.default_variant,variant_models:variantModels(root,profile,resolved.variants,{namespace:context})}:{}),plugin:context.plugin,plugin_version:context.version,description:agent.description,ambiguous:(counts.get(profile)??0)>1,agent:agent.name,harness:agent.harness,model:{name:agent.model,reasoning:agent.reasoning_effort,speed:agent.speed??'native default'},source_file:resolved.profile_file};});

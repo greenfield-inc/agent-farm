@@ -9,6 +9,7 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 import {build} from '../dist/compiler.js';
 import {command,codexHome,loadProvider,fileMap,verify} from '../dist/runtime.js';
 import {parse as parseToml} from 'smol-toml';
+import {writeHarness} from './harness.mjs';
 
 const cli=fileURLToPath(new URL('../dist/cli.js',import.meta.url));
 const stdout='{"type":"rate_limit_event","status":429}\n{"type":"turn.failed"}\n';
@@ -24,10 +25,10 @@ function fixture(t,harness='codex') {
  fs.writeFileSync(path.join(home,'.codex/auth.json'),'AUTH-SECRET-FIXTURE');
  fs.writeFileSync(path.join(home,'.codex/config.toml'),'');
  const script=`#!${process.execPath}\nconst fs=require('node:fs');fs.writeFileSync(process.env.RECORD,JSON.stringify({args:process.argv.slice(2),cwd:process.cwd(),home:process.env.CODEX_HOME,key:process.env.LINEAR_API_KEY}));process.stdout.write(${JSON.stringify(stdout)});process.stderr.write(${JSON.stringify(stderr)});process.exit(7);\n`;
- for(const name of ['codex','claude'])fs.writeFileSync(path.join(bin,name),script,{mode:0o755});
+ for(const name of ['codex','claude'])writeHarness(bin,name,script);
  // These regression cases exercise the original exec path. telemetry.test.mjs
  // exercises the default supervised path, including providers and dispatch.
- const env={...process.env,AGENT_FARM_TELEMETRY:'off',AGENT_FARM_CONFIG_ROOT:root,HOME:home,CODEX_HOME:path.join(home,'.codex'),AGENT_FARM_NATIVE_CODEX_HOME:path.join(home,'.codex'),PATH:bin+path.delimiter+process.env.PATH,RECORD:record,LINEAR_API_KEY:'LINEAR-SECRET-FIXTURE',CLIPROXY_API_KEY:'PROXY-SECRET-FIXTURE',GH_TOKEN:'GITHUB-SECRET-FIXTURE'};
+ const env={...process.env,AGENT_FARM_TELEMETRY:'off',AGENT_FARM_CONFIG_ROOT:root,HOME:home,USERPROFILE:home,CODEX_HOME:path.join(home,'.codex'),AGENT_FARM_NATIVE_CODEX_HOME:path.join(home,'.codex'),PATH:bin+path.delimiter+process.env.PATH,RECORD:record,LINEAR_API_KEY:'LINEAR-SECRET-FIXTURE',CLIPROXY_API_KEY:'PROXY-SECRET-FIXTURE',GH_TOKEN:'GITHUB-SECRET-FIXTURE'};
  const invoke=(args,profile='planner')=>spawnSync(process.execPath,[cli,'run',profile,'--config-root',root,'--directory',target,...args],{env,encoding:'utf8'});
  return {base,root,target,home,bin,record,env,invoke};
 }
@@ -278,7 +279,7 @@ for(const parentSlash of [false,true])for(const childSlash of [false,true]) {
   const result=f.invoke(['--print-launch']);assert.equal(result.status,0,result.stderr);
   const parent=JSON.parse(result.stdout);
   assert.equal(parent.env.AGENT_FARM_CONFIG_ROOT,f.root);
-  const child=spawnSync(path.join(parent.bundle,'main/dispatch/worker'),['--print-launch'],{env:{...f.env,...parent.env},encoding:'utf8'});
+  const child=spawnSync(process.execPath,[path.join(parent.bundle,'main/dispatch/worker'),'--print-launch'],{env:{...f.env,...parent.env},encoding:'utf8'});
   assert.equal(child.status,0,child.stderr);const launch=JSON.parse(child.stdout);
   const direct=command(parent.bundle,'main/children/worker',{headless:true,home:f.home,env:{...f.env,...parent.env}});
   assert.deepEqual(launch.argv,direct.argv);assert.deepEqual(launch.env,direct.envOverrides);
@@ -288,7 +289,7 @@ for(const parentSlash of [false,true])for(const childSlash of [false,true]) {
   else assert.equal(fs.realpathSync(config),path.join(f.home,'.codex/config.toml'));
   assert.equal(fs.existsSync(f.record),false);assertNoSecrets(launch,child.stdout);
   configureProvider(f);
-  const updated=spawnSync(path.join(parent.bundle,'main/dispatch/worker'),['--print-launch'],{env:{...f.env,...parent.env},encoding:'utf8'});
+  const updated=spawnSync(process.execPath,[path.join(parent.bundle,'main/dispatch/worker'),'--print-launch'],{env:{...f.env,...parent.env},encoding:'utf8'});
   assert.equal(updated.status,0,updated.stderr);const routed=JSON.parse(updated.stdout);
   assert.equal(routed.bundle,launch.bundle);
   assert.equal(parseToml(fs.readFileSync(path.join(routed.env.CODEX_HOME,'config.toml'),'utf8')).model_provider,provider.name);
@@ -340,7 +341,7 @@ test('Codex provider launch has no native home or login dependency and does not 
 test('Claude provider print exports references and aliases; verbatim argv resolves the child key and preserves streams',t=>{
  const f=fixture(t,'claude');configureProvider(f);
  const script=`#!${process.execPath}\nconst fs=require('node:fs');fs.writeFileSync(process.env.RECORD,JSON.stringify({pid:process.pid,args:process.argv.slice(2),token:process.env.ANTHROPIC_AUTH_TOKEN,base:process.env.ANTHROPIC_BASE_URL,aliases:['HAIKU','SONNET','OPUS','FABLE'].map(a=>process.env['ANTHROPIC_DEFAULT_'+a+'_MODEL'])}));process.stdout.write(${JSON.stringify(stdout)});process.stderr.write(${JSON.stringify(stderr)});process.exit(7);\n`;
- fs.writeFileSync(path.join(f.bin,'claude'),script,{mode:0o755});
+ writeHarness(f.bin,'claude',script);
  const native=['-p','--output-format','stream-json','--resume','session with spaces'],message='$(literal) `text`\n"quoted"';
  delete f.env.CLIPROXY_API_KEY;
  const result=f.invoke(['--print-launch','--message',message,'--',...native]);assert.equal(result.status,0,result.stderr);
@@ -352,13 +353,14 @@ test('Claude provider print exports references and aliases; verbatim argv resolv
  const missing=spawnSync(launch.argv[0],launch.argv.slice(1),{cwd:launch.cwd,env:{...f.env,...launch.env},encoding:'utf8'});
  assert.equal(missing.status,1);assert.match(missing.stderr,/Provider environment variable is unavailable/);assert.equal(fs.existsSync(f.record),false);
  const childEnv={...f.env,...launch.env,CLIPROXY_API_KEY:'CHILD-ONLY-SECRET $(literal) `token`'};
- const unavailableArgv=[...launch.argv];unavailableArgv[3]='process.execve=undefined; '+unavailableArgv[3];
+ // Windows has no exec, so the launcher spawns there and the next assertions are POSIX-only.
+ if(process.platform!=='win32'){const unavailableArgv=[...launch.argv];unavailableArgv[3]='process.execve=undefined; '+unavailableArgv[3];
  const unavailable=spawnSync(unavailableArgv[0],unavailableArgv.slice(1),{cwd:launch.cwd,env:childEnv,encoding:'utf8'});
- assert.equal(unavailable.status,1);assert.match(unavailable.stderr,/Native launch requires Node 22.15\+ on macOS or Linux/);
- assert.equal(fs.existsSync(f.record),false);assert.equal(unavailable.stdout,'');
+ assert.equal(unavailable.status,1);assert.match(unavailable.stderr,/Native launch requires Node 22.15\+/);
+ assert.equal(fs.existsSync(f.record),false);assert.equal(unavailable.stdout,'');}
  const execution=spawnSync(launch.argv[0],launch.argv.slice(1),{cwd:launch.cwd,env:childEnv,encoding:'utf8'});
  assert.equal(execution.status,7,execution.stderr);assert.equal(execution.stdout,stdout);assert.equal(execution.stderr,stderr);
- const record=JSON.parse(fs.readFileSync(f.record));assert.equal(record.pid,execution.pid);
+ const record=JSON.parse(fs.readFileSync(f.record));if(process.platform!=='win32')assert.equal(record.pid,execution.pid);
  assert.equal(record.token,childEnv.CLIPROXY_API_KEY);assert.equal(record.base,provider.base_url);
  assert.deepEqual(record.aliases,['test','test','test','test']);assert.deepEqual(record.args,launch.argv.slice(launch.argv.indexOf('claude')+1));
  f.env.CLIPROXY_API_KEY='EXEC-ONLY-SECRET';
@@ -373,7 +375,7 @@ test('process dispatch inherits custom host provider root and rereads host chang
  const result=f.invoke(['--print-launch']);assert.equal(result.status,0,result.stderr);
  const launch=JSON.parse(result.stdout),dispatch=path.join(launch.bundle,'main/dispatch/worker');
  configureProvider(f,{...provider,name:'updated'});
- const child=spawnSync(dispatch,['--print-launch'],{env:{...f.env,...launch.env},encoding:'utf8'});assert.equal(child.status,0,child.stderr);
+ const child=spawnSync(process.execPath,[dispatch,'--print-launch'],{env:{...f.env,...launch.env},encoding:'utf8'});assert.equal(child.status,0,child.stderr);
  const prepared=JSON.parse(child.stdout);
  assert.equal(parseToml(fs.readFileSync(path.join(prepared.env.CODEX_HOME,'config.toml'),'utf8')).model_provider,'updated');
  assert.equal(prepared.env.AGENT_FARM_CONFIG_ROOT,f.root);assertNoSecrets(prepared,child.stdout);
@@ -462,7 +464,7 @@ test('standalone bundled dispatch supports prepared prints and both passthrough 
  const f=fixture(t,'claude');
  fs.appendFileSync(path.join(f.root,'agents/planner.yaml'),'subagents: {worker: {agent: implementer, mode: process}}\n');
  const bundle=build(f.root,'planner',f.target),dispatch=path.join(bundle,'main/dispatch/worker');
- const result=spawnSync(dispatch,['--print-launch','--message','Continue','--native-arg=exec','--','resume','thread','--json'],{env:f.env,encoding:'utf8'});
+ const result=spawnSync(process.execPath,[dispatch,'--print-launch','--message','Continue','--native-arg=exec','--','resume','thread','--json'],{env:f.env,encoding:'utf8'});
  assert.equal(result.status,0,result.stderr);const launch=JSON.parse(result.stdout);
  assert.deepEqual(launch.argv.slice(-6),['exec','resume','thread','--json','--','Continue']);
  assert.ok(fs.statSync(launch.env.CODEX_HOME).isDirectory());assert.equal(fs.existsSync(f.record),false);
@@ -473,7 +475,7 @@ test('process dispatch accepts and forwards explicit model overrides and argumen
  fs.appendFileSync(path.join(f.root,'agents/planner.yaml'),'args: {parent: {type: string}}\nsubagents: {worker: {agent: implementer, mode: process}}\n');
  fs.appendFileSync(path.join(f.root,'agents/implementer.yaml'),'args: {review: {values: [final, full], default: final}}\n');
  const parentResult=f.invoke(['--print-launch','--arg','parent=parent-only']);assert.equal(parentResult.status,0,parentResult.stderr);const parent=JSON.parse(parentResult.stdout);
- const child=spawnSync(path.join(parent.bundle,'main/dispatch/worker'),['--print-launch','--model','gpt-6-astra','--reasoning','medium','--speed','fast','--arg','review=full'],{env:{...f.env,...parent.env},encoding:'utf8'});
+ const child=spawnSync(process.execPath,[path.join(parent.bundle,'main/dispatch/worker'),'--print-launch','--model','gpt-6-astra','--reasoning','medium','--speed','fast','--arg','review=full'],{env:{...f.env,...parent.env},encoding:'utf8'});
  assert.equal(child.status,0,child.stderr);const launch=JSON.parse(child.stdout);
  assert.equal(launch.launch.model.name,'gpt-6-astra');assert.equal(launch.launch.override,'ad hoc');assert.deepEqual(launch.launch.arguments,{review:'full'});assert.equal(launchIdentity(launch,'codex').includes('parent-only'),false);verify(launch.bundle);
 });

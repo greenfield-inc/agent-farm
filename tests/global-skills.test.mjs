@@ -4,6 +4,7 @@ import fs from 'node:fs';import os from 'node:os';import path from 'node:path';
 import {spawnSync} from 'node:child_process';import {fileURLToPath} from 'node:url';
 import {globalSkills,globalSkillWarning,saveGlobalSkills,loadProfile,unloadProfile} from '../dist/user-skills.js';
 import {resolve} from '../dist/compiler.js';
+import {writeHarness} from './harness.mjs';
 const cli=fileURLToPath(new URL('../dist/cli.js',import.meta.url));
 function fixture(t,harness='codex') {
  const home=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-save-')));t.after(()=>fs.rmSync(home,{recursive:true,force:true}));
@@ -60,13 +61,13 @@ test('unmount failure rolls back moved originals and retains a validated saved p
 });
 test('CLI global syntax, scoped workspace aliases, and pre-launch warnings',t=>{
  const f=fixture(t);f.put('.codex/skills/one/SKILL.md','one');fs.mkdirSync(path.join(f.home,'repo'));
- const env={...process.env,HOME:f.home,CODEX_HOME:f.native,AGENT_FARM_NATIVE_CODEX_HOME:f.native};
+ const env={...process.env,HOME:f.home,USERPROFILE:f.home,CODEX_HOME:f.native,AGENT_FARM_NATIVE_CODEX_HOME:f.native};
  const run=args=>spawnSync(process.execPath,[cli,...args,'--config-root',f.root],{env,encoding:'utf8'});
  let r=run(['unset','global','--save','saved','--harness','codex','--model','test']);assert.equal(r.status,0,r.stderr);
  r=run(['set','global','saved']);assert.equal(r.status,0,r.stderr);
  r=run(['status','global','--harness','codex']);assert.match(r.stdout,/one: managed \(saved\)/);
  r=run(['run','saved','--directory',path.join(f.home,'repo'),'--explain']);assert.equal(r.status,0,r.stderr);assert.doesNotMatch(r.stderr,/Warning/);
- f.put('bin/codex','#!/bin/sh\necho native-started\n');fs.chmodSync(path.join(f.home,'bin/codex'),0o755);env.PATH=path.join(f.home,'bin')+':'+env.PATH;
+ fs.mkdirSync(path.join(f.home,'bin'),{recursive:true});writeHarness(path.join(f.home,'bin'),'codex',"console.log('native-started');\n");env.PATH=path.join(f.home,'bin')+path.delimiter+env.PATH;
  r=run(['run','saved','--directory',path.join(f.home,'repo')]);assert.equal(r.status,0,r.stderr);assert.match(r.stderr,/global skill\(s\)/);assert.match(r.stdout,/native-started/);
  r=run(['unset','global','saved']);assert.equal(r.status,0,r.stderr);
  f.put('library/workspace.yaml','connections: {}\n');

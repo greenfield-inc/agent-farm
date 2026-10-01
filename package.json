@@ -18,7 +18,7 @@
     "agent-farm": "dist/cli.js"
   },
   "scripts": {
-    "build": "tsc && chmod +x dist/cli.js",
+    "build": "tsc && node -e \"fs.chmodSync('dist/cli.js',0o755)\"",
     "typecheck": "tsc --noEmit",
     "test": "pnpm build && node --test tests/*.test.mjs",
     "prepack": "pnpm build",

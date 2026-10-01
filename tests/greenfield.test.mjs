@@ -128,7 +128,7 @@ test('Greenfield CLI arguments reach both harnesses and reject invalid profile i
  const cli=fileURLToPath(new URL('../dist/cli.js',import.meta.url));
  const source='https://example.test/plan?revision=3&mode=review';
  const parent=path.join(target,'status files','task.json'),policy=path.join(target,'host guidance.md');
- const invoke=(profile,args)=>spawnSync(process.execPath,[cli,'run',profile,'--config-root',root,'--directory',target,'--no-workspace','--explain',...args.flatMap(a=>['--arg',a])],{encoding:'utf8',env:{...process.env,HOME:home,AGENT_FARM_TELEMETRY:'off'}});
+ const invoke=(profile,args)=>spawnSync(process.execPath,[cli,'run',profile,'--config-root',root,'--directory',target,'--no-workspace','--explain',...args.flatMap(a=>['--arg',a])],{encoding:'utf8',env:{...process.env,HOME:home,USERPROFILE:home,AGENT_FARM_TELEMETRY:'off'}});
  for(const [profile,args] of [['planner',[`source=${source}`,`parent=${parent}`]],['planner:codex',[`source=${source}`,`parent=${parent}`]],['orchestrator',[`host_policy=${policy}`]],['implementer',[`source=${source}`,`parent=${parent}`]],['implementer:fast',[`source=${source}`]],['implementer:claude',[`source=${source}`,`parent=${parent}`]]]){
   const result=invoke(profile,args);assert.equal(result.status,0,result.stderr);
   const launch=JSON.parse(result.stdout);

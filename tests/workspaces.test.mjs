@@ -76,11 +76,11 @@ connections:
 `;
 function project(t){
  const f=fixture(t),home=path.join(f.base,'home'),root=path.join(f.base,'config');fs.mkdirSync(home);fs.mkdirSync(root);
- const previous=process.env.HOME;process.env.HOME=home;t.after(()=>{if(previous===undefined)delete process.env.HOME;else process.env.HOME=previous;});
+ for(const key of ['HOME','USERPROFILE']){const previous=process.env[key];process.env[key]=home;t.after(()=>{if(previous===undefined)delete process.env[key];else process.env[key]=previous;});}
  f.put('config/agents/main.yaml','harness: claude\nmodel: test\nsubagents:\n  child:\n    agent: child\n    mode: process\n');
  f.put('config/agents/child.yaml','harness: claude\nmodel: test\n');
  const file=f.put('repo/.agent-farm/workspace.yaml',shared);
- const run=(args,directory=f.repo)=>spawnSync(process.execPath,[cli,...args,'--config-root',root,'--directory',directory],{encoding:'utf8',env:{...process.env,HOME:home},cwd:f.base});
+ const run=(args,directory=f.repo)=>spawnSync(process.execPath,[cli,...args,'--config-root',root,'--directory',directory],{encoding:'utf8',env:{...process.env,HOME:home,USERPROFILE:home},cwd:f.base});
  return {...f,root,home,file,run};
 }
 test('fallback applies outside repositories and when repository has no file; opt-out loads nothing',t=>{
@@ -150,7 +150,7 @@ test('merged workspace still conflicts with different agent connections',async t
 test('process children use parent workspace and refuse changed or revoked approval',async t=>{
  const f=project(t);await trustWorkspace(f.repo,{confirm:async()=>true});
  const bundle=build(f.root,'main',f.repo),dispatch=path.join(bundle,'main/dispatch/child');
- const run=()=>spawnSync(process.execPath,[dispatch,'--explain'],{cwd:f.base,encoding:'utf8',env:{...process.env,HOME:f.home}});
+ const run=()=>spawnSync(process.execPath,[dispatch,'--explain'],{cwd:f.base,encoding:'utf8',env:{...process.env,HOME:f.home,USERPROFILE:f.home}});
  let r=run();assert.equal(r.status,0,r.stderr);const output=JSON.parse(r.stdout);assert.equal(output.workspace_source.source,`repository:${f.file}`);assert.equal(output.cwd,f.repo);assert.ok(output.argv.some(v=>v.includes('Shared project instructions.')));
  fs.appendFileSync(f.file,'\n# edit');r=run();assert.equal(r.status,1);assert.match(r.stderr,/workspace trust/);
  fs.writeFileSync(f.file,shared);untrustWorkspace(f.repo);r=run();assert.equal(r.status,1);assert.match(r.stderr,/workspace trust/);
@@ -261,7 +261,7 @@ test('process dispatch retains workspace telemetry snapshot and rejects changed 
  assert.deepEqual(manifest.workspace_telemetry,{enabled:true,directory});
  fs.writeFileSync(overlay,'telemetry: '+JSON.stringify({enabled:false,directory:path.join(f.base,'new-traces')}));
  const dispatch=path.join(parent.bundle,'main/dispatch/child');
- const child=()=>spawnSync(dispatch,['--print-launch'],{cwd:f.base,env:{...process.env,...parent.env,HOME:f.home},encoding:'utf8'});
+ const child=()=>spawnSync(process.execPath,[dispatch,'--print-launch'],{cwd:f.base,env:{...process.env,...parent.env,HOME:f.home,USERPROFILE:f.home},encoding:'utf8'});
  let result=child();assert.equal(result.status,0,result.stderr);assert.deepEqual(JSON.parse(result.stdout).telemetry,parent.telemetry);
  const rebuilt=f.run(['run','main','--print-launch']);assert.equal(rebuilt.status,0,rebuilt.stderr);
  assert.notEqual(JSON.parse(rebuilt.stdout).bundle,parent.bundle);assert.equal(JSON.parse(rebuilt.stdout).telemetry.enabled,false);

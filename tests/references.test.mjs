@@ -84,7 +84,7 @@ test('cross-plugin references reach native Codex children and are recorded as de
 
 test('launch-specific bundles carry references and name their own copy',t=>{
  const f=fixture(t),b=f.build(),dispatch=path.join(b,'main/dispatch/worker'),home=path.join(f.base,'home'),codex=path.join(home,'.codex');fs.mkdirSync(codex,{recursive:true});
- const result=spawnSync(process.execPath,[dispatch,'--model','gpt-6-astra-override','--print-launch'],{encoding:'utf8',env:{...process.env,HOME:home,CODEX_HOME:codex,AGENT_FARM_NATIVE_CODEX_HOME:codex,AGENT_FARM_TELEMETRY:'off',AGENT_FARM_CONFIG_ROOT:f.root}});
+ const result=spawnSync(process.execPath,[dispatch,'--model','gpt-6-astra-override','--print-launch'],{encoding:'utf8',env:{...process.env,HOME:home,USERPROFILE:home,CODEX_HOME:codex,AGENT_FARM_NATIVE_CODEX_HOME:codex,AGENT_FARM_TELEMETRY:'off',AGENT_FARM_CONFIG_ROOT:f.root}});
  assert.equal(result.status,0,result.stderr);
  const launch=JSON.parse(result.stdout);assert.notEqual(launch.bundle,b);
  assert.equal(fs.readFileSync(path.join(launch.bundle,'main/children/worker/references/zones.md'),'utf8'),'ZONES');

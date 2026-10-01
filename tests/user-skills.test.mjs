@@ -53,7 +53,7 @@ test('Codex uses the original native home rather than a generated launch home',t
  assert.ok(fs.existsSync(path.join(original,'skills/one')));assert.equal(fs.existsSync(generated),false);
 });
 test('CLI loads, lists, and unloads in an isolated user home',t=>{
- const f=fixture(t),env={...process.env,HOME:f.home,CODEX_HOME:path.join(f.home,'.codex'),AGENT_FARM_NATIVE_CODEX_HOME:path.join(f.home,'.codex')};
+ const f=fixture(t),env={...process.env,HOME:f.home,USERPROFILE:f.home,CODEX_HOME:path.join(f.home,'.codex'),AGENT_FARM_NATIVE_CODEX_HOME:path.join(f.home,'.codex')};
  for(const args of [['load','first','--config-root',f.root],['loaded'],['unload','first']]){
   const r=spawnSync(process.execPath,[cli,...args],{env,encoding:'utf8'});assert.equal(r.status,0,r.stderr);assert.match(r.stdout,/first/);
  }
@@ -81,7 +81,7 @@ test('same-named plugin skills never overwrite each other and loaded state ident
  put('plugin.yaml','name: fixture\nversion: 1.0.0\ncli_major: 0\n');put('profiles/implementer.yaml','agent: worker\n');put('agents/worker.yaml','harness: codex\nmodel: test\nskills: [review]\n');put('skills/review/SKILL.md','---\nname: review\ndescription: Fixture.\n---\nFixture');
  installPlugin(dcouple,f.root);installPlugin(source,f.root);loadProfile(f.root,'dcouple/astra-implementer-high',f.options);
  assert.throws(()=>loadProfile(f.root,'fixture/implementer',f.options),/Skill review from plugin fixture conflicts with plugin dcouple/);const loaded=loadedProfiles(f.options);assert.equal(loaded[0].plugin,'dcouple');assert.equal(loaded[0].skills.find(skill=>skill.name==='review').plugin,'dcouple');assert.match(fs.readFileSync(path.join(f.home,'.codex/skills/review/SKILL.md'),'utf8'),/name: review/);
- const env={...process.env,HOME:f.home,CODEX_HOME:path.join(f.home,'.codex'),AGENT_FARM_NATIVE_CODEX_HOME:path.join(f.home,'.codex')};
+ const env={...process.env,HOME:f.home,USERPROFILE:f.home,CODEX_HOME:path.join(f.home,'.codex'),AGENT_FARM_NATIVE_CODEX_HOME:path.join(f.home,'.codex')};
  let result=spawnSync(process.execPath,[cli,'loaded'],{env,encoding:'utf8'});assert.equal(result.status,0,result.stderr);assert.match(result.stdout,/dcouple\/astra-implementer-high \[plugin dcouple\].*review \[plugin dcouple\]/);
  result=spawnSync(process.execPath,[cli,'unload','dcouple/astra-implementer-high'],{env,encoding:'utf8'});assert.equal(result.status,0,result.stderr);assert.match(result.stdout,/Unloaded dcouple\/astra-implementer-high/);assert.equal(loadedProfiles(f.options).length,0);
 });
