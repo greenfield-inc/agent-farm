@@ -23,7 +23,8 @@ const isHelp = rawArgs[0] === 'help';
 if (rawArgs.length === 0 || (isInit && rawArgs.filter(a => a !== '--full').length === 1)) {
   const configRoot = path.join(os.homedir(), '.config/agent-farm');
   const {bareCommand, initCommand} = await import('./interactive.js');
-  if (isInit) await initCommand(configRoot, process.cwd(), isInitFull);
+  // A first launch has no configuration yet, so it starts setup.
+  if (isInit || !fs.existsSync(configRoot)) await initCommand(configRoot, process.cwd(), isInitFull);
   else await bareCommand(configRoot, process.cwd());
   process.exit(0);
 }
