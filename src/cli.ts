@@ -26,7 +26,8 @@ if (rawArgs.length === 0 || (isInit && rawArgs.filter(a => a !== '--full').lengt
   // A first launch has no configuration yet, so it starts setup.
   if (isInit || !fs.existsSync(configRoot)) await initCommand(configRoot, process.cwd(), isInitFull);
   else await bareCommand(configRoot, process.cwd());
-  process.exit(0);
+  // Prompts end here rather than by draining the loop; a Windows launch already awaited its harness, so carry its status.
+  process.exit(process.exitCode ?? 0);
 }
 const helpArgs=rawArgs.slice(0,rawArgs.indexOf('--')<0 ? rawArgs.length : rawArgs.indexOf('--'));
 if (isHelp || helpArgs.includes('--help') || helpArgs.includes('-h')) {

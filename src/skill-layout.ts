@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import {files,hash,symlink} from './runtime.js';
+import {files,hash,hardLinked,symlink} from './runtime.js';
 
 /** Authoring names are independent of the harness's on-disk skill convention. */
 export function skillFiles(folder: string, harness: 'claude'|'codex'): {relative:string;source:string}[] {
@@ -27,8 +27,9 @@ export function userSkillSource(folder: string, harness: 'claude'|'codex', home:
     inspect(destination);
     if (JSON.stringify(actual.sort())!==JSON.stringify(entries.map(e=>e.relative).sort())) throw new Error(`Modified generated user skill layout: ${destination}`);
     for (const entry of entries) {
-      const file=path.join(destination,entry.relative);
-      if (!fs.lstatSync(file).isSymbolicLink() || fs.readlinkSync(file)!==entry.source) throw new Error(`Modified generated user skill link: ${file}`);
+      const file=path.join(destination,entry.relative),status=fs.lstatSync(file);
+      // These entries are files, so Windows links them as hard links when it cannot create a symlink.
+      if (status.isSymbolicLink() ? fs.readlinkSync(file)!==entry.source : !hardLinked(entry.source,status)) throw new Error(`Modified generated user skill link: ${file}`);
     }
     return destination;
   }

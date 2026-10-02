@@ -7,9 +7,9 @@ import os from 'node:os';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {build} from '../dist/compiler.js';
-import {command,codexHome,loadProvider,fileMap,verify} from '../dist/runtime.js';
+import {command,codexHome,hardLinked,loadProvider,fileMap,verify} from '../dist/runtime.js';
 import {parse as parseToml} from 'smol-toml';
-import {writeHarness} from './harness.mjs';
+import {writeHarness,writeLink,fileIdentity,isLinked,assertLinked} from './harness.mjs';
 
 const cli=fileURLToPath(new URL('../dist/cli.js',import.meta.url));
 const stdout='{"type":"rate_limit_event","status":429}\n{"type":"turn.failed"}\n';
@@ -43,7 +43,7 @@ test('print-launch prepares Codex bundle and home exactly as exec, without launc
  assert.equal(launch.cwd,f.target);assert.ok(fs.statSync(launch.bundle).isDirectory());
  assert.ok(fs.statSync(launch.env.CODEX_HOME).isDirectory());
  assert.equal(launch.env.AGENT_FARM_NATIVE_CODEX_HOME,path.join(f.home,'.codex'));
- assert.equal(fs.realpathSync(path.join(launch.env.CODEX_HOME,'auth.json')),path.join(f.home,'.codex/auth.json'));
+ assertLinked(path.join(launch.env.CODEX_HOME,'auth.json'),path.join(f.home,'.codex/auth.json'));
  assert.equal(fs.readFileSync(path.join(launch.env.CODEX_HOME,'skills/proof/SKILL.md'),'utf8'),'Proof skill');
  const expected=command(launch.bundle,'main',{headless:true,home:f.home,env:f.env});
  assert.deepEqual(launch.argv,expected.argv);assert.deepEqual(launch.env,expected.envOverrides);
@@ -138,7 +138,7 @@ test('resume identity survives profile retargeting and compiler/runtime upgrades
  // content hashes change without altering the identity contract.
  const installation=path.join(f.base,'upgrade');fs.mkdirSync(installation);
  fs.writeFileSync(path.join(installation,'package.json'),'{"type":"module"}');
- fs.symlinkSync(fileURLToPath(new URL('../node_modules',import.meta.url)),path.join(installation,'node_modules'));
+ writeLink(fileURLToPath(new URL('../node_modules',import.meta.url)),path.join(installation,'node_modules'));
  for(const name of ['compiler.js','runtime.js','telemetry.js','telemetry-query.js','telemetry-mcp.js','telemetry-conversation.js','telemetry-hierarchy.js','telemetry-export.js','skill-layout.js','config.js','connections.js','workspaces.js']) {
   fs.copyFileSync(fileURLToPath(new URL('../dist/'+name,import.meta.url)),path.join(installation,name));
  }
@@ -154,7 +154,7 @@ test('profiles, workspaces, canonical directories and process child routes isola
  for(const profile of ['a','b'])fs.writeFileSync(path.join(f.root,'profiles',profile+'.yaml'),'agent: planner\n');
  fs.writeFileSync(path.join(f.root,'workspace.yaml'),'connections: {}\n');
  const other=path.join(f.base,'other repo');fs.mkdirSync(other);
- const alias=path.join(f.base,'repo alias');fs.symlinkSync(f.target,alias);
+ const alias=path.join(f.base,'repo alias');writeLink(f.target,alias);
  const home=(profile,target=f.target,workspace)=>command(build(f.root,profile,target,workspace),'main',{home:f.home,env:f.env}).env.CODEX_HOME;
  const first=home('a');assert.notEqual(home('b'),first);
  assert.notEqual(home('a',other),first);assert.notEqual(home('a',f.target,noWorkspace()),first);
@@ -256,9 +256,8 @@ for(const harness of ['codex','claude'])for(const match of [undefined,'all','sla
   assert.equal(launch.argv[launch.argv.indexOf('--model')+1],model);
   if(harness==='codex') {
    const config=path.join(launch.env.CODEX_HOME,'config.toml');
-   assert.equal(fs.lstatSync(config).isSymbolicLink(),!applied);
+   assert.equal(isLinked(config,path.join(f.home,'.codex/config.toml')),!applied);
    if(applied)assert.equal(parseToml(fs.readFileSync(config,'utf8')).model_provider,provider.name);
-   else assert.equal(fs.realpathSync(config),path.join(f.home,'.codex/config.toml'));
   } else {
    assert.equal(launch.argv[0],applied ? process.execPath : 'claude');
    assert.equal(launch.env.ANTHROPIC_BASE_URL,applied ? provider.base_url : undefined);
@@ -284,9 +283,8 @@ for(const parentSlash of [false,true])for(const childSlash of [false,true]) {
   const direct=command(parent.bundle,'main/children/worker',{headless:true,home:f.home,env:{...f.env,...parent.env}});
   assert.deepEqual(launch.argv,direct.argv);assert.deepEqual(launch.env,direct.envOverrides);
   const config=path.join(launch.env.CODEX_HOME,'config.toml');
-  assert.equal(fs.lstatSync(config).isSymbolicLink(),!childSlash);
+  assert.equal(isLinked(config,path.join(f.home,'.codex/config.toml')),!childSlash);
   if(childSlash)assert.equal(parseToml(fs.readFileSync(config,'utf8')).model_provider,provider.name);
-  else assert.equal(fs.realpathSync(config),path.join(f.home,'.codex/config.toml'));
   assert.equal(fs.existsSync(f.record),false);assertNoSecrets(launch,child.stdout);
   configureProvider(f);
   const updated=spawnSync(process.execPath,[path.join(parent.bundle,'main/dispatch/worker'),'--print-launch'],{env:{...f.env,...parent.env},encoding:'utf8'});
@@ -308,7 +306,7 @@ test('Codex provider configuration routes the profile without copying native con
  assert.deepEqual(data,{model_provider:'cliproxy',model_providers:{cliproxy:{name:'cliproxy',base_url:provider.base_url+'/v1',wire_api:'responses',env_key:'CLIPROXY_API_KEY'}}});
  assert.equal(text.includes('PROXY-SECRET-FIXTURE'),false);assert.equal(text.includes('NATIVE-CONFIG-SECRET'),false);
  assert.equal(fs.readFileSync(native,'utf8'),nativeText);
- assert.equal(fs.realpathSync(path.join(launch.env.CODEX_HOME,'auth.json')),path.join(f.home,'.codex/auth.json'));
+ assertLinked(path.join(launch.env.CODEX_HOME,'auth.json'),path.join(f.home,'.codex/auth.json'));
  assert.equal(launch.argv[launch.argv.indexOf('--model')+1],'test');assert.equal(launch.env.AGENT_FARM_CONFIG_ROOT,f.root);
  assertNoSecrets(launch,result.stdout,['NATIVE-CONFIG-SECRET']);
  // Host updates affect the same bundle; switching providers never writes through native links.
@@ -319,7 +317,7 @@ test('Codex provider configuration routes the profile without copying native con
  assert.equal(parseToml(fs.readFileSync(config,'utf8')).model_providers.second.base_url,'https://gateway.example/api/v1');
  fs.unlinkSync(path.join(f.root,'settings.json'));assert.equal(loadProvider(f.root),undefined);
  const restored=f.invoke(['--print-launch'],'implementer');assert.equal(restored.status,0,restored.stderr);
- assert.equal(fs.realpathSync(config),native);assert.equal(fs.readFileSync(config,'utf8'),nativeText);
+ assertLinked(config,native);assert.equal(fs.readFileSync(config,'utf8'),nativeText);
  assert.deepEqual(Object.keys(JSON.parse(restored.stdout).env).sort(),['AGENT_FARM_CONFIG_ROOT','AGENT_FARM_NATIVE_CODEX_HOME','CODEX_HOME']);
  configureProvider(f);
  const again=f.invoke(['--print-launch'],'implementer');assert.equal(again.status,0,again.stderr);
@@ -539,7 +537,7 @@ test('legacy skills/.system links are removed without touching native skills; fr
  const bundle=build(f.root,'planner',f.target);
  const runtime=codexHome(bundle,'main',{...f.env},f.home),skills=path.join(runtime,'skills');
  assert.deepEqual(fs.readdirSync(skills).sort(),['mine','proof']);
- fs.symlinkSync(native,path.join(skills,'.system'));
+ writeLink(native,path.join(skills,'.system'));
  codexHome(bundle,'main',{...f.env},f.home);
  assert.deepEqual(fs.readdirSync(skills).sort(),['mine','proof']);
  assert.equal(fs.readlinkSync(path.join(skills,'mine')),path.join(f.home,'.codex/skills/mine'));
@@ -560,7 +558,7 @@ test('concurrent launches sharing a runtime home all succeed',async t=>{
   fs.writeFileSync(path.join(f.root,'agents/planner.yaml'),`harness: codex\nmodel: test\nskills: [${selected.join(', ')}]\n`);
   const bundle=build(f.root,'planner',f.target);
   if(runtime&&index%2===0)codexWritesSystem(runtime);
-  if(runtime&&index%2===1){fs.rmSync(path.join(runtime,'skills/.system'),{recursive:true,force:true});fs.symlinkSync(native,path.join(runtime,'skills/.system'));}
+  if(runtime&&index%2===1){fs.rmSync(path.join(runtime,'skills/.system'),{recursive:true,force:true});writeLink(native,path.join(runtime,'skills/.system'));}
   const results=await Promise.all(Array.from({length:8},()=>prepare(bundle)));
   runtime=results[0].stdout;
   for(const result of results)assert.equal(result.stdout,runtime);
@@ -575,7 +573,7 @@ test('concurrent launches sharing a runtime home all succeed',async t=>{
 test('a Codex .system folder written while a legacy link is being removed is accepted',t=>{
  const f=fixture(t),native=nativeSystem(f),bundle=build(f.root,'planner',f.target);
  const runtime=codexHome(bundle,'main',{...f.env},f.home),system=path.join(runtime,'skills/.system');
- fs.symlinkSync(native,system);
+ writeLink(native,system);
  // A sibling removes the link and Codex writes its folder just before this unlink.
  const unlink=fs.unlinkSync;t.after(()=>{fs.unlinkSync=unlink;});
  fs.unlinkSync=(target,...rest)=>{if(target===system&&fs.lstatSync(system).isSymbolicLink()){unlink(system);codexWritesSystem(runtime);}return unlink(target,...rest);};
@@ -583,4 +581,81 @@ test('a Codex .system folder written while a legacy link is being removed is acc
  fs.unlinkSync=unlink;
  assert.equal(fs.lstatSync(system).isDirectory(),true);
  assert.equal(fs.readFileSync(path.join(system,'.codex-system-skills.marker'),'utf8'),'B');
+});
+
+// A default Windows install withholds SeCreateSymbolicLinkPrivilege, so a file symlink fails with EPERM while
+// junctions and hard links succeed. The launcher's own knob reproduces that wherever the suite runs, so these
+// cases cover the fallback on every platform instead of only on an unprivileged Windows machine.
+function withoutFileSymlinks(t) {
+ process.env.AGENT_FARM_FORCE_LINK_FALLBACK='1';
+ t.after(()=>{delete process.env.AGENT_FARM_FORCE_LINK_FALLBACK;});
+}
+
+test('Windows links Codex config files as hard links it still recognizes on the next launch',t=>{
+ const f=fixture(t),bundle=build(f.root,'planner',f.target);
+ withoutFileSymlinks(t);
+ const runtime=codexHome(bundle,'main',{...f.env},f.home);
+ const config=path.join(runtime,'config.toml'),native=path.join(f.home,'.codex/config.toml');
+ const current=fs.lstatSync(config);
+ assert.equal(current.isSymbolicLink(),false);
+ assert.equal(fileIdentity(config),fileIdentity(native));
+ assert.equal(hardLinked(native,current),true);
+ // Codex writes its settings through this link, so a copy would silently drop them.
+ fs.appendFileSync(config,'model = "written-through"\n');
+ assert.equal(fs.readFileSync(native,'utf8'),'model = "written-through"\n');
+ assert.equal(fileIdentity(path.join(runtime,'auth.json')),fileIdentity(path.join(f.home,'.codex/auth.json')));
+ // Directories are junctions on Windows, so they stay real links.
+ assert.equal(fs.lstatSync(path.join(runtime,'skills/proof')).isSymbolicLink(),true);
+ // A second launch must reuse the home, not call its own hard links a conflict.
+ assert.equal(codexHome(bundle,'main',{...f.env},f.home),runtime);
+ assert.equal(fileIdentity(config),fileIdentity(native));
+ assert.equal(fs.readFileSync(native,'utf8'),'model = "written-through"\n');
+ assert.equal(fs.readFileSync(path.join(runtime,'skills/proof/SKILL.md'),'utf8'),'Proof skill');
+});
+
+test('hard-linked runtime paths keep refusing files Agent Farm does not own',t=>{
+ const f=fixture(t),bundle=build(f.root,'implementer',f.target);
+ withoutFileSymlinks(t);
+ const runtime=codexHome(bundle,'main',{...f.env},f.home);
+ const config=path.join(runtime,'config.toml'),native=path.join(f.home,'.codex/config.toml');
+ fs.unlinkSync(config);fs.writeFileSync(config,'# unmanaged\n');
+ assert.throws(()=>codexHome(bundle,'main',{...f.env},f.home),/Conflicting runtime path/);
+ assert.equal(fs.readFileSync(config,'utf8'),'# unmanaged\n');
+ // A hard link to something else is not this link either.
+ const other=path.join(f.base,'other.toml');fs.writeFileSync(other,'# other\n');
+ fs.unlinkSync(config);fs.linkSync(other,config);
+ assert.throws(()=>codexHome(bundle,'main',{...f.env},f.home),/Conflicting runtime path/);
+ assert.equal(fs.readFileSync(other,'utf8'),'# other\n');
+ fs.unlinkSync(config);fs.linkSync(native,config);
+ const auth=path.join(runtime,'auth.json');fs.unlinkSync(auth);fs.writeFileSync(auth,'planted');
+ assert.throws(()=>codexHome(bundle,'main',{...f.env},f.home),/is not a link Agent Farm manages/);
+ assert.equal(fs.readFileSync(auth,'utf8'),'planted');
+ assert.equal(fs.readFileSync(path.join(f.home,'.codex/auth.json'),'utf8'),'AUTH-SECRET-FIXTURE');
+});
+
+test('a file link that cannot be hard linked either names Developer Mode and an elevated shell',t=>{
+ const f=fixture(t),bundle=build(f.root,'planner',f.target);
+ withoutFileSymlinks(t);
+ const linkSync=fs.linkSync;t.after(()=>{fs.linkSync=linkSync;});
+ // The runtime cache and the native Codex home can sit on different volumes.
+ fs.linkSync=(source,destination)=>{throw Object.assign(new Error(`EXDEV: cross-device link, link '${source}' -> '${destination}'`),{code:'EXDEV'});};
+ assert.throws(()=>codexHome(bundle,'main',{...f.env},f.home),/requires Developer Mode \(Settings > System > For developers\) or an elevated shell/);
+ assert.throws(()=>codexHome(bundle,'main',{...f.env},f.home),/\(EXDEV\)$/m);
+});
+
+test('a launcher that exits straight after execute still runs the harness and reports its status',t=>{
+ const f=fixture(t),runtimeModule=pathToFileURL(fileURLToPath(new URL('../dist/runtime.js',import.meta.url))).href;
+ // The interactive entry point exits as soon as its prompts finish. POSIX never gets there because execve
+ // replaced this process; Windows only spawned the harness, so the launcher has to wait for it first.
+ const script=`import {execute} from ${JSON.stringify(runtimeModule)};
+ const child=execute(['codex','probe'],${JSON.stringify(f.target)},process.env);
+ console.error('returned '+typeof child?.pid);
+ if (child) await new Promise(resolve=>child.on('close',resolve).on('error',resolve));
+ process.exit(process.exitCode ?? 0);`;
+ const result=spawnSync(process.execPath,['--input-type=module','--eval',script],{env:f.env,encoding:'utf8'});
+ assert.equal(result.status,7,result.stderr);
+ assert.equal(result.stdout,stdout);
+ assert.ok(result.stderr.includes(stderr),result.stderr);
+ assert.deepEqual(JSON.parse(fs.readFileSync(f.record,'utf8')).args,['probe']);
+ assert.equal(result.stderr.includes('returned number'),process.platform==='win32');
 });

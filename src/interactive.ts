@@ -108,7 +108,9 @@ async function launchProfile(configRoot: string, profile: string, targetDir: str
 
   await sleep(300);
   p.outro(`Launching ${bold(profile)}`);
-  run(bundle, 'main', [], undefined, configRoot);
+  const child = run(bundle, 'main', [], undefined, configRoot);
+  // POSIX replaced this process with the harness; Windows only spawned it, so hold the console until it exits.
+  if (child) await new Promise(resolve => child.on('close', resolve).on('error', resolve));
 }
 
 async function createProfileFlow(configRoot: string): Promise<string | undefined> {

@@ -7,6 +7,7 @@ import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {build,resolve} from '../dist/compiler.js';
 import {command,codexHome,fileMap,files,verify} from '../dist/runtime.js';
+import {fileIdentity} from './harness.mjs';
 function setup(t) {
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-mcp-'));
  t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
@@ -117,7 +118,7 @@ test('generated Codex homes share existing native credential files across destin
  fs.writeFileSync(path.join(native,'.credentials.json'),'{}');fs.writeFileSync(path.join(native,'auth.json'),'{}');
  const a=codexHome(f.build(),'main',{CODEX_HOME:native},home),b=codexHome(f.build('two'),'main',{CODEX_HOME:native},home);
  assert.notEqual(a,b);
- for(const name of ['auth.json','.credentials.json'])assert.equal(fs.realpathSync(path.join(a,name)),fs.realpathSync(path.join(b,name)));
+ for(const name of ['auth.json','.credentials.json'])assert.equal(fileIdentity(path.join(a,name)),fileIdentity(path.join(b,name)));
 });
 
 test('native login uses launch-identical identities and restores the original Codex home',async t=>{

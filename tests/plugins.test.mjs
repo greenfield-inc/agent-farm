@@ -9,6 +9,7 @@ import {installPlugin,validatePlugin,listPlugins,uninstallPlugin} from '../dist/
 import {build} from '../dist/compiler.js';
 import {fileMap,hash} from '../dist/runtime.js';
 import {listProfiles,inspectProfile} from '../dist/inspect.js';
+import {writeLink} from './harness.mjs';
 
 const dcouple=fileURLToPath(new URL('../plugins/dcouple',import.meta.url));
 const cli=fileURLToPath(new URL('../dist/cli.js',import.meta.url));
@@ -149,7 +150,7 @@ test('plugin tampering and namespaced symlink destinations are rejected before i
  assert.throws(()=>validatePlugin(copy),/integrity/);
  const target=path.join(root,'target');
  fs.mkdirSync(path.join(target,'plugins'),{recursive:true});
- fs.symlinkSync(path.join(root,'missing'),path.join(target,'plugins/dcouple'));
+ writeLink(path.join(root,'missing'),path.join(target,'plugins/dcouple'));
  assert.throws(()=>installPlugin(dcouple,target),/Symlink/);
 });
 

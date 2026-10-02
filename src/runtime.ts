@@ -4,7 +4,7 @@ import os from 'node:os';
 import { createHash } from 'node:crypto';
 import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
-import { spawn } from 'node:child_process';
+import { spawn, type ChildProcess } from 'node:child_process';
 
 export type Connection =
   | { type: 'mcp'; description?: string; url: string; auth: 'native' | 'none' }
@@ -161,13 +161,42 @@ function materializeLaunch(bundle: string, route: string, launch: LaunchMetadata
   return destination;
 }
 const missing = (e: unknown): boolean => (e as NodeJS.ErrnoException).code === 'ENOENT';
+/** Reading a link a sibling launch is removing reports EINVAL on macOS and EPERM on Windows. */
+const vanishing = (e: unknown): boolean => ['EINVAL','EPERM'].includes((e as NodeJS.ErrnoException).code ?? '');
 const conflict = (destination: string): Error => new Error(`Conflicting runtime path: ${destination} is not a link Agent Farm manages; move it aside to continue`);
-/** Links folders as junctions, which Windows allows without Developer Mode; elsewhere the type is ignored. */
+/** A Windows file link is a hard link, which lstat cannot flag, so the shared inode is its identity.
+ *  Link counts are not: a contended lstat can report 1 for a file that has two names. */
+export function hardLinked(source: string, current: fs.Stats): boolean {
+  if (current.isSymbolicLink() || !current.isFile()) return false;
+  let target: fs.Stats;
+  try { target=fs.statSync(source); } catch (e) { if (missing(e)) return false; throw e; }
+  return target.dev===current.dev && target.ino===current.ino;
+}
+/** Waits for a sibling launch to finish publishing a link, then reports whether another look is worth taking.
+ *  Windows creates a junction in two steps, so a sibling can see a bare directory where a link is appearing. */
+function settling(attempt: number): boolean {
+  if (attempt>=3) return false;
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,5<<attempt);
+  return true;
+}
+/** Takes the file fallback below even where a symlink would succeed, so a machine that holds the Windows
+ *  symlink privilege — an elevated shell, or any GitHub Windows runner — can still exercise that path. */
+const forcedFallback = (): boolean => process.env.AGENT_FARM_FORCE_LINK_FALLBACK==='1';
+/** Links folders as junctions, which Windows allows without Developer Mode; a file symlink needs a privilege a
+ *  default install withholds, so files fall back to a hard link, which the harness still writes through.
+ *  Elsewhere the type is ignored. */
 export function symlink(source: string, destination: string): void {
-  try { fs.symlinkSync(source,destination,fs.statSync(source).isDirectory()?'junction':'file'); }
+  const directory=fs.statSync(source).isDirectory();
+  if (directory || !forcedFallback()) {
+    try { fs.symlinkSync(source,destination,directory?'junction':'file'); return; }
+    catch (e) { if (directory || process.platform!=='win32' || (e as NodeJS.ErrnoException).code!=='EPERM') throw e; }
+  }
+  // A hard link needs no privilege, but it cannot cross volumes (EXDEV).
+  try { fs.linkSync(source,destination); }
   catch (e) {
-    if (process.platform==='win32' && (e as NodeJS.ErrnoException).code==='EPERM') throw new Error(`Linking files on Windows requires Developer Mode (Settings > System > For developers): ${destination}`);
-    throw e;
+    const code=(e as NodeJS.ErrnoException).code;
+    if (code==='EEXIST') throw e;
+    throw new Error(`Linking files on Windows requires Developer Mode (Settings > System > For developers) or an elevated shell: ${destination} (${code})`);
   }
 }
 /** Removes a link without touching its target. Windows removes a junction with rmdir. */
@@ -186,10 +215,11 @@ function link(source: string, destination: string): void {
       continue;
     }
     let same: boolean;
-    try { same = current.isSymbolicLink() && fs.realpathSync(destination) === fs.realpathSync(source); }
-    catch (e) { if (missing(e) && attempt<3) continue; throw e; }
-    if (!same) throw conflict(destination);
-    return;
+    try { same = current.isSymbolicLink() ? fs.realpathSync(destination) === fs.realpathSync(source) : hardLinked(source,current); }
+    catch (e) { if ((missing(e) || vanishing(e)) && settling(attempt)) continue; throw e; }
+    if (same) return;
+    // A path that never settles into this link is one Agent Farm does not own.
+    if (!settling(attempt)) throw conflict(destination);
   }
 }
 export interface Provider { name: string; base_url: string; api_key_env: string; match?: 'all' | 'slash-models' }
@@ -215,19 +245,38 @@ export function loadProvider(root: string): Provider | undefined {
   return {name:value.name,base_url:value.base_url,api_key_env:value.api_key_env,...(value.match===undefined ? {} : {match:value.match})};
 }
 const providerConfigMarker='# Agent Farm generated provider configuration\n';
+/** True only for a provider configuration a launch generated here; a link to the native config is not one. */
+function generatedConfig(destination: string, native: string): boolean {
+  try {
+    const current=fs.lstatSync(destination);
+    // A Windows fallback link is a hard link, so it reads as a plain file holding the user's own settings.
+    if (current.isSymbolicLink() || !current.isFile() || hardLinked(native,current)) return false;
+    return fs.readFileSync(destination,'utf8').startsWith(providerConfigMarker);
+  } catch (e) { if (missing(e)) return false; throw e; }
+}
 function codexConfig(original: string, runtime: string, provider?: Provider): void {
-  const destination=path.join(runtime,'config.toml');
-  let current: fs.Stats | undefined;
-  try { current=fs.lstatSync(destination); } catch (e) { if ((e as NodeJS.ErrnoException).code!=='ENOENT') throw e; }
-  if (current && !current.isSymbolicLink() && (!current.isFile() || !fs.readFileSync(destination,'utf8').startsWith(providerConfigMarker))) throw new Error(`Conflicting runtime path: ${destination}`);
+  const destination=path.join(runtime,'config.toml'),native=path.join(original,'config.toml');
   if (!provider) {
-    if (current && !current.isSymbolicLink()) fs.unlinkSync(destination);
     // Codex writes its settings through this link, so it needs a file to point at.
-    fs.closeSync(fs.openSync(path.join(original,'config.toml'),'a'));
-    link(path.join(original,'config.toml'),destination);
+    fs.closeSync(fs.openSync(native,'a'));
+    // Retire a provider configuration an earlier launch generated here; link() judges every other path.
+    if (generatedConfig(destination,native)) try { fs.unlinkSync(destination); } catch (e) { if (!missing(e)) throw e; }
+    link(native,destination);
     return;
   }
-  if (current?.isSymbolicLink() && path.resolve(runtime,fs.readlinkSync(destination))!==path.join(original,'config.toml')) throw new Error(`Conflicting runtime path: ${destination}`);
+  // Refuse a path this launch does not own, giving a sibling publishing the native-config link time to appear.
+  for (let attempt=0;;attempt++) {
+    let current: fs.Stats | undefined;
+    try { current=fs.lstatSync(destination); } catch (e) { if (!missing(e)) throw e; }
+    let owned: boolean;
+    try {
+      owned = !current || (current.isSymbolicLink()
+        ? path.resolve(runtime,fs.readlinkSync(destination))===native
+        : hardLinked(native,current) || generatedConfig(destination,native));
+    } catch (e) { if (!missing(e)) throw e; owned=false; }
+    if (owned) break;
+    if (!settling(attempt)) throw new Error(`Conflicting runtime path: ${destination}`);
+  }
   const content=providerConfigMarker+[
     `model_provider = ${toml(provider.name)}`,
     `[model_providers.${provider.name}]`,
@@ -243,16 +292,17 @@ function codexConfig(original: string, runtime: string, provider?: Provider): vo
   try { fs.renameSync(temporary,destination); } finally { if (fs.existsSync(temporary)) fs.unlinkSync(temporary); }
 }
 const codexSystemSkills='.system';
-/** Link target, null when a sibling launch removed the entry, undefined when it is not a link. */
-function managedLink(destination: string): string | null | undefined {
+/** Link target, null when a sibling launch removed the entry, undefined when it is not a link.
+ *  A Windows hard link has no readable target, so it reports `source` when the inode matches. */
+function managedLink(destination: string, source?: string): string | null | undefined {
   for (let attempt=0;;attempt++) {
     try {
-      if (!fs.lstatSync(destination).isSymbolicLink()) return undefined;
+      const current=fs.lstatSync(destination);
+      if (!current.isSymbolicLink()) return source!==undefined && hardLinked(source,current) ? source : undefined;
       return fs.readlinkSync(destination);
     } catch (e) {
       if (missing(e)) return null;
-      // macOS can report EINVAL for a link a sibling is removing; look again.
-      if ((e as NodeJS.ErrnoException).code!=='EINVAL' || attempt>=3) throw e;
+      if (!vanishing(e) || !settling(attempt)) throw e;
     }
   }
 }
@@ -283,7 +333,9 @@ export function codexHome(bundle: string, route: string, env: NodeJS.ProcessEnv,
   // targets (including dangling links) and remove skills no longer selected.
   for (const name of fs.readdirSync(skills)) {
     const destination=path.join(skills,name);
-    const target=managedLink(destination);
+    let target=managedLink(destination,desired.get(name));
+    // Codex owns .system outright, so a folder there is expected; anything else should settle into a link.
+    if (target===undefined && name!==codexSystemSkills) for (let attempt=0;target===undefined && settling(attempt);attempt++) target=managedLink(destination,desired.get(name));
     if (target===undefined) { if (name===codexSystemSkills) continue; throw conflict(destination); }
     if (target!==null && path.resolve(skills,target)!==desired.get(name)) try { unlink(destination); } catch (e) {
       // A sibling may have removed the link and Codex written its folder since.
@@ -428,15 +480,20 @@ export function nativeCommand(argv: string[], environment: NodeJS.ProcessEnv): s
   if (!script) throw new Error(`Unsupported launcher ${executable}; install ${name} as an .exe or an npm package`);
   return [process.execPath,path.resolve(path.dirname(executable),script),...argv.slice(1)];
 }
-export function execute(argv: string[], cwd: string, environment: NodeJS.ProcessEnv): void {
+/** Returns the spawned harness on Windows, which has no exec; POSIX never returns at all. A caller that would
+ *  otherwise exit on its own must wait for that child, or it kills the harness it just started. */
+export function execute(argv: string[], cwd: string, environment: NodeJS.ProcessEnv): ChildProcess | undefined {
   const env=Object.fromEntries(Object.entries(environment).filter((pair): pair is [string,string]=>pair[1]!==undefined));
   const [executable,...args]=nativeCommand(argv,env);
   if (!path.isAbsolute(executable!)) throw new Error(`Missing native harness: ${argv[0]}`);
   if (process.platform==='win32') {
     // Windows has no exec. The harness shares this console, so Ctrl+C reaches it directly; stay alive and pass on its exit status.
     process.on('SIGINT',()=>{});
-    spawn(executable!,args,{cwd,env,stdio:'inherit'}).on('error',e=>{console.error('error:',e.message);process.exitCode=1;}).on('exit',code=>{process.exitCode=code ?? 1;});
-    return;
+    // Nothing here should compete with the harness for console input.
+    process.stdin.pause();
+    return spawn(executable!,args,{cwd,env,stdio:'inherit'})
+      .on('error',e=>{console.error('error:',e.message);process.exitCode=1;})
+      .on('exit',(code,signal)=>{process.exitCode=code ?? (signal ? 128+(os.constants.signals[signal] ?? 0) : 1);});
   }
   if (!process.execve) throw new Error('Native launch requires Node 22.15+');
   process.chdir(cwd);
@@ -444,7 +501,7 @@ export function execute(argv: string[], cwd: string, environment: NodeJS.Process
   process.execve(executable!,[argv[0]!,...args],env);
   throw new Error('Native exec unexpectedly returned');
 }
-export function run(bundle: string, route: string, args: string[], launchCommand: typeof command = command, configRoot?: string): void {
+export function run(bundle: string, route: string, args: string[], launchCommand: typeof command = command, configRoot?: string): ChildProcess | undefined {
   const {values,tokens}=parseArgs({args,options:{exec:{type:'boolean'},message:{type:'string'},explain:{type:'boolean'},'print-launch':{type:'boolean'},'native-arg':{type:'string',multiple:true},model:{type:'string'},reasoning:{type:'string'},speed:{type:'string'},arg:{type:'string',multiple:true}},strict:true,allowPositionals:true,tokens:true});
   const separator=tokens.find(t=>t.kind==='option-terminator')?.index ?? args.length;
   if (tokens.some(t=>t.kind==='positional' && t.index<separator)) throw new Error('Native arguments must follow -- or use --native-arg');
@@ -459,5 +516,6 @@ export function run(bundle: string, route: string, args: string[], launchCommand
   const metadata={workspace_source:manifest.workspace_source,telemetry:launch.telemetry,telemetry_access:launch.telemetry_access,profile:manifest.profile,...(manifest.variant?{variant:manifest.variant}:{}),plugin:manifest.plugin,plugin_version:manifest.plugin_version,trace_identity:manifest.trace_identity,cross_plugin_dependencies:manifest.cross_plugin_dependencies};
   if (values.explain) console.log(JSON.stringify({...metadata,argv:launch.argv,cwd:launch.cwd,bundle,launch:launch.launch},null,2));
   else if (values['print-launch']) console.log(JSON.stringify({...metadata,argv:launch.argv,cwd:launch.cwd,bundle,env:launch.envOverrides,launch:launch.launch},null,2));
-  else execute(launch.argv,launch.cwd,launch.env);
+  else return execute(launch.argv,launch.cwd,launch.env);
+  return undefined;
 }

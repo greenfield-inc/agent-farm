@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {repository,repositoryFile,workspaceDocument,validateWorkspace} from '../dist/workspaces.js';
+import {writeLink} from './harness.mjs';
 function fixture(t){
  const base=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'af-workspace-')));
  t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
@@ -27,9 +28,9 @@ test('repository schema requires a valid name and rejects unknown fields',()=>{
 });
 test('workspace symlinks and paths escaping the repository are refused',t=>{
  const f=fixture(t),outside=f.put('outside/workspace.yaml','name: outside');
- fs.mkdirSync(path.join(f.repo,'.agent-farm'));fs.symlinkSync(outside,path.join(f.repo,'.agent-farm/workspace.yaml'));
+ fs.mkdirSync(path.join(f.repo,'.agent-farm'));writeLink(outside,path.join(f.repo,'.agent-farm/workspace.yaml'));
  assert.throws(()=>repositoryFile(repository(f.repo)),/symlink/);
- fs.unlinkSync(path.join(f.repo,'.agent-farm/workspace.yaml'));fs.rmdirSync(path.join(f.repo,'.agent-farm'));fs.symlinkSync(path.dirname(outside),path.join(f.repo,'.agent-farm'));
+ fs.unlinkSync(path.join(f.repo,'.agent-farm/workspace.yaml'));fs.rmdirSync(path.join(f.repo,'.agent-farm'));writeLink(path.dirname(outside),path.join(f.repo,'.agent-farm'));
  assert.throws(()=>repositoryFile(repository(f.repo)),/outside repository/);
 });
 

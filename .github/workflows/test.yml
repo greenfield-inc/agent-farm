@@ -26,3 +26,23 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
       - run: node scripts/install-smoke.mjs
+
+  # The matrix job above already runs on Windows and still passed while Codex profiles could not launch at all:
+  # its runner is an administrator and so holds SeCreateSymbolicLinkPrivilege, which a default Windows install
+  # withholds, so file symlinks succeed there and the hard-link fallback never runs. This job forces that
+  # fallback instead. It is a simulated privilege denial, not a real one: it proves the hard-link path works on
+  # real Windows, not that the privilege is absent, so it would not catch a regression in the EPERM detection
+  # that selects the path. The unprivileged case is covered by developers running the suite on their own machines.
+  windows-link-fallback:
+    runs-on: windows-latest
+    env:
+      AGENT_FARM_FORCE_LINK_FALLBACK: '1'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - uses: pnpm/action-setup@v6
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
