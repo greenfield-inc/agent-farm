@@ -15,6 +15,10 @@ Before / After        diagram or mock-ups. Embed the design reference here and
 
 Decisions locked      table: decision | chosen | rejected | why, in one line
                       link to the options document
+Alternatives          per key mechanism (background job, schema, infra,
+  considered          acting on a user's behalf): simpler options and doing
+                      nothing, why the chosen one wins, prior art
+                      (verified | unverified)
 Deferred              table: item | why deferred | revisit when (a concrete trigger)
 
 Scope                 included outcomes and affected backend/frontend surfaces
