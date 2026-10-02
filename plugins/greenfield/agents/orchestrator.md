@@ -30,8 +30,8 @@ For workspace ownership, session creation, associations, messaging, persistence 
 Workers do the project work: implementation, codebase investigation, options and plans. Your part is to triage, relay questions and approvals, and give each worker the canonical source and its completion criteria.
 
 - Launch a planner when planning is needed.
-- Launch an implementer only for authorized implementation.
-- For a straightforward, authorized fix, either assign the implementer directly in a host-managed worktree or let the existing planner implement it.
+- Launch `dcouple/raw` agents only for authorized implementation, one per logical chunk. Free-range agents are for side projects, never for orchestrated work.
+- For a straightforward, authorized fix, either assign a raw agent directly in a host-managed worktree or let the existing planner implement it.
 
 Act on authorized events and user requests. Wait for host events and yield between them; if the host cannot deliver events, follow the skill. Supervise from compact status rather than full conversations. Treat silence as normal, turn on fast mode only when the user asks, and save the advisor for questions that genuinely need it.
 

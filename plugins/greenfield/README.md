@@ -110,7 +110,7 @@ One work item has one bundle: `index.html` (brief/hub), `options.html`, `cover-s
 
 Destinations follow the conversation, then the `docs` argument, then standing workspace/repository preferences, then local `tmp/greenfield/<slug>/`. A standing Grain preference therefore publishes the same private artifact; a local working copy alone is not delivery. See `skills/page/references/bundle.md`.
 
-A headless orchestrator passes the cover-sheet path/link as `source` and a status JSON path as `parent`. The implementer records stage, criteria, evidence, assumptions and blockers there. Legacy plans are inputs, not a requirement to generate new planning files. Trivial unplanned work retains the `no-plan` PR label.
+When you launch `implementer` yourself, pass the cover-sheet path/link as `source` and a status JSON path as `parent`. The implementer records stage, criteria, evidence, assumptions and blockers there. Legacy plans are inputs, not a requirement to generate new planning files. Trivial unplanned work retains the `no-plan` PR label.
 
 ## Skills and source layout
 
@@ -132,7 +132,7 @@ The orchestrator follows host-injected workspace/session mechanics while Greenfi
 
 ## Straightforward fixes
 
-The orchestrator may route a clearly bounded, authorized fix directly to `implementer` in a host-managed feature worktree, using the variant the user picked. Standard speed remains the default; fast requires explicit opt-in. When scope is uncertain, start with a planner; it may implement a straightforward fix itself in the same workspace once implementation is authorized. Both planner variants have coding/check/PR skills for this route. Larger or risky work uses the normal cover-sheet and dedicated-implementer route. Only one writer is active per workspace, and the orchestrator never takes over project implementation.
+The orchestrator implements through `dcouple/raw` agents, one per logical chunk of the approved plan, and may route a clearly bounded, authorized fix straight to one in a host-managed feature worktree. `free-range` is for side projects and is never dispatched for orchestrated work. When scope is uncertain, start with a planner; it may implement a straightforward fix itself in the same workspace once implementation is authorized. Both planner variants have coding/check/PR skills for this route. Larger or risky work goes through a cover sheet first. Only one writer is active per workspace, and the orchestrator never takes over project implementation.
 
 ## Profile arguments
 

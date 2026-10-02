@@ -25,8 +25,8 @@ Act only on authorized work. Opening or restoring the orchestrator starts nothin
 | --- | --- |
 | Idea, open product/architecture decision, or investigation | `greenfield/planner`: investigate, present options, produce the HTML cover sheet, or ask the necessary question |
 | Bug needing a reproducible report | `greenfield/bug-reporter` |
-| Approved cover sheet or authorized direct-to-implementer bug | `greenfield/implementer` |
-| Clearly straightforward, authorized fix | May launch `greenfield/implementer` in an isolated host-managed feature workspace, with the original task and a `no-plan` label |
+| Approved cover sheet or authorized direct-to-implementer bug | `dcouple/raw`, one agent per logical chunk |
+| Clearly straightforward, authorized fix | May launch `dcouple/raw` in an isolated host-managed feature workspace, with the original task and a `no-plan` label |
 | Size or approach uncertain | Default to `greenfield/planner`; if it establishes a straightforward fix, it may implement in the same workspace when authorized |
 
 Implementation needs the user's approval of the actual source revision; record it before moving on, unless existing authorization explicitly covers that step. A finished planning document is ready for review, nothing more. Relay open decisions to the user and let the planner write the plan.
@@ -44,9 +44,9 @@ Without a host requirement, give each work item its own Git worktree and branch,
 - Record the returned workspace and worker IDs, and check once after launch that the worker is attached to the intended workspace.
 - Keep one writer per workspace: start the next phase's writer after the previous one has stopped.
 
-`planner` accepts `docs`, `source`, and `parent`; `implementer` accepts `source`, `parent`, `priority`, and `review`; `bug-reporter` accepts `source` and `parent`. `parent` is an absolute status-file path; host session IDs travel separately. Pass host ownership and reporting instructions through the host's supported context mechanism. Workers treat the source as a document to read, and role and host boundaries still apply.
+`planner` accepts `docs`, `source`, and `parent`; `bug-reporter` accepts `source` and `parent`. `dcouple/raw` takes no arguments, so its starting message names the source, its chunk, its completion criteria and the status file to update. `parent` is an absolute status-file path; host session IDs travel separately. Pass host ownership and reporting instructions through the host's supported context mechanism. Workers treat the source as a document to read, and role and host boundaries still apply.
 
-Dedicated implementation runs one writer from the `greenfield/implementer` variant the user picks: `claude` (Claude Opus 5.5, the default), `standard` (Astra Low), or `fast`. Name the variant with `:variant` when launching so the worker starts without a prompt. A planner doing a small fix keeps its current model and session. Fast mode is Codex-only: use `implementer:standard --speed fast` or `implementer:fast` only when the user opts in. Review defaults to a single lane with the implementer's primary reviewer, and small, low-risk changes may skip it with a disclosed reason; dual review or any other skip needs the user's authorization. The implementer runs its own frontend verification and review, so the orchestrator launches no extra reviewers or implementation workers.
+Implementation from an orchestrated plan runs on `dcouple/raw`: split the approved source into logical chunks and launch one raw agent per chunk, each in its own workspace and opening its own PR. Link each raw agent's PR, and any explainer it publishes, from the status board. `greenfield/free-range` is for side projects and ad-hoc work outside a plan; never dispatch it for orchestrated work. Launch `dcouple/raw:opus` by default, or the variant the user names, so the worker starts without a prompt. A planner doing a small fix keeps its current model and session. Each raw agent runs its own verification and review, so the orchestrator launches no extra reviewers.
 
 ## Events, not polling
 
