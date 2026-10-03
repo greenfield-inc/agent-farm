@@ -43,7 +43,7 @@ export const commands: Command[] = [
       'agent-farm run dcouple/implementer',
       'agent-farm run implementer --directory ~/repos/my-app',
       'agent-farm run implementer --model gpt-6-astra --speed fast --arg review=full',
-      'agent-farm run astra-discuss --directory ~/repos/my-project --message "Plan issue #42"',
+      'agent-farm run greenfield/planner --directory ~/repos/my-project --message "Plan issue #42"',
       'agent-farm run planner --directory ~/repos/my-app --print-launch',
       'agent-farm run implementer --print-launch --message "Continue" -- exec resume THREAD --json',
     ],
@@ -85,7 +85,7 @@ export const commands: Command[] = [
     ],
     examples: [
       'agent-farm inspect planner',
-      'agent-farm inspect astra-discuss --directory ~/repos/my-project',
+      'agent-farm inspect greenfield/planner --directory ~/repos/my-project',
     ],
   },
   {
@@ -140,12 +140,12 @@ export const commands: Command[] = [
     description: "Sign in to a remote MCP connection using the native harness's OAuth flow. Run once per connection per harness. Launch inside the repository to use its approved workspace.",
     examples: [
       '# Authenticate each MCP connection once per harness:',
-      'agent-farm mcp login linear --directory ~/repos/bloomtext --harness codex',
-      'agent-farm mcp login sentry --directory ~/repos/bloomtext --harness codex',
-      'agent-farm mcp login posthog --directory ~/repos/bloomtext --harness claude',
+      'agent-farm mcp login linear --directory ~/repos/my-project --harness codex',
+      'agent-farm mcp login sentry --directory ~/repos/my-project --harness codex',
+      'agent-farm mcp login posthog --directory ~/repos/my-project --harness claude',
       '',
       '# Then launch with the workspace:',
-      'agent-farm run astra-discuss --directory ~/repos/bloomtext',
+      'agent-farm run greenfield/planner --directory ~/repos/my-project',
     ],
   },
   ...['trust','untrust','show','load','unload','loaded'].map(operation=>({

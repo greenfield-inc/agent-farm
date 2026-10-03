@@ -1,17 +1,21 @@
 # Configuration files
 
-The central authoring directory is `~/.config/agent-farm/`:
+The central authoring directory is `~/.config/agent-farm/`. Every command
+accepts `--config-root DIR` to use another directory. The CLI ignores the
+`AGENT_FARM_CONFIG_ROOT` environment variable; Agent Farm sets it only for
+generated launch bundles, which read it at dispatch time. The bare
+`agent-farm` menu, `init`, and `doctor` always use `$HOME/.config/agent-farm`.
 
 ```text
+settings.json                  Host settings: telemetry, provider, default_plugin
 profiles/
-  planner.yaml                 CLI entry point: agent: planner
-  astra-planner.yaml           CLI entry point: agent: astra-planner
+  planner.yaml                 CLI entry point with claude and codex variants
   implementer.yaml             CLI entry point: agent: implementer
 agents/
   planner.md                   Agent configuration + instruction body
-  astra-planner.md
+  planner-codex.md             The Codex variant's agent
   implementer.md
-  astra-socrates.md            Child agent, selected by a parent definition
+  socrates.md                  Child agent, selected by a parent definition
 skills/
   create-ticket/
     SKILL.md                   Shared skill description + workflow instructions
@@ -37,7 +41,9 @@ plugins/
 ```
 
 The top-level `profiles/`, `agents/`, `skills/`, `instructions/`, and
-`references/` directories are the unnamed local namespace. Each installed plugin
+`references/` directories are the unnamed local namespace. An agent may also be
+`agents/<name>.yaml` or `agents/<name>/agent.yaml`; having more than one of these
+forms for the same name is an error. Each installed plugin
 has the same five-section layout under `plugins/<name>/`. A plugin source directory is also a valid config
 root, so `agent-farm run planner --config-root /path/to/plugin` remains the
 development workflow.
@@ -66,6 +72,34 @@ qualified names unchanged:
 ambiguity marker. `inspect`, `--explain`, `--print-launch`, bundle manifests, and
 each bundled `agent.json` include plugin/version metadata. The trace identity is
 `plugin/profile@version`; local definitions use `local/profile@local`.
+
+## Plugins
+
+```sh
+agent-farm plugin install                 # the bundled default, dcouple
+agent-farm plugin install greenfield      # another bundled plugins/<name> folder
+agent-farm plugin install /path/to/plugin # any plugin source directory
+agent-farm plugin list                    # name, version, source, profile count
+agent-farm plugin uninstall NAME
+agent-farm plugin validate SOURCE         # check a plugin source without installing
+agent-farm plugin pack SOURCE OUTPUT      # create a checksummed plugin package
+```
+
+Installed content lives under `plugins/<name>/`, with one receipt at
+`.plugins/<name>.json`. An install or update holds a shared lock but compares
+and writes only that plugin's files and receipt. `plugin uninstall NAME` removes
+receipt-owned files only when their hashes still match; modified and missing
+paths are reported, and changed files are left in place.
+
+If install finds an older flat (pre-namespace) receipt, it stops without moving
+or deleting anything. The error names the receipt and asks you to migrate the
+configuration into `plugins/<name>/` before retrying, so legacy cleanup stays
+explicit instead of guessing which flat files are still yours.
+
+If two plugins publish the same profile, use `plugin/profile` or set
+`default_plugin`. If globally loaded profiles select the same skill directory
+name, unload the current owner before loading the other plugin; see
+[Source files versus native output](#source-files-versus-native-output).
 
 ## Profiles
 
@@ -136,8 +170,23 @@ only its selected top-level skills into the native user skill directory.
 
 Each Markdown filename is the agent identifier. YAML frontmatter defines the
 harness, model/effort, description, skills, connections, and child bindings. The
-Markdown body contains its instructions. Every child binding declares `mode: native` or `mode: process`; omitted modes
-and shorthand child names are rejected. Shared instruction files may be
+Markdown body contains its instructions. Accepted frontmatter keys are `harness`
+(`claude` or `codex`), `model`, `reasoning_effort`, `description`, `skills`,
+`references`, `connections`, `subagents`, `args`, and one of `instructions_file` or
+`instructions_files`. Child agents go under `subagents`, keyed by the name the
+parent uses. Each binding needs `agent` and `mode`, and may set `description`,
+`harness`, or `model`:
+
+```yaml
+subagents:
+  reviewer:
+    agent: reviewer
+    mode: process
+```
+
+Every child binding declares `mode: native` or `mode: process`; omitted modes
+and shorthand child names are rejected. Native children must use the parent's
+harness and support one level only; cross-harness children use process mode. Shared instruction files may be
 prepended with `instructions_files`. Actual agents live here whether they are
 used as entry points, children, or both. A reference document such as
 `skills/create-ticket/references/socrates.md` is a reusable rubric, not another
@@ -174,11 +223,17 @@ The repeatable `--arg key=value` flag sets declared arguments. `--model`,
 launch; compiled child models do not change. Reasoning and speed use the same
 harness-specific validation as agent frontmatter, and speed is Codex-only.
 
+For an agent that declares the arguments above:
+
 ```bash
-agent-farm run implementer \
+agent-farm run my-implementer \
   --model gpt-6-astra --reasoning medium --speed fast \
   --arg mode=fast --arg review=full
 ```
+
+Process children's dispatchers accept the same flags. They forward only values
+passed to that dispatcher; a child never inherits its parent's overrides or
+arguments.
 
 CLI model flags are reported as `override: ad hoc`; a saved model preset is
 reported as `override: preset`. Because agent instructions may be tuned for
@@ -196,7 +251,7 @@ parent: ../worktrees/invoice-pdf/.agent/status.json
 source: docs/agent/plans/invoice-pdf/handoff/WP-01.md
 ```
 
-`headless` is `true` for `--exec` and prepared headless launches, and `false`
+`headless` is `true` for `--exec` and every `--print-launch`, and `false`
 otherwise. Claude receives the block through `--append-system-prompt`; Codex
 receives it through `developer_instructions`. It is present whether or not a
 message is supplied. Arguments are context only: there is no templating or
@@ -667,8 +722,19 @@ retention policy yet; remove completed session directories when no longer needed
 
 ## Host provider target
 
-To route launches through an API gateway, create `settings.json` in
-`~/.config/agent-farm/` (or the directory selected by `--config-root`):
+To route launches through an API gateway, set the provider, then export the
+key in the environment that launches Agent Farm:
+
+```sh
+export OPENROUTER_API_KEY="..."
+agent-farm provider set openrouter --base-url https://openrouter.ai/api --api-key-env OPENROUTER_API_KEY
+agent-farm provider show
+agent-farm provider clear
+```
+
+This writes the `provider` block of `settings.json` in `~/.config/agent-farm/`
+(or the `--config-root` directory). To choose which models it routes, add
+`match` to that block by hand after running `provider set`, which rewrites the block. The file is plain JSON, so it can't contain comments:
 
 ```json
 {
@@ -676,16 +742,6 @@ To route launches through an API gateway, create `settings.json` in
     "name": "openrouter",
     "base_url": "https://openrouter.ai/api",
     "api_key_env": "OPENROUTER_API_KEY",
-
-    // "slash-models" — route only vendor-prefixed slugs (e.g. deepseek/deepseek-v4.1-flash)
-    //   through the provider. Native models (gpt-6-astra, claude-fable-5-1) use their
-    //   harness directly. Use this when you have native subscriptions (Codex, Claude Code)
-    //   AND want to use third-party models via OpenRouter without paying the gateway fee
-    //   on models you already have access to.
-    //
-    // "all" — route every launch through the provider, including native models.
-    //   Use this for a corporate proxy, a single billing gateway, or when you don't
-    //   have native subscriptions and want everything on one API key.
     "match": "slash-models"
   }
 }
@@ -709,8 +765,8 @@ provider table containing `base_url`, `wire_api = "responses"`, and `env_key`.
 The profile's model still applies. Native configuration is left untouched;
 native credentials and other supported files remain linked when present.
 A provider launch works without a native Codex home or login. The endpoint
-must support the Responses API. Use the gateway root for `base_url`: Codex
-adds `/v1` if absent, while Claude adds `/v1/messages` itself.
+must support the Responses API. Use the gateway root for `base_url`: Agent Farm
+appends `/v1` for Codex if it is absent, and Claude adds `/v1/messages` itself.
 Native configuration settings are not copied into the generated provider configuration.
 
 Claude receives `ANTHROPIC_BASE_URL` and all four
@@ -741,7 +797,7 @@ still appear inside generated bundles; it is not part of the central authoring
 layout. Imported skills with that native filename remain supported. A skill
 containing both metadata filenames fails rather than choosing one silently.
 
-Session bundles copy the translated files under the destination repository's
+Session bundles copy the translated files under the launch directory's
 `.agent-farm/generated/`. User-level `load` builds a native layout for normalized
 skills under `~/.cache/agent-farm/user-skill-layouts/`, using file links to the
 central sources, and links that layout into the native user skills directory.
@@ -857,6 +913,12 @@ and SHA-256 of the workspace bytes. Identical files in linked worktrees share
 approval. Changed content needs approval; `untrust` revokes all approved versions
 for that repository. Personal overlays and the user fallback are user-owned.
 
+Each approval is a record at
+`workspace-trust/<sha256(real common directory)>/<sha256(file bytes)>.json`
+containing `{ "version": 1, "common": "<real common directory>", "sha256": "<file hash>" }`.
+A private `last.json` beside it keeps the last approved content, which `trust`
+uses to show changes. Directories use mode 0700 and files mode 0600.
+
 An interactive `run` asks about an untrusted file. Declining launches without any
 workspace and says so. `--exec`, `--print-launch`, `--build`, `--explain`, `inspect`,
 noninteractive runs, MCP login, and native workspace installation never prompt;
@@ -887,10 +949,12 @@ reports the preset, resolved arguments, resolved model, and the agent/preset
 source of each model field. `--explain` and `--print-launch` add the actual
 launch metadata, including any flag sources and `ad hoc` override marker.
 
-`implementer` has two variants: `fast` (Medium Fast, the default) and `high`
+`dcouple/implementer` has two variants: `fast` (the default) and `high`
 (the former `astra-implementer-high`). The `codex-implementer` and
-`codex-issue-creator` names were removed; use `implementer:high` and
-`ideate:astra`.
+`codex-issue-creator` names were removed; use `dcouple/implementer:high` and
+`dcouple/ideate:astra`. `greenfield/implementer` is a separate profile with
+`standard`, `fast`, and `claude` variants, so use the qualified name when both
+plugins are installed.
 
 ## Local MCP servers and native sign-in
 
