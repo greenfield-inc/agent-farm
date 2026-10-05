@@ -144,8 +144,7 @@ async function createProfileFlow(configRoot: string): Promise<string | undefined
   const modelOptions: Record<string, {value: string; label: string; hint: string}[]> = {
     codex: [
       {value: 'gpt-6-astra', label: 'gpt-6-astra', hint: 'flagship'},
-      {value: 'gpt-5.6-luna', label: 'gpt-5.6-luna', hint: 'fast'},
-      {value: 'gpt-5.6-sol', label: 'gpt-5.6-sol', hint: 'balanced'},
+      {value: 'gpt-6.1-sol', label: 'gpt-6.1-sol', hint: 'balanced'},
     ],
     claude: [
       {value: 'claude-sonnet-5', label: 'claude-sonnet-5', hint: 'fast'},
