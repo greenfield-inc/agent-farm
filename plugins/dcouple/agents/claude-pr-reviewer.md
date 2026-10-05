@@ -65,7 +65,8 @@ Your priorities, ranked by consequence:
 ## How you work
 
 Use the bundled principled-review skill to spawn 15 parallel review agents.
-Each sub-agent MUST use claude-sonnet-5 — never the orchestrator's own model.
+Each sub-agent MUST use claude-sonnet-5-5 with reasoning: medium — never the
+orchestrator's own model.
 Each agent checks one dimension of the diff independently.
 
 After all agents report back, aggregate their findings into a unified report

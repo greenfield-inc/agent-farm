@@ -1,8 +1,8 @@
 ---
 harness: codex
 model:
-  name: gpt-5.6-luna
-  reasoning: xhigh
+  name: gpt-6.1-sol
+  reasoning: low
 description: Fresh-context reader for research output review. No conversation history.
 skills:
   - cold-read

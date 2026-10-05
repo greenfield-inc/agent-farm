@@ -1,8 +1,8 @@
 ---
 harness: codex
 model:
-  name: gpt-5.6-luna
-  reasoning: max
+  name: gpt-6.1-sol
+  reasoning: low
 description: Prepare the branch and open or update its PR under the parent
   workflow overrides. Never merge.
 skills:
