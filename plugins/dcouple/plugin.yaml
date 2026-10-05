@@ -84,7 +84,6 @@ checksums:
   skills/deep-dive-refresh/metadata/codex.yaml: 9639dbb116ed734678c85e89bab065fd4009928d05e8830dcf5a1e4b3974e6bd
   skills/deep-dive-refresh/SKILL.md: 7f2c7ad24334a6abbe7b548c122de41ff06703871f75906ab66834672839f4b8
   skills/eli5/SKILL.md: df17e7f3989fdde3e12206e058ed932bc7d1a86ad75a940fd030b003fe1b90d7
-  skills/excalidraw-pr-diagrams/.gitignore: 5e28b87652d6eca5f57d7457f0d6bac7130d618a3487bf5a594c1d9e6f88301a
   skills/excalidraw-pr-diagrams/README.md: a2830d1948b03db2c0d4e72f2bb9870f855bd7d945dfcc4d05fe9aab49a1711a
   skills/excalidraw-pr-diagrams/references/color-palette.md: 275164ffee5b1c2c36ddeb5bbdbd73765aa8b337bd1bfe8b02a5a8d5f9581c7c
   skills/excalidraw-pr-diagrams/references/element-templates.md: 11234630e5642779a0baa2380c913125f15084dcd05d553db2899182d66f22aa
