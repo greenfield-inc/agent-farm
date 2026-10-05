@@ -15,29 +15,29 @@ subagents:
     agent: business-context
     harness: codex
     model:
-      name: gpt-5.6-luna
-      reasoning: max
+      name: gpt-6.1-sol
+      reasoning: low
     mode: native
   business-research-adversary:
     agent: business-research-adversary
     harness: codex
     model:
-      name: gpt-5.6-luna
-      reasoning: max
+      name: gpt-6.1-sol
+      reasoning: low
     mode: native
   business-spec-reviewer:
     agent: business-spec-reviewer
     harness: codex
     model:
-      name: gpt-5.6-luna
-      reasoning: max
+      name: gpt-6.1-sol
+      reasoning: low
     mode: native
   business-artifact-reviewer:
     agent: business-artifact-reviewer
     harness: codex
     model:
-      name: gpt-5.6-luna
-      reasoning: max
+      name: gpt-6.1-sol
+      reasoning: low
     mode: native
   cold-reader:
     agent: cold-reader

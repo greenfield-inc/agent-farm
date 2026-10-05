@@ -33,7 +33,7 @@ Each returns lens, reviewed revision, report path, file:line evidence, impact,
 proposed fix, auto-fixable flag, and uncertainty. The parent reconciles once
 using the main skill's rules. Missing/failed lenses remain explicitly unverified.
 
-Historical source: dcouple/skills commit `1c6e4ec8f2adb6e4b3047bf014404655301172a7`,
-`.claude/commands/parsa/review/all.md`, preserved under `legacy-parsa/`.
+Historical source: [`review:all`](https://github.com/greenfield-inc/skills/blob/1c6e4ec8f2adb6e4b3047bf014404655301172a7/.claude/commands/parsa/review/all.md),
+preserved under `legacy-parsa/`.
 That source used eleven instances of one reviewer type. The adapted version
 keeps current evidence, reconciliation, capacity, and authorization boundaries.

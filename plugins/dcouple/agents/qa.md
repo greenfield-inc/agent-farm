@@ -1,7 +1,7 @@
 ---
 harness: codex
 model:
-  name: gpt-5.6-sol
+  name: gpt-6.1-sol
   reasoning: medium
 description: Run the authorized end-to-end PR QA and report checks, screenshots,
   and unresolved failures.

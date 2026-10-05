@@ -1,6 +1,6 @@
 ---
 name: astra-ticket
-description: Take a work item through Astra planning, Luna implementation, concurrent checks and focused reviews, optional Sol QA, and a final current-head PR review.
+description: Take a work item through Astra planning, Sol implementation, concurrent checks and focused reviews, optional Sol QA, and a final current-head PR review.
 ---
 
 # Astra Ticket
@@ -17,7 +17,7 @@ and PR links to the source that owns the item.
 ## Execution contract
 
 - Verify the parent is `gpt-6-astra` using authoritative runtime/session metadata. Defaults and user assertions are not proof; stop if different or unverified.
-- Use `gpt-5.6-luna` at `max` for every child except QA, which uses `gpt-5.6-sol` at `medium`. Verify support and set model/effort explicitly. Never substitute models.
+- Use `gpt-6.1-sol` at `low` for every child except QA, which uses `gpt-6.1-sol` at `medium`. Verify support and set model/effort explicitly. Never substitute models.
 - Give every child its role, ticket/plan, exact base and head SHA, workspace, skill paths, overrides, evidence destination, and output contract. Instruct every child never to archive any thread and never to merge. Only the parent may archive completed children.
 - Keep one code writer and one serialized fix queue. Reviewers and evidence collectors do not edit code, commit, push, rebase, or change PR readiness. Finish branch preparation before freezing the validation SHA.
 - Run independent work concurrently, using waves when slots are limited. Preserve separate reviewer contexts and assignments; do not collapse them into a single omnibus review or promise a fixed completion time.
@@ -31,9 +31,9 @@ Read the item and its comments from its source, current code, and relevant task 
 
 As Astra, follow `simple-plan`'s planning steps and `create-ticket`'s intent guidance. Offer `ui-mockup` for UI work and carry approved designs into the plan. Preserve the user's mockup/design decisions before implementation. Update the linked brief with intent, approach, tradeoffs, acceptance criteria, and checks; save detailed specs under task-specific `tmp/`.
 
-Reuse Socrates' verdict while its premise and evidence hold. Otherwise dispatch fresh Luna Max [Socrates](../create-ticket/references/socrates.md). Resolve material questions with the user before coding; if existing behavior meets the outcome, finish with evidence and guidance. This workflow waives `simple-plan`'s routine approval pause once premise findings are resolved; it does not waive unresolved intent or design decisions.
+Reuse Socrates' verdict while its premise and evidence hold. Otherwise dispatch fresh Sol Low [Socrates](../create-ticket/references/socrates.md). Resolve material questions with the user before coding; if existing behavior meets the outcome, finish with evidence and guidance. This workflow waives `simple-plan`'s routine approval pause once premise findings are resolved; it does not waive unresolved intent or design decisions.
 
-Delegate implementation and fixes to Luna Max workers. Sequence dependent work. Use `prepare-pr` with explicit code/branch-preparation and draft-PR overrides; finish commits/rebase, push, and open/update the draft PR. Freeze the resulting head SHA and base for the batch. The PR may begin with an honest provisional description; its final prose and evidence are prepared below.
+Delegate implementation and fixes to Sol Low workers. Sequence dependent work. Use `prepare-pr` with explicit code/branch-preparation and draft-PR overrides; finish commits/rebase, push, and open/update the draft PR. Freeze the resulting head SHA and base for the batch. The PR may begin with an honest provisional description; its final prose and evidence are prepared below.
 
 For deterministic low-risk copy, translations, docs, formatting, metadata, or simple config, explicitly skip the three focused internal reviews and default QA to skipped unless requested. Retain applicable checks, affected-flow tests, feedback handling, final-head CI, and the final review gate below. Assess actual risk, not file extension alone.
 
@@ -43,13 +43,13 @@ For other work, ask asynchronously whether to run end-to-end QA and state it sta
 
 Launch these independent assignments against the frozen SHA. The parent may monitor CI and collect automated feedback directly rather than spending child slots on polling. With limited slots, start latency-heavy checks/QA early, then fill freed slots with the remaining lanes:
 
-- **Checks and CI, Luna Max:** run applicable repository checks and monitor required CI. Own the shared check ledger; reviewers consume its evidence instead of each repeating lint/build/test. Reviewers may request a specific missing check.
+- **Checks and CI, Sol Low:** run applicable repository checks and monitor required CI. Own the shared check ledger; reviewers consume its evidence instead of each repeating lint/build/test. Reviewers may request a specific missing check.
 - **QA, Sol Medium, if authorized/defaulted:** use `pr-test-automation` to exercise relevant flows in an isolated environment and capture screenshots and reports. Return tested SHA, failures, blockers, and verified evidence links. QA does not fix code; route fixes to the parent queue. Override the delegated skill’s PR-description, comment, and shared-workspace publication steps: return draft QA Markdown plus captured media/report paths to the parent without publishing. The serialized publication owner saves the artifacts, verifies their links, refreshes the current PR body/comments, and applies the QA handoff with the final prose, preserving unrelated human edits.
-- **PR prose and evidence, Luna Max:** use `prepare-pr`'s writing guidance to draft the final description, visuals, and evidence index from the ticket, diff, and available results. Override its branch/build/readiness actions for this lane. Reuse QA screenshots; do not run duplicate UI QA or capture a second screenshot set for prose. Mark pending results honestly and finalize when evidence arrives. Keep draft edits local for one serialized publication owner.
-- **Correctness and data, fresh Luna Max reviewer:** inspect changed algorithms, state transitions, lifecycle/concurrency, persistence, migrations, and data loss/corruption risks. Return concrete defects and missing evidence within this scope.
-- **Integration and security, fresh Luna Max reviewer:** inspect cross-module/API/IPC contracts, caller wiring, compatibility, platform/runtime behavior, permissions/trust boundaries, and security implications of changed paths.
-- **Intent and test coverage, fresh Luna Max reviewer:** compare issue, approved plan/design, and acceptance criteria with actual behavior; inspect missing integration, user-visible regressions, edge cases, and whether tests prove the outcome. Consume QA evidence as it arrives without rerunning QA.
-- **Automated feedback collection, Luna Max:** inspect all human/bot reviews, inline threads, check results, and expected automated-review runs; correlate each with its SHA. Distinguish completed zero-findings review from missing, pending, failed, or stale review. Return findings and review status, not a speculative pass.
+- **PR prose and evidence, Sol Low:** use `prepare-pr`'s writing guidance to draft the final description, visuals, and evidence index from the ticket, diff, and available results. Override its branch/build/readiness actions for this lane. Reuse QA screenshots; do not run duplicate UI QA or capture a second screenshot set for prose. Mark pending results honestly and finalize when evidence arrives. Keep draft edits local for one serialized publication owner.
+- **Correctness and data, fresh Sol Low reviewer:** inspect changed algorithms, state transitions, lifecycle/concurrency, persistence, migrations, and data loss/corruption risks. Return concrete defects and missing evidence within this scope.
+- **Integration and security, fresh Sol Low reviewer:** inspect cross-module/API/IPC contracts, caller wiring, compatibility, platform/runtime behavior, permissions/trust boundaries, and security implications of changed paths.
+- **Intent and test coverage, fresh Sol Low reviewer:** compare issue, approved plan/design, and acceptance criteria with actual behavior; inspect missing integration, user-visible regressions, edge cases, and whether tests prove the outcome. Consume QA evidence as it arrives without rerunning QA.
+- **Automated feedback collection, Sol Low:** inspect all human/bot reviews, inline threads, check results, and expected automated-review runs; correlate each with its SHA. Distinguish completed zero-findings review from missing, pending, failed, or stale review. Return findings and review status, not a speculative pass.
 
 Use configured roles and the bundled `review/SKILL.md` and `CRITERIA.md` for focused reviewers. Override broad duplicate checks and out-of-scope review duties with the assignments above. Each reviewer receives raw evidence and returns its own assessment before seeing peer conclusions. Report reviewed SHA, scope, findings with file/line and impact, and unresolved uncertainty. Focused reviewers return findings to the parent by default. If authorized to post a scoped review, always use `COMMENT`, regardless of account identity; never post `APPROVE` or `REQUEST_CHANGES` from a focused lane. Whole-PR judgments belong to the final holistic gate, and the PR author must still use `COMMENT` there.
 
@@ -57,7 +57,7 @@ Use configured roles and the bundled `review/SKILL.md` and `CRITERIA.md` for foc
 
 Astra reconciles the batch: deduplicate findings, resolve conflicts against evidence, distinguish blockers from suggestions, and create one ordered fix queue. This replaces the mandatory extra serial Astra code review; the parent still owns judgment and readiness.
 
-Delegate fixes to one Luna Max writer at a time. After each coherent fix set, push and record the new SHA. Rerun affected checks, have Sol retest affected flows when QA evidence is invalidated, and return material fixes to the relevant reviewer scope. A tiny local fix does not restart all three reviews; broaden only for changed contracts, scope, or concrete unresolved risk. New failures return to the same queue. Keep at most three remediation passes for the agreed scope. If findings persist or work expands, report the remaining blocker/decision instead of restarting an unbounded loop.
+Delegate fixes to one Sol Low writer at a time. After each coherent fix set, push and record the new SHA. Rerun affected checks, have Sol retest affected flows when QA evidence is invalidated, and return material fixes to the relevant reviewer scope. A tiny local fix does not restart all three reviews; broaden only for changed contracts, scope, or concrete unresolved risk. New failures return to the same queue. Keep at most three remediation passes for the agreed scope. If findings persist or work expands, report the remaining blocker/decision instead of restarting an unbounded loop.
 
 Refresh the final PR prose from verified results and reuse the same evidence links. Preserve the requested prose cold-read from `prepare-pr` as a bounded writing check, not another code review. Serialize publication and verify saved content.
 
@@ -67,7 +67,7 @@ Once internal fixes, affected validation, and QA or its explicit skip are comple
 
 Require the expected automatic PR reviewer to assess the complete final diff at the current head SHA. Record reviewer/run identity, SHA, terminal status, and result. A verified completed review with zero findings is a result; no comment, an old review, a pending run, or a failed run is not. If the completed result predates fixes, request/wait for the current-head result through the supported mechanism.
 
-If expected automation is absent or unavailable, explicitly use one fresh independent Luna Max holistic reviewer on the final diff, ticket/plan, and validation evidence; label this fallback and its reason. If neither a verified automatic result nor this fallback can be obtained, report the final gate blocked. Do not silently waive it. This final fallback also applies to the low-risk path when automatic review is unavailable.
+If expected automation is absent or unavailable, explicitly use one fresh independent Sol Low holistic reviewer on the final diff, ticket/plan, and validation evidence; label this fallback and its reason. If neither a verified automatic result nor this fallback can be obtained, report the final gate blocked. Do not silently waive it. This final fallback also applies to the low-risk path when automatic review is unavailable.
 
 Route actionable final-review or human/bot findings through the same fix queue. After further code changes, refresh affected validation and obtain a final holistic result for the new head. Do not repeat the whole focused batch unless the changed scope warrants it.
 

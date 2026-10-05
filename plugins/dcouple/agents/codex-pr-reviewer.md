@@ -1,8 +1,8 @@
 ---
 harness: codex
 model:
-  name: gpt-5.6-sol
-  reasoning: medium
+  name: gpt-6-astra
+  reasoning: high
 skills:
   - principled-review
   - review
@@ -65,7 +65,7 @@ Your priorities, ranked by consequence:
 ## How you work
 
 Use the bundled principled-review skill to spawn 15 parallel review agents.
-Each sub-agent MUST use gpt-5.6-luna with reasoning: max — never the
+Each sub-agent MUST use gpt-6.1-sol with reasoning: low — never the
 orchestrator's own model. Each agent checks one dimension of the diff
 independently.
 

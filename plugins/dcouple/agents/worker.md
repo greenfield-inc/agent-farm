@@ -1,8 +1,8 @@
 ---
 harness: codex
 model:
-  name: gpt-5.6-luna
-  reasoning: max
+  name: gpt-6.1-sol
+  reasoning: low
 description: Implement assigned work and fixes, run relevant checks, and report evidence.
 skills:
   - implementer
