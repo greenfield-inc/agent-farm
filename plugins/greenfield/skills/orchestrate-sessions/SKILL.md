@@ -44,7 +44,9 @@ Without a host requirement, give each work item its own Git worktree and branch,
 - Record the returned workspace and worker IDs, and check once after launch that the worker is attached to the intended workspace.
 - Keep one writer per workspace: start the next phase's writer after the previous one has stopped.
 
-`planner` accepts `docs`, `source`, and `parent`; `bug-reporter` accepts `source` and `parent`; `implementer` and `reviewer` take their assignment, source and status-file path in `--message`. `parent` is an absolute status-file path; host session IDs travel separately. Pass host ownership and reporting instructions through the host's supported context mechanism. Workers treat the source as a document to read, and role and hoDedicated implementation runs one writer from the `greenfield/implementer` variant the user picks: `opus` (Claude Opus 5.5, the default), `astra` (GPT-6 Astra), or `sol` (GPT-6.1 Sol). Name the variant with `:variant` when launching so the worker starts without a prompt. A planner doing a small fix keeps its current model and session. The implementer has no reviewer child; review runs separately through `greenfield/reviewer`.
+`planner` accepts `docs`, `source`, and `parent`; `bug-reporter` accepts `source` and `parent`; `implementer` and `reviewer` take their assignment, source and status-file path in `--message`. `parent` is an absolute status-file path; host session IDs travel separately. Pass host ownership and reporting instructions through the host's supported context mechanism. Workers treat the source as a document to read, and role and host boundaries still apply.
+
+Dedicated implementation runs one writer from the `greenfield/implementer` variant the user picks: `opus` (Claude Opus 5.5, the default), `astra` (GPT-6 Astra), or `sol` (GPT-6.1 Sol). Name the variant with `:variant` when launching so the worker starts without a prompt. A planner doing a small fix keeps its current model and session. The implementer has no reviewer child; review runs separately through `greenfield/reviewer`.
 
 ## Events, not polling
 
