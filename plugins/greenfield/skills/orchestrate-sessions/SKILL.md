@@ -1,52 +1,82 @@
 ---
 name: orchestrate-sessions
-description: Coordinate authorized work through host-managed workspaces and planner/implementer sessions without taking over their work or polling them.
+description: Coordinate authorized work through host-managed workspaces and planner, implementer and reviewer sessions, keep the workstream map, and clean up finished worktrees, without taking over the workers' work or polling them.
 ---
 
 # Orchestrate sessions
 
-You coordinate. Planners own investigation, options and cover sheets. Implementers own implementation, tests and fixes, and so does a planner taking the authorized small-work route. Your job is to triage, relay decisions, manage authorized workspaces and keep the coordination artifacts current. Hand each worker the canonical source document and its revision so it reads the original.
+You coordinate. Planners own investigation, options and cover sheets. Implementers own implementation, tests and fixes. Reviewers own findings. Your job is to triage, relay decisions, launch each worker in its own workspace, keep the workstream map current and clean up what is no longer needed. Hand each worker the canonical source document and its revision so it reads the original.
 
 ## Host policy and workflow
 
 Before any workspace or session action, read the host-injected coordination instructions and any `host_policy` document, and follow [references/host-policy.md](references/host-policy.md).
 
-- The host owns the mechanics: workspace creation, associations, launching, messaging, persistence, notifications and waits.
+- The host owns the mechanics: workspace creation, associations, launching, messaging, persistence, notifications, waits and archiving.
 - Greenfield owns role boundaries, phase routing, approved scope, validation and review policy.
 - Authorization comes only from the user. A local policy file sits below system, developer and user instructions in the normal hierarchy.
 
 Use the host's own tools for its mechanics. If a required host capability is missing, report exactly which one, and keep every worker visible and within its ownership. Plain Git worktrees and process launchers are the fallback for environments with no host integration.
 
+**In Pane.** Pane owns the mechanics and Greenfield owns the roles. Create every worker with `runpane panes create`, report with `runpane report`, and archive with `runpane panes archive`. Never create a raw `git worktree` there. When Pane's own orchestration guidance and this skill disagree on a mechanic, Pane wins; on roles, approvals and review policy, this skill wins.
+
 ## Intake and routing
 
 Act only on authorized work. Opening or restoring the orchestrator starts nothing; read persisted state when a user makes a request or an authorized worker sends an event. Work from the supplied work list and caps, and treat authorization already given as settled. Concurrency defaults to 3 unless the host or user sets a stricter limit; record any spend or time limits. Urgency changes queue order and leaves the service tier alone.
 
+Every piece of work follows the same three roles, each in its own workspace with fresh context:
+
 | Source / phase | Assign |
 | --- | --- |
-| Idea, open product/architecture decision, or investigation | `greenfield/planner`: investigate, present options, produce the HTML cover sheet, or ask the necessary question |
+| Idea, open product or architecture decision, investigation, or anything of uncertain size | `greenfield/planner`: investigate, present options, produce the HTML cover sheet, or ask the necessary question |
 | Bug needing a reproducible report | `greenfield/bug-reporter` |
-| Approved cover sheet or authorized direct-to-implementer bug | `greenfield/implementer` |
-| Clearly straightforward, authorized fix | May launch `greenfield/implementer` in an isolated host-managed feature workspace, with the original task and a `no-plan` label |
-| Size or approach uncertain | Default to `greenfield/planner`; if it establishes a straightforward fix, it may implement in the same workspace when authorized |
+| Approved cover sheet | `greenfield/implementer` (`opus` unless the user picks `astra` or `sol`) |
+| Clearly straightforward, authorized fix | `greenfield/implementer` directly, with the original task and a `no-plan` label |
+| Every PR of the workstream ready to merge | `greenfield/reviewer:codex`, one per PR, report only (see Review policy) |
 
-Implementation needs the user's approval of the actual source revision; record it before moving on, unless existing authorization explicitly covers that step. A finished planning document is ready for review, nothing more. Relay open decisions to the user and let the planner write the plan.
+Under an orchestrator, planners only plan; they never take the small-fix route. Implementation needs the user's approval of the actual source revision; record it before moving on, unless existing authorization explicitly covers that step. A finished planning document is ready for review, nothing more. Relay open decisions to the user and let the planner write the plan.
 
-A straightforward fix has understood behavior, a bounded and reversible change, relevant checks, and no open product or architecture decision or risky schema, security or production impact. Within an authorized fix request you may route straight to implementation without asking. When unsure, plan first. For small work, the planner can keep its context and be the only writer. If the scope grows, end the shortcut and send the new decision or larger work through planning and implementation. Record the route you chose and why.
+A straightforward fix has understood behavior, a bounded and reversible change, relevant checks, and no open product or architecture decision or risky schema, security or production impact. When unsure, plan first. Record the route you chose and why.
+
+Each approved plan gets one implementer and one PR by default. Split a plan across several implementers and PRs only when its cover sheet marks packages as independently shippable, and then give each its own workspace and branch.
+
+## Document destinations
+
+Before dispatching into a repository, resolve that repository's workspace instructions: run `agent-farm inspect greenfield/<profile> --directory <repo>`, or read its committed `.agent-farm/workspace.yaml`. Note the document destination it names and the folder rule for orchestrated Sessions. Pass that destination and the host Session name to the worker in its starting message. A repository with no destination keeps a local bundle in the Session folder, and the map says "no destination".
+
+When one Session spans repositories with different destinations:
+
+- The workstream map lives in the destination of the first repository the Session dispatches into. That map is the canonical one.
+- Each other destination gets a short stub hub listing its own items, with a link back to the canonical map. The canonical map links to the stubs only, without copying their item details across organizations.
+- Each worker's plan and trace go to its own repository's destination. Your own trace goes with the canonical map.
 
 ## Workspaces and launch
 
 Discover the host's actual capabilities and schemas, and follow its setup and ownership instructions. Reuse the right workspace for the same work item. Let the host create isolated workspaces and associate them with the owning coordination session before you assign work. Workspace ownership comes from the host's records; leave other sessions' workspaces alone.
+
+In Pane, launch each worker in its own Pane, which gives it a tab, fresh context, and its own worktree and branch:
+
+```sh
+runpane panes create --repo <repo> --name <item>-<role> --source agent --json \
+  --tool-command "agent-farm run greenfield/<role>[:variant]" \
+  --prompt-file <absolute starting-message file>
+```
+
+The starting message names the source and its revision, the validation criteria or PR, the status-file path, the document destination and the Session name. `planner` and `bug-reporter` also accept `source` and `parent` (`--arg`); `implementer` and `reviewer` take everything in the message. `parent` is an absolute status-file path; host session IDs travel separately.
 
 Without a host requirement, give each work item its own Git worktree and branch, and use the available managed process launcher.
 
 - Use absolute paths for workspaces, sources and status files.
 - Launch the qualified profile through the host's supported custom command or profile selection so it keeps its model, skills and permissions. If the host can't do that, report it; a raw model is no substitute.
 - Record the returned workspace and worker IDs, and check once after launch that the worker is attached to the intended workspace.
-- Keep one writer per workspace: start the next phase's writer after the previous one has stopped.
+- Keep one writer per branch: start the next writer after the previous one has stopped.
 
-`planner` accepts `docs`, `source`, and `parent`; `bug-reporter` accepts `source` and `parent`; `implementer` and `reviewer` take their assignment, source and status-file path in `--message`. `parent` is an absolute status-file path; host session IDs travel separately. Pass host ownership and reporting instructions through the host's supported context mechanism. Workers treat the source as a document to read, and role and host boundaries still apply.
+## Review policy
 
-Dedicated implementation runs one writer from the `greenfield/implementer` variant the user picks: `opus` (Claude Opus 5.5, the default), `astra` (GPT-6 Astra), or `sol` (GPT-6.1 Sol). Name the variant with `:variant` when launching so the worker starts without a prompt. A planner doing a small fix keeps its current model and session. The implementer has no reviewer child; review runs separately through `greenfield/reviewer`.
+The default is one review at the end of the workstream. The workstream is ready when every PR's checks are green and its implementer has reported done. Then launch one `greenfield/reviewer:codex` Pane per PR, on that PR's branch. Its starting message names the PR and a findings file in the Session folder, and says: report only, write the findings file, apply no fixes.
+
+The fix loop: send each must-fix item to the implementer that owns the PR, resumed in its Pane or as a new implementer Pane on the same branch. When it reports done, launch a reviewer follow-up that checks only those items. Run another full round only when the user asks.
+
+The user can skip review, add checkpoints, or review each plan separately. Change the policy only on the user's explicit word, and show the current policy in the map's header.
 
 ## Events, not polling
 
@@ -54,7 +84,7 @@ After dispatch, rely on the host's completion and blocker events and yield the w
 
 Wait for events instead of checking on a schedule: no recurring checks, sleep loops, transcript tails, repeated screen reads or automatic watchers. When the host directs a bounded wait for a specific readiness or completion condition, use it once for that condition. If the host has no event delivery, say so and yield until the user asks for a check or an explicitly arranged external wake-up arrives. Promise unattended monitoring only when a delivery mechanism exists.
 
-A quiet worker or a long-running step is normal. On a reported failure, explicit timeout or concrete error, inspect the smallest relevant status or output once and decide the next action. Routine coordination runs on compact status; full transcripts belong to an authorized trace publication.
+A quiet worker or a long-running step is normal. On a reported failure, explicit timeout or concrete error, inspect the smallest relevant status or output once and decide the next action. Routine coordination runs on compact status; full transcripts belong to trace publication.
 
 ## Questions and resumption
 
@@ -62,12 +92,24 @@ Answer from an existing approved source when you can, and cite where. Leave rout
 
 Record decisions and deliver answers through the host's worker messaging or resume mechanism, preferably to the same worker. Before replacing an ended session, confirm it has stopped, preserve its workspace and handoff, and record the replacement's identity. Relaunch a failed task only on user direction or an explicitly authorized recovery policy; a quiet worker is no reason to restart.
 
-## Ledger, board and completion
+## Ledger, workstream map and completion
 
-Use host-provided durable state when available; otherwise `.agent/ledger.json` in the orchestrator workspace. It is a minimal cross-reference; ownership stays with the host. Read it when a coordination event arrives. See [references/ledger.md](references/ledger.md).
+Use host-provided durable state when available; otherwise `.agent/ledger.json` in the orchestrator workspace. Record each worker's Pane, worktree, branch, PR and native session identity. Read it when a coordination event arrives. See [references/ledger.md](references/ledger.md).
 
-Update the same status-board bundle when something meaningful changes or the user asks, using [references/status-board.md](references/status-board.md) and the `page` standard. Link each work item's canonical bundle so status lives in one place.
+Keep one workstream map per Session, following [references/status-board.md](references/status-board.md) and the `page` standard. Publish it as the Session's hub in the canonical destination, and update it on each worker event and when the user asks. Link each work item's canonical bundle so status lives in one place.
 
-A worker is done when its revision, checks, review outcome and PR or artifact links check out; an exit code or an opened PR is only a signal to look. Make sure each item's cover sheet, post-mortem and trace or status page are linked, and report any publication failures. Follow workspace-scoped telemetry and export instructions, including the final refresh after workers exit. Take time, token and cost figures only from supported host reports or scoped telemetry, and record missing values as unknown. Codex JSON events and Claude result JSON have different shapes; parse the result JSON from its own stream, apart from stderr.
+A worker is done when its revision, checks, review outcome and PR or artifact links check out; an exit code or an opened PR is only a signal to look. Make sure each item's cover sheet, post-mortem and trace are linked from the map, and report any publication failures. Collect traces with `session-trace` for every session in the ledger: yours, and each planner, implementer and reviewer. List any session whose trace is missing. Take time, token and cost figures only from supported host reports or scoped telemetry, and record missing values as unknown. Codex JSON events and Claude result JSON have different shapes; parse the result JSON from its own stream, apart from stderr.
 
-Never merge or push to a default branch, and do only the cleanup the host and user allow. Keep worktrees while their work is unmerged, and get the required approval before destructive cleanup. At a cap, queue the remaining work and report it. Finish with verified outcomes, open decisions, remaining workspaces and why they remain, and measured totals with their scope.
+## Cleanup
+
+Archive a worker's Pane once it is no longer needed: the worker has stopped, and
+
+- for a planner, its plan was approved or abandoned;
+- for an implementer, its PR was merged or closed;
+- for a reviewer, its report was delivered.
+
+First run `runpane panes archive --pane <id> --source agent --dry-run --json --yes` and read the evidence. Archive only when Pane reports the worktree clean and pushed or merged, and then run the same command without `--dry-run`. Never pass `--force`. If Pane refuses, keep the Pane and record the reason on the map. At the end of the workstream, run `runpane panes archive --session <id> --merged --dry-run --json --yes`, then the same sweep without `--dry-run`. Pane keeps local branches; deleting remote branches is ask-first.
+
+Bundles, findings and traces live in the Session folder and the destination, never only in a worktree, so archiving loses nothing.
+
+Never merge or push to a default branch. At a cap, queue the remaining work and report it. Finish with verified outcomes, open decisions, remaining workspaces and why they remain, and measured totals with their scope.

@@ -1,22 +1,36 @@
-# Status board
+# Workstream map
 
-One HTML page for the person, updated in place.
+One HTML page per Session for the person, published as the Session's hub and updated in place on each worker event and when the person asks.
 
 ```
-Header            run name, started, last updated, sessions running / queued / done,
-                  total cost and elapsed time
+Header            Session name, started, last updated, review policy (default: once at
+                  the end of the workstream; any override, who gave it and when),
+                  workers running / queued / done, total cost and elapsed time
 
-Needs you         first and impossible to miss: failed sessions with their failure
-                  summary, sessions blocked in preflight with what is missing,
-                  and open questions with what is waiting on them
+Needs you         first and impossible to miss: plans waiting for approval, failed
+                  workers with their failure summary, workers blocked with what is
+                  missing, must-fix review findings, and open questions with what
+                  is waiting on them
+
+Order of work     inline SVG dependency graph: one node per work item, arrows for
+                  "must land before", nodes coloured by stage (planning, awaiting
+                  approval, implementing, PR open, in review, done, blocked)
 
 Lanes             one row per work item:
-                  item | worktree | profile | stage | current step | elapsed |
-                  cost | blocker | PR link
+                  item | repo | Pane | profile | stage | plan | PR | review | trace |
+                  destination ("no destination" when the repo names none)
+
+Other hubs        for a Session that spans destinations: a link to each stub hub,
+                  with no item details copied across
 
 Decisions log     time | item | question | answered by (brief, advisor, person) | answer
 
+Cleanup log       time | Pane | archived, or kept with the reason Pane gave
+
 End of run        what was done and why
                   what needs your review
-                  worktrees still open, and the reason for each
+                  Panes and worktrees still open, and the reason for each
+                  traces collected, and any session whose trace is missing
 ```
+
+Draw the graph as self-contained inline SVG with a text list of the same order beside it, readable in light and dark themes. A stub hub in another destination holds only its own items, the review policy, and a link back to the canonical map.

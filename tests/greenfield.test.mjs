@@ -138,3 +138,14 @@ test('planners retain Socrates without a separate plan-reviewer agent',()=>{
   assert.equal(Object.hasOwn(children,'plan-reviewer'),false);
  }
 });
+
+test('the plugin stays tool-neutral: no agent, skill, profile or instruction names Grain',()=>{
+ const walk=dir=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(entry=>{const file=path.join(dir,entry.name);return entry.isDirectory()?walk(file):[file];});
+ for(const folder of ['agents','skills','profiles','instructions'])for(const file of walk(path.join(root,folder)))assert.doesNotMatch(fs.readFileSync(file,'utf8'),/grain/i,path.relative(root,file));
+});
+
+test('the orchestrator routes planner, implementer and end-of-workstream reviewer through Pane, with safe cleanup',()=>{
+ const skill=fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8');
+ for(const text of ['runpane panes create','greenfield/planner','greenfield/implementer','greenfield/reviewer:codex','report only','--dry-run','Never pass `--force`','agent-farm inspect greenfield/<profile> --directory <repo>'])assert.ok(skill.includes(text),text);
+ assert.deepEqual(Object.keys(resolveProfile(root,'orchestrator').nodes.main.children),['advisor']);
+});

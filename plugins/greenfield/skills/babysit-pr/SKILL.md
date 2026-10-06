@@ -35,7 +35,7 @@ gh api graphql -f query='mutation($id:ID!){resolveReviewThread(input:{threadId:$
 
 Every reply is posted under the person's account. Write it the way they would: short, specific, and without filler.
 
-Screenshots and videos help reviewers. Host them where the repository's workflow says (a Grain artifact or a release asset, for example) and link them. Never commit evidence files.
+Screenshots and videos help reviewers. Host them where the repository's workflow says (the document destination your workspace instructions name, or a release asset, for example) and link them. Never commit evidence files.
 
 Keep an eye on the base branch and rebase when needed. If an overlapping PR makes this one obsolete, stop monitoring, tell the person, and ask before closing it unless closing was explicitly authorized.
 

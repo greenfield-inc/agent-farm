@@ -1,3 +1,9 @@
+# Teammates need, before this file works for them:
+#   - the Grain CLI on PATH (`grain`), signed in with `grain login`
+#   - membership in the DCouple Grain organization
+#   - `agent-farm workspace trust` run once in this repository
+#   - anything account-specific in a personal overlay,
+#     ~/.config/agent-farm/overlays/agent-farm.yaml, not here
 name: agent-farm
 telemetry:
   enabled: true
@@ -6,22 +12,32 @@ instructions: |
   Use gh for GitHub tasks.
 
   Artifacts use the Grain CLI (`grain`, formerly Morph) through the `grain`
-  connection below. Grain is this project's standing artifact destination:
-  organization YA8g3DZBN8j8x0l8Oq7Gb (DCouple), folder "Development Artifacts/DCouple/agent-farm".
-  Pass the organization and folder explicitly to discovery and creation tools.
+  connection below. Grain is this project's document destination:
+  organization YA8g3DZBN8j8x0l8Oq7Gb (DCouple). Pass the organization and folder
+  explicitly to discovery and creation tools.
+
+  Folder: when an orchestrator supplies a Pane Session name, use
+  "sessions/<session-name>"; if another Session already uses that folder, append
+  the Session's short ID. Without an orchestrator, use
+  "Development Artifacts/DCouple/agent-farm".
 
   Treat docs=grain as the default for every bundle. tmp/greenfield/ is only the
   local working copy; a bundle that exists only there is not delivered.
   Publish bundles to one private Grain artifact per task unless told otherwise.
-  Use multi-file checkout/push, preserve relative paths and bundle.json's published
-  identity, and include evidence/telemetry/. Verify uploads; report failures.
+  Never create or widen a share. Use multi-file checkout/push, preserve relative
+  paths and bundle.json's published identity, and include evidence/telemetry/.
+  Verify uploads; report failures.
+
+  Traces: in an orchestrated Session, publish a full trace of every session
+  (the orchestrator, and each planner, implementer and reviewer) to the Session
+  folder, private, after the redaction review in session-trace. Outside one,
+  conversation capture/export requires explicit permission.
 
   Export only this work's sessions (descendants are included):
     agent-farm telemetry export --bundle <dir> --session current
   Set AGENT_FARM_ARTIFACT_BUNDLE=<absolute-dir> before launching workers.
   After they exit, the parent exports with --require-finished and republishes
   the same artifact. A running session is only a snapshot; local export is not upload.
-  Conversation capture/export requires explicit permission.
 
 connections:
   grain:

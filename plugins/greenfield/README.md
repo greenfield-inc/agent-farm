@@ -86,9 +86,9 @@ Every bundle includes `trace.html`, emphasizing user/agent messages with tool ca
 
 One work item has one bundle: `index.html` (brief/hub), `options.html`, `cover-sheet.html`, `mockups/`, `explainers/`, `evidence/`, and `bundle.json`, as needed. The cover sheet is read by people, implementers, and reviewers. Use relative links and preserve the published identity on updates.
 
-Destinations follow the conversation, then the `docs` argument, then standing workspace/repository preferences, then local `tmp/greenfield/<slug>/`. A standing Grain preference therefore publishes the same private artifact; a local working copy alone is not delivery. See `skills/page/references/bundle.md`.
+Destinations follow the conversation, then the `docs` argument, then standing workspace/repository preferences, then local `tmp/greenfield/<slug>/`. The plugin names no destination service itself: a repository that publishes to Grain, for example, says so in its committed `.agent-farm/workspace.yaml`, and a standing preference there publishes the same private artifact; a local working copy alone is not delivery. See `skills/page/references/bundle.md`.
 
-A headless orchestrator passes the cover-sheet path/link as `source` and a status JSON path as `parent`. The implementer records stage, criteria, evidence, assumptions and blockers there. Legacy plans are inputs, not a requirement to generate new planning files. Trivial unplanned work retains the `no-plan` PR label.
+An orchestrator passes the planner its source as `source` and a status JSON path as `parent`, and gives the implementer and reviewer the same in their starting message. Workers record stage, checks, evidence, assumptions and blockers there. Legacy plans are inputs, not a requirement to generate new planning files. Trivial unplanned work retains the `no-plan` PR label.
 
 ## Skills and source layout
 
@@ -105,13 +105,19 @@ A headless orchestrator passes the cover-sheet path/link as `source` and a statu
 
 Compare runs using the same approved feature, current-code validation, reviewer rubric, model/effort, costs, active elapsed time, and human intervention time. Record the resolved trace identity `greenfield/<profile>[:<variant>]@<version>`; the earlier multi-worker benchmark is not the new workflow.
 
-## Host-aware orchestration
+## Orchestration
 
-The orchestrator follows host-injected workspace/session mechanics while Greenfield defines the planner/implementer roles, approvals and completion requirements. No configuration is needed when the host supplies those instructions. A standalone launch can optionally pass `--arg host_policy=/absolute/path/to/host-guidance.md`; this is an instruction document, not a runtime adapter. Host-owned worktrees and associations must be created through the host. Event-driven updates replace polling; without notifications, the orchestrator yields and reports the limitation. Urgency never implicitly enables fast mode. Planners now accept `source` and `parent` for coordinated handoffs.
+`greenfield/orchestrator` routes all work the same way, each worker in its own workspace with fresh context. In Pane, each is a Pane created with `runpane panes create`, with its own tab, worktree and branch:
 
-## Straightforward fixes
+1. `greenfield/planner` writes the plan. Under an orchestrator, planners only plan.
+2. After you approve it, `greenfield/implementer` builds it, one implementer and one PR per plan unless the cover sheet marks packages as independently shippable. A clearly straightforward, authorized fix may skip the planner as `no-plan` work.
+3. When every PR in the workstream is ready to merge, `greenfield/reviewer:codex` (GPT-6.1 Sol, max) reviews each one, report only. Must-fix items go back to the implementer that owns the PR, and a follow-up checks only those items. You can skip review, add checkpoints, or review each plan; the current policy shows on the map.
 
-The orchestrator may route a clearly bounded, authorized fix directly to `implementer` in a host-managed feature worktree, using the variant the user picked. When scope is uncertain, start with a planner; it may implement a straightforward fix itself in the same workspace once implementation is authorized. Both planner variants have coding/check/PR skills for this route. Larger or risky work uses the normal cover-sheet and dedicated-implementer route. Only one writer is active per workspace, and the orchestrator never takes over project implementation.
+The orchestrator keeps one workstream map per Session: every plan, a dependency graph of the order of work, progress per item, the review policy, and a "Needs you" list, updated on worker events. Before dispatching into a repository it resolves that repository's workspace instructions (`agent-farm inspect greenfield/<profile> --directory <repo>`) and passes their document destination and the Session name to the worker. When a Session spans destinations, the map lives with the first repository's destination and links to short stub hubs in the others. It collects a trace of every session it launched, and archives a worker's Pane once its plan is approved, its PR merged or closed, or its report delivered, after a `--dry-run` shows the worktree is clean and pushed. It never passes `--force` and never deletes remote branches.
+
+Host-injected instructions own the mechanics; Greenfield owns roles, approvals and review policy. A standalone launch can pass `--arg host_policy=/absolute/path/to/host-guidance.md`; this is an instruction document, not a runtime adapter. Event-driven updates replace polling; without notifications, the orchestrator yields and reports the limitation. Urgency never implicitly enables fast mode. The orchestrator never edits project code and never merges.
+
+The orchestrator runs in the Pane Session folder, outside any repository, so it gets no repository's workspace file. A personal `~/.config/agent-farm/workspace.yaml` can give it the connection it needs to publish the map and its own trace; keep routing out of that file, since destinations come from each repository's workspace instructions.
 
 ## Profile arguments
 

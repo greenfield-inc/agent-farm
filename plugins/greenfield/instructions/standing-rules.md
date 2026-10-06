@@ -22,7 +22,7 @@ Ask first: migrations, anything that touches production, deleting data or other 
 - Bug report: filed, with no fix proposed.
 - Options: waiting on the person's pick.
 - Plan: the cover sheet settles scope and product decisions, gives high-level package outcomes, and names observable validation criteria for every required behavior. Routine implementation choices stay with the implementer.
-- Implement: required checks and qa pass and the review is accepted. Keep correcting and revalidating within scope while there is an evidence-backed next step, however many attempts that takes, and within any explicit user limit on time, spend, or attempts. Then:
+- Implement: required checks and qa pass, the pull request's checks are green, and review has run as the plan's review policy says (by default once, through `greenfield/reviewer`, at the end of the workstream). Keep correcting and revalidating within scope while there is an evidence-backed next step, however many attempts that takes, and within any explicit user limit on time, spend, or attempts. Then:
   - Stop `blocked` when a decision, permission, or prerequisite cannot be obtained safely within scope, even after work has started.
   - Stop `failed` when diagnosis and the available review evidence leave no viable in-scope repair.
   - Either way, preserve evidence and report what would let the work resume. An undetermined check counts as unproven.
