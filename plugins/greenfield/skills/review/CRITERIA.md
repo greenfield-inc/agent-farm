@@ -1,6 +1,6 @@
 # Code Review Criteria
 
-Shared review criteria used by the PR review skill and the implementation-reviewer agent. This file is project-agnostic. Each repo may append a per-repo section for project-specific rules; the discovery step below tells the reviewer how to find and apply them.
+Shared review criteria used by the PR review skill. This file is project-agnostic. Each repo may append a per-repo section for project-specific rules; the discovery step below tells the reviewer how to find and apply them.
 
 ---
 

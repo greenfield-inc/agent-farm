@@ -17,6 +17,7 @@ For a one-page visual map of how work is routed, open [index.html](index.html). 
 | `implementer` (`implementer:opus`) | Opus 5.5 medium | Builds a plan or a clear task with its skills, opens a draft PR, and watches it until checks are green |
 | `implementer:astra` / `implementer:sol` | Astra medium / Sol 6.1 medium | The same implementer on Codex |
 | `reviewer` (`reviewer:claude`) / `reviewer:codex` | Opus 5.5 high / Sol 6.1 max | Reviews a pull request from many angles and ranks what to fix |
+| `simplify-and-refactor` (`simplify-and-refactor:sol`) / `simplify-and-refactor:opus` | Sol 6.1 low / Opus 5.5 medium | Asks whether an open pull request could be simpler, plans the cleanup, and applies only what you approve |
 | `qa-and-fix` (`qa-and-fix:claude`) / `qa-and-fix:codex` | Opus 5.5 medium / Sol 6.1 medium | Tests a finished pull request and fixes small safe problems |
 | `product-researcher` (`product-researcher:astra`) / `product-researcher:opus` | Astra high, fast / Opus 5.5 high | Sourced research write-ups |
 | `business` (`business:claude`) / `business:codex` | Opus 5.5 high / Astra high | Proposals, plans and memos, with reviewers |
@@ -52,15 +53,17 @@ The planner retains the HTML `cover-sheet.html` in the existing work bundle. It 
 
 Every brief and plan cover sheet includes a linked table of contents and references to its other bundle files. Constraints and Non-goals occupy separate full-width sections stacked vertically, including on wide screens.
 
-Keep the existing **How we will know it works** presentation: numbered journeys and whole-feature commands/suites, with observable outcomes and relevant prerequisites. No separate validation matrix or mandatory criterion IDs are needed. All requested behavior and approved visual states must be covered, including alternate entry paths when relevant. The planner records verification prerequisites and known blockers; it does not build a new harness as part of routine planning. The planner self-checks scope, approach, verification and presentation before marking the cover sheet ready for approval. Socrates remains earlier in options, before the direction is chosen; there is no separate plan-reviewer agent.
+Keep the existing **How we will know it works** presentation: numbered journeys and whole-feature commands/suites, with observable outcomes and relevant prerequisites. No separate validation matrix or mandatory criterion IDs are needed. All requested behavior and approved visual states must be covered, including alternate entry paths when relevant. The planner records verification prerequisites and known blockers; it does not build a new harness as part of routine planning. The planner self-checks scope, approach, verification and presentation before marking the cover sheet ready for approval. Socrates remains earlier in options, before the direction is chosen; no separate agent reviews the plan.
 
 The cover sheet is the only plan document; older plans are still accepted as input. Planning is ready when the product decisions are settled and the finish line is testable, with coding choices left to the implementer.
 
 ## Implementation
 
-The implementer is the model on its own with a few house habits, the former `dcouple/raw`. Before working it reads every skill listed in its agent file: `tdd` and `codebase-design` for code and tests, `quick-verify` after each change, `prepare-pr` and `babysit-pr` for the pull request, `investigate` for bugs, plus `create-ticket`, `handoff`, `smallest-test`, `pr-test-automation`, `ui-mockup`, `research-web`, `refactor-simple` and `session-trace`. It is the only writer on its branch. Under an orchestrator it keeps the named status file current and reports through `runpane report`.
+The implementer is the model on its own with a few house habits, the former `dcouple/raw`. Before working it reads every skill listed in its agent file: `tdd` and `codebase-design` for code and tests, `quick-verify` after each change, `prepare-pr`, `excalidraw-pr-diagrams` and `babysit-pr` for the pull request, `investigate` for bugs, plus `create-ticket`, `handoff`, `smallest-test`, `pr-test-automation`, `ui-mockup`, `research-web`, `refactor-simple` and `session-trace`. It is the only writer on its branch. Under an orchestrator it keeps the named status file current and reports through `runpane report`.
 
-It has no reviewer child. Review runs once, separately, through `greenfield/reviewer`, launched by you or by an orchestrator when a workstream's pull requests are ready to merge. Launched by an orchestrator, the reviewer only writes its findings file; the implementer that owns the pull request makes the must-fix changes, and a follow-up review checks only those items. Run by hand, the reviewer keeps its interactive fix flow. Nothing merges without the person's word.
+Review runs once, separately, through `greenfield/reviewer`, launched by you or by an orchestrator when a workstream's pull requests are ready to merge. Launched by an orchestrator, the reviewer only writes its findings file; the implementer that owns the pull request makes the must-fix changes, and a follow-up review checks only those items. Run by hand, the reviewer keeps its interactive fix flow. Nothing merges without the person's word. Run standalone, or when you ask, the implementer can get a quick review on the other vendor's model from its `second-opinion` child before calling a pull request done; under an orchestrator it leaves review to `greenfield/reviewer`.
+
+`greenfield/simplify-and-refactor` is an optional pass between the implementer finishing and QA or review. It runs `refactor`: blind simple and deep analyses (with `principled-review` when you ask for it), merged into one plan. Analysis is read-only. It applies the plan through `refactor-apply` only after you approve it, and only while no other worker is writing the branch. Applying changes the head, so QA and review run after it. The implementer's `refactor-simple` and `prepare-pr` point to it for the deep pass and for applying a plan.
 
 ## Children
 
@@ -68,6 +71,8 @@ It has no reviewer child. Review runs once, separately, through `greenfield/revi
 | --- | --- | --- |
 | `explorer`, `cold-reader` | implementer | Sonnet 5 medium, native (Sol 6.1 low under the Codex variants); codebase facts and a fresh read of prose |
 | `qa-and-verify` (agent `pr-qa`) | implementer | Opus 5.5 medium, native (Sol 6.1 medium under the Codex variants); a full QA pass on a finished pull request |
+| `refactor`, `cold-reader` | simplify-and-refactor | Sol 6.1 low under `:sol`; Opus 5.5 medium for `refactor` and Sonnet 5 medium for `cold-reader` under `:opus`; native. A fresh `refactor` runs each analysis, lens and adversarial pass |
+| `second-opinion` (agent `pr-reviewer`) | implementer | Sol 6.1 low under `:opus`, Opus 5.5 medium under the Codex variants, process; an opt-in quick review with `review` |
 | `codebase-explorer` | reviewer, qa-and-fix | Targeted repository questions; a process child under `reviewer:claude` |
 | business reviewers, `cold-reader` | business | Context, research adversary, spec and artifact reviewers |
 | `socrates` | planner | Opus 5.5 high (Astra high under Codex planner); challenge unnecessary scope |
@@ -96,7 +101,8 @@ An orchestrator passes the planner its source as `source` and a status JSON path
 - `instructions/` defines shared roles, permissions, and completion rules.
 - `plan` and its cover-sheet reference define the high-level handoff and “How we will know it works” section.
 - `verify-app` and `open-pr` support the planner's small-fix route; `prepare-pr`, `babysit-pr` and `quick-verify` support the implementer.
-- `principled-review`, `review` and `pr-test-automation` support the reviewer and qa-and-fix.
+- `principled-review`, `review` and `pr-test-automation` support the reviewer and qa-and-fix; `principled-review` is shared with simplify-and-refactor.
+- `refactor`, `refactor-simple`, `refactor-deep` and `refactor-apply` support simplify-and-refactor; the implementer has `refactor-simple` alone.
 - The research, business, SEO and audit skills support the profiles of the same names.
 - `explain`, `brief`, `options`, `spike`, `mockup`, and `page` support planning.
 - `bug-intake`, `gather-evidence`, `web-research`, and `orchestrate-sessions` support the other profiles.
@@ -111,7 +117,8 @@ Compare runs using the same approved feature, current-code validation, reviewer 
 
 1. `greenfield/planner` writes the plan. Under an orchestrator, planners only plan.
 2. After you approve it, `greenfield/implementer` builds it, one implementer and one PR per plan unless the cover sheet marks packages as independently shippable. A clearly straightforward, authorized fix may skip the planner as `no-plan` work.
-3. When every PR in the workstream is ready to merge, `greenfield/reviewer:codex` (GPT-6.1 Sol, max) reviews each one and posts one reconciled `COMMENT` review, without applying fixes. Must-fix items go back to the implementer that owns the PR, and a follow-up checks only those items. You can skip review, add checkpoints, or review each plan; the current policy shows on the map.
+3. Optionally, when you turn it on, `greenfield/simplify-and-refactor:sol` runs on each finished PR before QA and review, and applies only the plan you approve.
+4. When every PR in the workstream is ready to merge, `greenfield/reviewer:codex` (GPT-6.1 Sol, max) reviews each one and posts one reconciled `COMMENT` review, without applying fixes. Must-fix items go back to the implementer that owns the PR, and a follow-up checks only those items. You can skip review, add checkpoints, or review each plan; the current policy shows on the map.
 
 The orchestrator keeps one workstream map per Session: every plan, a dependency graph of the order of work, progress per item, the review policy, and a "Needs you" list, updated on worker events. Before dispatching into a repository it resolves that repository's workspace instructions (`agent-farm inspect greenfield/<profile> --directory <repo>`) and passes their document destination and the Session name to the worker. When a Session spans destinations, the map lives with the first repository's destination and links to short stub hubs in the others. It collects a trace of every session it launched whose repository's workspace instructions (or you) grant conversation capture, a labeled status page for the rest, and archives a worker's Pane once its plan is approved, its PR merged or closed, or its report delivered, after a `--dry-run` shows the worktree is clean and pushed. It never passes `--force` and never deletes remote branches.
 
@@ -148,7 +155,7 @@ The former `one-shot` agent/profile has been removed. Update saved launches to `
 The `audits`, `business`, `product-researcher`, `qa-and-fix`, `reviewer` and `seo` profiles, and `dcouple/raw` as `implementer`, moved here with every agent and skill they use, from [greenfield-inc/skills](https://github.com/greenfield-inc/skills) at `02ae3a3`. They behave as they did, with four changes:
 
 - dcouple's `qa` agent is now `pr-qa`, because greenfield's own `qa` serves the bug-reporter.
-- The implementer has no reviewer child; review runs through `greenfield/reviewer`.
+- The implementer's only reviewer child is the opt-in `second-opinion`; review runs through `greenfield/reviewer`.
 - `reviewer:codex` runs GPT-6.1 Sol at max effort instead of GPT-6 Astra high.
 - Skills name "the document destination your workspace instructions name" instead of Grain. Repositories that publish to Grain say so in their `.agent-farm/workspace.yaml`.
 

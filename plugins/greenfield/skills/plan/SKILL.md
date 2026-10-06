@@ -25,7 +25,7 @@ Include:
 - Known environment and fixture needs, required whole-feature checks, and anything that cannot be exercised yet. Mark planned tests as planned; only an observed result counts as a pass. A missing capability leaves its criterion open.
 - The review line at the top of the page, saying whether review runs and when:
   - Default: `Review: once at the end of the workstream`: `greenfield/reviewer` reviews each PR once every PR in the workstream is ready to merge.
-  - Options: none · this plan only · after named packages.
+  - Options: none · this plan only · after named packages. Separately, the user may add a `greenfield/simplify-and-refactor` pass before QA and review.
   - Only the user changes it: record their explicit choice and when they made it. A mode you chose yourself does not count.
   - Standalone small change: a small, low-risk change may skip review without asking; say so up front and record the reason. Under an orchestrator, never skip on your own.
 

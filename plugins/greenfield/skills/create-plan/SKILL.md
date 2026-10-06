@@ -187,7 +187,9 @@ Only the reconciled plan belongs in `ready-plans`.
 
 After saving the plan, run the review gates.
 
-1. Run a skeptical review against the standards in `plan-reviewer`.
+1. Review the plan as a skeptical senior engineer: every referenced file and
+   anchor exists, it stays true to the brief, it is complete and correct, its
+   order respects dependencies, and nothing simpler reuses an existing pattern.
 2. If you can run a fresh second review context, do it and compare results.
 3. If you are operating alongside a separate Claude workflow, you may use that
    as the parallel second-opinion lane, but Codex remains the primary planner.

@@ -202,6 +202,11 @@ Return the plan path to the caller. When run standalone, ask before running `ref
 before proceeding to `refactor-apply`; under `refactor`, the orchestrator
 owns that gate.
 
+If `refactor-apply` or `refactor-deep` is not among your skills, return the
+plan without looking for them: the person can run
+`greenfield/simplify-and-refactor` on the branch for the deep pass and to
+apply an approved plan.
+
 ## Command Arguments
 
 - `--strict`: Treat Medium as Large (stricter enforcement)
