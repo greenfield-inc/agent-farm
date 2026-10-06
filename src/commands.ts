@@ -41,9 +41,9 @@ export const commands: Command[] = [
     ],
     examples: [
       'agent-farm run planner',
-      'agent-farm run dcouple/implementer',
+      'agent-farm run greenfield/implementer:sol',
       'agent-farm run implementer --directory ~/repos/my-app',
-      'agent-farm run implementer --model gpt-6-astra --speed fast --arg review=full',
+      'agent-farm run implementer --model gpt-6-astra --speed fast',
       'agent-farm run greenfield/planner --directory ~/repos/my-project --message "Plan issue #42"',
       'agent-farm run planner --directory ~/repos/my-app --print-launch',
       'agent-farm run greenfield/implementer --resume 4f07cdb3-6e0d-4926-b680-917e38acccc4',
@@ -199,7 +199,7 @@ export const commands: Command[] = [
     name: 'plugin install',
     usage: 'agent-farm plugin install [SOURCE|BUNDLED-NAME]',
     group: 'plugins',
-    description: 'Install or update one isolated plugin. With no source, install bundled dcouple; a bundled name selects another plugins/ folder.',
+    description: 'Install or update one isolated plugin. With no source, install bundled greenfield; a bundled name selects another plugins/ folder.',
     examples: [
       'agent-farm plugin install',
       'agent-farm plugin install /path/to/config',

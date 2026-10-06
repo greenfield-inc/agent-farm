@@ -1,0 +1,6 @@
+variants:
+  astra:
+    agent: astra-researcher
+  opus:
+    agent: product-researcher-claude
+default: astra

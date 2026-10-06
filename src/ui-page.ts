@@ -37,7 +37,7 @@ export function managementBrowser(){
       const makeSource=()=>JSON.stringify({agent:agent.value,...(model.value.trim()?{model:{name:model.value.trim()}}:{})},null,2)+'\n';source=makeSource();agent.onchange=()=>{dirty=true;source=makeSource();};model.oninput=()=>{dirty=true;source=makeSource();};
     }else if(item.definition&&!item.error&&!item.readOnly){
       const value=item.definition;el('h2','Launch configuration',panel);const grid=el('div','',panel,'form-grid');
-      const agent=field('Agent definition',grid,value.agent,'Qualified names select plugin agents, e.g. dcouple/planner.');
+      const agent=field('Agent definition',grid,value.agent,'Qualified names select plugin agents, e.g. greenfield/planner.');
       const model=field('Model override',grid,value.model?.name??'','Blank inherits the agent model.');
       const reasoning=field('Reasoning override',grid,value.model?.reasoning??'','Blank inherits the agent setting.');
       const speed=field('Speed override',grid,value.model?.speed??'','Blank inherits the agent setting.');

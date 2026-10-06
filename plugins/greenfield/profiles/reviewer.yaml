@@ -1,0 +1,9 @@
+variants:
+  claude:
+    agent: claude-pr-reviewer
+  codex:
+    agent: codex-pr-reviewer
+    model:
+      name: gpt-6.1-sol
+      reasoning: max
+default: claude

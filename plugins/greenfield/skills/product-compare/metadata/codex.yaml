@@ -1,0 +1,4 @@
+interface:
+  display_name: "Product Compare"
+  short_description: "Compare products with visual, sourced buying guides"
+  default_prompt: "Use $product-compare to compare these products against my requirements and create a visual buying guide with sourced prices and practical trade-offs."

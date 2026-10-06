@@ -1,0 +1,4 @@
+interface:
+  display_name: "Deep Dive Refresh"
+  short_description: "Recheck prior research and explain what changed and why"
+  default_prompt: "Use $deep-dive-refresh to revisit this earlier research from first principles, verify current evidence, and update the existing guide with what changed and what still holds."

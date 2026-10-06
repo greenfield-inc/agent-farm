@@ -454,8 +454,9 @@ export async function initCommand(configRoot: string, directory: string, full = 
     if (isCancel(install)) bail();
     if (install) {
       const s2 = p.spinner();
-      s2.start('Installing dcouple plugin');
-      const source = fileURLToPath(new URL('../plugins/dcouple', import.meta.url));
+      s2.start('Installing greenfield plugin');
+      const source = fileURLToPath(new URL('../plugins/greenfield', import.meta.url));
+      if (!fs.existsSync(source)) throw new Error(`Bundled default plugin greenfield not found at ${source}; reinstall Agent Farm`);
       installPlugin(source, configRoot);
       await sleep(full ? 0 : 300);
       s2.stop(`${green('✓')} Installed`);

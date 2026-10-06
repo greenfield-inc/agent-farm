@@ -1,0 +1,12 @@
+---
+harness: codex
+model:
+  name: gpt-6.1-sol
+  reasoning: medium
+description: Run the authorized end-to-end PR QA and report checks, screenshots,
+  and unresolved failures.
+skills:
+  - pr-test-automation
+---
+
+Run the authorized end-to-end PR QA and report checks, screenshots, and unresolved failures. Follow the assigned task and applicable parent workflow overrides. Return evidence and remaining uncertainty. Do not delegate further; ask the parent if additional help is needed.

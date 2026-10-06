@@ -171,8 +171,8 @@ try {
     if (operation==='validate' && positionals.length===3) console.log(JSON.stringify(validatePlugin(path.resolve(positionals[2]!),path.resolve(values['config-root']!)),null,2));
     else if (operation==='pack' && positionals.length===4) console.log(JSON.stringify(packPlugin(path.resolve(positionals[2]!),path.resolve(positionals[3]!)).info,null,2));
     else if (operation==='install' && (positionals.length===2 || positionals.length===3)) {
-      const input=positionals[2],candidate=input?path.resolve(input):undefined,bundledName=input&&candidate&&!fs.existsSync(candidate)?configurationName(input,'bundled plugin name'):'dcouple',bundled=fileURLToPath(new URL('../plugins/'+bundledName,import.meta.url));
-      const source=candidate&&fs.existsSync(candidate)?candidate:bundled;if(input&&!fs.existsSync(source))throw new Error(`Plugin source or bundled plugin not found: ${input}`);
+      const input=positionals[2],candidate=input?path.resolve(input):undefined,bundledName=input&&candidate&&!fs.existsSync(candidate)?configurationName(input,'bundled plugin name'):'greenfield',bundled=fileURLToPath(new URL('../plugins/'+bundledName,import.meta.url));
+      const source=candidate&&fs.existsSync(candidate)?candidate:bundled;if(!fs.existsSync(source))throw new Error(input?`Plugin source or bundled plugin not found: ${input}`:`Bundled default plugin greenfield not found at ${bundled}; reinstall Agent Farm or pass a plugin source`);
       console.log(JSON.stringify(installPlugin(source,path.resolve(values['config-root']!)),null,2));
     } else if(operation==='list'&&positionals.length===2)console.log(JSON.stringify(listPlugins(path.resolve(values['config-root']!)),null,2));
     else if(operation==='uninstall'&&positionals.length===3)console.log(JSON.stringify(uninstallPlugin(positionals[2]!,path.resolve(values['config-root']!)),null,2));

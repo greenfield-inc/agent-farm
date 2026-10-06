@@ -1,0 +1,6 @@
+variants:
+  claude:
+    agent: qa-lead
+  codex:
+    agent: qa-lead-codex
+default: claude

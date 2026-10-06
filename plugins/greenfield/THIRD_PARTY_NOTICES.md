@@ -25,3 +25,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+## Moved from the dcouple plugin
+
+The `audits`, `business`, `implementer`, `product-researcher`, `qa-and-fix`, `reviewer` and `seo` profiles, with the agents and skills they use, were moved from [greenfield-inc/skills](https://github.com/greenfield-inc/skills) at `02ae3a3`. That repository published the `dcouple` plugin. The moved files keep their own notices: `skills/good-writing-fundamentals/` is adapted from [petergyang/no-ai-slop](https://github.com/petergyang/no-ai-slop) under the MIT License, reproduced in `skills/good-writing-fundamentals/LICENSE`.

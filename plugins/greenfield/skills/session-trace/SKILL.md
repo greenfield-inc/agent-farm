@@ -13,6 +13,7 @@ Read [references/page-guide.md](references/page-guide.md) first. It says what th
 
 - When the user asks for a trace, a run review, or a page they can share about a session.
 - Every Greenfield bundle includes `trace.html`. Refresh it at meaningful handoffs and after implementation finishes, when conversation capture is explicitly authorized. If capture is unavailable or unauthorized, put a clearly labeled status page in its place.
+- Outside a Greenfield bundle, run it without being asked only when the task already has a published page (a PR companion from `prepare-pr`, or a `handoff` page), or the session opened a pull request. Then attach the trace to that page. Don't run it after every session.
 
 ## Steps
 

@@ -1,0 +1,6 @@
+variants:
+  claude:
+    agent: business
+  codex:
+    agent: business-codex
+default: claude

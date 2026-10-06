@@ -33,11 +33,11 @@ references/
     zones.md
     rubrics/backend-api.md
 plugins/
-  dcouple/                     Installed plugin namespace
+  greenfield/                  Installed plugin namespace
     plugin.yaml
     profiles/ agents/ skills/ instructions/ references/
 .plugins/
-  dcouple.json                 Install receipt; do not edit
+  greenfield.json              Install receipt; do not edit
 ```
 
 The top-level `profiles/`, `agents/`, `skills/`, `instructions/`, and
@@ -51,8 +51,8 @@ development workflow.
 ## Plugin and profile names
 
 Use `plugin/profile` to select an installed profile unambiguously, for example
-`agent-farm run dcouple/implementer`. Append `:variant` to pick one of a
-profile's [variants](#variants), as in `greenfield/implementer:fast`. Qualified names contain exactly one slash;
+`agent-farm run greenfield/implementer`. Append `:variant` to pick one of a
+profile's [variants](#variants), as in `greenfield/implementer:sol`. Qualified names contain exactly one slash;
 both components use lowercase letters, digits, `_`, and `-`, beginning with a
 letter. `run`, `inspect`, `load`, and `unload` all accept qualified names.
 
@@ -76,7 +76,7 @@ each bundled `agent.json` include plugin/version metadata. The trace identity is
 ## Plugins
 
 ```sh
-agent-farm plugin install                 # the bundled default, dcouple
+agent-farm plugin install                 # the bundled default, greenfield
 agent-farm plugin install greenfield      # another bundled plugins/<name> folder
 agent-farm plugin install /path/to/plugin # any plugin source directory
 agent-farm plugin list                    # name, version, source, profile count
@@ -494,7 +494,7 @@ Optionally restrict access to exact resolved profile names:
 telemetry:
   agent_access:
     enabled: true
-    profiles: [dcouple/implementer, telemetry-analyst]
+    profiles: [greenfield/implementer, telemetry-analyst]
 ```
 
 Omitting `profiles` inherits any host/overlay allowlist; if no layer specifies
@@ -978,12 +978,11 @@ reports the preset, resolved arguments, resolved model, and the agent/preset
 source of each model field. `--explain` and `--print-launch` add the actual
 launch metadata, including any flag sources and `ad hoc` override marker.
 
-`dcouple/implementer` has two variants: `fast` (the default) and `high`
-(the former `astra-implementer-high`). The `codex-implementer` and
-`codex-issue-creator` names were removed; use `dcouple/implementer:high` and
-`dcouple/ideate:astra`. `greenfield/implementer` is a separate profile with
-`standard`, `fast`, and `claude` variants, so use the qualified name when both
-plugins are installed.
+`greenfield/implementer` has three variants: `opus` (the default), `astra`, and
+`sol`. It is the former `dcouple/raw`; its earlier `claude`, `standard`, and
+`fast` variants were removed. The `dcouple` plugin, which still ships for
+existing installs, also has an `implementer` profile, so use the qualified name
+when both plugins are installed. `agent-farm plugin uninstall dcouple` removes it.
 
 ## Local MCP servers and native sign-in
 
