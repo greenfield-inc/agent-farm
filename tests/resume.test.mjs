@@ -5,10 +5,11 @@ import path from 'node:path';
 import os from 'node:os';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
+import {writeHarness} from './harness.mjs';
 const cli=fileURLToPath(new URL('../dist/cli.js',import.meta.url));
 
 function fixture(t) {
- const base=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-resume-')));t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
+ const base=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-resume-')));t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
  const root=path.join(base,'config'),target=path.join(base,'repo'),home=path.join(base,'home'),bin=path.join(base,'bin'),record=path.join(base,'argv.json');
  for(const dir of [target,path.join(home,'.codex'),bin])fs.mkdirSync(dir,{recursive:true});
  const put=(p,s)=>{const f=path.join(root,p);fs.mkdirSync(path.dirname(f),{recursive:true});fs.writeFileSync(f,s);};
@@ -16,8 +17,8 @@ function fixture(t) {
  put('agents/planner-codex.md','---\nharness: codex\nmodel: gpt-6-astra\n---\nCodex planner.\n');
  put('profiles/planner.yaml','variants:\n  claude:\n    agent: planner-claude\n  codex:\n    agent: planner-codex\ndefault: codex\n');
  // Fake harnesses record the argv they were started with.
- for(const harness of ['claude','codex'])fs.writeFileSync(path.join(bin,harness),`#!${process.execPath}\nrequire('fs').writeFileSync(${JSON.stringify(record)},JSON.stringify({harness:${JSON.stringify(harness)},argv:process.argv.slice(2)}));\n`,{mode:0o755});
- const env={...process.env,HOME:home,PATH:bin+path.delimiter+process.env.PATH,AGENT_FARM_TELEMETRY:'off',PANE_PANEL_ID:'panel-under-test'};
+ for(const harness of ['claude','codex'])writeHarness(bin,harness,`require('fs').writeFileSync(${JSON.stringify(record)},JSON.stringify({harness:${JSON.stringify(harness)},argv:process.argv.slice(2)}));\n`);
+ const env={...process.env,HOME:home,USERPROFILE:home,PATH:bin+path.delimiter+process.env.PATH,AGENT_FARM_TELEMETRY:'off',PANE_PANEL_ID:'panel-under-test'};
  delete env.CODEX_HOME;delete env.AGENT_FARM_NATIVE_CODEX_HOME;delete env.CLAUDE_CONFIG_DIR;
  const invoke=(profile,args=[],extraEnv={})=>{
   fs.rmSync(record,{force:true});
