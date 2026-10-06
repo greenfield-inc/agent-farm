@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import { spawn, type ChildProcess } from 'node:child_process';
@@ -349,7 +349,52 @@ export function codexHome(bundle: string, route: string, env: NodeJS.ProcessEnv,
 export function referencesNote(directory: string): string {
   return `Bundled references: ${directory}. A path written as \`.references/<path>\` in your instructions or skills means ${path.join(directory,'<path>')}; read it from there, not from the repository.`;
 }
-export interface LaunchOptions { headless?: boolean; nativeArgs?: string[]; message?: string; prepare?: boolean; env?: NodeJS.ProcessEnv; home?: string; configRoot?: string; model?: string; reasoning?: string; speed?: string; args?: string[] }
+export interface LaunchOptions { headless?: boolean; nativeArgs?: string[]; message?: string; prepare?: boolean; env?: NodeJS.ProcessEnv; home?: string; configRoot?: string; model?: string; reasoning?: string; speed?: string; args?: string[]; resume?: string; sessionId?: string }
+
+/** What an interactive launch used, so `--resume <id>` can reopen the same native session without asking again. */
+export interface LaunchRecord { id: string; profile: string; variant?: string; harness: 'claude'|'codex'; directory: string; started_at: string; codex_home?: string; native_session_id?: string }
+const launchId=/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
+const launchRecords=(home=os.homedir())=>path.join(home,'.local/state/agent-farm/launches');
+export function readLaunchRecord(id: string, home = os.homedir()): LaunchRecord|undefined {
+  if (!launchId.test(id)) return undefined;
+  try { return JSON.parse(fs.readFileSync(path.join(launchRecords(home),id+'.json'),'utf8')); } catch { return undefined; }
+}
+function writeLaunchRecord(record: LaunchRecord, home = os.homedir()) {
+  const folder=launchRecords(home);fs.mkdirSync(folder,{recursive:true,mode:0o700});
+  const file=path.join(folder,record.id+'.json');fs.writeFileSync(file+'.tmp',JSON.stringify(record,null,2)+'\n',{mode:0o600});fs.renameSync(file+'.tmp',file);
+  // Records are tiny, but drop ones nobody has resumed in 90 days.
+  const cutoff=Date.now()-90*24*60*60*1000;
+  for (const name of fs.readdirSync(folder)) { const entry=path.join(folder,name); try { if (fs.statSync(entry).mtimeMs<cutoff) fs.unlinkSync(entry); } catch { /* Another launch pruned it. */ } }
+}
+/** Native arguments that already choose a conversation; Agent Farm then leaves session identity to the harness. */
+export function nativeResume(nativeArgs: string[]): boolean {
+  return nativeArgs[0]==='resume' || nativeArgs.some(arg=>['--resume','-r','--continue','--session-id','--fork-session'].includes(arg) || arg.startsWith('--resume=') || arg.startsWith('--session-id='));
+}
+function claudeTranscriptExists(id: string, env: NodeJS.ProcessEnv, home: string): boolean {
+  const projects=path.join(env.CLAUDE_CONFIG_DIR ?? path.join(home,'.claude'),'projects');
+  try { return fs.readdirSync(projects).some(folder=>fs.existsSync(path.join(projects,folder,id+'.jsonl'))); } catch { return false; }
+}
+/** Codex picks its own session ID, so find the top-level session this launch started in its Codex home. */
+function codexSession(record: LaunchRecord): string|undefined {
+  if (!record.codex_home) return undefined;
+  const started=Date.parse(record.started_at)-5000,candidates:{id:string;at:number}[]=[];
+  const walk=(folder:string)=>{
+    let entries:fs.Dirent[];try{entries=fs.readdirSync(folder,{withFileTypes:true});}catch{return;}
+    for (const entry of entries) {
+      const file=path.join(folder,entry.name);
+      if (entry.isDirectory()) { walk(file); continue; }
+      if (!entry.name.startsWith('rollout-') || !entry.name.endsWith('.jsonl')) continue;
+      try {
+        if (fs.statSync(file).mtimeMs<started) continue;
+        const first=fs.readFileSync(file,'utf8').split('\n',1)[0]!;
+        const meta=JSON.parse(first).payload;const at=Date.parse(meta?.timestamp);
+        if (meta?.id && meta.cwd===record.directory && !meta.parent_thread_id && meta.thread_source!=='subagent' && at>=started) candidates.push({id:meta.id,at});
+      } catch { /* Skip a rollout still being written or not in the expected format. */ }
+    }
+  };
+  walk(path.join(record.codex_home,'sessions'));
+  return candidates.sort((a,b)=>a.at-b.at)[0]?.id;
+}
 export interface AgentTelemetryAccess {enabled?:boolean;scope?:'project'|'machine';profiles?:string[]}
 export interface TelemetrySettings {enabled?:boolean;directory?:string;capture_content?:boolean;agent_access?:AgentTelemetryAccess}
 export function validateTelemetry(value:unknown,host=false):TelemetrySettings|undefined {
@@ -432,13 +477,15 @@ export function command(bundle: string, route: string, options: LaunchOptions = 
     if (launch.model.reasoning) argv.push('--effort',launch.model.reasoning);
     if (instructions) argv.push('--append-system-prompt',instructions);
     if (defaultHeadless) argv.push('--print','--output-format','json');
+    if (options.resume) argv.push('--resume',options.resume);
+    else if (options.sessionId) argv.push('--session-id',options.sessionId);
   } else {
     if (options.prepare!==false) {
       codexHome(bundle,route,env,options.home,provider);
       envOverrides.CODEX_HOME=env.CODEX_HOME!;
       envOverrides.AGENT_FARM_NATIVE_CODEX_HOME=env.AGENT_FARM_NATIVE_CODEX_HOME!;
     }
-    argv=['codex',...(defaultHeadless ? ['exec','--skip-git-repo-check','--json'] : []),'--yolo','--cd',manifest.directory,'--model',launch.model.name];
+    argv=['codex',...(defaultHeadless ? ['exec','--skip-git-repo-check','--json'] : []),...(options.resume ? ['resume',options.resume] : []),'--yolo','--cd',manifest.directory,'--model',launch.model.name];
     if (instructions) argv.push('-c','developer_instructions='+JSON.stringify(instructions));
     if (launch.model.reasoning) argv.push('-c','model_reasoning_effort='+JSON.stringify(launch.model.reasoning));
     for (const [alias,childRoute] of Object.entries(agent.children)) if (manifest.nodes[childRoute]!.mode==='native') {
@@ -501,8 +548,29 @@ export function execute(argv: string[], cwd: string, environment: NodeJS.Process
   process.execve(executable!,[argv[0]!,...args],env);
   throw new Error('Native exec unexpectedly returned');
 }
+/** Chooses the native session for an interactive launch: a new recorded one, or the one `--resume <id>` names. */
+export interface LaunchSession { resume?: string; sessionId?: string; report?: string; record?: LaunchRecord }
+export function launchSession(manifest: Manifest, harness: 'claude'|'codex', resume: string|undefined, context: {interactive: boolean; nativeArgs: string[]; env?: NodeJS.ProcessEnv; home?: string}): LaunchSession {
+  const env=context.env ?? process.env,home=context.home ?? os.homedir();
+  const fresh=(id:string=randomUUID()):LaunchSession=>({report:id,...(harness==='claude'?{sessionId:id}:{}),record:{id,profile:manifest.profile,...(manifest.variant?{variant:manifest.variant}:{}),harness,directory:manifest.directory,started_at:new Date().toISOString()}});
+  if (resume===undefined) return context.interactive && !nativeResume(context.nativeArgs) ? fresh() : {};
+  if (!context.interactive) throw new Error('--resume reopens an interactive session; it cannot be combined with --exec or --print-launch');
+  if (nativeResume(context.nativeArgs)) throw new Error('Use either --resume or native resume arguments, not both');
+  if (!resume) throw new Error('--resume needs a session ID');
+  const record=readLaunchRecord(resume,home);
+  // An ID Agent Farm did not record is a native session ID; hand it to the harness as is.
+  if (!record) return {resume,report:resume};
+  if (record.profile!==manifest.profile || record.harness!==harness) throw new Error(`Session ${resume} was launched as ${record.profile}${record.variant?':'+record.variant:''} on ${record.harness}; resume it with that profile and variant`);
+  const native=record.native_session_id ?? (harness==='claude' ? (claudeTranscriptExists(record.id,env,home) ? record.id : undefined) : codexSession(record));
+  if (!native) {
+    // Nothing was said before the panel closed; start fresh under the same ID so the host keeps one handle.
+    console.error(`agent-farm: no saved conversation for ${resume}; starting a new one`);
+    return {...fresh(record.id),record:{...record,started_at:new Date().toISOString()}};
+  }
+  return {resume:native,report:resume,record:record.native_session_id ? undefined : {...record,native_session_id:native}};
+}
 export function run(bundle: string, route: string, args: string[], launchCommand: typeof command = command, configRoot?: string): ChildProcess | undefined {
-  const {values,tokens}=parseArgs({args,options:{exec:{type:'boolean'},message:{type:'string'},explain:{type:'boolean'},'print-launch':{type:'boolean'},'native-arg':{type:'string',multiple:true},model:{type:'string'},reasoning:{type:'string'},speed:{type:'string'},arg:{type:'string',multiple:true}},strict:true,allowPositionals:true,tokens:true});
+  const {values,tokens}=parseArgs({args,options:{exec:{type:'boolean'},message:{type:'string'},explain:{type:'boolean'},'print-launch':{type:'boolean'},'native-arg':{type:'string',multiple:true},model:{type:'string'},reasoning:{type:'string'},speed:{type:'string'},arg:{type:'string',multiple:true},resume:{type:'string'}},strict:true,allowPositionals:true,tokens:true});
   const separator=tokens.find(t=>t.kind==='option-terminator')?.index ?? args.length;
   if (tokens.some(t=>t.kind==='positional' && t.index<separator)) throw new Error('Native arguments must follow -- or use --native-arg');
   if (values.explain && values['print-launch']) throw new Error('Choose only one of --explain or --print-launch');
@@ -512,7 +580,15 @@ export function run(bundle: string, route: string, args: string[], launchCommand
   assertWorkspaceTrust(manifest.workspace_source);
   const selected=manifest.nodes[route]; if (!selected) throw new Error('Unknown bundled child');
   bundle=materializeLaunch(bundle,route,resolveLaunch(selected,requested));
-  const launch=launchCommand(bundle,route,{...requested,nativeArgs:[...(values['native-arg'] ?? []),...args.slice(separator+1)],message:values.message,prepare:!values.explain,configRoot});
+  const nativeArgs=[...(values['native-arg'] ?? []),...args.slice(separator+1)];
+  const session=launchSession(manifest,selected.harness,values.resume,{interactive:!requested.headless && !values.explain,nativeArgs});
+  const launch=launchCommand(bundle,route,{...requested,nativeArgs,message:values.message,prepare:!values.explain,configRoot,resume:session.resume,sessionId:session.sessionId});
+  if (session.record && !values.explain) {
+    if (session.record.harness==='codex') session.record.codex_home=launch.env.CODEX_HOME;
+    writeLaunchRecord(session.record);
+  }
+  // Pane restores a panel with `{command} --resume <id>` once the CLI reports this line.
+  if (session.report && !values.explain && process.env.PANE_PANEL_ID) console.error(`PANE_AGENT_SESSION_ID=${session.report}`);
   const metadata={workspace_source:manifest.workspace_source,telemetry:launch.telemetry,telemetry_access:launch.telemetry_access,profile:manifest.profile,...(manifest.variant?{variant:manifest.variant}:{}),plugin:manifest.plugin,plugin_version:manifest.plugin_version,trace_identity:manifest.trace_identity,cross_plugin_dependencies:manifest.cross_plugin_dependencies};
   if (values.explain) console.log(JSON.stringify({...metadata,argv:launch.argv,cwd:launch.cwd,bundle,launch:launch.launch},null,2));
   else if (values['print-launch']) console.log(JSON.stringify({...metadata,argv:launch.argv,cwd:launch.cwd,bundle,env:launch.envOverrides,launch:launch.launch},null,2));
