@@ -31,7 +31,7 @@ Every piece of work follows the same three roles, each in its own workspace with
 | Bug needing a reproducible report | `greenfield/bug-reporter` |
 | Approved cover sheet | `greenfield/implementer` (`opus` unless the user picks `astra` or `sol`) |
 | Clearly straightforward, authorized fix | `greenfield/implementer` directly, with the original task and a `no-plan` label |
-| Every PR of the workstream ready to merge | `greenfield/reviewer:codex`, one per PR, report only (see Review policy) |
+| Every PR of the workstream ready to merge | `greenfield/reviewer:codex`, one per PR, one `COMMENT` review, no fixes (see Review policy) |
 
 Under an orchestrator, planners only plan; they never take the small-fix route. Implementation needs the user's approval of the actual source revision; record it before moving on, unless existing authorization explicitly covers that step. A finished planning document is ready for review, nothing more. Relay open decisions to the user and let the planner write the plan.
 
@@ -72,7 +72,7 @@ Without a host requirement, give each work item its own Git worktree and branch,
 
 ## Review policy
 
-The default is one review at the end of the workstream. The workstream is ready when every PR's checks are green and its implementer has reported done. Then launch one `greenfield/reviewer:codex` Pane per PR, on that PR's branch. Its starting message names the PR and a findings file in the Session folder, and says: report only, write the findings file, apply no fixes.
+The default is one review at the end of the workstream. The workstream is ready when every PR's checks are green and its implementer has reported done. Then launch one `greenfield/reviewer:codex` Pane per PR, on that PR's branch. Its starting message names the PR and a findings file in the Session folder, and says: write the findings file, post one reconciled `COMMENT` review, apply no fixes.
 
 The fix loop: send each must-fix item to the implementer that owns the PR, resumed in its Pane or as a new implementer Pane on the same branch. When it reports done, launch a reviewer follow-up that checks only those items. Run another full round only when the user asks.
 
