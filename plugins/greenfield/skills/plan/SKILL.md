@@ -23,7 +23,7 @@ Include:
 - Stacked package cards following [the presentation reference](references/presentation.md), each with concise approach notes: the outcome, how it will be built, systems to reuse or extend, any new systems and why, schema and data changes (or "none"), meaningful dependencies, and the relevant journey numbers or check names. Follow the package guidance in the cover-sheet reference, name confirmed integration points, and label assumptions. Packages are checkpoints for one implementer. Cover every affected client and entry path, including alternate composers and adapters.
 - The **How we will know it works** section: numbered journeys and whole-feature commands or suites, each with an observable outcome and its prerequisites. Cover the backend, frontend, integration, and design behavior the feature needs, including identity, duplicate-name, and notification edge cases when they apply. Keep the checks specific to this task.
 - Known environment and fixture needs, required whole-feature checks, and anything that cannot be exercised yet. Mark planned tests as planned; only an observed result counts as a pass. A missing capability leaves its criterion open.
-- Review metadata at the top of the page, following `final-review`:
+- Review metadata at the top of the page:
   - The default is `Review: single lane`.
   - Small, low-risk changes may skip review without asking. Say so up front and record the reason in the metadata.
   - For dual review or no review, explain the mode and reason and ask the person first. Show it as pending until they approve, then record the mode, reason, and approval. Their earlier explicit authorization counts; a setting you chose yourself does not.

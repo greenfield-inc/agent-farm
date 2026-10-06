@@ -12,47 +12,40 @@ import {parse} from 'yaml';
 
 const root=fileURLToPath(new URL('../plugins/greenfield/',import.meta.url));
 
-test('Greenfield compiles a single Astra Low writer with verification and cross-harness review',t=>{
+test('the implementer is the former dcouple raw profile on Opus, Astra or Sol, without a reviewer child',t=>{
  const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-profile-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
  validatePlugin(root);
- for(const profile of ['implementer:standard','implementer:fast']){
+ assert.equal(resolveProfile(root,'implementer').nodes.main.model,'claude-opus-5-5');
+ for(const [profile,harness,model] of [['implementer:opus','claude','claude-opus-5-5'],['implementer:astra','codex','gpt-6-astra'],['implementer:sol','codex','gpt-6.1-sol']]){
   const resolved=resolveProfile(root,profile),main=resolved.nodes.main;
-  assert.deepEqual(Object.keys(main.children).sort(),['frontend-verifier','reviewer','second-reviewer']);
-  for(const route of Object.values(main.children))assert.deepEqual(Object.keys(resolved.nodes[route].children),[]);
+  assert.deepEqual([main.harness,main.model,main.reasoning_effort],[harness,model,'medium']);
+  assert.deepEqual(Object.keys(main.children).sort(),['cold-reader','explorer','qa-and-verify']);
+  assert.equal(resolved.nodes[main.children['qa-and-verify']].name,'pr-qa');
+  for(const skill of ['prepare-pr','babysit-pr','tdd','quick-verify','pr-test-automation','session-trace'])assert.ok(main.skills.includes(skill),`${profile}: ${skill}`);
   const bundle=build(root,profile,target);verify(bundle);
   const launch=command(bundle,'main',{prepare:false});
-  assert.equal(launch.argv[launch.argv.indexOf('--model')+1],'gpt-6-astra');
-  assert.ok(launch.argv.includes('model_reasoning_effort="low"'));
-  assert.ok(launch.argv.includes(profile==='implementer:fast' ? 'service_tier="fast"' : 'service_tier="default"'));
-  for(const speed of ['fast','standard']){
-   const override=command(bundle,'main',{prepare:false,speed});
-   assert.ok(override.argv.includes(speed==='fast' ? 'service_tier="fast"' : 'service_tier="default"'));
-   assert.ok(override.argv.includes('model_reasoning_effort="low"'));
-  }
-  const review=command(bundle,main.children.reviewer,{prepare:false});
-  assert.equal(review.argv[review.argv.indexOf('--model')+1],'claude-fable-5-1');
-  assert.equal(review.argv[review.argv.indexOf('--effort')+1],'high');
-  const frontend=resolved.nodes[main.children['frontend-verifier']];
-  assert.equal(frontend.mode,'native');assert.equal(frontend.model,'gpt-6.1-sol');assert.equal(frontend.reasoning_effort,'low');
-  assert.equal(fs.existsSync(path.join(bundle,'main/dispatch/worker')),false);
+  assert.equal(launch.argv[launch.argv.indexOf('--model')+1],model);
+ }
+ for(const removed of ['agents/implementer.md','agents/implementer-claude.md','agents/reviewer.md','agents/frontend-verifier.md','instructions/implementer-identity.md','skills/work-packages','skills/build-package','skills/final-review'])assert.equal(fs.existsSync(path.join(root,removed)),false,removed);
+});
+
+test('the reviewer is the former dcouple reviewer, with its Codex variant on Sol 6.1 max and an orchestrated report-only mode',()=>{
+ const claude=resolveProfile(root,'reviewer').nodes.main,codex=resolveProfile(root,'reviewer:codex').nodes.main;
+ assert.deepEqual([claude.harness,claude.model,claude.reasoning_effort],['claude','claude-opus-5-5','high']);
+ assert.deepEqual([codex.harness,codex.model,codex.reasoning_effort],['codex','gpt-6.1-sol','max']);
+ for(const agent of ['claude-pr-reviewer','codex-pr-reviewer']){
+  const text=fs.readFileSync(path.join(root,'agents',agent+'.md'),'utf8');
+  assert.match(text,/## Launched by an orchestrator/);assert.doesNotMatch(text,/dcouple/);
  }
 });
 
-test('the default Claude implementer variant runs Opus 5.5 with an Astra reviewer and Claude-native helpers',t=>{
- assert.equal(resolveProfile(root,'implementer').nodes.main.model,'claude-opus-5-5');
- const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-claude-')));
- t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
- const resolved=resolveProfile(root,'implementer:claude'),main=resolved.nodes.main;
- assert.equal(main.harness,'claude');assert.equal(main.model,'claude-opus-5-5');assert.equal(main.reasoning_effort,'medium');
- assert.deepEqual(Object.keys(main.children).sort(),['frontend-verifier','reviewer','second-reviewer']);
- const node=name=>resolved.nodes[main.children[name]];
- assert.deepEqual([node('reviewer').mode,node('reviewer').harness,node('reviewer').model,node('reviewer').reasoning_effort],['process','codex','gpt-6-astra','high']);
- assert.deepEqual([node('second-reviewer').mode,node('second-reviewer').harness,node('second-reviewer').model,node('second-reviewer').reasoning_effort],['native','claude','claude-opus-5-5','high']);
- assert.deepEqual([node('frontend-verifier').mode,node('frontend-verifier').harness,node('frontend-verifier').model,node('frontend-verifier').reasoning_effort],['native','claude','claude-opus-5-5','medium']);
- const bundle=build(root,'implementer:claude',target);verify(bundle);
- const launch=command(bundle,'main',{prepare:false});
- assert.equal(launch.argv[launch.argv.indexOf('--model')+1],'claude-opus-5-5');
+test('profiles moved from dcouple resolve from greenfield, and the dropped ones do not',()=>{
+ for(const profile of ['audits','business','product-researcher','qa-and-fix','reviewer','seo','implementer'])assert.ok(resolveProfile(root,profile).nodes.main);
+ for(const profile of ['ideate','pipeline','raw'])assert.throws(()=>resolveProfile(root,profile));
+ const qa=resolveProfile(root,'qa-and-fix'),bug=resolveProfile(root,'bug-reporter');
+ assert.equal(bug.nodes[bug.nodes.main.children.qa].name,'qa');
+ assert.ok(qa.nodes.main.skills.includes('pr-test-automation'));
 });
 
 test('Codex roles formerly on gpt-5.6 run gpt-6.1-sol and reviewers keep their pins',()=>{
@@ -64,13 +57,7 @@ test('Codex roles formerly on gpt-5.6 run gpt-6.1-sol and reviewers keep their p
  const child=(profile,name)=>{const resolved=resolveProfile(root,profile);return resolved.nodes[resolved.nodes.main.children[name]];};
  for(const profile of profiles)for(const node of Object.values(resolveProfile(root,profile).nodes))assert.doesNotMatch(node.model,/^gpt-5\.6-/,`${profile} ${node.name}`);
  assert.deepEqual(summary(child('planner:claude','mockup-artist')),['process','codex','gpt-6.1-sol','medium']);
- for(const profile of ['implementer:standard','implementer:fast']){
-  assert.deepEqual(summary(child(profile,'frontend-verifier')),['native','codex','gpt-6.1-sol','low']);
-  assert.deepEqual(summary(child(profile,'second-reviewer')),['native','codex','gpt-6-astra','high']);
-  assert.deepEqual(summary(child(profile,'reviewer')).slice(1),['claude','claude-fable-5-1','high']);
- }
  for(const name of ['investigator','researcher'])assert.deepEqual(summary(child('planner:codex',name)),['native','codex','gpt-6.1-sol','max']);
- assert.deepEqual(summary(child('implementer:claude','reviewer')),['process','codex','gpt-6-astra','high']);
  const qa=parse(/^---\n([\s\S]*?)\n---/.exec(fs.readFileSync(path.join(root,'agents/qa.md'),'utf8'))[1]);
  assert.deepEqual([qa.harness,qa.model.name,qa.model.reasoning],['codex','gpt-6.1-sol','medium']);
 });
@@ -129,18 +116,14 @@ test('Greenfield CLI arguments reach both harnesses and reject invalid profile i
  const source='https://example.test/plan?revision=3&mode=review';
  const parent=path.join(target,'status files','task.json'),policy=path.join(target,'host guidance.md');
  const invoke=(profile,args)=>spawnSync(process.execPath,[cli,'run',profile,'--config-root',root,'--directory',target,'--no-workspace','--explain',...args.flatMap(a=>['--arg',a])],{encoding:'utf8',env:{...process.env,HOME:home,USERPROFILE:home,AGENT_FARM_TELEMETRY:'off'}});
- for(const [profile,args] of [['planner',[`source=${source}`,`parent=${parent}`]],['planner:codex',[`source=${source}`,`parent=${parent}`]],['orchestrator',[`host_policy=${policy}`]],['implementer',[`source=${source}`,`parent=${parent}`]],['implementer:fast',[`source=${source}`]],['implementer:claude',[`source=${source}`,`parent=${parent}`]]]){
+ for(const [profile,args] of [['planner',[`source=${source}`,`parent=${parent}`]],['planner:codex',[`source=${source}`,`parent=${parent}`]],['orchestrator',[`host_policy=${policy}`]]]){
   const result=invoke(profile,args);assert.equal(result.status,0,result.stderr);
   const launch=JSON.parse(result.stdout);
   const codex=launch.argv.find(v=>v.startsWith('developer_instructions='));
   const instructions=codex ? JSON.parse(codex.slice('developer_instructions='.length)) : launch.argv[launch.argv.indexOf('--append-system-prompt')+1];
   for(const pair of args){const i=pair.indexOf('='),key=pair.slice(0,i),value=pair.slice(i+1);assert.equal(launch.launch.arguments[key],value);assert.ok(instructions.includes(`${key}: ${value}`));}
-  if(profile.startsWith('implementer')){
-   assert.equal(launch.launch.arguments.review,'single');
-   assert.equal(launch.launch.arguments.priority,profile==='implementer:fast'?'speed':'usage');
-  }
  }
- for(const [profile,args,pattern] of [['planner',['review=single'],/does not declare argument review/],['orchestrator',['host_policy'],/malformed/],['implementer',['review=triple'],/invalid/]]){
+ for(const [profile,args,pattern] of [['planner',['review=single'],/does not declare argument review/],['orchestrator',['host_policy'],/malformed/]]){
   const result=invoke(profile,args);assert.equal(result.status,1);assert.match(result.stderr,pattern);
  }
 });

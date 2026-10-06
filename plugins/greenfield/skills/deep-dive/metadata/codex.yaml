@@ -1,0 +1,4 @@
+interface:
+  display_name: "Deep Dive"
+  short_description: "Investigate a topic and build a clear, cited field guide"
+  default_prompt: "Use $deep-dive to investigate this topic across relevant sources, explain the evidence and uncertainty, and save a clear research guide."

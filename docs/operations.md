@@ -59,7 +59,7 @@ security boundary.
 
 ## Plugin rollout
 
-The bundled default plugin is `dcouple`. Users run `agent-farm plugin install`
+The bundled default plugin is `greenfield`. Users run `agent-farm plugin install`
 after upgrading, plus `agent-farm plugin install NAME` for each other bundled
 plugin they use. `agent-farm plugin list` shows each installed plugin's name,
 version, source, and profile count. For install, uninstall, and collision

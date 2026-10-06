@@ -45,13 +45,13 @@ Write one high-level cover sheet for the person and the implementer, holding pac
 
 ## Handing off to the implementer
 
-Implementation beyond the small-work route runs as its own Agent Farm session, which the person launches and picks a model for. Once a cover sheet is approved, give them the command, with the absolute path or link to the approved cover sheet as `source`:
+Implementation beyond the small-work route runs as its own Agent Farm session, which the person launches and picks a model for. Once a cover sheet is approved, give them the command, with the absolute path or link to the approved cover sheet in the starting message:
 
 ```sh
-agent-farm run greenfield/implementer --directory <feature workspace> --arg source=<cover sheet>
+agent-farm run greenfield/implementer --directory <feature workspace> --message "Implement the approved cover sheet at <cover sheet>."
 ```
 
-Agent Farm asks which variant to run: `claude` (Claude Opus 5.5, the default), `standard` (Astra Low), or `fast` (Astra Low, fast tier). Adding `:variant` to the profile skips that question. Under an orchestrator, report that the cover sheet is approved and leave the launch to the orchestrator.
+Agent Farm asks which variant to run: `opus` (Claude Opus 5.5, the default), `astra` (GPT-6 Astra), or `sol` (GPT-6.1 Sol). Adding `:variant` to the profile skips that question. Review runs separately through `greenfield/reviewer`. Under an orchestrator, report that the cover sheet is approved and leave the launch to the orchestrator.
 
 If no starter message is supplied, wait for the person's request.
 

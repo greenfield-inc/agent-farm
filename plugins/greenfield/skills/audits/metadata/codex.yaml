@@ -1,0 +1,7 @@
+interface:
+  display_name: "Audits"
+  short_description: "Stale issues, PRs, and agent-facing docs vs default branch"
+  default_prompt: "Use $audits to compare open issues, PRs, and agent-facing docs to the default branch. Report first; mutate only after approval."
+
+policy:
+  allow_implicit_invocation: false

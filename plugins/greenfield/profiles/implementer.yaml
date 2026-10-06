@@ -1,14 +1,11 @@
 variants:
-  standard:
-    agent: implementer
-  fast:
-    agent: implementer
+  opus:
+    agent: raw-claude
+  astra:
+    agent: raw-codex
+  sol:
+    agent: raw-codex
     model:
-      name: gpt-6-astra
-      reasoning: low
-      speed: fast
-    args:
-      priority: speed
-  claude:
-    agent: implementer-claude
-default: claude
+      name: gpt-6.1-sol
+      reasoning: medium
+default: opus

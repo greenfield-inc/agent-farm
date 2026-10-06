@@ -28,14 +28,13 @@ Codex CLI installed and authenticated. On Windows, turn on Developer Mode
 ```sh
 npm install --global @greenfieldco/agent-farm
 agent-farm init
-agent-farm plugin install greenfield   # optional: the planner/implementer profiles below
 agent-farm plugin install orchestra    # optional: the overseer profile below
 ```
 
-`agent-farm init` checks your prerequisites, installs the default `dcouple`
+`agent-farm init` checks your prerequisites, installs the default `greenfield`
 plugin (its profiles and skills), explains how everything fits together, and
-offers to launch your first session. The `greenfield` and `orchestra` plugins
-ship in the same package but are installed only when you ask for them. After
+offers to launch your first session. The `orchestra` plugin ships in the same
+package but is installed only when you ask for it. After
 upgrading Agent Farm, rerun `agent-farm plugin install` and
 `agent-farm plugin install NAME` for each plugin you use, to pick up new profiles.
 
@@ -48,16 +47,16 @@ To work on Agent Farm itself, see [docs/development.md](docs/development.md).
 
 ## Profiles
 
-Agent Farm ships with profiles ready to use. With all three plugins installed,
-`agent-farm` shows a menu like this (abridged):
+Agent Farm ships with profiles ready to use. With `greenfield` and `orchestra`
+installed, `agent-farm` shows a menu like this (abridged):
 
 ```
 ◆  What would you like to do? Tab: show all descriptions
 │  ● greenfield/planner (2) (Help you understand a problem, decide what to do, and write the plan. Doesn't write code.)
 │  ○ orchestra/overseer (2)
-│  ○ dcouple/raw (3)
-│  ○ dcouple/qa-and-fix (2)
-│  ○ dcouple/reviewer (2)
+│  ○ greenfield/implementer (3)
+│  ○ greenfield/qa-and-fix (2)
+│  ○ greenfield/reviewer (2)
 │  ─────────────────────
 │  + Create new profile
 ```
@@ -68,18 +67,23 @@ profile's description at once.
 **Plan** — `greenfield/planner` helps you understand a problem, decide what
 to do, and write the plan. Start here.
 
-**Build** — `orchestra/overseer` builds, tests, and reviews a task into a pull
-request with little hand-holding. For smaller, clear tasks, `dcouple/raw` is the
-AI model on its own plus a few good habits.
+**Build** — `greenfield/implementer` is the AI model on its own plus a few good
+habits: it builds a plan or a clear task into a pull request and watches it until
+checks are green. `orchestra/overseer` builds, tests, and reviews a task into a
+pull request with little hand-holding.
 
-**Check** — `dcouple/qa-and-fix` tests a finished pull request, fixes small safe
-problems, and tells you when it's ready. `dcouple/reviewer` reviews it from many
-angles at once.
+**Check** — `greenfield/reviewer` reviews a pull request from many angles at
+once. `greenfield/qa-and-fix` tests a finished pull request, fixes small safe
+problems, and tells you when it's ready.
 
-**More** (all in `dcouple`) — `ideate` to talk a fuzzy idea through and hand
-over a ticket, `implementer` to build a ticket, `product-researcher` for research
-write-ups, `business` for business documents, `seo` for search content, and
-`audits` for finding outdated issues and docs.
+**More** (all in `greenfield`) — `product-researcher` for research write-ups,
+`business` for business documents, `seo` for search content, and `audits` for
+finding outdated issues and docs.
+
+These profiles used to live in the `dcouple` plugin, which still ships for
+existing installs. `dcouple/raw` became `greenfield/implementer`; `dcouple/ideate`
+and `dcouple/implementer` were not moved. An installed `dcouple` keeps working
+until you run `agent-farm plugin uninstall dcouple`.
 
 **Guides** — Each plugin has a one-page visual guide to its profiles and how work is routed: [greenfield](plugins/greenfield/index.html), [orchestra](plugins/orchestra/index.html), and [dcouple](plugins/dcouple/index.html). They're also on Grain: [greenfield](https://rungrain.com/share/49gtyr7fi7hm75n71itmmlgl), [orchestra](https://rungrain.com/share/dmnwnvk2hbvsxcart76f29jk), and [dcouple](https://rungrain.com/share/6uxd73wjm97a2n2shyg5m6xz).
 
@@ -112,15 +116,15 @@ commands. `agent-farm doctor` tells you what's working and what's not.
 
 ```sh
 agent-farm run greenfield/planner
-agent-farm run dcouple/implementer
 agent-farm run greenfield/planner:codex
 agent-farm run greenfield/implementer --directory ~/repos/my-project --message "Fix the failing tests"
-agent-farm run greenfield/implementer --model gpt-6-astra --speed fast --arg review=dual
+agent-farm run greenfield/implementer:sol
+agent-farm run greenfield/reviewer:codex --message "Review PR #42"
 ```
 
 Several plugins can be installed together. Use `plugin/profile` when plugins
-publish the same name: both `dcouple` and `greenfield` have an `implementer`, so
-`agent-farm run implementer` stops and asks you to qualify it. Setting
+publish the same name: both `dcouple` and `greenfield` have an `implementer`,
+so with both installed `agent-farm run implementer` stops and asks you to qualify it. Setting
 `"default_plugin": "greenfield"` in `settings.json` makes bare names prefer that plugin.
 
 `--arg` values are declared by each agent; `agent-farm inspect PROFILE` lists
@@ -159,8 +163,7 @@ root, which you approve once with `agent-farm workspace trust`. Keep secrets out
 of these files: connections name environment variables instead of holding values.
 
 ```sh
-agent-farm plugin install                 # bundled dcouple
-agent-farm plugin install greenfield      # another bundled plugin
+agent-farm plugin install                 # bundled greenfield
 agent-farm plugin install orchestra
 agent-farm plugin install /path/to/plugin
 agent-farm plugin list

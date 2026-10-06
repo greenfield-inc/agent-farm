@@ -1,0 +1,6 @@
+variants:
+  claude:
+    agent: seo
+  codex:
+    agent: seo-codex
+default: claude

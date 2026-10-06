@@ -179,6 +179,17 @@ test('plugin CLI lists complete receipt metadata and uninstalls bundled plugins'
  assert.deepEqual(listPlugins(root),[]);
 });
 
+test('a bare plugin install installs the bundled greenfield plugin with the moved profiles',t=>{
+ const root=fixture(t),run=args=>cliRun(root,['plugin',...args]);
+ let result=run(['install']);
+ assert.equal(result.status,0,result.stderr);
+ assert.equal(JSON.parse(result.stdout).name,'greenfield');
+ result=run(['list']);
+ assert.deepEqual(JSON.parse(result.stdout).map(plugin=>plugin.name),['greenfield']);
+ const profiles=fs.readdirSync(path.join(root,'plugins/greenfield/profiles')).map(file=>file.replace(/\.yaml$/,'')).sort();
+ assert.deepEqual(profiles,['audits','bug-reporter','business','free-range','implementer','orchestrator','planner','product-researcher','qa-and-fix','reviewer','seo']);
+});
+
 test('plugin pack accepts a non-dcouple plugin',t=>{
  const root=fixture(t),source=makePlugin(root,'roles'),output=path.join(root,'packed-roles');
  execFileSync('git',['init','-q'],{cwd:source.root});

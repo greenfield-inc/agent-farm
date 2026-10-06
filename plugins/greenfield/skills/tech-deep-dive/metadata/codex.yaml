@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tech Deep Dive"
+  short_description: "Turn emerging tech into practical visual field guides"
+  default_prompt: "Use $tech-deep-dive to research this technology and its best real-world uses, explain how they work, and create a clear guide with ideas we can borrow."
