@@ -38,8 +38,10 @@ Store the resolved diff range as `DIFF_RANGE` (e.g. `main...HEAD` or
 `origin/develop...feature-branch`). Every sub-agent uses this exact range
 instead of hard-coding `main...HEAD`.
 
-Also fetch PR metadata and linked issue context using the bundled review
-skill's Step 1 when a PR number is available.
+Also fetch PR metadata and linked issue context when a PR number is
+available: use the review skill's Step 1 when it is bundled; otherwise read
+the PR with `gh pr view` and each issue it closes or references with
+`gh issue view`.
 
 ## Step 2: Project Discovery
 

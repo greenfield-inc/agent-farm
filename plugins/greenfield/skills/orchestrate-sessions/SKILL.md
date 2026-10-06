@@ -31,6 +31,7 @@ Every piece of work follows the same three roles, each in its own workspace with
 | Bug needing a reproducible report | `greenfield/bug-reporter` |
 | Approved cover sheet | `greenfield/implementer` (`opus` unless the user picks `astra` or `sol`) |
 | Clearly straightforward, authorized fix | `greenfield/implementer` directly, with the original task and a `no-plan` label |
+| Implementer done, when the user turned on the simplify checkpoint | `greenfield/simplify-and-refactor:sol` on that PR's branch, before QA and review (see Review policy) |
 | Every PR of the workstream ready to merge | `greenfield/reviewer:codex`, one per PR, report only (see Review policy) |
 
 Under an orchestrator, planners only plan; they never take the small-fix route. Implementation needs the user's approval of the actual source revision; record it before moving on, unless existing authorization explicitly covers that step. A finished planning document is ready for review, nothing more. Relay open decisions to the user and let the planner write the plan.
@@ -61,7 +62,7 @@ runpane panes create --repo <repo> --name <item>-<role> --source agent --json \
   --prompt-file <absolute starting-message file>
 ```
 
-Always name the variant, or the worker stops at Agent Farm's variant picker instead of starting: `greenfield/planner:claude` and `greenfield/implementer:opus` unless the user picked another, and `greenfield/reviewer:codex` for review. Only single-variant profiles such as `greenfield/bug-reporter` go without one. The starting message names the source and its revision, the validation criteria or PR, the status-file path, the document destination and the Session name. `planner` and `bug-reporter` also accept `source` and `parent` (`--arg`); `implementer` and `reviewer` take everything in the message. `parent` is an absolute status-file path; host session IDs travel separately.
+Always name the variant, or the worker stops at Agent Farm's variant picker instead of starting: `greenfield/planner:claude` and `greenfield/implementer:opus` unless the user picked another, `greenfield/reviewer:codex` for review, and `greenfield/simplify-and-refactor:sol` for the simplify checkpoint. Only single-variant profiles such as `greenfield/bug-reporter` go without one. The starting message names the source and its revision, the validation criteria or PR, the status-file path, the document destination and the Session name. `planner` and `bug-reporter` also accept `source` and `parent` (`--arg`); `implementer`, `reviewer` and `simplify-and-refactor` take everything in the message. `parent` is an absolute status-file path; host session IDs travel separately.
 
 Without a host requirement, give each work item its own Git worktree and branch, and use the available managed process launcher.
 
@@ -76,7 +77,9 @@ The default is one review at the end of the workstream. The workstream is ready 
 
 The fix loop: send each must-fix item to the implementer that owns the PR, resumed in its Pane or as a new implementer Pane on the same branch. When it reports done, launch a reviewer follow-up that checks only those items. Run another full round only when the user asks.
 
-The user can skip review, add checkpoints, or review each plan separately. Change the policy only on the user's explicit word, and show the current policy in the map's header.
+The simplify checkpoint is optional and off by default. When the user turns it on, launch one `greenfield/simplify-and-refactor:sol` Pane per PR after its implementer reports done and has stopped, before QA and review, since it may write the branch. Its starting message names the PR and says: plan, then wait for the user's approval of the merged plan. Relay the plan to the user; it applies only on their approval. When it reports done, the head has changed: QA and review run on the new head, and the implementer owns the branch again.
+
+The user can skip review, add checkpoints (including the simplify checkpoint), or review each plan separately. Change the policy only on the user's explicit word, and show the current policy in the map's header.
 
 ## Events, not polling
 

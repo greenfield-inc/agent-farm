@@ -1,0 +1,6 @@
+variants:
+  sol:
+    agent: simplify-and-refactor
+  opus:
+    agent: simplify-and-refactor-claude
+default: sol

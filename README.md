@@ -74,7 +74,9 @@ pull request with little hand-holding.
 
 **Check** — `greenfield/reviewer` reviews a pull request from many angles at
 once. `greenfield/qa-and-fix` tests a finished pull request, fixes small safe
-problems, and tells you when it's ready.
+problems, and tells you when it's ready. `greenfield/simplify-and-refactor`
+asks whether an open pull request could be simpler and applies only the
+cleanup you approve.
 
 **More** (all in `greenfield`) — `product-researcher` for research write-ups,
 `business` for business documents, `seo` for search content, and `audits` for
