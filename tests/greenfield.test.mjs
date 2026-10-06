@@ -149,3 +149,24 @@ test('the orchestrator routes planner, implementer and end-of-workstream reviewe
  for(const text of ['runpane panes create','greenfield/planner','greenfield/implementer','greenfield/reviewer:codex','report only','--dry-run','Never pass `--force`','agent-farm inspect greenfield/<profile> --directory <repo>'])assert.ok(skill.includes(text),text);
  assert.deepEqual(Object.keys(resolveProfile(root,'orchestrator').nodes.main.children),['advisor']);
 });
+
+test('orchestrated reviewers stay report-only, and orchestrated cleanup, launches, traces and review policy keep their safeguards',t=>{
+ const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-safeguards-')));
+ t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
+ const flat=text=>text.replace(/\s+/g,' ');
+ for(const profile of ['reviewer:claude','reviewer:codex']){
+  const launch=command(build(root,profile,target),'main',{prepare:false});
+  const codex=launch.argv.find(v=>v.startsWith('developer_instructions='));
+  const instructions=flat(codex ? JSON.parse(codex.slice('developer_instructions='.length)) : launch.argv[launch.argv.indexOf('--append-system-prompt')+1]);
+  for(const rule of ['write the reconciled findings to that file','Do not post a GitHub review unless the message asks for one','do not plan or apply fixes','check only the listed must-fix items'])assert.ok(instructions.includes(rule),`${profile}: ${rule}`);
+ }
+ const skill=flat(fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8'));
+ for(const rule of ['the worker has stopped','Archive only when Pane reports the worktree clean and pushed or merged','Never pass `--force`','If Pane refuses, keep the Pane','deleting remote branches is ask-first','agent-farm run greenfield/<role>:<variant>','Always name the variant','`greenfield/implementer:opus`','whether it explicitly grants conversation capture','a personal fallback workspace grants nothing'])assert.ok(skill.includes(rule),rule);
+ assert.doesNotMatch(skill,/\[:variant\]/);
+ const trace=flat(fs.readFileSync(path.join(root,'skills/session-trace/SKILL.md'),'utf8'));
+ for(const rule of ['Naming a document destination is not a grant','trace not authorized','--launch <ID>','`$CODEX_HOME` before `~/.codex`'])assert.ok(trace.includes(rule),rule);
+ assert.doesNotMatch(trace,/workspace instructions authorize this capture/);
+ const plan=flat(fs.readFileSync(path.join(root,'skills/plan/SKILL.md'),'utf8')),sheet=flat(fs.readFileSync(path.join(root,'skills/plan/references/cover-sheet.md'),'utf8'));
+ assert.ok(plan.includes('Under an orchestrator, never skip on your own'));
+ assert.ok(sheet.includes("Under an orchestrator, only the user's explicit word changes the review line"));
+});

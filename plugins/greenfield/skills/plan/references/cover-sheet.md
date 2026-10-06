@@ -37,7 +37,7 @@ Look at these first   the two or three packages you consider riskiest, and why.
 Change log            newest first. Scope/decision changes are recorded here.
 ```
 
-Review defaults to once at the end of the workstream, by `greenfield/reviewer`. The person may choose no review, review of this plan on its own, or checkpoints after named packages; record their choice in the top metadata. Small, low-risk changes may skip review automatically: disclose the skip and its reason up front.
+Review defaults to once at the end of the workstream, by `greenfield/reviewer`. The person may choose no review, review of this plan on its own, or checkpoints after named packages; record their choice in the top metadata. Outside an orchestrated workstream, small, low-risk changes may skip review automatically: disclose the skip and its reason up front. Under an orchestrator, only the user's explicit word changes the review line.
 
 ## Layout and linked contents
 

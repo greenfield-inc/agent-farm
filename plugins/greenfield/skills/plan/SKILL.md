@@ -26,7 +26,7 @@ Include:
 - The review line at the top of the page, saying whether review runs and when:
   - The default is `Review: once at the end of the workstream`: `greenfield/reviewer` reviews each PR when every PR in the workstream is ready to merge.
   - The person may choose no review, review of this plan on its own, or checkpoints after named packages. Record their choice and when they made it; a mode you chose yourself does not count.
-  - Small, low-risk changes may skip review without asking. Say so up front and record the reason.
+  - Standalone, small, low-risk changes may skip review without asking. Say so up front and record the reason. Under an orchestrator, never skip on your own: the review line follows the workstream policy, and only the user's explicit word changes it.
 
 Keep the page short enough to read before coding. Explain the important technical approach and let the implementer choose files, signatures, and steps.
 
@@ -37,7 +37,7 @@ Before presenting the cover sheet, check it yourself against the brief and appro
 - Scope, exclusions, constraints, and locked decisions agree. Packages cover the affected backend and frontend paths and explain the approach, reuse or extension, new systems, schema and data impact, and dependencies. Assumptions are labelled and required approvals are visible.
 - **How we will know it works** covers required behavior, meaningful edge cases, and approved visual states, with observable outcomes and enough context to run each check. Prerequisites and blockers are recorded honestly, and planned checks are marked as planned.
 - The page itself contains everything the person must review, including exact proposed copy or contract semantics when they matter. Important decisions and risks are visible above the package disclosures.
-- The review line says whether review runs and when, with the person's choice or the small-change skip reason. Contents and related-file links resolve, and Constraints and Non-goals are stacked vertically. Explicitly named entry points are confirmed with a quick look when needed.
+- The review line says whether review runs and when, with the person's choice or, for standalone small work, the skip reason. Contents and related-file links resolve, and Constraints and Non-goals are stacked vertically. Explicitly named entry points are confirmed with a quick look when needed.
 
 Fix substantive gaps, mark the cover sheet **ready for approval**, and return its link. This is your own check, separate from user approval, so keep it quick: settled decisions stay settled and coding detail stays with the implementer. Socrates reviews the direction once, during `options`. Start implementation only when your role instructions separately authorize it; otherwise hand off as your role instructions describe.
 

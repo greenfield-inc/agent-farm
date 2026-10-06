@@ -30,7 +30,8 @@ Cleanup log       time | Pane | archived, or kept with the reason Pane gave
 End of run        what was done and why
                   what needs your review
                   Panes and worktrees still open, and the reason for each
-                  traces collected, and any session whose trace is missing
+                  traces collected, and any session whose trace is missing or
+                  not authorized by its repository or the person
 ```
 
 Draw the graph as self-contained inline SVG with a text list of the same order beside it, readable in light and dark themes. A stub hub in another destination holds only its own items, the review policy, and a link back to the canonical map.

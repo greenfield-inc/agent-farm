@@ -41,7 +41,7 @@ Each approved plan gets one implementer and one PR by default. Split a plan acro
 
 ## Document destinations
 
-Before dispatching into a repository, resolve that repository's workspace instructions: run `agent-farm inspect greenfield/<profile> --directory <repo>`, or read its committed `.agent-farm/workspace.yaml`. Note the document destination it names and the folder rule for orchestrated Sessions. Pass that destination and the host Session name to the worker in its starting message. A repository with no destination keeps a local bundle in the Session folder, and the map says "no destination".
+Before dispatching into a repository, resolve that repository's workspace instructions: run `agent-farm inspect greenfield/<profile> --directory <repo>`, or read its committed `.agent-farm/workspace.yaml`. Note the document destination it names, the folder rule for orchestrated Sessions, and whether it explicitly grants conversation capture or full traces. Pass the destination, the capture grant (or its absence) and the host Session name to the worker in its starting message, and record them in the ledger. A repository with no destination keeps a local bundle in the Session folder, and the map says "no destination".
 
 When one Session spans repositories with different destinations:
 
@@ -57,11 +57,11 @@ In Pane, launch each worker in its own Pane, which gives it a tab, fresh context
 
 ```sh
 runpane panes create --repo <repo> --name <item>-<role> --source agent --json \
-  --tool-command "agent-farm run greenfield/<role>[:variant]" \
+  --tool-command "agent-farm run greenfield/<role>:<variant>" \
   --prompt-file <absolute starting-message file>
 ```
 
-The starting message names the source and its revision, the validation criteria or PR, the status-file path, the document destination and the Session name. `planner` and `bug-reporter` also accept `source` and `parent` (`--arg`); `implementer` and `reviewer` take everything in the message. `parent` is an absolute status-file path; host session IDs travel separately.
+Always name the variant, or the worker stops at Agent Farm's variant picker instead of starting: `greenfield/planner:claude` and `greenfield/implementer:opus` unless the user picked another, and `greenfield/reviewer:codex` for review. Only single-variant profiles such as `greenfield/bug-reporter` go without one. The starting message names the source and its revision, the validation criteria or PR, the status-file path, the document destination and the Session name. `planner` and `bug-reporter` also accept `source` and `parent` (`--arg`); `implementer` and `reviewer` take everything in the message. `parent` is an absolute status-file path; host session IDs travel separately.
 
 Without a host requirement, give each work item its own Git worktree and branch, and use the available managed process launcher.
 
@@ -98,7 +98,7 @@ Use host-provided durable state when available; otherwise `.agent/ledger.json` i
 
 Keep one workstream map per Session, following [references/status-board.md](references/status-board.md) and the `page` standard. Publish it as the Session's hub in the canonical destination, and update it on each worker event and when the user asks. Link each work item's canonical bundle so status lives in one place.
 
-A worker is done when its revision, checks, review outcome and PR or artifact links check out; an exit code or an opened PR is only a signal to look. Make sure each item's cover sheet, post-mortem and trace are linked from the map, and report any publication failures. Collect traces with `session-trace` for every session in the ledger: yours, and each planner, implementer and reviewer. List any session whose trace is missing. Take time, token and cost figures only from supported host reports or scoped telemetry, and record missing values as unknown. Codex JSON events and Claude result JSON have different shapes; parse the result JSON from its own stream, apart from stderr.
+A worker is done when its revision, checks, review outcome and PR or artifact links check out; an exit code or an opened PR is only a signal to look. Make sure each item's cover sheet, post-mortem and trace are linked from the map, and report any publication failures. Collect traces with `session-trace`, passing each worker's recorded launch ID with `--launch`, for every session in the ledger whose repository's workspace instructions or the user grant conversation capture: yours, and each planner, implementer and reviewer. Your own session needs the grant of the canonical map's repository or the user's; a personal fallback workspace grants nothing. For any session without a grant, publish the labeled status page instead. List every session whose trace is missing or not authorized. Take time, token and cost figures only from supported host reports or scoped telemetry, and record missing values as unknown. Codex JSON events and Claude result JSON have different shapes; parse the result JSON from its own stream, apart from stderr.
 
 ## Cleanup
 
