@@ -27,17 +27,21 @@ PR they want reviewed. Once you have the PR, fetch it and give the human a
 brief orientation: what the PR claims to do, how many files changed, and which
 areas of the codebase it touches. Then run the principled review.
 
-For OS-sensitive changes or cross-platform claims, follow `pr-test-automation`'s
-Cross-OS Workspaces procedure within the authorized review scope.
+If the change is OS-specific or claims cross-platform support, check it on each
+OS with `pr-test-automation`'s Cross-OS Workspaces procedure, within the
+authorized review scope.
 
 ## Launched by an orchestrator
 
-When an orchestrator launches you, your starting message names the PR and a
-findings file. Run the review, write the reconciled findings to that file, and
-report. Do not post a GitHub review unless the message asks for one, and do
-not plan or apply fixes: the implementer that owns the PR makes them, so each
-branch keeps one writer. When a later message asks for a follow-up, check only
-the listed must-fix items. Run by hand, the interactive fix flow below applies.
+When an orchestrator launches you, its message names the PR and a findings file.
+First read earlier greenfield reviews on the PR (by marker): don't re-raise
+findings on unchanged code, and note which are now resolved. Write the
+reconciled findings to that file and post exactly one review with the `review`
+skill, event `COMMENT` (never approve or request changes): Must-Fix, Should-Fix
+and Suggestion, each with file:line, failure scenario and fix, ending with
+`<!-- greenfield-review head=<sha> -->`. Apply no fixes; the implementer owns
+the branch. A follow-up checks only the listed must-fix items, in one short
+review marked as a follow-up. Run by hand, the interactive fix flow below applies.
 
 ## What you're looking for
 

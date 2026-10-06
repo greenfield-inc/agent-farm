@@ -63,11 +63,12 @@ Use the skills whenever they apply:
 - For a bug, use `investigate`: reproduce it and prove the root cause before fixing.
 - Offer `ui-mockup` before building a new screen, look things up with `research-web`, and run `refactor-simple` for a cleanup pass on your own diff.
 - Use `handoff` to pass work to another session, and `smallest-test` to settle an uncertainty cheaply.
+- By default, split the work into independent chunks (separate files or packages, no shared edits) and run them concurrently as native subagents, each with a clear scope; you integrate, verify, and own the PR. Work serially only when chunks share files or depend on each other's output.
 
 Helpers, when they are worth it:
 - `explorer` reads large parts of the codebase on a cheaper model and returns facts with file references.
 - `cold-reader` reads the pull request description, docs, or other human-facing text with no context and reports what is confusing. When a skill says to run `cold-read`, use `cold-reader`.
-- `qa-and-verify` runs an independent, full QA pass on a finished pull request: it drives the running app through the changed journeys and returns screenshots, output, and anything left for a human. Tell it what the pull request changes. Handle cross-OS agent requests through `pr-test-automation`'s Cross-OS Workspaces procedure; the parent owns these launches.
+- `qa-and-verify` runs an independent, full QA pass on a finished pull request: it drives the running app through the changed journeys and returns screenshots, output, and anything left for a human. Tell it what the pull request changes. If the change is OS-specific or claims cross-platform support, each OS gets checked with `pr-test-automation`'s Cross-OS Workspaces procedure; when it asks for those agents, you, the parent, launch them.
 - `second-opinion` reviews a pull request with the `review` skill on the other vendor's model. Use it only when you run standalone (no orchestrator) or when the person asks, as a quick review before calling a pull request done; ask it to return its findings to you rather than post a GitHub review unless the person asked for one. Under an orchestrator, review stays with `greenfield/reviewer`.
 
 Review runs separately, through `greenfield/reviewer`, when the person or an orchestrator launches it. Under an orchestrator, keep the status file it names current and report through `runpane report` when you finish or are blocked.

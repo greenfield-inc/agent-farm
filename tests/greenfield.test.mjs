@@ -32,16 +32,19 @@ test('the implementer is the former dcouple raw profile on Opus, Astra or Sol, w
   const launch=command(bundle,'main',{prepare:false});
   assert.equal(launch.argv[launch.argv.indexOf('--model')+1],model);
  }
+ for(const agent of ['raw-claude','raw-codex']){const text=fs.readFileSync(path.join(root,'agents',agent+'.md'),'utf8');assert.match(text,/By default, split the work into independent chunks/,agent);assert.match(text,/Work serially only when chunks share files/,agent);assert.match(text,/you, the parent, launch them/,agent);}
  for(const removed of ['agents/implementer.md','agents/implementer-claude.md','agents/reviewer.md','agents/frontend-verifier.md','instructions/implementer-identity.md','skills/work-packages','skills/build-package','skills/final-review'])assert.equal(fs.existsSync(path.join(root,removed)),false,removed);
 });
 
-test('the reviewer is the former dcouple reviewer, with its Codex variant on Sol 6.1 max and an orchestrated report-only mode',()=>{
+test('the reviewer is the former dcouple reviewer, with its Codex variant on Sol 6.1 max and one reconciled COMMENT review under an orchestrator',()=>{
  const claude=resolveProfile(root,'reviewer').nodes.main,codex=resolveProfile(root,'reviewer:codex').nodes.main;
  assert.deepEqual([claude.harness,claude.model,claude.reasoning_effort],['claude','claude-opus-5-5','high']);
  assert.deepEqual([codex.harness,codex.model,codex.reasoning_effort],['codex','gpt-6.1-sol','max']);
  for(const agent of ['claude-pr-reviewer','codex-pr-reviewer']){
   const text=fs.readFileSync(path.join(root,'agents',agent+'.md'),'utf8');
   assert.match(text,/## Launched by an orchestrator/);assert.doesNotMatch(text,/dcouple/);
+  const orchestrated=/## Launched by an orchestrator\n([\s\S]*?)\n## /.exec(text)[1];
+  for(const phrase of [/exactly one review/,/event `COMMENT`/,/never approve or request changes/,/<!-- greenfield-review head=<sha> -->/,/earlier greenfield reviews/,/Apply no fixes/,/only the listed must-fix items/])assert.match(orchestrated,phrase,agent);
  }
 });
 
@@ -151,11 +154,11 @@ test('the plugin stays tool-neutral: no agent, skill, profile or instruction nam
 
 test('the orchestrator routes planner, implementer and end-of-workstream reviewer through Pane, with safe cleanup',()=>{
  const skill=fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8');
- for(const text of ['runpane panes create','greenfield/planner','greenfield/implementer','greenfield/reviewer:codex','report only','--dry-run','Never pass `--force`','agent-farm inspect greenfield/<profile> --directory <repo>'])assert.ok(skill.includes(text),text);
+ for(const text of ['runpane panes create','greenfield/planner','greenfield/implementer','greenfield/reviewer:codex','one `COMMENT` review, no fixes','--dry-run','Never pass `--force`','agent-farm inspect greenfield/<profile> --directory <repo>'])assert.ok(skill.includes(text),text);
  assert.deepEqual(Object.keys(resolveProfile(root,'orchestrator').nodes.main.children),['advisor']);
 });
 
-test('orchestrated reviewers stay report-only, and orchestrated cleanup, launches, traces and review policy keep their safeguards',t=>{
+test('orchestrated reviewers post one COMMENT review and apply no fixes, and orchestrated cleanup, launches, traces and review policy keep their safeguards',t=>{
  const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-safeguards-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
  const flat=text=>text.replace(/\s+/g,' ');
@@ -163,7 +166,7 @@ test('orchestrated reviewers stay report-only, and orchestrated cleanup, launche
   const launch=command(build(root,profile,target),'main',{prepare:false});
   const codex=launch.argv.find(v=>v.startsWith('developer_instructions='));
   const instructions=flat(codex ? JSON.parse(codex.slice('developer_instructions='.length)) : launch.argv[launch.argv.indexOf('--append-system-prompt')+1]);
-  for(const rule of ['write the reconciled findings to that file','Do not post a GitHub review unless the message asks for one','do not plan or apply fixes','check only the listed must-fix items'])assert.ok(instructions.includes(rule),`${profile}: ${rule}`);
+  for(const rule of ['reconciled findings to that file','post exactly one review','event `COMMENT` (never approve or request changes)','Apply no fixes','checks only the listed must-fix items'])assert.ok(instructions.includes(rule),`${profile}: ${rule}`);
  }
  const skill=flat(fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8'));
  for(const rule of ['the worker has stopped','Archive only when Pane reports the worktree clean and pushed or merged','Never pass `--force`','If Pane refuses, keep the Pane','deleting remote branches is ask-first','agent-farm run greenfield/<role>:<variant>','Always name the variant','`greenfield/implementer:opus`','whether it explicitly grants conversation capture','a personal fallback workspace grants nothing'])assert.ok(skill.includes(rule),rule);
@@ -174,6 +177,8 @@ test('orchestrated reviewers stay report-only, and orchestrated cleanup, launche
  const plan=flat(fs.readFileSync(path.join(root,'skills/plan/SKILL.md'),'utf8')),sheet=flat(fs.readFileSync(path.join(root,'skills/plan/references/cover-sheet.md'),'utf8'));
  assert.ok(plan.includes('Under an orchestrator, never skip on your own'));
  assert.ok(sheet.includes("Under an orchestrator, only the user's explicit word changes the review line"));
+ const babysit=flat(fs.readFileSync(path.join(root,'skills/babysit-pr/SKILL.md'),'utf8'));
+ for(const rule of ["Fix every finding within the PR's goal","don't dismiss an in-scope finding as out of scope",'capture it with `create-ticket`','reply on the thread with the link','When you decline a finding as wrong, reply with the reason'])assert.ok(babysit.includes(rule),rule);
 });
 
 test('simplify-and-refactor runs the refactor and principled-review skills on Sol by default or Opus, with a refactor child per analysis',t=>{
@@ -230,6 +235,7 @@ const unbundledMentions={
  'seo-data-pull -> plan':'names a person-level data property',
  'create-ticket -> ui-mockup':'offers a mockup only where the agent has ui-mockup',
  'create-ticket -> explain-visually':'offers a visual only where the agent has explain-visually',
+ 'babysit-pr -> create-ticket':"falls back to the PR's findings or handoff file where the agent cannot create tickets",
  'html-explainer -> excalidraw-pr-diagrams':'names editable diagrams as outside its scope',
  'refactor-apply -> prepare-pr':'names who owns the commit when the person runs it by hand',
  'refactor -> cold-read':'the parent runs the cold-read gate with its cold-reader child; a refactor child returns to it there',
