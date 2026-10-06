@@ -112,7 +112,7 @@ Then offer the human two paths:
    human to discuss, adjust, or approve. When they say to proceed, run
    the create-plan skill against the findings file to produce an
    implementation plan addressing every finding. Present the plan for
-   approval. On approval, run the implement skill to apply the fixes,
+   approval. On approval, run the implementer skill to apply the fixes,
    then re-run the principled review to verify the fixes landed clean.
 
 2. **Autonomous** (when the human says "do it all", "fix everything",

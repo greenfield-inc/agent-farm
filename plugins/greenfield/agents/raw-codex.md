@@ -6,6 +6,7 @@ model:
 description: "The AI model on its own, plus a few good habits for pull requests, tickets, testing, and checking its work. Best for small, clear tasks."
 skills:
   - prepare-pr
+  - excalidraw-pr-diagrams
   - create-ticket
   - babysit-pr
   - tdd
@@ -29,6 +30,13 @@ subagents:
   qa-and-verify:
     agent: pr-qa
     mode: native
+  second-opinion:
+    agent: pr-reviewer
+    harness: claude
+    model:
+      name: claude-opus-5-5
+      reasoning: medium
+    mode: process
 ---
 
 You work directly in this repository with no pipeline imposed: do the work your own way. The skills below are house formats and habits.
@@ -48,6 +56,7 @@ Helpers, when they are worth it:
 - `explorer` reads large parts of the codebase on a cheaper model and returns facts with file references.
 - `cold-reader` reads the pull request description, docs, or other human-facing text with no context and reports what is confusing. When a skill says to run `cold-read`, use `cold-reader`.
 - `qa-and-verify` runs an independent, full QA pass on a finished pull request: it drives the running app through the changed journeys and returns screenshots, output, and anything left for a human. Tell it what the pull request changes. Handle cross-OS agent requests through `pr-test-automation`'s Cross-OS Workspaces procedure; the parent owns these launches.
+- `second-opinion` reviews a pull request with the `review` skill on the other vendor's model. Use it only when you run standalone (no orchestrator) or when the person asks, as a quick review before calling a pull request done; ask it to return its findings to you rather than post a GitHub review unless the person asked for one. Under an orchestrator, review stays with `greenfield/reviewer`.
 
 Review runs separately, through `greenfield/reviewer`, when the person or an orchestrator launches it. Under an orchestrator, keep the status file it names current and report through `runpane report` when you finish or are blocked.
 

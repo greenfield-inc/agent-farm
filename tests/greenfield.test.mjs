@@ -12,7 +12,7 @@ import {parse} from 'yaml';
 
 const root=fileURLToPath(new URL('../plugins/greenfield/',import.meta.url));
 
-test('the implementer is the former dcouple raw profile on Opus, Astra or Sol, without a reviewer child',t=>{
+test('the implementer is the former dcouple raw profile on Opus, Astra or Sol, with only an opt-in cross-vendor second-opinion reviewer',t=>{
  const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-profile-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
  validatePlugin(root);
@@ -20,7 +20,12 @@ test('the implementer is the former dcouple raw profile on Opus, Astra or Sol, w
  for(const [profile,harness,model] of [['implementer:opus','claude','claude-opus-5-5'],['implementer:astra','codex','gpt-6-astra'],['implementer:sol','codex','gpt-6.1-sol']]){
   const resolved=resolveProfile(root,profile),main=resolved.nodes.main;
   assert.deepEqual([main.harness,main.model,main.reasoning_effort],[harness,model,'medium']);
-  assert.deepEqual(Object.keys(main.children).sort(),['cold-reader','explorer','qa-and-verify']);
+  assert.deepEqual(Object.keys(main.children).sort(),['cold-reader','explorer','qa-and-verify','second-opinion']);
+  const second=resolved.nodes[main.children['second-opinion']];
+  assert.deepEqual([second.name,second.mode,second.harness,second.model],['pr-reviewer','process',...(harness==='claude'?['codex','gpt-6.1-sol']:['claude','claude-opus-5-5'])],profile);
+  assert.ok(second.skills.includes('review'),profile);
+  const prompt=fs.readFileSync(main.source_file,'utf8').replace(/\s+/g,' ');
+  for(const rule of ['Use it only when you run standalone (no orchestrator) or when the person asks','Under an orchestrator, review stays with `greenfield/reviewer`'])assert.ok(prompt.includes(rule),`${profile}: ${rule}`);
   assert.equal(resolved.nodes[main.children['qa-and-verify']].name,'pr-qa');
   for(const skill of ['prepare-pr','babysit-pr','tdd','quick-verify','pr-test-automation','session-trace'])assert.ok(main.skills.includes(skill),`${profile}: ${skill}`);
   const bundle=build(root,profile,target);verify(bundle);
@@ -169,4 +174,96 @@ test('orchestrated reviewers stay report-only, and orchestrated cleanup, launche
  const plan=flat(fs.readFileSync(path.join(root,'skills/plan/SKILL.md'),'utf8')),sheet=flat(fs.readFileSync(path.join(root,'skills/plan/references/cover-sheet.md'),'utf8'));
  assert.ok(plan.includes('Under an orchestrator, never skip on your own'));
  assert.ok(sheet.includes("Under an orchestrator, only the user's explicit word changes the review line"));
+});
+
+test('simplify-and-refactor runs the refactor and principled-review skills on Sol by default or Opus, with a refactor child per analysis',t=>{
+ const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-refactor-')));
+ t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
+ const variants=Object.keys(parse(fs.readFileSync(path.join(root,'profiles/simplify-and-refactor.yaml'),'utf8')).variants);
+ assert.deepEqual(variants.sort(),['opus','sol']);
+ assert.equal(resolveProfile(root,'simplify-and-refactor').nodes.main.model,'gpt-6.1-sol');
+ for(const [profile,agent,harness,model,effort] of [['simplify-and-refactor:sol','simplify-and-refactor','codex','gpt-6.1-sol','low'],['simplify-and-refactor:opus','simplify-and-refactor-claude','claude','claude-opus-5-5','medium']]){
+  const resolved=resolveProfile(root,profile),main=resolved.nodes.main;
+  assert.deepEqual([main.name,main.harness,main.model,main.reasoning_effort],[agent,harness,model,effort],profile);
+  assert.deepEqual([...main.skills].sort(),['principled-review','refactor','refactor-apply','refactor-deep','refactor-simple'],profile);
+  assert.deepEqual(Object.keys(main.children).sort(),['cold-reader','refactor'],profile);
+  const child=resolved.nodes[main.children.refactor];
+  assert.deepEqual([child.name,child.mode,child.harness,child.model,child.reasoning_effort],['refactor','native',harness,model,effort],profile);
+  assert.deepEqual([...child.skills].sort(),['refactor','refactor-apply','refactor-deep','refactor-simple'],profile);
+  assert.ok(resolved.nodes[main.children['cold-reader']].skills.includes('cold-read'),profile);
+  const launch=command(build(root,profile,target),'main',{prepare:false});
+  assert.equal(launch.argv[launch.argv.indexOf('--model')+1],model);
+ }
+ const orchestrate=fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8');
+ for(const text of ['greenfield/simplify-and-refactor:sol','The simplify checkpoint is optional and off by default','it applies only on their approval'])assert.ok(orchestrate.includes(text),text);
+ const refactor=fs.readFileSync(path.join(root,'skills/refactor/SKILL.md'),'utf8').replace(/\s+/g,' ');
+ assert.ok(refactor.includes('run it before QA'));
+ for(const agent of ['simplify-and-refactor','simplify-and-refactor-claude']){
+  const text=fs.readFileSync(path.join(root,'agents',agent+'.md'),'utf8').replace(/\s+/g,' ');
+  for(const rule of ['Analysis is read-only','only after the person approves the merged plan','no other worker is writing the branch','before QA'])assert.ok(text.includes(rule),`${agent}: ${rule}`);
+ }
+});
+
+test('reviewers share principled-review with simplify-and-refactor, and both raw implementers can draw PR diagrams',()=>{
+ for(const profile of ['reviewer:claude','reviewer:codex']){
+  const main=resolveProfile(root,profile).nodes.main;
+  for(const skill of ['principled-review','review','implementer','create-plan'])assert.ok(main.skills.includes(skill),`${profile}: ${skill}`);
+  assert.doesNotMatch(fs.readFileSync(main.source_file,'utf8'),/implement skill/i,profile);
+ }
+ for(const profile of ['implementer:opus','implementer:astra','implementer:sol'])assert.ok(resolveProfile(root,profile).nodes.main.skills.includes('excalidraw-pr-diagrams'),profile);
+});
+
+test('the unused dcouple copies are gone and nothing in the plugin names them',()=>{
+ for(const file of ['skills/implement','skills/implementation-reviewer','skills/plan-reviewer'])assert.equal(fs.existsSync(path.join(root,file)),false,file);
+ const walk=dir=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(entry=>{const file=path.join(dir,entry.name);return entry.isDirectory()?walk(file):[file];});
+ for(const file of walk(root))assert.doesNotMatch(fs.readFileSync(file,'utf8'),/(?<![\w-])(implementation-reviewer|plan-reviewer)(?![\w-])|`implement`|implement skill/,path.relative(root,file));
+});
+
+// Agent Farm mounts only the skills an agent bundles, so a skill or agent that
+// no profile reaches is dead weight, and a skill named in bundled text must be
+// bundled by that agent or one of its children, or name one of its children. Each exception says why.
+const unbundledMentions={
+ 'pr-test-automation -> cold-read':"orders the implementer's PR-body cold-read before QA; QA agents do not run it",
+ 'session-trace -> handoff':'names the page a handoff publishes, as an example of where a trace attaches',
+ 'session-trace -> prepare-pr':'names the page prepare-pr publishes, as an example of where a trace attaches',
+ 'orchestrate-sessions -> implementer':'names the greenfield/implementer profile, not the skill',
+ 'seo-data-pull -> plan':'names a person-level data property',
+ 'create-ticket -> ui-mockup':'offers a mockup only where the agent has ui-mockup',
+ 'create-ticket -> explain-visually':'offers a visual only where the agent has explain-visually',
+ 'html-explainer -> excalidraw-pr-diagrams':'names editable diagrams as outside its scope',
+ 'refactor-apply -> prepare-pr':'names who owns the commit when the person runs it by hand',
+ 'refactor -> cold-read':'the parent runs the cold-read gate with its cold-reader child; a refactor child returns to it there',
+ 'principled-review -> review':"uses the review skill's context step where bundled, and otherwise reads the PR and issues itself",
+ 'refactor-simple -> refactor':'names the orchestrator that may run it; elsewhere it points to greenfield/simplify-and-refactor',
+ 'refactor-simple -> refactor-deep':'elsewhere it points to greenfield/simplify-and-refactor for the deep pass',
+ 'refactor-simple -> refactor-apply':'elsewhere it points to greenfield/simplify-and-refactor to apply a plan',
+};
+
+test('every Greenfield skill and agent is bundled by a profile, and every skill named in bundled text is bundled with it',()=>{
+ const walk=dir=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(entry=>{const file=path.join(dir,entry.name);return entry.isDirectory()?walk(file):[file];});
+ const skills=fs.readdirSync(path.join(root,'skills')),agents=fs.readdirSync(path.join(root,'agents')).map(file=>file.replace(/\.md$/,''));
+ const pattern=name=>{const n=name.replace(/-/g,'\\-');return new RegExp('`'+n+'`|(?<![\\w-])'+n+' skill|skill `?'+n+'(?![\\w-])|\\.\\./'+n+'/SKILL\\.md');};
+ const skillText=Object.fromEntries(skills.map(skill=>[skill,walk(path.join(root,'skills',skill)).map(file=>fs.readFileSync(file,'utf8')).join('\n')]));
+ const reachedSkills=new Set(),reachedAgents=new Set(),usedExceptions=new Set(),unresolved=new Set();
+ for(const file of fs.readdirSync(path.join(root,'profiles'))){
+  const name=file.replace(/\.yaml$/,''),variants=Object.keys(parse(fs.readFileSync(path.join(root,'profiles',file),'utf8')).variants??{});
+  for(const profile of [name,...variants.map(variant=>name+':'+variant)]){
+   const nodes=resolveProfile(root,profile).nodes;
+   for(const node of Object.values(nodes)){
+    reachedAgents.add(node.name);node.skills.forEach(skill=>reachedSkills.add(skill));
+    const available=new Set([...node.skills,...Object.values(node.children).flatMap(child=>nodes[child].skills)]);
+    const sources=[[node.name,fs.readFileSync(node.source_file,'utf8')],...node.skills.map(skill=>[skill,skillText[skill]])];
+    for(const [source,text] of sources)for(const skill of skills){
+     if(skill===source||available.has(skill)||Object.hasOwn(node.children,skill)||!pattern(skill).test(text))continue;
+     const key=`${source} -> ${skill}`;
+     if(Object.hasOwn(unbundledMentions,key))usedExceptions.add(key);else unresolved.add(`${profile} (${node.name}): ${key}`);
+    }
+   }
+  }
+ }
+ assert.deepEqual(skills.filter(skill=>!reachedSkills.has(skill)),[]);
+ assert.deepEqual(agents.filter(agent=>!reachedAgents.has(agent)),[]);
+ assert.deepEqual([...unresolved],[]);
+ assert.deepEqual(Object.keys(unbundledMentions).filter(key=>!usedExceptions.has(key)),[],'stale exception');
+ assert.match(skillText['refactor-simple'],/greenfield\/simplify-and-refactor/);
 });
