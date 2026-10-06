@@ -27,16 +27,19 @@ test('the implementer is the former dcouple raw profile on Opus, Astra or Sol, w
   const launch=command(bundle,'main',{prepare:false});
   assert.equal(launch.argv[launch.argv.indexOf('--model')+1],model);
  }
+ for(const agent of ['raw-claude','raw-codex']){const text=fs.readFileSync(path.join(root,'agents',agent+'.md'),'utf8');assert.match(text,/By default, split the work into independent chunks/,agent);assert.match(text,/Work serially only when chunks share files/,agent);assert.match(text,/you, the parent, launch them/,agent);}
  for(const removed of ['agents/implementer.md','agents/implementer-claude.md','agents/reviewer.md','agents/frontend-verifier.md','instructions/implementer-identity.md','skills/work-packages','skills/build-package','skills/final-review'])assert.equal(fs.existsSync(path.join(root,removed)),false,removed);
 });
 
-test('the reviewer is the former dcouple reviewer, with its Codex variant on Sol 6.1 max and an orchestrated report-only mode',()=>{
+test('the reviewer is the former dcouple reviewer, with its Codex variant on Sol 6.1 max and one reconciled COMMENT review under an orchestrator',()=>{
  const claude=resolveProfile(root,'reviewer').nodes.main,codex=resolveProfile(root,'reviewer:codex').nodes.main;
  assert.deepEqual([claude.harness,claude.model,claude.reasoning_effort],['claude','claude-opus-5-5','high']);
  assert.deepEqual([codex.harness,codex.model,codex.reasoning_effort],['codex','gpt-6.1-sol','max']);
  for(const agent of ['claude-pr-reviewer','codex-pr-reviewer']){
   const text=fs.readFileSync(path.join(root,'agents',agent+'.md'),'utf8');
   assert.match(text,/## Launched by an orchestrator/);assert.doesNotMatch(text,/dcouple/);
+  const orchestrated=/## Launched by an orchestrator\n([\s\S]*?)\n## /.exec(text)[1];
+  for(const phrase of [/exactly one review/,/event `COMMENT`/,/never approve or request changes/,/<!-- greenfield-review head=<sha> -->/,/earlier greenfield reviews/,/Apply no fixes/,/only the listed must-fix items/])assert.match(orchestrated,phrase,agent);
  }
 });
 
