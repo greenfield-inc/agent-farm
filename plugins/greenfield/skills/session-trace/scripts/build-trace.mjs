@@ -2,22 +2,26 @@
 // Build a trace page (trace.html) and OpenTelemetry spans (trace.otlp.json) from a
 // Claude Code or Codex session log. No dependencies; Node 18+.
 //
-//   node build-trace.mjs --out DIR [--session FILE] [--title TEXT] [--back HREF] [--story FILE] [--outline]
+//   node build-trace.mjs --out DIR [--session FILE | --launch ID] [--codex-home DIR] [--title TEXT] [--back HREF] [--story FILE] [--outline]
 //
 // --outline prints one line per request (anchor, time, steps, first line) to pick key moments from.
 // --story FILE is JSON {"summary": "...", "moments": [{"turn": 12, "title": "...", "detail": "..."}]};
 // the summary and key moments are placed above the timeline and starred on it.
 //
-// Without --session it finds the current session: $CLAUDE_CODE_SESSION_ID for Claude,
-// otherwise the newest top-level Codex rollout whose working directory is this one.
+// --launch ID reads another Agent Farm worker's launch record (the PANE_AGENT_SESSION_ID it
+// reported) and finds that session in the Claude projects folder or the Codex home it ran with.
+// Without --session or --launch it finds the current session: $CLAUDE_CODE_SESSION_ID for Claude,
+// otherwise the newest top-level Codex rollout whose working directory is this one, searching
+// --codex-home, then $CODEX_HOME (Agent Farm gives each Codex launch its own), then ~/.codex.
+// Codex subagents are found in the Codex home that holds the selected session.
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import crypto from 'node:crypto';
 import {parseArgs} from 'node:util';
 
-const {values: opt} = parseArgs({options: {out: {type: 'string'}, session: {type: 'string'}, title: {type: 'string'}, back: {type: 'string'}, story: {type: 'string'}, outline: {type: 'boolean'}}});
-if (!opt.out) { console.error('usage: build-trace.mjs --out DIR [--session FILE] [--title TEXT] [--back HREF] [--story FILE] [--outline]'); process.exit(2); }
+const {values: opt} = parseArgs({options: {out: {type: 'string'}, session: {type: 'string'}, launch: {type: 'string'}, 'codex-home': {type: 'string'}, title: {type: 'string'}, back: {type: 'string'}, story: {type: 'string'}, outline: {type: 'boolean'}}});
+if (!opt.out) { console.error('usage: build-trace.mjs --out DIR [--session FILE | --launch ID] [--codex-home DIR] [--title TEXT] [--back HREF] [--story FILE] [--outline]'); process.exit(2); }
 
 const SECRET = /gh[pousr]_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|xox[bpa]-[A-Za-z0-9-]{10,}|eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]+|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-z]{2,}/g;
 const clean = s => String(s ?? '').replace(SECRET, '[redacted]');
@@ -26,25 +30,56 @@ const readJsonl = file => fs.readFileSync(file, 'utf8').split('\n').flatMap(line
 const textOf = content => typeof content === 'string' ? content : (content ?? []).filter(b => b && typeof b.text === 'string').map(b => b.text).join('\n');
 const firstLine = s => clean(String(s ?? '').split('\n').find(l => l.trim()) ?? '').trim();
 
+const codexHomes = () => [...new Set([opt['codex-home'], process.env.CODEX_HOME, path.join(os.homedir(), '.codex')].filter(Boolean).map(h => path.resolve(h)))];
+const claudeProjects = () => path.join(process.env.CLAUDE_CONFIG_DIR ?? path.join(os.homedir(), '.claude'), 'projects');
+function rollouts(root) {
+  const found = [], walk = dir => { for (const e of fs.existsSync(dir) ? fs.readdirSync(dir, {withFileTypes: true}) : []) { const p = path.join(dir, e.name); if (e.isDirectory()) walk(p); else if (e.name.startsWith('rollout-') && e.name.endsWith('.jsonl')) found.push(p); } };
+  walk(root); return found;
+}
+function claudeLog(id) {
+  const root = claudeProjects();
+  for (const dir of fs.existsSync(root) ? fs.readdirSync(root) : []) { const file = path.join(root, dir, `${id}.jsonl`); if (fs.existsSync(file)) return file; }
+}
+const sameDir = (a, b) => a && fs.existsSync(a) && fs.realpathSync(a) === b;
+
+function launchSession(id) {
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(id)) throw Error(`Invalid launch ID: ${id}`);
+  const recordFile = path.join(os.homedir(), '.local/state/agent-farm/launches', `${id}.json`);
+  if (!fs.existsSync(recordFile)) throw Error(`No Agent Farm launch record for ${id}; pass --session FILE`);
+  const record = JSON.parse(fs.readFileSync(recordFile, 'utf8'));
+  if (record.harness === 'claude') return claudeLog(record.native_session_id ?? record.id) ?? (() => { throw Error(`No Claude log for launch ${id}; pass --session FILE`); })();
+  if (!record.codex_home) throw Error(`Launch ${id} recorded no Codex home; pass --session FILE`);
+  const directory = fs.existsSync(record.directory) ? fs.realpathSync(record.directory) : record.directory, started = Date.parse(record.started_at) - 5000;
+  const matches = rollouts(path.join(record.codex_home, 'sessions')).flatMap(file => {
+    const meta = codexMeta(file), at = Date.parse(meta?.timestamp ?? '');
+    if (!meta || meta.parent_thread_id || meta.thread_source === 'subagent') return [];
+    if (record.native_session_id ? meta.id !== record.native_session_id : !(sameDir(meta.cwd, directory) && at >= started)) return [];
+    return [{file, at}];
+  }).sort((x, y) => x.at - y.at);
+  if (!matches.length) throw Error(`No Codex log for launch ${id} under ${record.codex_home}; pass --session FILE`);
+  return matches[0].file;
+}
+
 function findSession() {
   if (opt.session) return path.resolve(opt.session);
+  if (opt.launch) return launchSession(opt.launch);
   const id = process.env.CLAUDE_CODE_SESSION_ID;
-  if (id) {
-    const root = path.join(os.homedir(), '.claude/projects');
-    for (const dir of fs.existsSync(root) ? fs.readdirSync(root) : []) {
-      const file = path.join(root, dir, `${id}.jsonl`);
-      if (fs.existsSync(file)) return file;
+  const claude = id && claudeLog(id);
+  if (claude) return claude;
+  const cwd = fs.realpathSync(process.cwd());
+  for (const home of codexHomes()) {
+    const candidates = rollouts(path.join(home, 'sessions')).sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
+    for (const file of candidates.slice(0, 200)) {
+      const meta = codexMeta(file);
+      if (meta && !meta.parent_thread_id && sameDir(meta.cwd, cwd)) return file;
     }
   }
-  const cwd = fs.realpathSync(process.cwd()), candidates = [];
-  const walk = dir => { for (const e of fs.existsSync(dir) ? fs.readdirSync(dir, {withFileTypes: true}) : []) { const p = path.join(dir, e.name); if (e.isDirectory()) walk(p); else if (e.name.startsWith('rollout-') && e.name.endsWith('.jsonl')) candidates.push(p); } };
-  walk(path.join(os.homedir(), '.codex/sessions'));
-  candidates.sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
-  for (const file of candidates.slice(0, 200)) {
-    const meta = codexMeta(file);
-    if (meta && !meta.parent_thread_id && meta.cwd && fs.existsSync(meta.cwd) && fs.realpathSync(meta.cwd) === cwd) return file;
-  }
-  throw Error('No session log found; pass --session FILE');
+  throw Error('No session log found; pass --session FILE or --launch ID');
+}
+
+// The Codex sessions folder that holds a rollout: <home>/sessions/YYYY/MM/DD/rollout-*.jsonl.
+function sessionsRootOf(file) {
+  for (let dir = path.dirname(path.resolve(file)); dir !== path.dirname(dir); dir = path.dirname(dir)) if (path.basename(dir) === 'sessions') return dir;
 }
 
 function codexMeta(file) {
@@ -131,11 +166,12 @@ function codexThread(rows) {
 function parseCodex(file) {
   const rows = readJsonl(file), meta = rows.find(d => d.type === 'session_meta')?.payload ?? {}, turns = codexThread(rows);
   const stamps = rows.map(r => r.timestamp).filter(Boolean).sort(), subagents = [];
+  // Subagents live beside their parent, in the Codex home that session ran with.
+  const own = sessionsRootOf(file), childRoots = own ? [own] : codexHomes().map(h => path.join(h, 'sessions'));
   const days = new Set(); for (let t = new Date(stamps[0]); t <= new Date(stamps.at(-1)); t = new Date(t.getTime() + 864e5)) days.add(t.toISOString().slice(0, 10));
   days.add(stamps.at(-1).slice(0, 10));
   for (const day of days) {
-    const dir = path.join(os.homedir(), '.codex/sessions', ...day.split('-'));
-    for (const f of fs.existsSync(dir) ? fs.readdirSync(dir) : []) {
+    for (const dir of childRoots.map(root => path.join(root, ...day.split('-')))) for (const f of fs.existsSync(dir) ? fs.readdirSync(dir) : []) {
       const child = path.join(dir, f), m = codexMeta(child);
       if (!m || m.parent_thread_id !== meta.id) continue;
       const crows = readJsonl(child), ct = codexThread(crows), cst = crows.map(r => r.timestamp).filter(Boolean).sort();

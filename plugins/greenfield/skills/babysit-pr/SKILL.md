@@ -35,11 +35,11 @@ gh api graphql -f query='mutation($id:ID!){resolveReviewThread(input:{threadId:$
 
 Every reply is posted under the person's account. Write it the way they would: short, specific, and without filler.
 
-Screenshots and videos help reviewers. Host them where the repository's workflow says (a Grain artifact or a release asset, for example) and link them. Never commit evidence files.
+Screenshots and videos help reviewers. Host them where the repository's workflow says (the document destination your workspace instructions name, or a release asset, for example) and link them. Never commit evidence files.
 
 Keep an eye on the base branch and rebase when needed. If an overlapping PR makes this one obsolete, stop monitoring, tell the person, and ask before closing it unless closing was explicitly authorized.
 
-Keep the PR to the person's original goal: address real shortcomings, and leave broader suggestions for later.
+Fix every finding within the PR's goal, including small in-scope improvements a reviewer or bot raises; don't dismiss an in-scope finding as out of scope. For a suggestion beyond the goal, don't grow the PR: capture it with `create-ticket` (or in the PR's findings or handoff file when ticket creation isn't authorized) and reply on the thread with the link. When you decline a finding as wrong, reply with the reason.
 
 ## Stop
 

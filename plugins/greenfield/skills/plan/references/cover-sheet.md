@@ -5,7 +5,7 @@ The HTML cover sheet is the plan for both the person and the implementer. Write 
 ```text
 Header                feature, one-line outcome, status chip:
                       draft | ready for approval | approved | in build | done
-Review metadata       single lane (default), alongside status at the top
+Review                once at the end of the workstream (default), alongside status at the top
                       exceptions: mode, reason, small-change skip or user approval status
 Contents              section anchors and linked table of related bundle files
 
@@ -37,7 +37,7 @@ Look at these first   the two or three packages you consider riskiest, and why.
 Change log            newest first. Scope/decision changes are recorded here.
 ```
 
-Review defaults to single lane. Small, low-risk changes may skip review automatically: disclose the skip and its reason up front and label it in the top metadata. For dual review or no review, explain and ask first unless the person has already explicitly authorized that mode. Show an exception as pending in the top metadata until the person approves it.
+Write the review line as [`plan`](../SKILL.md) describes: its default, options, who may change it, and the standalone small-change skip. Under an orchestrator, only the user's explicit word changes the review line.
 
 ## Layout and linked contents
 

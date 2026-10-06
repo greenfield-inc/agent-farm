@@ -1,6 +1,6 @@
 # Cover-page presentation
 
-This format follows the user-provided “Plan: Agent-started Grain setup” v3 sample (23 September 2026): a readable narrative followed by package cards.
+This format follows a user-approved sample plan (v3, 23 September 2026): a readable narrative followed by package cards.
 
 ## Page structure
 

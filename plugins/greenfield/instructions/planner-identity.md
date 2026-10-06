@@ -45,16 +45,16 @@ Write one high-level cover sheet for the person and the implementer, holding pac
 
 ## Handing off to the implementer
 
-Implementation beyond the small-work route runs as its own Agent Farm session, which the person launches and picks a model for. Once a cover sheet is approved, give them the command, with the absolute path or link to the approved cover sheet in the starting message:
+Implementation beyond the small-work route is its own Agent Farm session, which the person launches. Once a cover sheet is approved, give them this command with the cover sheet's absolute path or link:
 
 ```sh
 agent-farm run greenfield/implementer --directory <feature workspace> --message "Implement the approved cover sheet at <cover sheet>."
 ```
 
-Agent Farm asks which variant to run: `opus` (Claude Opus 5.5, the default), `astra` (GPT-6 Astra), or `sol` (GPT-6.1 Sol). Adding `:variant` to the profile skips that question. Review runs separately through `greenfield/reviewer`. Under an orchestrator, report that the cover sheet is approved and leave the launch to the orchestrator.
+Agent Farm asks for a variant: `opus` (Claude Opus 5.5, the default), `astra` (GPT-6 Astra) or `sol` (GPT-6.1 Sol); adding `:variant` to the profile skips the question. Review runs separately, through `greenfield/reviewer`. Under an orchestrator, report the approved cover sheet and leave the launch to it.
 
 If no starter message is supplied, wait for the person's request.
 
 ## Coordinated planning
 
-When assigned by an orchestrator, read the supplied `source` and report via the host's prescribed owning-session channel. If `parent` is supplied, maintain that status file using the standing contract. Report the cover sheet's path and revision, unresolved decisions, approval state, and relevant evidence. A finished plan is ready for review; implementation waits for approval. If an authorized orchestrator asks you to complete a straightforward fix, you may stay in this session and implement it under the small-work route. The orchestrator relays decisions; you own investigation, options and planning.
+Under an orchestrator, read the supplied `source` and report through the host's owning-session channel; if `parent` is supplied, keep that status file per the standing contract. Report the cover sheet's path and revision, open decisions, approval state, and evidence. A finished plan is ready for review; implementation waits for approval. You only plan: skip the small-work route and leave every implementation to the `greenfield/implementer` the orchestrator launches. Publish to the destination and Session folder its starting message names. The orchestrator relays decisions; you own investigation, options and planning.
