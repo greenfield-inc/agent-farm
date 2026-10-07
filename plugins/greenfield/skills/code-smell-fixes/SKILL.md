@@ -33,7 +33,7 @@ Arguments, from the launch context or the starter message:
 
 Every finding comes from a finder, however small the repository: never search for smells yourself, and never skip either swarm. Every selected lens gets its own Claude finder and shares a Codex finder with one other lens. Start all of them in the same turn and wait for all to finish. Give the finders 45 minutes; a finder that times out or returns nothing goes in Assumptions, and the run continues.
 
-- **Claude swarm:** one native `finder` subagent per lens. If the harness caps concurrent subagents below the lens count, queue the rest and start each as a slot frees.
+- **Claude swarm:** one native `finder` subagent per lens. Launch it with no model parameter: its model comes from the profile, is the person's choice for this run, and overrides any general instruction to pick a model. If the harness caps concurrent subagents below the lens count, queue the rest and start each as a slot frees.
 - **Codex swarm:** the `codex-finder` process child, one launch per pair of lenses (lenses 1+2, 3+4, … 19+20; with an odd count the last launch gets one lens). Write each brief to `brief-N.txt` in a scratch directory, then start them all in one background shell command that ends with `wait`, so you are notified once when every launch has finished:
 
   ```bash
@@ -43,7 +43,7 @@ Every finding comes from a finder, however small the repository: never search fo
   wait
   ```
 
-  `$launcher` is the `codex-finder` path in this session's bundled-children list. Each `.out` file is a JSON event stream; the finder's findings are the last `agent_message` item. Never wait with `pgrep -f`, which matches the waiting shell itself.
+  Pass no `--model` or `--reasoning`; the profile sets them. `$launcher` is the `codex-finder` path in this session's bundled-children list. Each `.out` file is a JSON event stream; the finder's findings are the last `agent_message` item. Never wait with `pgrep -f`, which matches the waiting shell itself.
 
 Each brief names: the lens numbers and names, the `area`, the default branch and its SHA, and the instruction to follow the `smell-finder` skill. Keep the brief short; the finder reads CRITERIA.md itself.
 
@@ -77,7 +77,12 @@ With `mode=report`, stop here and give the person the page path and a three-line
 
 Before opening anything, read the repository's PR and issue metadata rules (the doc `AGENTS.md` points to, such as a labels, title or template guide) and follow them.
 
-- **PRs:** one PR per lens per top-level package or app, holding only that lens's `safe-fix` findings there. A finding merged across lenses goes to its lowest-numbered lens. Cap each PR at about 15 findings or 400 changed lines; overflow goes to a second PR for the same lens and package, or stays in the report. Branch from `origin/<default>` in its own worktree. Keep at most two fix branches in flight. Run the repository's checks, and open each PR with `prepare-pr`, ready for review (not a draft), with a body that lists every finding it fixes (file:line, smell, fix) and links the report. Then run `babysit-pr` for at most 30 minutes. A branch is finished when its checks are green or it has had two fix attempts; leave a red PR open, mark it in the report, and free its slot.
+- **PRs:** every `safe-fix` outside the "Blocked by open PR" table ships in a PR; never cap the number of PRs.
+  - Group by lens and top-level package or app. A finding merged across lenses goes to its lowest-numbered lens. Cap each PR at about 15 findings or 400 changed lines, and put the overflow in the next PR for the same lens and package.
+  - Keep at most two fix branches in flight, each branched from `origin/<default>` in its own worktree.
+  - In the fix worktree, install the dependencies of each package the PR touches and run that package's checks (lint, type check, tests). CI is not a substitute.
+  - Open the PR with `prepare-pr`, ready for review (not a draft), with a body that lists every finding it fixes (file:line, smell, fix) and links the report. Then run `babysit-pr` for at most 30 minutes.
+  - A branch is finished when its checks are green or it has had two fix attempts. Leave a red PR open, mark it in the report, and free its slot.
 - **Issues:** one issue per lens per bucket (`contract`, `bug`), listing all of that lens's findings in that bucket, filed through `create-ticket` in the tracker `AGENTS.md` names. File at most 20 issues per run, highest-ranked first; the rest stay in the report. If that tracker is unreachable or unauthenticated, list those findings in the report under "Not filed: tracker unreachable" and continue. Never fall back to a different tracker.
 - Never touch a file that an open PR this run did not create is changing. Never merge.
 

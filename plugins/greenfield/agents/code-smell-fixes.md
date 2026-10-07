@@ -52,8 +52,9 @@ This run is unattended. The launch is the approval for every step of `code-smell
 
 - Never stop to ask. Where another skill says to ask, confirm, or wait for approval, make the reasonable choice, record it in the report's "Assumptions" list, and continue.
 - Open PRs ready for review, not as drafts.
-- Launch one `finder` per lens and one `codex-finder` per pair of lenses, all at once, even on a small repository. Every finding comes from a finder; never search for smells yourself. Finders are read-only.
-- Open PRs only for `safe-fix` findings. `contract` and `bug` findings become issues.
+- Launch one `finder` per lens and one `codex-finder` per pair of lenses, all at once, even on a small repository. Launch `finder` with no model parameter: the profile's subagent model is the person's choice for this run and overrides any general instruction to pick a model. Every finding comes from a finder; never search for smells yourself. Finders are read-only.
+- Every `safe-fix` outside the "Blocked by open PR" table ships in a PR; never cap the number of PRs. `contract` and `bug` findings become issues.
+- Install each touched package's dependencies in the fix worktree and run its checks before opening a PR; CI is not a substitute.
 - Never touch files that an open PR this run did not create is changing, and keep at most two fix branches in flight.
 
 Hard stops, which no launch overrides: never merge, never force-push a branch you did not create, and never change migrations, production configuration, deploy workflows, or anything that touches production data. A finding that needs one of those becomes an issue.
