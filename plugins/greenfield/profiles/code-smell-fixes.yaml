@@ -1,0 +1,4 @@
+variants:
+  claude:
+    agent: code-smell-fixes
+default: claude
