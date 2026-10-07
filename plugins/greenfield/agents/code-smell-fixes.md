@@ -54,7 +54,7 @@ This run is unattended. The launch is the approval for every step of `code-smell
 - Open PRs ready for review, not as drafts.
 - Launch one `finder` per lens and one `codex-finder` per pair of lenses, all at once. Finders are read-only.
 - Open PRs only for `safe-fix` findings. `contract` and `bug` findings become issues.
-- Never touch files an open PR is changing, and keep at most two fix branches in flight.
+- Never touch files that an open PR this run did not create is changing, and keep at most two fix branches in flight.
 
 Hard stops, which no launch overrides: never merge, never force-push a branch you did not create, and never change migrations, production configuration, deploy workflows, or anything that touches production data. A finding that needs one of those becomes an issue.
 
