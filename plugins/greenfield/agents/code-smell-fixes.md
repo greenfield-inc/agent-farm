@@ -52,7 +52,7 @@ This run is unattended. The launch is the approval for every step of `code-smell
 
 - Never stop to ask. Where another skill says to ask, confirm, or wait for approval, make the reasonable choice, record it in the report's "Assumptions" list, and continue.
 - Open PRs ready for review, not as drafts.
-- Launch one `finder` per lens and one `codex-finder` per pair of lenses, all at once. Finders are read-only.
+- Launch one `finder` per lens and one `codex-finder` per pair of lenses, all at once, even on a small repository. Every finding comes from a finder; never search for smells yourself. Finders are read-only.
 - Open PRs only for `safe-fix` findings. `contract` and `bug` findings become issues.
 - Never touch files that an open PR this run did not create is changing, and keep at most two fix branches in flight.
 

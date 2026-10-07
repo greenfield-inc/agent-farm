@@ -31,7 +31,7 @@ Arguments, from the launch context or the starter message:
 
 ## Step 2: Launch both swarms at once
 
-Every selected lens gets its own Claude finder and shares a Codex finder with one other lens. Start all of them in the same turn and wait for all to finish. Give the finders 45 minutes; a finder that times out or returns nothing goes in Assumptions, and the run continues.
+Every finding comes from a finder, however small the repository: never search for smells yourself, and never skip either swarm. Every selected lens gets its own Claude finder and shares a Codex finder with one other lens. Start all of them in the same turn and wait for all to finish. Give the finders 45 minutes; a finder that times out or returns nothing goes in Assumptions, and the run continues.
 
 - **Claude swarm:** one native `finder` subagent per lens. If the harness caps concurrent subagents below the lens count, queue the rest and start each as a slot frees.
 - **Codex swarm:** the `codex-finder` process child, one launch per pair of lenses (lenses 1+2, 3+4, … 19+20; with an odd count the last launch gets one lens). Write each brief to `brief-N.txt` in a scratch directory, then start them all in one background shell command that ends with `wait`, so you are notified once when every launch has finished:
