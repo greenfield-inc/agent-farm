@@ -1,6 +1,6 @@
 {
   "name": "@greenfieldco/agent-farm",
-  "version": "0.2.21",
+  "version": "0.2.22",
   "publishConfig": {
     "access": "public"
   },
