@@ -23,6 +23,7 @@ For a one-page visual map of how work is routed, open [index.html](index.html). 
 | `business` (`business:claude`) / `business:codex` | Opus 5.5 high / Astra high | Proposals, plans and memos, with reviewers |
 | `seo` (`seo:claude`) / `seo:codex` | Opus 5.5 high / Astra high | Search strategy and pages |
 | `audits` (`audits:claude`) / `audits:codex` | Opus 5.5 high / Astra low | Stale issues, pull requests and docs |
+| `code-smell-fixes` | Sonnet 5.5 low | Hunts the whole codebase for confusing code with a Claude and a Codex finder swarm, writes a ranked report, and, unattended, opens fix PRs and files issues |
 | `bug-reporter` | Opus 5.5 high | Reproduce and write a report without fixing code |
 | `free-range` (`free-range:claude`) / `free-range:codex` | Opus 5.5 high / Astra medium | Raw-model comparison profiles without the Greenfield workflow |
 | `orchestrator` | Opus 5.5 medium | Experimental coordination of separate work items/worktrees |
@@ -73,6 +74,7 @@ Review runs once, separately, through `greenfield/reviewer`, launched by you or 
 | `qa-and-verify` (agent `pr-qa`) | implementer | Opus 5.5 medium, native (Sol 6.1 medium under the Codex variants); a full QA pass on a finished pull request |
 | `refactor`, `cold-reader` | simplify-and-refactor | Sol 6.1 low under `:sol`; Opus 5.5 medium for `refactor` and Sonnet 5 medium for `cold-reader` under `:opus`; native. A fresh `refactor` runs each analysis, lens and adversarial pass |
 | `second-opinion` (agent `pr-reviewer`) | implementer | Sol 6.1 low under `:opus`, Opus 5.5 medium under the Codex variants, process; an opt-in quick review with `review` |
+| `finder`, `codex-finder` (agent `smell-finder`) | code-smell-fixes | Sonnet 5.5 low, native, one per lens; Sol 6.1 low, process, one per pair of lenses. Read-only |
 | `codebase-explorer` | reviewer, qa-and-fix | Targeted repository questions; a process child under `reviewer:claude` |
 | business reviewers, `cold-reader` | business | Context, research adversary, spec and artifact reviewers |
 | `socrates` | planner | Opus 5.5 high (Astra high under Codex planner); challenge unnecessary scope |
@@ -103,7 +105,7 @@ An orchestrator passes the planner its source as `source` and a status JSON path
 - `verify-app` and `open-pr` support the planner's small-fix route; `prepare-pr`, `babysit-pr` and `quick-verify` support the implementer.
 - `principled-review`, `review` and `pr-test-automation` support the reviewer and qa-and-fix; `principled-review` is shared with simplify-and-refactor.
 - `refactor`, `refactor-simple`, `refactor-deep` and `refactor-apply` support simplify-and-refactor; the implementer has `refactor-simple` alone.
-- The research, business, SEO and audit skills support the profiles of the same names.
+- The research, business, SEO and audit skills support the profiles of the same names, and `code-smell-fixes` with `smell-finder` (whose `CRITERIA.md` holds the 20 lenses) supports `code-smell-fixes`.
 - `explain`, `brief`, `options`, `spike`, `mockup`, and `page` support planning.
 - `interview` makes the planner lead with structured questions and keep a decision log; `architecture-diagram` draws system and flow diagrams from a shared kit; `swarm` fans research and audits out to parallel read-only agents and reconciles what they find. The planner has all three, the implementer, audits and product-researcher get `swarm` (and the implementer and researchers `architecture-diagram`), and the orchestrator uses `interview` and `architecture-diagram` for decisions and its workstream map.
 - `bug-intake`, `gather-evidence`, `web-research`, and `orchestrate-sessions` support the other profiles.

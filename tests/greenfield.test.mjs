@@ -273,3 +273,16 @@ test('every Greenfield skill and agent is bundled by a profile, and every skill 
  assert.deepEqual(Object.keys(unbundledMentions).filter(key=>!usedExceptions.has(key)),[],'stale exception');
  assert.match(skillText['refactor-simple'],/greenfield\/simplify-and-refactor/);
 });
+
+test('code-smell-fixes runs on Sonnet 5.5 low with a native Claude finder and a Sol process finder sharing its lenses',t=>{
+ const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-smell-')));
+ t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
+ const resolved=resolveProfile(root,'code-smell-fixes'),main=resolved.nodes.main;
+ assert.deepEqual([main.harness,main.model,main.reasoning_effort],['claude','claude-sonnet-5-5','low']);
+ assert.deepEqual(main.launch.arguments,{lenses:'all',area:'all',mode:'prs'});
+ const finders=Object.fromEntries(Object.entries(main.children).map(([alias,route])=>{const n=resolved.nodes[route];return [alias,[n.name,n.mode,n.harness,n.model,n.reasoning_effort,n.skills.includes('smell-finder')]];}));
+ assert.deepEqual(finders,{finder:['smell-finder','native','claude','claude-sonnet-5-5','low',true],'codex-finder':['smell-finder','process','codex','gpt-6.1-sol','low',true]});
+ const bundle=build(root,'code-smell-fixes',target);verify(bundle);
+ assert.ok(fs.existsSync(path.join(bundle,'main','dispatch','codex-finder')));
+ assert.ok(fs.existsSync(path.join(bundle,'main','native-agents','finder.json')));
+});

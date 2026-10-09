@@ -187,7 +187,7 @@ test('a bare plugin install installs the bundled greenfield plugin with the move
  result=run(['list']);
  assert.deepEqual(JSON.parse(result.stdout).map(plugin=>plugin.name),['greenfield']);
  const profiles=fs.readdirSync(path.join(root,'plugins/greenfield/profiles')).map(file=>file.replace(/\.yaml$/,'')).sort();
- assert.deepEqual(profiles,['audits','bug-reporter','business','free-range','implementer','orchestrator','planner','product-researcher','qa-and-fix','reviewer','seo','simplify-and-refactor']);
+ assert.deepEqual(profiles,['audits','bug-reporter','business','code-smell-fixes','free-range','implementer','orchestrator','planner','product-researcher','qa-and-fix','reviewer','seo','simplify-and-refactor']);
 });
 
 test('plugin pack accepts a non-dcouple plugin',t=>{
