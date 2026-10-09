@@ -5,7 +5,7 @@ description: Coordinate authorized work through host-managed workspaces and plan
 
 # Orchestrate sessions
 
-You coordinate. Planners own investigation, options and cover sheets. Implementers own implementation, tests and fixes. Reviewers own findings. Your job is to triage, relay decisions, launch each worker in its own workspace, keep the workstream map current and clean up what is no longer needed. Hand each worker the canonical source document and its revision so it reads the original.
+You coordinate. Planners own investigation, options and cover sheets. Implementers own implementation, tests and fixes. Reviewers own findings. Your job is to triage, relay decisions, give each feature one workspace and launch each worker as a fresh agent in it, keep the workstream map current and clean up what is no longer needed. Hand each worker the canonical source document and its revision so it reads the original.
 
 ## Host policy and workflow
 
@@ -17,13 +17,13 @@ Before any workspace or session action, read the host-injected coordination inst
 
 Use the host's own tools for its mechanics. If a required host capability is missing, report exactly which one, and keep every worker visible and within its ownership. Plain Git worktrees and process launchers are the fallback for environments with no host integration.
 
-**In Pane.** Pane owns the mechanics and Greenfield owns the roles. Create every worker with `runpane panes create`, report with `runpane report`, and archive with `runpane panes archive`. Never create a raw `git worktree` there. When Pane's own orchestration guidance and this skill disagree on a mechanic, Pane wins; on roles, approvals and review policy, this skill wins.
+**In Pane: one Pane per feature.** A Pane is a git worktree; creating one checks out the repo, installs dependencies and often builds, so it is expensive. Create a Pane with `runpane panes create` only for a new, independent piece of work on its own branch. Every role for that work (planner, implementer, reviewer, follow-up reviewer, fix implementer, QA, simplify) runs inside that Pane as a new agent tab with `runpane panels create --pane <feature Pane id>`: fresh context, the same worktree and branch. Never create a Pane to review, fix, QA or re-run work that already has one. Report with `runpane report` and archive with `runpane panes archive`. Never create a raw `git worktree` there. When Pane's own orchestration guidance and this skill disagree on a mechanic, Pane wins; on roles, approvals and review policy, this skill wins.
 
 ## Intake and routing
 
 Act only on authorized work. Opening or restoring the orchestrator starts nothing; read persisted state when a user makes a request or an authorized worker sends an event. Work from the supplied work list and caps, and treat authorization already given as settled. Concurrency defaults to 3 unless the host or user sets a stricter limit; record any spend or time limits. Urgency changes queue order and leaves the service tier alone.
 
-Every piece of work follows the same three roles, each in its own workspace with fresh context:
+Every piece of work follows the same three roles, each a fresh agent in that work's one workspace:
 
 | Source / phase | Assign |
 | --- | --- |
@@ -54,12 +54,20 @@ When one Session spans repositories with different destinations:
 
 Discover the host's actual capabilities and schemas, and follow its setup and ownership instructions. Reuse the right workspace for the same work item. Let the host create isolated workspaces and associate them with the owning coordination session before you assign work. Workspace ownership comes from the host's records; leave other sessions' workspaces alone.
 
-In Pane, launch each worker in its own Pane, which gives it a tab, fresh context, and its own worktree and branch:
+In Pane, create the feature's Pane once, with its first worker:
 
 ```sh
-runpane panes create --repo <repo> --name <item>-<role> --source agent --json \
+runpane panes create --repo <repo> --name <item> --source agent --json \
   --tool-command "agent-farm run greenfield/<role>:<variant>" \
   --prompt-file <absolute starting-message file>
+```
+
+Launch every later worker for that feature as a new tab in the same Pane. Before any `runpane panes create`, check the ledger and `runpane sessions overview` for the feature's Pane, and use it when it exists:
+
+```sh
+runpane panels create --pane <feature Pane id> --source agent --no-focus --wait-ready --json \
+  --tool-command "agent-farm run greenfield/<role>:<variant>" \
+  --initial-input-file <absolute starting-message file> --as-file-pointer
 ```
 
 Always name the variant, or the worker stops at Agent Farm's variant picker instead of starting: `greenfield/planner:claude` and `greenfield/implementer:opus` unless the user picked another, `greenfield/reviewer:codex` for review, and `greenfield/simplify-and-refactor:sol` for the simplify checkpoint. Only single-variant profiles such as `greenfield/bug-reporter` go without one. The starting message names the source and its revision, the validation criteria or PR, the status-file path, the document destination and the Session name. `planner` and `bug-reporter` also accept `source` and `parent` (`--arg`); `implementer`, `reviewer` and `simplify-and-refactor` take everything in the message. `parent` is an absolute status-file path; host session IDs travel separately.
@@ -73,11 +81,11 @@ Without a host requirement, give each work item its own Git worktree and branch,
 
 ## Review policy
 
-The default is one review at the end of the workstream. The workstream is ready when every PR's checks are green and its implementer has reported done. Then launch one `greenfield/reviewer:codex` Pane per PR, on that PR's branch. Its starting message names the PR and a findings file in the Session folder, and says: write the findings file, post one reconciled `COMMENT` review, apply no fixes.
+The default is one review at the end of the workstream. The workstream is ready when every PR's checks are green and its implementer has reported done. Then launch one `greenfield/reviewer:codex` agent per PR as a new tab in the Pane that owns that PR's branch. Its starting message names the PR and a findings file in the Session folder, and says: write the findings file, post one reconciled `COMMENT` review, apply no fixes.
 
-The fix loop: send each must-fix item to the implementer that owns the PR, resumed in its Pane or as a new implementer Pane on the same branch. When it reports done, launch a reviewer follow-up that checks only those items. Run another full round only when the user asks.
+The fix loop: send each must-fix item to the implementer that owns the PR, resumed in its tab or as a new implementer tab in the same Pane. When it reports done, launch a reviewer follow-up, again as a new tab in that Pane, that checks only those items. Run another full round only when the user asks.
 
-The simplify checkpoint is optional and off by default. When the user turns it on, launch one `greenfield/simplify-and-refactor:sol` Pane per PR after its implementer reports done and has stopped, before QA and review, since it may write the branch. Its starting message names the PR and says: plan, then wait for the user's approval of the merged plan. Relay the plan to the user; it applies only on their approval. When it reports done, the head has changed: QA and review run on the new head, and the implementer owns the branch again.
+The simplify checkpoint is optional and off by default. When the user turns it on, launch one `greenfield/simplify-and-refactor:sol` agent per PR as a new tab in that PR's Pane after its implementer reports done and has stopped, before QA and review, since it may write the branch. Its starting message names the PR and says: plan, then wait for the user's approval of the merged plan. Relay the plan to the user; it applies only on their approval. When it reports done, the head has changed: QA and review run on the new head, and the implementer owns the branch again.
 
 The user can skip review, add checkpoints (including the simplify checkpoint), or review each plan separately. Change the policy only on the user's explicit word, and show the current policy in the map's header.
 
@@ -105,11 +113,7 @@ A worker is done when its revision, checks, review outcome and PR or artifact li
 
 ## Cleanup
 
-Archive a worker's Pane once it is no longer needed: the worker has stopped, and
-
-- for a planner, its plan was approved or abandoned;
-- for an implementer, its PR was merged;
-- for a reviewer, its report was delivered.
+Archive a feature's Pane once the feature is finished: its PR was merged or closed, or its plan was abandoned, and no tab in it is still working. Keep the Pane open until then, because later review, fix and QA tabs need its worktree. A finished tab needs no archiving; close it or leave it.
 
 Archiving finished Panes is part of finishing the work. When a Pane's work has landed or there's nothing left to land, archive it; keep anything the person asked to keep or that still has unlanded work. Pane's runpane docs describe how.
 
