@@ -9,6 +9,8 @@ Most repositories run AI review bots and CI on every pull request. They are help
 
 ## Watch
 
+Match the effort to the change: a docs-only or few-line PR reports as soon as it's open instead of watching.
+
 Watch the PR instead of checking once. In Claude Code, run `gh pr checks <pr> --watch` in the background or use a monitor, so you respond when checks or comments arrive. In Codex, or wherever nothing can wake you, poll `gh pr checks <pr>` and the review threads every few minutes.
 
 Only act on checks and comments newer than the latest push. Compare their timestamps with the head commit:
