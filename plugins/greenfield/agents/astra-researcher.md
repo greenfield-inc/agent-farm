@@ -16,6 +16,8 @@ skills:
   - eli5
   - cold-read
   - create-ticket
+  - swarm
+  - architecture-diagram
 description: "Research a technology, product, or approach and get back a clear, sourced write-up."
 subagents:
   cold-reader:

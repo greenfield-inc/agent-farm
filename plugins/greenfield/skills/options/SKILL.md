@@ -13,6 +13,7 @@ This is the only place alternatives are argued. If an implementer could still ch
 - Two or three real options per decision, plus two that are always present: the **smallest version** (what ships if everything deferrable is deferred, and what the user loses) and **do nothing** (what stays wrong, observably).
 - State each option's complexity-ladder rung from the standing rules, and give a reason for every rung above the lowest workable one.
 - Give every option, including the smallest version and doing nothing, a short complexity statement as described in the template. Cover both the requirements and the implementation: the complexity added compared with today, the likely ways it breaks, and the ongoing maintenance or operating cost. Say which requirements drive that cost, what could be simplified or deferred, and what the user would lose. Back claims with repository evidence where you have it, label assumptions, and describe effort and risk in words rather than scores or probabilities.
+- For a decision about an interface, first show how 4 to 6 comparable products handle it, with sources. Then make each option a mockup (`mockup`) with its user journey: the happy path plus 2 to 4 edge cases. When the runtime shape differs between options, add an `architecture-diagram`.
 - Recommend one option and say what the person must accept if they take it.
 - A decision blocked on a missing fact becomes a spike or a question for `researcher`.
 - Revise the document in place as the person learns. Record why options changed under "What we learned".

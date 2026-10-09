@@ -21,6 +21,9 @@ skills:
   - verify-app
   - open-pr
   - babysit-pr
+  - interview
+  - architecture-diagram
+  - swarm
 description: "Investigate, present options and plan; directly complete straightforward fixes when implementation is authorized."
 args:
   source:

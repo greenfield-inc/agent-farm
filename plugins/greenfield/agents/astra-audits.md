@@ -6,6 +6,7 @@ model:
 description: "Find outdated issues, pull requests, and docs, and suggest what to close or update. Changes nothing until you approve."
 skills:
   - audits
+  - swarm
 args:
   surface:
     values: [all, issues, docs, prs, generated, ci]
