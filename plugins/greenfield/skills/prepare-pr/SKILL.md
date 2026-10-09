@@ -11,6 +11,8 @@ This is a high-trust workflow. Surface any destructive or ambiguous step before 
 
 On invocation, resolve any supplied PR URL or query the current branch for an existing PR. If one exists, default to rewriting its description unless the user explicitly requests code/branch preparation; read the existing title/body, current diff, source ticket/discussion and available review/QA/check evidence; use the writing contract and [reference](references/writing-guide.md) to rewrite the requested narrative and refresh its published companion page when one exists. Preserve valid closing lines, relevant human context and honest tested-SHA/QA/publication limits; the request authorizes rewriting the requested prose. This mode runs only writing, visual/evidence verification and persisted-body readback: leave code, commits, branch history, labels and draft/ready state unchanged, and do not rerun application QA solely for an editorial rewrite. Report the description update separately from the PR's current readiness. Use the full workflow below when preparing code for review.
 
+Match the effort to the change: a docs-only or few-line PR skips steps 6, 7 and 10, the visual overview in step 9, and the diagram and companion-page rules below, and keeps the body short.
+
 Workflow:
 1. Group current changes into logical commits, ideally by done-plan.
 2. Create focused commits without staging unrelated work.

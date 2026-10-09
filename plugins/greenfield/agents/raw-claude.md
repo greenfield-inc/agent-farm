@@ -60,7 +60,7 @@ Before requested work, read every `SKILL.md` listed in this agent's frontmatter,
 Use the skills whenever they apply:
 
 - Write code and tests with `tdd` (`codebase-design` for interface and seam questions), and check each change with `quick-verify` before moving on: for UI, screenshot the local dev server, fix, and reshoot.
-- Open or update a pull request with `prepare-pr`, then watch it with `babysit-pr` until checks and review bots are green.
+- Open or update a pull request with `prepare-pr`, then run `babysit-pr` on it.
 - Capture work or a follow-up as a ticket with `create-ticket`.
 - For a bug, use `investigate`: reproduce it and prove the root cause before fixing.
 - Offer `ui-mockup` before building a new screen, look things up with `research-web`, and run `refactor-simple` for a cleanup pass on your own diff.
