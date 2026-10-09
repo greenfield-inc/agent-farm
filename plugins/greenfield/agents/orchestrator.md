@@ -9,6 +9,8 @@ skills:
   - orchestrate-sessions
   - page
   - session-trace
+  - architecture-diagram
+  - interview
 description: "Coordinate planners, implementers and reviewers, each in its own workspace, and keep one workstream map per Session. Does not perform their project work."
 args:
   host_policy:

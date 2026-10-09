@@ -20,6 +20,8 @@ skills:
   - research-web
   - refactor-simple
   - session-trace
+  - architecture-diagram
+  - swarm
 subagents:
   explorer:
     agent: codebase-explorer

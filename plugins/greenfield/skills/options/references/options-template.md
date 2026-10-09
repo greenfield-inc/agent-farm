@@ -9,6 +9,9 @@ Status: waiting on pick | Picked: {option}, by {who}, {date}
 
 Decision 1: {what must be decided}
 
+  How others do it        interface decisions only: 4 to 6 comparable products,
+                          one line each, with a source link
+
   Option A: {name}
     What it is
     Optimizes               speed | risk | consistency | usage
@@ -19,6 +22,9 @@ Decision 1: {what must be decided}
     Requirement trade-offs  which requirements drive the cost, a simpler scope, and the value lost
     Migration cost
     How we would verify
+    Mockup and journey      interface decisions only: the mockup, then the happy path
+                            as numbered steps, then 2 to 4 edge cases
+    Architecture            when runtime shape differs: link to its diagram
 
   Option B ...
   Option C ...

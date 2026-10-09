@@ -14,7 +14,16 @@ Needs you         first and impossible to miss: plans waiting for approval, fail
 
 Order of work     inline SVG dependency graph: one node per work item, arrows for
                   "must land before", nodes coloured by stage (planning, awaiting
-                  approval, implementing, PR open, in review, done, blocked)
+                  approval, implementing, PR open, in review, done, blocked),
+                  grouped into waves of what can run in parallel; mark the critical
+                  path. Draw it with `architecture-diagram`'s kit
+
+Merge hot spots   file or area | work items touching it | landing order
+
+Shared ledgers    one row per shared resource only one worker may change at a time
+                  (for example the staging schema): ledger file link | rules
+
+Addenda           N | date | decision | work items it was sent to
 
 Lanes             one row per work item:
                   item | repo | Pane | profile | stage | plan | PR | review | trace |
