@@ -51,6 +51,13 @@ Implementation beyond the small-work route is its own Agent Farm session, which 
 agent-farm run greenfield/implementer --directory <feature workspace> --message "Implement the approved cover sheet at <cover sheet>."
 ```
 
+In Pane, give them this instead, which opens the implementer as a new tab in this feature's Pane:
+
+```sh
+runpane panels create --pane <this Pane id> --tool-command "agent-farm run greenfield/implementer:<variant>" \
+  --initial-input "Implement the approved cover sheet at <cover sheet>." --source agent --no-focus --wait-ready --yes --json
+```
+
 Agent Farm asks for a variant: `opus` (Claude Opus 5.5, the default), `astra` (GPT-6 Astra) or `sol` (GPT-6.1 Sol); adding `:variant` to the profile skips the question. Review runs separately, through `greenfield/reviewer`. Under an orchestrator, report the approved cover sheet and leave the launch to it.
 
 If no starter message is supplied, wait for the person's request.
