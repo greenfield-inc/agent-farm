@@ -108,10 +108,10 @@ A worker is done when its revision, checks, review outcome and PR or artifact li
 Archive a worker's Pane once it is no longer needed: the worker has stopped, and
 
 - for a planner, its plan was approved or abandoned;
-- for an implementer, its PR was merged or closed;
+- for an implementer, its PR was merged;
 - for a reviewer, its report was delivered.
 
-First run `runpane panes archive --pane <id> --source agent --dry-run --json --yes` and read the evidence. Archive only when Pane reports the worktree clean and pushed or merged, and then run the same command without `--dry-run`. Never pass `--force`. If Pane refuses, keep the Pane and record the reason on the map. At the end of the workstream, run `runpane panes archive --session <id> --merged --dry-run --json --yes`, then the same sweep without `--dry-run`. Pane keeps local branches; deleting remote branches is ask-first.
+Archiving finished Panes is part of finishing the work. When a Pane's work has landed or there's nothing left to land, archive it; keep anything the person asked to keep or that still has unlanded work. Pane's runpane docs describe how.
 
 Bundles, findings and traces live in the Session folder and the destination, never only in a worktree, so archiving loses nothing.
 
