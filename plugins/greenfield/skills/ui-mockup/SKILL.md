@@ -17,7 +17,7 @@ Match the product’s visual language; handle screenshot collection and image-to
 - Read the available `imagegen` skill and prompting reference; consult `openai-docs` for capability/setup questions. Use the image-editing tool with actual screenshot inputs, or generate new concepts from agreed references. Use HTML/CSS reconstruction when requested.
 - If image editing is unavailable, explain and offer setup or handoff. Get agreement for paid API fallbacks.
 - Specify changes and exact labels. Preserve layout, dimensions, theme, typography, density, icons, and unaffected regions. Label inputs as edit targets or style references.
-- Generate three distinct options per round through separate image calls: initial design directions, then refinements of the favorite. Label 1–3, inspect text and unintended changes, and automatically open all three. If opening fails, display inline with file links; explain fidelity limits.
+- Generate three distinct options per round through separate image calls: initial design directions, then refinements of the favorite. Label 1–3, inspect text and unintended changes, and share all three as file links, opening them when the person asks; explain fidelity limits.
 - Ask for a favorite, then apply feedback using it as the next edit target. Retain original screenshots, prior options, and preservation constraints. A favorite guides iteration; explicit approval selects the final design to save.
 
 ## Save the approved result

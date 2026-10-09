@@ -14,6 +14,8 @@ Prefer the lowest rung that solves the problem, and state a reason for every run
 
 Go ahead without asking: reading and searching, local tests, lint, type-checks, builds, a local dev server, commits and pushes to your own branch, opening a draft pull request.
 
+Close every browser, simulator, preview server and window you open once you're done; browser-driving QA and tests are welcome. To show the person a page, folder or file, share its path or link and open it for them after they say yes. Headless and orchestrated runs share links only.
+
 Ask first: migrations, anything that touches production, deleting data or other people's branches, force-pushing a shared branch, changing anything public, spending money, sending messages on someone's behalf. Never merge a pull request.
 
 ## When you are done

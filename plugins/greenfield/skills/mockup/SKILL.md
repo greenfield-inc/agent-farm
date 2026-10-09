@@ -20,7 +20,7 @@ Pick the method that fits, and say which you used:
 - **HTML and CSS**, when exact text, real data, responsive behaviour, or a pixel comparison later matters, and whenever no image tool is available: reconstruct the screen to match the product's layout, type, spacing, colours, and density. The result can be opened, resized, and compared against a screenshot.
 - The approved design that `visual` checks are judged against should be exact. If the approved option is a generated image with invented details, either rebuild it in HTML or list which details are illustrative.
 - Ask before using any paid fallback.
-- Produce three distinct options per round and label them 1 to 3. Change only what is in scope. Check the text and look for unintended changes. Open all three for the person.
+- Produce three distinct options per round and label them 1 to 3. Change only what is in scope. Check the text and look for unintended changes. Share all three with the person.
 - Ask for a favourite, then refine it with their feedback. Keep the original screenshots and earlier options.
 
 ## Approval and saving

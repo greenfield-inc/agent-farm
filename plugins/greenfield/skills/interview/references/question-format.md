@@ -3,7 +3,7 @@
 Every round has the same shape on every model.
 
 ```
-Before            open the page the questions are about; say in one line what it shows
+Before            share the page the questions are about; say in one line what it shows
 
 Round             1 to 4 questions, grouped by topic, most consequential first
   Question        one sentence ending in "?"; prefix the lane or item when several
