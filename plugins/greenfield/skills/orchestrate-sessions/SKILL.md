@@ -17,7 +17,7 @@ Before any workspace or session action, read the host-injected coordination inst
 
 Use the host's own tools for its mechanics. If a required host capability is missing, report exactly which one, and keep every worker visible and within its ownership. Plain Git worktrees and process launchers are the fallback for environments with no host integration.
 
-**In Pane: 1 feature = 1 worktree = 1 branch = 1 Pane.** A Pane is a git worktree; creating one checks out the repo, installs dependencies and often builds, so it is expensive. Create a Pane with `runpane panes create` only for a new, independent piece of work on its own branch. Every role for that work (planner, implementer, reviewer, follow-up reviewer, fix implementer, QA, simplify) runs inside that Pane as a new agent tab with `runpane panels create --pane <feature Pane id>`: fresh context, the same worktree and branch. Never create a Pane to review, fix, QA or re-run work that already has one. Report with `runpane report` and archive with `runpane panes archive`. Never create a raw `git worktree` there. When Pane's own orchestration guidance and this skill disagree on a mechanic, Pane wins; on roles, approvals and review policy, this skill wins.
+**In Pane: 1 feature = 1 worktree = 1 branch = 1 Pane; reviews, audits, fixes and QA for it are tabs in that Pane.** A feature here means one branch and its PR. A new Pane creates a new worktree, which checks out the repo, installs dependencies and often builds, so it is expensive. Create a Pane with `runpane panes create` only when the work's branch has no Pane yet: new work, or an existing PR with no Pane. Every role for that branch (planner, implementer, reviewer, follow-up reviewer, auditor, fix implementer, QA, simplify) runs inside its Pane as a new agent tab with `runpane panels create --pane <feature Pane id>`: fresh context, the same worktree and branch. Tabs share one checkout: only the implementer changes the branch or HEAD, one writer at a time; review, audit and QA tabs never run `git checkout`, `reset` or `stash`. Never create a Pane on this machine to review, audit, fix, QA or re-run work that already has one here; cross-machine QA follows [cross-os-workspaces](../pr-test-automation/references/cross-os-workspaces.md). Report with `runpane report` and archive with `runpane panes archive`. Never create a raw `git worktree` there. When Pane's own orchestration guidance and this skill disagree on a mechanic, Pane wins; on roles, approvals and review policy, this skill wins.
 
 ## Intake and routing
 
@@ -62,10 +62,10 @@ runpane panes create --repo <repo> --name <item> --source agent --json \
   --prompt-file <absolute starting-message file>
 ```
 
-Launch every later worker for that feature as a new tab in the same Pane. Before any `runpane panes create`, check the ledger and `runpane sessions overview` for the feature's Pane, and use it when it exists:
+Launch every later worker for that feature as a new tab in the same Pane. Before any `runpane panes create`, find the feature's Pane in the ledger, `runpane sessions overview`, or `runpane panes list --repo <repo> --json` (match the PR's head branch from `gh pr view <n> --json headRefName` against `git -C <worktreePath> branch --show-current`), and use it when it exists:
 
 ```sh
-runpane panels create --pane <feature Pane id> --source agent --no-focus --wait-ready --json \
+runpane panels create --pane <feature Pane id> --source agent --no-focus --wait-ready --yes --json \
   --tool-command "agent-farm run greenfield/<role>:<variant>" \
   --initial-input-file <absolute starting-message file> --as-file-pointer
 ```
@@ -83,7 +83,7 @@ Without a host requirement, give each work item its own Git worktree and branch,
 
 The default is one review at the end of the workstream. The workstream is ready when every PR's checks are green and its implementer has reported done. Then launch one `greenfield/reviewer:codex` agent per PR as a new tab in the Pane that owns that PR's branch. Its starting message names the PR and a findings file in the Session folder, and says: write the findings file, post one reconciled `COMMENT` review, apply no fixes.
 
-The fix loop: send each must-fix item to the implementer that owns the PR, resumed in its tab or as a new implementer tab in the same Pane. When it reports done, launch a reviewer follow-up, again as a new tab in that Pane, that checks only those items. Run another full round only when the user asks.
+The fix loop: send each must-fix item to the implementer that owns the PR, resumed in its tab or, once that tab has stopped, as a new implementer tab in the same Pane. When it reports done, launch a reviewer follow-up, again as a new tab in that Pane, that checks only those items. Run another full round only when the user asks.
 
 The simplify checkpoint is optional and off by default. When the user turns it on, launch one `greenfield/simplify-and-refactor:sol` agent per PR as a new tab in that PR's Pane after its implementer reports done and has stopped, before QA and review, since it may write the branch. Its starting message names the PR and says: plan, then wait for the user's approval of the merged plan. Relay the plan to the user; it applies only on their approval. When it reports done, the head has changed: QA and review run on the new head, and the implementer owns the branch again.
 
@@ -113,7 +113,7 @@ A worker is done when its revision, checks, review outcome and PR or artifact li
 
 ## Cleanup
 
-Archive a feature's Pane once the feature is finished: its PR was merged or closed, or its plan was abandoned, and no tab in it is still working. Keep the Pane open until then, because later review, fix and QA tabs need its worktree. A finished tab needs no archiving; close it or leave it.
+Archive a feature's Pane once the feature is finished: its PR was merged or closed, or its plan was abandoned, and every agent in it has stopped. Keep the Pane open until then, because later review, fix and QA tabs need its worktree. A finished tab needs no archiving; close it or leave it.
 
 Archiving finished Panes is part of finishing the work. When a Pane's work has landed or there's nothing left to land, archive it; keep anything the person asked to keep or that still has unlanded work. Pane's runpane docs describe how.
 

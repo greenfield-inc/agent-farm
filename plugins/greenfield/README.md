@@ -116,7 +116,7 @@ Compare runs using the same approved feature, current-code validation, reviewer 
 
 ## Orchestration
 
-`greenfield/orchestrator` routes all work the same way: 1 feature = 1 worktree = 1 branch = 1 workspace, and each worker a fresh agent in it. In Pane, the feature gets one Pane (`runpane panes create`, one worktree and branch), and every later role opens as a new agent tab in that Pane (`runpane panels create --pane <id>`):
+`greenfield/orchestrator` routes all work the same way: 1 feature = 1 branch = 1 workspace (in Pane, one Pane and its worktree); reviews, audits, fixes and QA for it are tabs in that workspace. In Pane, the feature gets one Pane (`runpane panes create`, one worktree and branch), and every later role opens as a new agent tab in that Pane (`runpane panels create --pane <id>`):
 
 1. `greenfield/planner` writes the plan. Under an orchestrator, planners only plan.
 2. After you approve it, `greenfield/implementer` builds it, one implementer and one PR per plan unless the cover sheet marks packages as independently shippable. A clearly straightforward, authorized fix may skip the planner as `no-plan` work.

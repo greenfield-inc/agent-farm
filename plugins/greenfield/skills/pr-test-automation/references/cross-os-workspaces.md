@@ -47,9 +47,11 @@ the parent. The parent owns authorized launches and evidence collection, or
 reports the platform BLOCKED. This applies to both Pane creation and handoff.
 
 `panes create` owns the new worktree, so use it only when that machine has no Pane
-for this feature yet; pass a saved base repo as `--repo`. Require
-the QA agent to fetch/check out the target SHA there and isolate the app before
-testing. Replace all placeholders in these templates:
+for this feature yet; pass a saved base repo as `--repo`. A QA Pane on another
+machine fetches and checks out the target SHA there and isolates the app before
+testing. A QA tab in the feature's Pane on this machine shares the implementer's
+checkout: it tests the branch as checked out, confirms `git rev-parse HEAD`
+equals the target SHA, and never runs `git checkout`, `reset` or `stash`. Replace all placeholders in these templates:
 
 ```sh
 # This machine: a tab in the feature's Pane.

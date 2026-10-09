@@ -169,7 +169,7 @@ test('orchestrated reviewers post one COMMENT review and apply no fixes, and orc
   for(const rule of ['reconciled findings to that file','post exactly one review','event `COMMENT` (never approve or request changes)','Apply no fixes','checks only the listed must-fix items'])assert.ok(instructions.includes(rule),`${profile}: ${rule}`);
  }
  const skill=flat(fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8'));
- for(const rule of ['the worker has stopped','agent-farm run greenfield/<role>:<variant>','Always name the variant','`greenfield/implementer:opus`','whether it explicitly grants conversation capture','a personal fallback workspace grants nothing'])assert.ok(skill.includes(rule),rule);
+ for(const rule of ['every agent in it has stopped','1 feature = 1 worktree = 1 branch = 1 Pane','panels create --pane <feature Pane id>','--wait-ready --yes --json','agent-farm run greenfield/<role>:<variant>','Always name the variant','`greenfield/implementer:opus`','whether it explicitly grants conversation capture','a personal fallback workspace grants nothing'])assert.ok(skill.includes(rule),rule);
  assert.doesNotMatch(skill,/\[:variant\]/);
  const trace=flat(fs.readFileSync(path.join(root,'skills/session-trace/SKILL.md'),'utf8'));
  for(const rule of ['Naming a document destination is not a grant','trace not authorized','--launch <ID>','`$CODEX_HOME` before `~/.codex`'])assert.ok(trace.includes(rule),rule);
