@@ -1,31 +1,32 @@
 ---
 name: architecture-diagram
-description: Use when a design, plan, or option needs the person to understand how a system works or would work - what runs where, what is new versus reused, and how a request or message moves through it. Draws inline-SVG system and flow diagrams in the house style, light and dark, using the bundled diagram kit.
+description: Use when a design, plan, or option needs the person to see how a system works - what runs where, what is new or reused, and how one request moves through it. Draws inline-SVG system and flow diagrams in the house style, light and dark, from the bundled kit.
 ---
 
 # Architecture diagram
 
-A good diagram answers "what runs where, and what happens to one request" before the person reads a word of prose. Draw it from the real code, not from guesses.
+The diagram answers "what runs where, and what happens to one request" before any prose. Draw it from the real code.
 
 ## Before drawing
 
-- Read the code and deployment config that the diagram claims to show: entry points, workers, queues, tables, external services, and which process each runs in. Settle the questions people will actually ask, such as "is this a new server or the existing one?", and answer them in the diagram.
-- Mark each part as existing, new, or external. Name new tables, task types, services and deployments explicitly.
+- Read the code and deployment config for every part you show, including the process each runs in.
+- Answer the reader's main question, such as "new server or existing one?", in the diagram.
+- Mark every part existing, new, or external, and name new tables, tasks, services and deployments.
 
 ## The page
 
-Write one self-contained HTML page (the kit already carries the house page tokens), following [references/layout.md](references/layout.md), and copy the tokens, classes and markers from [references/diagram-kit.html](references/diagram-kit.html). Keep its colors and line meanings so every diagram reads the same way. In this order:
+Write one self-contained HTML page following [references/layout.md](references/layout.md), copying tokens, classes and markers from [references/diagram-kit.html](references/diagram-kit.html). Sections, in order:
 
-1. **Answer first:** 3 to 5 bullets on what runs where, what is new versus reused, and whether any new service or deployment is needed.
-2. **System diagram:** components in their deployment frames, with edges labelled by latency, cost or volume where they matter. Add a legend.
-3. **One flow per scenario:** the happy path, the important variants, the abuse or failure case, and an outage. Each gets a numbered sequence diagram, matching numbered steps in prose, and a bold one-line outcome.
-4. **Behavior table** when there are stages: what each stage does on error and on a positive result, now and later.
-5. **Arithmetic** for cost and latency, shown, with assumptions labelled.
+1. **Answer first:** 3 to 5 bullets on what runs where, what is new versus reused, and whether a new service is needed.
+2. **System diagram:** components in their deployment frames, edges labelled with latency, cost or volume, and a legend.
+3. **One flow per scenario:** happy path, main variants, abuse or failure, outage. Each is a numbered sequence diagram with matching numbered steps and a bold outcome.
+4. **Behavior table** for staged systems: each stage on error and on a positive result, now and later.
+5. **Arithmetic** for cost and latency, with assumptions labelled.
 
-## Rules
+## Style
 
-- Inline SVG only, with `viewBox` set, colors from CSS variables (never hard-coded), and text at 11px or larger. Wrap each diagram in `.diag` so it scrolls sideways on phones instead of shrinking.
-- One meaning per line style: sync, new, async (dashed), external, alert. Don't invent more.
-- At most about 12 boxes per diagram. Split into another diagram rather than crowding one.
-- Label every arrow that isn't obvious. Number every step in a flow.
-- Look at the page in both light and dark mode before showing it, and fix collisions and clipped text.
+- Inline SVG with a `viewBox`, colours from CSS variables, text 11px or larger, each diagram wrapped in `.diag` so it scrolls sideways on phones.
+- Five line styles, one meaning each: sync, new, async (dashed), external, alert.
+- Up to about 12 boxes per diagram; split larger systems into several diagrams.
+- Label arrows and number every flow step.
+- Check the page in light and dark mode and fix collisions and clipped text before sharing.

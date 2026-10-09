@@ -1,22 +1,20 @@
 # Decision log template
 
-`decisions.html` in the work's bundle, rendered with `page`. It's append-only: add rounds, never rewrite them.
+`decisions.html` in the bundle, rendered with `page`. Append rounds; keep earlier rounds as written.
 
 ```
 Decision log: {work}
-Bundle links       brief · options · cover sheet · mockups · diagrams
-Status             open questions: N   (or "nothing material left undecided")
+Links            brief · options · cover sheet · mockups · diagrams
+Status           open questions: N, or "every material decision is settled"
 
-Round N  ({date}): {topic}
-  • {Decided item}: {one sentence}. {link to the page it came from}
+Round N ({date}): {topic}
+  • {Item}: {decision in one sentence}. {link to its page}
   • {Reversal}: {new decision}. Replaces Round M's "{old}".
-  • Sent to: {workers or documents that were updated}
+  • Sent to: {documents or workers updated}
 
-Round N-1 ...
-
-Deferred           item · why · what would bring it back
-Still open         question · who answers · what is waiting on it
-Change log         newest first
+Deferred         item · reason · what brings it back
+Open             question · who answers · what waits on it
+Change log       newest first
 ```
 
-Write each line so it makes sense on its own: someone who opens only this page should understand what was decided without reading the chat.
+Write each line to stand on its own, so a reader of this page alone knows what was decided.
