@@ -1,6 +1,6 @@
 ---
 name: ui-options
-description: When the person dislikes how a piece of UI looks (often mid-QA), build three real design options in the actual code, screenshot each in the same set of states and contexts, open the folder in Finder, recommend one, then land the chosen option. Use for "I don't like this UI", "this looks off / not modern / cluttered", or "give me options for X" about an existing screen. For new screens that do not exist yet, use ui-mockup.
+description: When the person dislikes how a piece of UI looks (often mid-QA), build three real design options in the actual code, screenshot each in the same set of states and contexts, share the folder, recommend one, then land the chosen option. Use for "I don't like this UI", "this looks off / not modern / cluttered", or "give me options for X" about an existing screen. For new screens that do not exist yet, use ui-mockup.
 ---
 
 # UI options
@@ -22,7 +22,7 @@ The person reacts to real pixels, not descriptions. Show them three honest optio
 - Include a `before-*` shot of today's UI.
 - Name files so they sort: `before-current.png`, `option-a-1-<context>.png`, `option-a-2-<context>.png`, `option-b-…`.
 - Look at every screenshot yourself before showing it. Fix obvious polish issues (weights, contrast, collisions) first.
-- Save under `tmp/<pr-or-branch>-qa/<surface>-options/` (never committed) and run `open <folder>` so Finder shows it.
+- Save under `tmp/<pr-or-branch>-qa/<surface>-options/` (never committed) and share the folder path; run `open <folder>` when the person asks.
 
 ## 4. Present
 - One line per option saying what makes it different, and which one you would pick and why.
@@ -31,7 +31,7 @@ The person reacts to real pixels, not descriptions. Show them three honest optio
 
 ## 5. Land the choice
 - Keep only the chosen option. Delete the other variants and the temporary switch, and fold in any content decisions from the discussion. Apply it on every surface found in step 1.
-- Re-screenshot the final version in the same contexts and open that folder too.
+- Re-screenshot the final version in the same contexts and share that folder too.
 - Run lint, typecheck, and the relevant tests. Add a test only for new behavior that could actually fail without the change.
 
 ## 6. Re-test only if behavior changed

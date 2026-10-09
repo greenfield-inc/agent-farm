@@ -11,7 +11,7 @@ This skill owns form. The skill that asked for the page owns the content, the fa
 
 One self-contained `.html` file. Inline CSS in one `<style>` block, inline SVG for drawings, system fonts, no external requests of any kind, and no script unless the page needs interaction. Keep it well under 200KB.
 
-Every page belongs to a bundle, and a bundle has a destination. Read [references/bundle.md](references/bundle.md) before saving the first page for a piece of work: it sets the folder, the file names, how pages link to each other, and how to publish somewhere other than the local default. Open the page for the person, or give them its link.
+Every page belongs to a bundle, and a bundle has a destination. Read [references/bundle.md](references/bundle.md) before saving the first page for a piece of work: it sets the folder, the file names, how pages link to each other, and how to publish somewhere other than the local default. Give the person its link, and open it when they ask.
 
 ## Colours
 

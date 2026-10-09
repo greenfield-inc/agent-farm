@@ -31,7 +31,7 @@ Loop until nothing safe is left to fix:
 3. **Fix what is safe and easy.** A fix is safe and easy when it is small, stays inside what the pull request already changes, and does not alter a product decision, a data schema, a dependency, authentication, or anything in production. Write it with `tdd`, confirm it with `quick-verify`, and commit it on the pull request branch as its own small commit.
 4. **Re-test** the affected journeys.
 
-If the person says they don't like how some UI looks, use `ui-options`: build three options in the real code, screenshot them in the same contexts, open the folder, and land the one they pick. Re-test only if the change touched behavior, not just styling.
+If the person says they don't like how some UI looks, use `ui-options`: build three options in the real code, screenshot them in the same contexts, share the folder, and land the one they pick. Re-test only if the change touched behavior, not just styling.
 
 Everything else, report instead of fixing: what fails, the evidence, the likely fix, and why you left it.
 
