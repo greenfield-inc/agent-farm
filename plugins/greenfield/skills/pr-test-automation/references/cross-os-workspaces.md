@@ -37,18 +37,29 @@ local checks suffice. Continue independent platforms when another is blocked.
 
 Read installed syntax with `runpane agent-context --command "<command>" --json`
 and discover each machine's saved repo with `runpane repos list --json`. Use
-its paths and shell quoting. Prefer a visible QA Pane when delegation is allowed;
+its paths and shell quoting. On this machine, QA runs as a new agent tab in the
+feature's existing Pane (`runpane panels create --pane <id>`), never a new Pane.
+Another machine has no worktree for the feature, so it gets one QA Pane per
+feature: create it once and reuse it for every later QA run there. Prefer that
+visible QA Pane when delegation is allowed;
 leaf helpers use direct exec and return agent requests (OS, SHA, check plan) to
 the parent. The parent owns authorized launches and evidence collection, or
 reports the platform BLOCKED. This applies to both Pane creation and handoff.
 
-`panes create` owns the new worktree; pass a saved base repo as `--repo`. Require
-the QA agent to fetch/check out the target SHA there and isolate the app before
-testing. Replace all placeholders in these templates:
+`panes create` owns the new worktree, so use it only when that machine has no Pane
+for this feature yet; pass a saved base repo as `--repo`. A QA Pane on another
+machine fetches and checks out the target SHA there and isolates the app before
+testing. A QA tab in the feature's Pane on this machine shares the implementer's
+checkout: it tests the branch as checked out, confirms `git rev-parse HEAD`
+equals the target SHA, and never runs `git checkout`, `reset` or `stash`. Replace all placeholders in these templates:
 
 ```sh
-runpane panes create --repo <repo> --name <qa-name> --agent <agent> --prompt "<SHA, checks, evidence, isolation>" --source agent --no-focus --wait-ready --yes --json
+# This machine: a tab in the feature's Pane.
+runpane panels create --pane <feature-pane-id> --agent <agent> --initial-input "<SHA, checks, evidence, isolation>" --source agent --no-focus --wait-ready --yes --json
+# Another machine, first QA run for this feature only:
 runpane workspace <machine> exec -- 'runpane panes create --repo <remote-repo> --name <qa-name> --agent <agent> --prompt "<SHA, checks, evidence, isolation>" --source agent --no-focus --wait-ready --yes --json'
+# Later QA runs on that machine: a tab in its existing QA Pane.
+runpane workspace <machine> exec -- 'runpane panels create --pane <remote-qa-pane-id> --agent <agent> --initial-input "<SHA, checks, evidence, isolation>" --source agent --no-focus --wait-ready --yes --json'
 # Direct checks also suit helpers that cannot delegate.
 runpane workspace <machine> exec -- '<command>'
 ```
