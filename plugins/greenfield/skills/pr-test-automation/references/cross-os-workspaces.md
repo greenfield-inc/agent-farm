@@ -40,11 +40,12 @@ and discover each machine's saved repo with `runpane repos list --json`. Use
 its paths and shell quoting. On this machine, QA runs as a new agent tab in the
 feature's existing Pane (`runpane panels create --pane <id>`), never a new Pane.
 Another machine has no worktree for the feature, so it gets one QA Pane per
-feature: create it once and reuse it for every later QA run there. Prefer that
-visible QA Pane when delegation is allowed;
+feature: create it once and reuse it for every later QA run there. Prefer a
+visible QA agent when delegation is allowed (a tab here, the machine's QA Pane
+elsewhere);
 leaf helpers use direct exec and return agent requests (OS, SHA, check plan) to
 the parent. The parent owns authorized launches and evidence collection, or
-reports the platform BLOCKED. This applies to both Pane creation and handoff.
+reports the platform BLOCKED.
 
 `panes create` owns the new worktree, so use it only when that machine has no Pane
 for this feature yet; pass a saved base repo as `--repo`. A QA Pane on another
@@ -64,9 +65,11 @@ runpane workspace <machine> exec -- 'runpane panels create --pane <remote-qa-pan
 runpane workspace <machine> exec -- '<command>'
 ```
 
-Alternatively, inspect `runpane handoff "<agent> on <machine>" --note-file <note>
---dry-run`; run without `--dry-run` when the target/actions fit authorized QA.
-Carry the same SHA, checks, isolation, and evidence requirements in the note.
+For another machine with no QA Pane for this feature, `runpane handoff "<agent>
+on <machine>" --note-file <note>` is an alternative to the first-run template:
+inspect it with `--dry-run` first, and carry the same SHA, checks, isolation, and
+evidence requirements in the note. Handoff creates a Pane, so never hand off to
+this machine; QA here is a tab.
 
 Read Pane/panel IDs from the result or `panels list --pane <id>`. Route remote
 `panels screen`, `input`, `submit`, and `last-message` through that machine's
@@ -78,8 +81,9 @@ For WSL, select a distro from `wsl.exe --list --quiet`, then execute explicitly:
 Inside the distro, establish the Linux repo path and capture `uname -s`, distro
 identity, and `git rev-parse HEAD` with the output. A failed start is BLOCKED.
 
-Fetch/check out the requested SHA in each machine’s isolated checkout,
-including direct-exec checks; verify `git rev-parse HEAD` before tests. For a
+On another machine, fetch and check out the requested SHA in its QA Pane,
+including direct-exec checks. On this machine, check out nothing. Verify
+`git rev-parse HEAD` before tests everywhere. For a
 composite merge commit, record its SHA and prove the requested head is included
 with `git merge-base --is-ancestor <requested-head> HEAD`. Retain `git status
 --short` and the patch for dirty trees; label that evidence as dirty-state proof.

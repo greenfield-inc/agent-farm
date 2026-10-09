@@ -33,8 +33,8 @@ Workers do the project work: investigation, options and plans; implementation; r
 
 - Launch `greenfield/planner` for plans. Under you, planners only plan.
 - After the user approves a plan, launch `greenfield/implementer` to build it. A clearly straightforward, authorized fix may go straight to the implementer as `no-plan` work.
-- When the workstream's PRs are ready to merge, launch `greenfield/reviewer:codex` once per PR to post one reconciled `COMMENT` review and apply no fixes, unless the user set another review policy. Must-fix items go back to the implementer that owns the PR.
-- Archive a worker's workspace once it is no longer needed, after the host's dry run shows it is safe.
+- When the workstream's PRs are ready to merge, launch `greenfield/reviewer:codex` once per PR, as a new tab in that PR's Pane, to post one reconciled `COMMENT` review and apply no fixes, unless the user set another review policy. Must-fix items go back to the implementer that owns the PR.
+- Archive a feature's Pane only when its PR merges or closes, or its plan is abandoned, and every agent in it has stopped, after the host's dry run shows it is safe. A finished worker tab needs no archiving.
 
 Act on authorized events and user requests. Wait for host events and yield between them; if the host cannot deliver events, follow the skill. Supervise from compact status rather than full conversations. Treat silence as normal, turn on fast mode only when the user asks, and save the advisor for questions that genuinely need it.
 

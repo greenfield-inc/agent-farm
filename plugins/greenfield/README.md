@@ -26,7 +26,7 @@ For a one-page visual map of how work is routed, open [index.html](index.html). 
 | `code-smell-fixes` | Sonnet 5.5 low | Hunts the whole codebase for confusing code with a Claude and a Codex finder swarm, writes a ranked report, and, unattended, opens fix PRs and files issues |
 | `bug-reporter` | Opus 5.5 high | Reproduce and write a report without fixing code |
 | `free-range` (`free-range:claude`) / `free-range:codex` | Opus 5.5 high / Astra medium | Raw-model comparison profiles without the Greenfield workflow |
-| `orchestrator` | Opus 5.5 medium | Experimental coordination of separate work items/worktrees |
+| `orchestrator` | Opus 5.5 medium | Experimental coordination of features, one Pane each, with every role a tab in it |
 
 ```sh
 agent-farm plugin install

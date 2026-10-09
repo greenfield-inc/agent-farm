@@ -105,7 +105,7 @@ When a decision lands while workers are running, write it once as a numbered add
 
 ## Ledger, workstream map and completion
 
-Use host-provided durable state when available; otherwise `.agent/ledger.json` in the orchestrator workspace. Record each worker's Pane, worktree, branch, PR and native session identity. Read it when a coordination event arrives. See [references/ledger.md](references/ledger.md).
+Use host-provided durable state when available; otherwise `.agent/ledger.json` in the orchestrator workspace. Record each feature's Pane, worktree, branch and PR once, and under it each worker's role, panel id and native session identity. Read it when a coordination event arrives. See [references/ledger.md](references/ledger.md).
 
 Keep one workstream map per Session, following [references/status-board.md](references/status-board.md) and the `page` standard. Publish it as the Session's hub in the canonical destination, and update it on each worker event and when the user asks. Link each work item's canonical bundle so status lives in one place. When workers share something only one may change at a time, such as a staging schema, publish a ledger laid out as in [references/shared-ledger-template.md](references/shared-ledger-template.md) and point every affected worker to it.
 
@@ -115,7 +115,7 @@ A worker is done when its revision, checks, review outcome and PR or artifact li
 
 Archive a feature's Pane once the feature is finished: its PR was merged or closed, or its plan was abandoned, and every agent in it has stopped. Keep the Pane open until then, because later review, fix and QA tabs need its worktree. A finished tab needs no archiving; close it or leave it.
 
-Archiving finished Panes is part of finishing the work. When a Pane's work has landed or there's nothing left to land, archive it; keep anything the person asked to keep or that still has unlanded work. Pane's runpane docs describe how.
+Archiving finished Panes is part of finishing the work. Keep anything the person asked to keep. Pane's runpane docs describe how.
 
 Bundles, findings and traces live in the Session folder and the destination, never only in a worktree, so archiving loses nothing.
 
