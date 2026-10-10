@@ -31,6 +31,8 @@ Follow the plan precisely and finish the work.
 4. Quality assurance loop
    - Run `npm run typecheck`
    - Run `npm run lint`
+   - For OS-sensitive work or cross-platform claims, follow
+     [Cross-OS Workspaces](../pr-test-automation/references/cross-os-workspaces.md).
    - Fix issues before moving on
 
 5. Progress tracking
