@@ -1,9 +1,9 @@
 name: dcouple
-version: 0.1.23
+version: 0.1.27
 cli_major: 0
 source:
   repository: https://github.com/greenfield-inc/skills.git
-  commit: 628efc49ac4e67c75fed508646d3d736cf235ca2
+  commit: 31eeb54058bbdf25dc4909f2a774ff62b855bd24
 checksums:
   profiles/audits.yaml: b2be432724574ff46929c836f1aeb90487a87a131fde62d93c49708417e97cbd
   profiles/business.yaml: e4bf2f9c0e2bec0254cfb70848c39e4a5d8a98d727e5ec3a879539456e92852a
@@ -15,7 +15,7 @@ checksums:
   profiles/reviewer.yaml: 61ab5550917b4f3126b1cd75a51ebca80a5b763b63fada221feeb24c0965fd11
   profiles/seo.yaml: e114a2b8250b55d3ce588f5c14421c276d8186be2520e7514e55ab44d0182e2a
   agents/astra-audits.md: eb69bda686bf225b5d318bc65065e2a5296465d0e4c406b0dcce47d74d7f3f23
-  agents/astra-implementer-high.md: 453c9b607b48f597873db52e7aae33f8e98001368684d66331b8b5f705c311df
+  agents/astra-implementer-high.md: 621b3389a9ede6965147366e359a6814057bf74c6e015a5d650d444392648b4a
   agents/astra-researcher-reader.md: fd7ae198e8d27dfc99253e6418764208964f36ffab98783130238a49d5ae6d13
   agents/astra-researcher.md: 4db9944ad5d65eae1943c5304e0b15a14a76e93c9275ca3146e232da045da0a6
   agents/astra-socrates.md: 941d4f74a47846e02471ea14fdd1a90b7855f89a68d9c19b7c05c4184c5740cc
@@ -26,33 +26,33 @@ checksums:
   agents/business-research-adversary.md: 52270d252b5541c9fa7407f0315411e2a1867928d687569437ec8ef29b9c2357
   agents/business-spec-reviewer.md: f2e73087890e6c849758f97876904d91d13841137a43f85334711bea4ab0c9e2
   agents/business.md: dbf321d5bb4b72e827c2947f91a0b68a3ff58510b73e5e66f59883b38eb72e24
-  agents/claude-pr-reviewer.md: f43a529b43945f0cb8906c6d84bf4c669bcd0504fe7f74fa52a7aca8d903976a
+  agents/claude-pr-reviewer.md: 5f14a5dbb0f366f2902d1b41644d0c9dacc7a9d3dc5c7d4a70d7d344cda9ffa7
   agents/codebase-explorer.md: c3a06b065f1745a8a4ac49a269051e3ae249591c474846a3bdb3b42ca3d285f5
-  agents/codex-pr-reviewer.md: e93e4e6108ce1ff76b3b8e0ef0b39a602cade0b85235da4b4652ce9b0fc582cd
+  agents/codex-pr-reviewer.md: 672b7adc558377902fd0d48e1cf2efdc5b75f19f26d83255d3dfc4e047bcb416
   agents/cold-reader.md: b99e81c8aab6bc404266eb55b73ae5be51b58eb46a4ee52cf4ce8d1ca3c4430e
   agents/correctness-reviewer.md: 53a03d190330e10797c5fd0acc91dcb9e7bade058a93ba0022f38449c4766054
   agents/ideate-astra.md: 0907b26c9f4ff121e3d49d5bf591711e0193a25fcdf840d4466dc3015c7d2436
   agents/ideate.md: e38c606a5e19192a462490e4996b81add10a514823e1dc94f8369c1220dd2f8e
   agents/implementation-reviewer.md: b0caf17fc2e209c7f445c32a6494fee3e038c03f740988ea5ed59e3fd625b08a
-  agents/implementer.md: dd66be97767463a4183b0d43f872b4c6f201bf996b2d552088f9f188daa6ba4f
+  agents/implementer.md: bd2add8f4d91e55c40d5b3179a39881f148cc47199b08c9c64ee7f4e8ffaca33
   agents/integration-reviewer.md: cf600e74a7595ad40fb180b2f06fcb6f48820615b897100a6fc94dde91c78f45
   agents/intent-reviewer.md: de434aaaf61d3c0b1d8027946567e46197ec2cf83e4528504176726f6461ff52
   agents/plan-reviewer.md: 81631b4cf8c3d78c29e39a6b014e6f16749c0a9e732d6e31cb76114759837913
   agents/pr-preparer.md: d91299363590359ebf673be6393e0b3b1678f1d8bba8ebba99885f07f8d6621e
   agents/pr-reviewer.md: 45d3a9df1b21707ca6daf67934f1ae2c6c4b7d4fa0a2a8f094424a4fbdca8986
   agents/product-researcher-claude.md: 67bacc7680e3de2d654f3a5c5d5f5337d8e1c5b22ec05d93ccec1358919a76ac
-  agents/qa-lead-codex.md: 83859311df588c199d6de4114e1537c97af7872536cf4c114b7db7d784df12c1
-  agents/qa-lead.md: ed80087dc65b5dc694a377dbb76dec5781dad3ffbabd08c5eb654f91caa254b0
+  agents/qa-lead-codex.md: f24cf2d9aa9599fe56140e34858d1c3f201e72133082a703c133021a568ef11d
+  agents/qa-lead.md: bc9dc4677e0da1d6329650799360be903ccf83e7104d94de7df64d53ba098117
   agents/qa.md: 2d21b9fec2c44ae27d3ede0f4cc2ed67e33956205cf86cdabb57bc55596f5a7d
-  agents/raw-claude.md: cf1757519196c2c349c90a1f771d6e770a45eaa397b662bacea0f9d56326e811
-  agents/raw-codex.md: 831bc6b6835fc804fc57797314edc6c802e19145b17736cf8c9cae0bf1d3a75e
+  agents/raw-claude.md: 2da2c62836c57c5cb48f48a1dfaff9e5b0f0fd2ba77c3d96f42310bc6fafbf11
+  agents/raw-codex.md: 9fd1dc3ca6bf99593868c3cc3657b73cc397bb0bdd24e72e7d5e8ac1645e67cb
   agents/refactor.md: a3e89715a5bb651d3cc993417a7a7ca7b7ce12a354cb602a15b1c1f31e1bcf4c
   agents/researcher.md: 7cd648ce586ba2905bf74886af847ad384c047938554ebf7d7f938c06ee2b018
   agents/seo-codex.md: c7eb0f84dfc630dc3d1dd7a2986ec585d8310c5a628e6d7f1d7129fc4f642432
   agents/seo.md: 68f0e83e286b5f3d9db7755d9c818128596625bcf9329ef810198476d8f65863
   agents/socrates.md: c20efe0c4aedc55729b704964deda9ec618dfa3e69908ef028c8cb83e6fe5223
-  agents/worker.md: cf5516cb6894cc2edf1dad3c739acfa3cc85b4445528a80f2fc930706ec7aacb
-  skills/astra-ticket/SKILL.md: 608fa9210c547f55329a56a227c34bc5a3af191692666f6ce72143b93601598b
+  agents/worker.md: 2b4cc9b1c2015a059347ef64071c21fb9da5aac0c058a5155540352f556481ad
+  skills/astra-ticket/SKILL.md: 469af4851b4ef05f25fb2f4f26d74513400340debf6b8eccdbfd454d95a6e13b
   skills/audits/CRITERIA.md: cf7110b4c7de828b5b9137c6f189fc68cecb5beab13d74be22c2b301100c7841
   skills/audits/metadata/codex.yaml: 4c543c8345d9744cce5bf33b02c6f541fed473f227c1f376defd1c17eaa54f2c
   skills/audits/SKILL.md: 4546afbc16125d03d6bab35f8889f486ba50d6bf059a7d747fb9680f8e282b4b
@@ -101,11 +101,16 @@ checksums:
   skills/html-explainer/SKILL.md: 6b8b68e42d69f3cff775b3a7b34b55c3608d26565e22161a78099d4c4c4745d8
   skills/implement/SKILL.md: a4138c79fb165a86ef3fe754806439814e23ea94e9507da2bd3c7d072e319852
   skills/implementation-reviewer/SKILL.md: 750d9f921e74615a64d0e55ddcaf7d3f44d180100a3ee3f268866e3feb0bfad4
-  skills/implementer/SKILL.md: d1a631887115fb34b980a2aaaa36304947c833e67b4fe355aa2dd1545249be6f
+  skills/implementer/SKILL.md: 34e58c15439b21509a391ebd3926c65f1cf4cb24b5883ae23073e756ce5ae60a
   skills/investigate/SKILL.md: b0199e594f142eaf17a44c193de78e04463212d7b2cdc9a858796d0d51d1e5e6
   skills/plan-reviewer/SKILL.md: 157d2b8c19ed80ef4755698d718849118c69181fc6c656c3f3836548aabeff10
   skills/pr-test-automation/metadata/codex.yaml: 77406b135582b47bee2701089371eb3cb574936fba1c2975d6ee0b8bc14c5dd7
-  skills/pr-test-automation/SKILL.md: a6a96fc203f07b3d78096e1c74e2abdf65e74ed052a3094dfcb29de2894d9797
+  skills/pr-test-automation/references/cross-os-workspaces.md: 21dfce0f2a2d529110638e842cd7f0c58a6be78057009645db4d91845b682276
+  skills/pr-test-automation/SKILL.md: 8c5532c4f8ce358aad8cf9ad1c42ef3f7f98c3bda8b9ff1418f2cbdce8348de7
+  skills/pr-understanding-check/metadata/codex.yaml: 5a8ee4946dce63da189414e4aec7a1e5eea79ae59b848c540da4bf7f52d270a0
+  skills/pr-understanding-check/references/iceberg-template.html: 8e35a661ef59cabe51345bf9301c581a6e5193e69357dd957f45a1a47d2acef6
+  skills/pr-understanding-check/references/worked-example.md: 8242044eff317f213ad304d1a472c2e0c00b4de032c905cd074111895ab3f8ca
+  skills/pr-understanding-check/SKILL.md: 20d9c1e612151138a39e47bede46947eacc147bb7b3ed162de46c3c632f18712
   skills/prepare-pr/assets/pr-walkthrough.html: d3028a699a3d3db47b1fd715042ce383a133dd10ce1bbfec5a6c1580f26e139a
   skills/prepare-pr/references/writing-guide.md: 16b34fde6e45c9a3f163efe5e31dcb1cbedd31bbdde9823977fe84d9a62013f3
   skills/prepare-pr/SKILL.md: 0a1625816f4bc10a09fee7bb1d432163e708a3a3ed71d7d6b8cbc28c2f609a39
@@ -113,7 +118,7 @@ checksums:
   skills/product-compare/metadata/codex.yaml: 0495b94cd57246a5676d1ae10712341587d96e85a12b985403f7424afa8349ae
   skills/product-compare/SKILL.md: 484ffd10d695baf8af0b8462e4afb999b9cae42e9aac38563265330abe64c34f
   skills/quick-verify/metadata/codex.yaml: f6786d928d9220b0b05c85352c44daa631b1c72b1709438251b3c3d23d4a37e8
-  skills/quick-verify/SKILL.md: 50f2ce07961b276e2f81afb6b4a9ce870d5926700e668fa9ff8f17816dec6fbd
+  skills/quick-verify/SKILL.md: f1a6912e6188654d456f50018a5b99ce0afbd8000bcbec895621ff62696b645a
   skills/refactor/references/specialist-review.md: 49b816712457891ef1b8a6da15abe759ffa8646692dc68bd0060292e623e5bab
   skills/refactor/SKILL.md: 0048f960400ac6053ebd948c138f32a5c9ca5a5242e70fec34d91fa5b322a47f
   skills/refactor-apply/SKILL.md: 069b1acacaad9c1b6ea873ff6eb7de20fd571048bdbd08c44b0cbe408ec844bd
