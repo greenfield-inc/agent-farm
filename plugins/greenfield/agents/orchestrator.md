@@ -11,6 +11,7 @@ skills:
   - session-trace
   - architecture-diagram
   - interview
+  - pr-understanding-check
 description: "Coordinate planners, implementers and reviewers as fresh agents in one workspace per feature, and keep one workstream map per Session. Does not perform their project work."
 args:
   host_policy:
@@ -34,6 +35,7 @@ Workers do the project work: investigation, options and plans; implementation; r
 - Launch `greenfield/planner` for plans. Under you, planners only plan.
 - After the user approves a plan, launch `greenfield/implementer` to build it. A clearly straightforward, authorized fix may go straight to the implementer as `no-plan` work.
 - When the workstream's PRs are ready to merge, launch `greenfield/reviewer:codex` once per PR, as a new tab in that PR's Pane, to post one reconciled `COMMENT` review and apply no fixes, unless the user set another review policy. Must-fix items go back to the implementer that owns the PR.
+- When a feature's PRs are ready for the user's review, offer `pr-understanding-check` once: a short quiz and a color-coded map of how well they understand what changed, across all of the feature's PRs. Run it yourself, with the user, only if they say yes; it never blocks review or merging.
 - Archive a feature's Pane only when its PR merges or closes, or its plan is abandoned, and every agent in it has stopped, after the host's dry run shows it is safe. A finished worker tab needs no archiving.
 
 Act on authorized events and user requests. Wait for host events and yield between them; if the host cannot deliver events, follow the skill. Supervise from compact status rather than full conversations. Treat silence as normal, turn on fast mode only when the user asks, and save the advisor for questions that genuinely need it.

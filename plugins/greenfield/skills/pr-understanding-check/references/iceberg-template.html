@@ -1,0 +1,577 @@
+<!doctype html>
+<!--
+PR understanding check: interactive iceberg.
+Replace only the JSON inside <script id="understanding-check-data">. The page builds
+everything from it and inserts every value as text, so write plain text, not HTML.
+Inside the JSON, write every "<" as \u003c so the script block cannot end early.
+`backticks` in any text become inline code. The schema is in SKILL.md step 5.
+The sample data is the worked example (worked-example.md); replace all of it and
+drop "sample": true.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light dark">
+<title>PR understanding check</title>
+<script>
+(function(){var r=document.documentElement;function set(m){if(m&&typeof m==="object")m=m.mode||m.theme;m=m==="dark"?"dark":"light";r.classList.remove("dark","light");r.classList.add(m)}
+var q=new URLSearchParams(location.search).get("mode");
+set(q==="dark"||q==="light"?q:(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"));
+window.__setTheme=set;})();
+</script>
+<style>
+:root {
+  --paper: #FAF8F5; --ink: #1F2328; --ink-soft: #5A5F66;
+  --line: #E4DFD7; --panel: #FFFFFF;
+  --accent: #0E7569; --accent-soft: #E3F0EE;
+  --warn: #B45309; --warn-soft: #F7EBDD;
+  --bad: #9F3A38; --bad-soft: #F6E8E7;
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  --serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --good: #2E7D32; --good-soft: #E6F2E6;
+  --partial: #9A7B00; --partial-soft: #FFF4C2;
+  --none: #7A8088; --none-soft: #F0EEEA;
+  --sky: #F1F5F7; --sea: #DDE9EF; --water: #6E9FB5;
+}
+html.dark {
+  --paper: #15191D; --ink: #E8E6E1; --ink-soft: #9BA1A8;
+  --line: #2C3237; --panel: #1C2126;
+  --accent: #2FA79A; --accent-soft: #16302D;
+  --warn: #D98E3D; --warn-soft: #32271A;
+  --bad: #CF6F6C; --bad-soft: #33211F;
+  --good: #5FBF6A; --good-soft: #1A2E1C;
+  --partial: #E3B341; --partial-soft: #332B12;
+  --none: #8D939A; --none-soft: #23282D;
+  --sky: #182026; --sea: #14262F; --water: #4F8EAE;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --paper: #15191D; --ink: #E8E6E1; --ink-soft: #9BA1A8;
+    --line: #2C3237; --panel: #1C2126;
+    --accent: #2FA79A; --accent-soft: #16302D;
+    --warn: #D98E3D; --warn-soft: #32271A;
+    --bad: #CF6F6C; --bad-soft: #33211F;
+    --good: #5FBF6A; --good-soft: #1A2E1C;
+    --partial: #E3B341; --partial-soft: #332B12;
+    --none: #8D939A; --none-soft: #23282D;
+    --sky: #182026; --sea: #14262F; --water: #4F8EAE;
+  }
+}
+* { box-sizing: border-box; }
+html, body { background: var(--paper); color: var(--ink); }
+body { margin: 0; font: 16px/1.6 var(--sans); }
+main { max-width: 1240px; margin: 0 auto; padding: 40px 16px 72px; }
+a { color: var(--accent); }
+h1 { font: 500 2.1rem/1.2 var(--serif); text-wrap: balance; margin: 8px 0 10px; }
+h2 { font-size: 1.25rem; margin: 2px 0 14px; }
+h3 { font-size: 1rem; margin: 0 0 6px; }
+p { margin: 0 0 12px; }
+code { font: .86em var(--mono); background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; overflow-wrap: anywhere; }
+.eyebrow { font: .72rem var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--accent); margin: 0 0 4px; }
+.standfirst { color: var(--ink-soft); font-size: 1.1rem; max-width: 72ch; }
+.meta { color: var(--ink-soft); font-size: .88rem; }
+section { margin-top: 44px; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 16px 18px; }
+.callout { border-left: 3px solid var(--warn); }
+.badge { display: inline-block; font: .72rem var(--mono); text-transform: uppercase; letter-spacing: .06em; padding: 2px 8px; border-radius: 999px; background: var(--c-soft); color: var(--c); vertical-align: middle; }
+.u-green { --c: var(--good); --c-soft: var(--good-soft); }
+.u-yellow { --c: var(--partial); --c-soft: var(--partial-soft); }
+.u-red { --c: var(--bad); --c-soft: var(--bad-soft); }
+.u-untested, .u-untouched { --c: var(--none); --c-soft: var(--none-soft); }
+
+.legend { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 0; padding: 0; list-style: none; }
+.legend li { display: flex; align-items: center; gap: 8px; font-size: .9rem; }
+.legend .count { font: 600 1.1rem var(--mono); color: var(--c); min-width: 1.5ch; }
+.dot { width: 12px; height: 12px; border-radius: 50%; background: var(--c); flex: none; }
+
+.layout { display: grid; gap: 24px; margin-top: 28px; }
+@media (min-width: 1000px) { .layout { grid-template-columns: minmax(0, 1fr) 420px; align-items: start; } #detail { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow: auto; } }
+
+.berg { position: relative; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.sky { background: var(--sky); padding: 18px 16px 30px; }
+.sea { background: var(--sea); padding: 30px 16px 20px; border-top: 2px dashed var(--water); }
+.zone-label { font: .72rem var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 12px; text-align: center; position: relative; z-index: 1; }
+.row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; position: relative; z-index: 1; }
+svg.edges { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 0; }
+svg.edges path { fill: none; stroke: var(--water); stroke-width: 1.5; opacity: .55; }
+svg.edges path.hot { stroke: var(--ink); opacity: 1; stroke-width: 2.2; }
+
+.node { display: flex; align-items: center; gap: 8px; max-width: 230px; padding: 8px 12px; border: 1.5px solid var(--c); background: var(--c-soft); color: var(--ink); border-radius: 8px; font: 14px/1.3 var(--sans); text-align: left; cursor: pointer; transition: opacity .15s; }
+.node::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--c); flex: none; }
+.node.u-untested, .node.u-untouched { border-style: dashed; }
+.node:hover { border-width: 2.5px; padding: 7px 11px; }
+.node:focus-visible, .node[aria-pressed="true"] { outline: 3px solid var(--ink); outline-offset: 2px; }
+.node.dim { color: var(--ink-soft); border-color: var(--line); }
+.node.dim::before { opacity: .35; }
+.node .tag { font: .65rem var(--mono); text-transform: uppercase; color: var(--ink-soft); margin-left: 4px; }
+.strip { margin-top: 18px; }
+.strip .row { justify-content: flex-start; }
+
+#detail .empty { color: var(--ink-soft); }
+#detail h2 { font: 500 1.5rem/1.25 var(--serif); margin: 6px 0 8px; }
+#detail .part { margin-top: 22px; }
+#detail .part > .eyebrow { margin-bottom: 8px; }
+.why-color { font-size: .92rem; color: var(--ink-soft); }
+ol.flow { list-style: none; padding: 0; margin: 12px 0 0; counter-reset: step; }
+ol.flow li { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px 8px 38px; margin-bottom: 22px; font-size: .92rem; counter-increment: step; }
+ol.flow li::before { content: counter(step); position: absolute; left: 10px; top: 8px; font: .8rem var(--mono); color: var(--accent); }
+ol.flow li:not(:last-child)::after { content: ""; position: absolute; left: 50%; bottom: -19px; width: 0; height: 0; border: 7px solid transparent; border-top: 9px solid var(--water); transform: translateX(-50%); }
+ol.flow li code.ref { display: block; width: fit-content; margin-top: 4px; }
+.mini { width: 100%; height: auto; display: block; }
+.mini rect { stroke-width: 1.5; rx: 6; fill: var(--c-soft); stroke: var(--c); }
+.mini text { font: 12px var(--sans); fill: var(--ink); }
+.mini line { stroke: var(--water); stroke-width: 1.5; }
+.mini .cap { font: 10px var(--mono); fill: var(--ink-soft); letter-spacing: .08em; }
+ul.where, ul.watch { padding-left: 18px; margin: 0; }
+ul.where li, ul.watch li { margin-bottom: 6px; }
+.trade { margin-bottom: 10px; }
+.trade dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 0; font-size: .92rem; }
+.trade dt { font: .72rem var(--mono); text-transform: uppercase; color: var(--ink-soft); padding-top: 3px; }
+.trade dd { margin: 0; }
+.qa { margin-bottom: 10px; font-size: .94rem; }
+.qa .q { font-weight: 600; }
+.qa .small { color: var(--ink-soft); font-size: .88rem; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips .node { font-size: 13px; padding: 5px 10px; }
+
+details.panel { margin-bottom: 10px; }
+details.panel > summary { cursor: pointer; font-weight: 600; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; background: var(--panel); font-size: .92rem; }
+th, td { padding: 9px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+th { font: .72rem var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); }
+tr:last-child td { border-bottom: 0; }
+ul.checks { list-style: none; padding: 0; }
+ul.checks li { padding-left: 26px; position: relative; margin-bottom: 6px; }
+ul.checks li::before { content: ""; position: absolute; left: 0; top: 4px; width: 14px; height: 14px; border: 1.5px solid var(--ink-soft); border-radius: 3px; }
+</style>
+</head>
+<body>
+<main id="app">
+<noscript><p class="panel callout">This page draws its map with JavaScript. Turn JavaScript on to see it.</p></noscript>
+</main>
+
+<script type="application/json" id="understanding-check-data">
+{
+  "sample": true,
+  "pr": {
+    "title": "@mentions in staff conversations",
+    "url": "https://github.com/example-org/example-app/pull/1",
+    "repo": "example-org/example-app",
+    "number": 1,
+    "base": "main",
+    "head": "abc1234",
+    "date": "2026-10-01",
+    "person": "the PR author"
+  },
+  "summary": "The chat app already has per-user and per-chat notification settings; mentions adds a few nullable columns to them and a second push path for mention alerts.",
+  "items": [
+    {
+      "id": "picker", "kind": "new", "label": "The @ picker in the composer", "understanding": "green",
+      "colorWhy": "Not asked directly, but the person described the data source correctly while answering about old clients.",
+      "plain": ["When you type @ in a message, a little list pops up with the people you can tag, like picking a friend's name from your phone's contacts while texting."],
+      "codebase": ["The picker reads the chat's participants and team rosters that the app has already loaded. It makes no new request to the server."],
+      "where": [{"ref": "app/composer/MentionPicker.tsx:12", "note": "filters the loaded participants as you type"}],
+      "flow": [
+        {"step": "Person types @ in the composer"},
+        {"step": "Picker filters participants and team rosters already in memory", "ref": "app/composer/MentionPicker.tsx:12"},
+        {"step": "Chosen person is inserted as readable `@Name` text, and their ID is kept beside it", "ref": "app/composer/insertMention.ts:8"}
+      ],
+      "tradeoffs": [{"chose": "Use rosters already in the client", "over": "A new search endpoint", "gain": "No new query and no new load on the server", "cost": "Only people already loaded can be picked", "who": "Staff in very large teams may not see everyone"}],
+      "watch": ["Large teams: check the roster really is fully loaded before the picker opens."]
+    },
+    {
+      "id": "alerts", "kind": "new", "label": "Mention alerts, a second push path", "ownPattern": true, "understanding": "red",
+      "colorWhy": "Answered that muting a chat stops mention alerts. It does not, and after the correction the person was still unsure which settings win.",
+      "plain": [
+        "Normally, when someone sends a message, everyone in the chat gets a buzz on their phone. If you mute a chat, the buzzing stops.",
+        "Mention alerts are a second, separate doorbell. When someone tags you by name, this doorbell rings even if you muted the chat, because the sender is asking for you specifically. Only your phone-wide quiet setting or the two mention switches can silence it."
+      ],
+      "codebase": [
+        "This is a new path beside ordinary message pushes, so it has no existing pattern below it. It checks global mute-until and the two global toggles, and ignores the per-chat level on purpose."
+      ],
+      "where": [
+        {"ref": "server/push/mentionAlerts.ts:40", "note": "decides who gets a mention alert"},
+        {"ref": "server/push/sendMessagePush.ts:88", "note": "the ordinary push path it sits beside"}
+      ],
+      "flow": [
+        {"step": "Message saved with its `mentions` list", "ref": "server/messages/save.ts:51"},
+        {"step": "Ordinary push goes to members who have not muted the chat", "ref": "server/push/sendMessagePush.ts:88"},
+        {"step": "Mention alert goes to each mentioned person unless global mute-until or a mention toggle is on", "ref": "server/push/mentionAlerts.ts:40"}
+      ],
+      "tradeoffs": [{"chose": "Mention alerts cross chat mutes", "over": "Chat mutes block mentions too", "gain": "People who muted busy chats still hear when someone needs them", "cost": "A muted chat can still notify you, which can surprise people", "who": "Admins with muted chats. Size it: count admins with at least one muted chat."}],
+      "watch": ["A person mentioned twice in one message should get one alert, not two.", "Support may hear \"I muted this chat and it still buzzed.\" The release notes should say why."]
+    },
+    {
+      "id": "toggles", "kind": "new", "label": "Two global toggles: mute team mentions, mute all mentions", "understanding": "untested",
+      "colorWhy": "Not asked in the check.",
+      "plain": ["Two switches in your settings: one stops alerts when someone tags your whole team, the other stops every mention alert."],
+      "codebase": ["Stored as `users.mute_team_mentions` and `users.mute_all_mentions` on the existing user settings row."],
+      "where": [{"ref": "server/db/migrations/0142_mentions.sql:3"}]
+    },
+    {
+      "id": "level", "kind": "new", "label": "A per-chat level: all, mentions, or nothing", "understanding": "yellow",
+      "colorWhy": "First answered \"per user\", then explained it back correctly after the correction.",
+      "plain": ["Each chat gets its own volume knob: tell me about every message, only when I'm tagged, or nothing. Your knob for one chat does not change any other chat."],
+      "codebase": ["Stored as `chat_member_settings.mention_level`, one value per person per chat, on the per-chat metadata that already holds read state. Review found every member was sent everyone's level; now only your own entry carries it."],
+      "where": [{"ref": "server/db/migrations/0142_mentions.sql:9"}, {"ref": "server/chats/serializeMetadata.ts:30", "note": "sends only your own level"}],
+      "tradeoffs": [{"chose": "Level controls ordinary messages only", "over": "Level also gates mention alerts", "gain": "Mentions always reach you unless you turn them off globally", "cost": "\"Nothing\" does not mean silent", "who": "Anyone who sets a chat to Nothing"}],
+      "watch": ["The settings screen label for Nothing should say mentions still come through."]
+    },
+    {
+      "id": "stored", "kind": "new", "label": "Who was mentioned, stored with each message", "understanding": "green",
+      "colorWhy": "Answered the old-clients question right without help.",
+      "plain": ["Each message keeps a hidden list of who was tagged, next to the normal words everyone can read."],
+      "codebase": ["`messages.mentions` is a JSON list of user IDs stored beside the readable `@Name` text, so old app builds still show readable text."],
+      "where": [{"ref": "server/db/migrations/0142_mentions.sql:15"}]
+    },
+    {
+      "id": "badge", "kind": "new", "label": "An inbox @N badge for unread mentions", "understanding": "untested",
+      "colorWhy": "Not asked in the check. It was added after the plan.",
+      "plain": ["A small number on each chat in your inbox that counts how many times you were tagged since you last looked."],
+      "codebase": ["Counted when the inbox loads, from messages after your existing seen time, through the existing message index, capped at the latest 100 per chat. Nothing is stored."],
+      "where": [{"ref": "server/inbox/countMentions.ts:20"}],
+      "tradeoffs": [{"chose": "Compute the badge on read", "over": "Store an `unread_mentions` column", "gain": "No schema change and no extra write per message", "cost": "One bounded indexed read per inbox load and chat update", "who": "Server load at peak inbox opens"}]
+    },
+    {"id": "usersettings", "kind": "existing", "label": "Per-user notification settings", "understanding": "untested", "plain": ["Your phone-wide notification choices, like quiet until 8am."], "codebase": ["The `users` row: global mute-until and other user-wide choices."]},
+    {"id": "chatmeta", "kind": "existing", "label": "Per-chat notification metadata", "understanding": "yellow", "colorWhy": "Came up in the per-chat level question.", "plain": ["A small note the app keeps for you in each chat: what you've read and how loud the chat should be."], "codebase": ["`chat_member_settings`, sent with every chat update."]},
+    {"id": "rosters", "kind": "existing", "label": "Chat participants and team rosters", "understanding": "green", "plain": ["The list of who is in each chat and each team, already on your phone."], "codebase": ["Loaded with the chat list; no new query."]},
+    {"id": "push", "kind": "existing", "label": "Message text and push delivery", "understanding": "untested", "plain": ["The words of every message and the system that buzzes phones."], "codebase": ["Every message's readable text and its ordinary push."]},
+    {"id": "index", "kind": "existing", "label": "Message index by chat and send time", "understanding": "untested", "plain": ["A sorted shelf of messages by chat and time, so finding recent ones is fast."], "codebase": ["`(chat_id, sent_at DESC)`"]},
+
+    {"id": "d-cross", "kind": "decision", "label": "Mention alerts cross chat mutes", "understanding": "red", "about": ["alerts", "level"], "colorWhy": "Same gap as mention alerts: the person expected chat mutes to win.", "tradeoffs": [{"chose": "Mentions cross chat mutes", "over": "Chat mutes block mentions", "gain": "People who muted busy chats still hear when needed", "cost": "A muted chat can still notify you", "who": "Admins with muted chats"}]},
+    {"id": "d-text", "kind": "decision", "label": "Keep @Name text, store picks separately", "understanding": "green", "about": ["stored"], "tradeoffs": [{"chose": "Readable text plus a separate `mentions` field", "over": "User IDs inside the text", "gain": "Old clients show plain text", "cost": "One more column", "who": "People on older app builds"}]},
+    {"id": "d-badge", "kind": "decision", "label": "Compute the @N badge on read", "understanding": "untested", "about": ["badge", "index"], "tradeoffs": [{"chose": "Count on read", "over": "Store a counter", "gain": "No schema, no write per mention", "cost": "A read per inbox load", "who": "Server load at peak"}]},
+
+    {"id": "h-data", "kind": "hotspot", "label": "Data source", "understanding": "green", "about": ["picker", "rosters"], "plain": ["The picker reads rosters the client already has. Review trimmed the per-chat view so only your own mention level is sent."]},
+    {"id": "h-hier", "kind": "hotspot", "label": "Hierarchy", "understanding": "red", "about": ["alerts", "level", "toggles", "usersettings"], "plain": ["The per-chat level controls ordinary messages only. Mention alerts stop only for global mute-until and the two toggles."]},
+    {"id": "h-deploy", "kind": "hotspot", "label": "Deploy and old clients", "understanding": "green", "about": ["stored"], "plain": ["Old builds show `@Name` as plain text and ignore the `mentions` field."]},
+    {"id": "h-schema", "kind": "hotspot", "label": "Schema and data", "understanding": "yellow", "colorWhy": "Not asked directly; takes the worst color of what it touches, the per-chat level.", "about": ["toggles", "level", "stored"], "plain": ["Four nullable columns on three tables, all additive; no backfill."]},
+    {"id": "h-infra", "kind": "hotspot", "label": "Infra", "understanding": "untouched", "plain": ["Not touched."]},
+    {"id": "h-after", "kind": "hotspot", "label": "Added after the plan", "understanding": "untested", "about": ["badge"], "plain": ["The inbox @N badge, asked for in the pair review. It adds no schema."]}
+  ],
+  "edges": [
+    {"from": "picker", "to": "rosters"},
+    {"from": "alerts", "to": "push"},
+    {"from": "alerts", "to": "usersettings"},
+    {"from": "toggles", "to": "usersettings"},
+    {"from": "level", "to": "chatmeta"},
+    {"from": "stored", "to": "push"},
+    {"from": "badge", "to": "index"},
+    {"from": "badge", "to": "chatmeta"}
+  ],
+  "quiz": [
+    {"q": "Is the mention level per user or per chat?", "why": "It decides where people find the setting and which rows the migration touches.", "answer": "Per user.", "verdict": "wrong", "correction": "Per chat, in `chat_member_settings.mention_level`. The per-user controls are the two global toggles.", "explainedBack": "Each chat has its own level; the global switches live on the user.", "about": ["level", "chatmeta"]},
+    {"q": "Does setting a chat to \"Nothing\" stop mention alerts?", "why": "People who think they muted a chat will still get mention alerts, and support will hear about it.", "answer": "Yes.", "verdict": "wrong", "correction": "\"Nothing\" stops ordinary messages only. Mention alerts cross chat mutes; only global mute-until and the two toggles stop them.", "explainedBack": "Not sure which one wins when both are set.", "about": ["alerts", "d-cross", "h-hier"]},
+    {"q": "What do old app builds show for a mention?", "why": "People on older builds must see readable text, not raw IDs.", "answer": "Plain `@Name` text.", "verdict": "right", "about": ["stored", "h-deploy", "d-text"]}
+  ],
+  "simplify": [
+    {"opportunity": "Team-level mention settings", "simpler": "Global toggles plus the per-chat level", "status": "Done: cut during simplification"}
+  ],
+  "actions": [
+    "Count admins with at least one muted chat, and decide whether the release notes need to explain mention alerts.",
+    "Review the push path where mention alerts check global mute-until and the two toggles."
+  ]
+}
+</script>
+
+<script>
+(function () {
+  var app = document.getElementById("app"), data;
+  try { data = JSON.parse(document.getElementById("understanding-check-data").textContent); }
+  catch (err) {
+    var msg = document.createElement("p"); msg.className = "panel callout";
+    msg.textContent = "The map cannot be drawn: the data block is not valid JSON (" + err.message + "). Inside strings, every < must be written as \\u003c.";
+    app.appendChild(msg); return;
+  }
+  var items = data.items || [], edges = data.edges || [], quiz = data.quiz || [];
+  var byId = Object.create(null); items.forEach(function (it) { byId[it.id] = it; });
+  var COLORS = {
+    green: ["Well understood", "Answered right without help."],
+    yellow: ["Partly understood", "Partly right, or explained it back correctly after a correction."],
+    red: ["Still ambiguous", "Wrong or unsure even after the correction, or the code itself leaves it unclear."],
+    untested: ["Not asked", "The check did not cover it."]
+  };
+  var KINDS = { "new": "New in this PR", existing: "Already in production", decision: "Decision", hotspot: "Hotspot" };
+  items.forEach(function (it) { if (!Object.prototype.hasOwnProperty.call(KINDS, it.kind)) it.kind = "new"; });
+  var nodeEls = Object.create(null), selected = null;
+
+  function el(tag, attrs) {
+    var e = document.createElement(tag);
+    if (attrs) for (var k in attrs) {
+      if (k === "class") e.className = attrs[k];
+      else if (k === "text") rich(e, attrs[k]);
+      else e.setAttribute(k, attrs[k]);
+    }
+    for (var i = 2; i < arguments.length; i++) { var c = arguments[i]; if (c != null) e.appendChild(typeof c === "string" ? document.createTextNode(c) : c); }
+    return e;
+  }
+  function rich(parent, text) {
+    String(text == null ? "" : text).split("`").forEach(function (part, i) {
+      parent.appendChild(i % 2 ? el("code", null, part) : document.createTextNode(part));
+    });
+    return parent;
+  }
+  function safeUrl(u) { return /^https?:\/\//i.test(u || "") ? u : null; }
+  function u(it) { return it.understanding && (COLORS[it.understanding] || it.understanding === "untouched") ? it.understanding : "untested"; }
+  function colorName(it) { return u(it) === "untouched" ? "Not touched" : COLORS[u(it)][0]; }
+  function neighbors(id) {
+    var set = {}; set[id] = true;
+    edges.forEach(function (e) { if (e.from === id) set[e.to] = true; if (e.to === id) set[e.from] = true; });
+    (byId[id] && byId[id].about || []).forEach(function (a) { set[a] = true; });
+    items.forEach(function (it) { if ((it.about || []).indexOf(id) >= 0) set[it.id] = true; });
+    return set;
+  }
+
+  // Masthead
+  var pr = data.pr || {};
+  document.title = (pr.title || "Pull request") + ": understanding check";
+  app.appendChild(el("p", { "class": "eyebrow" }, "PR understanding check"));
+  app.appendChild(el("h1", { text: pr.title || "" }));
+  app.appendChild(el("p", { "class": "standfirst", text: data.summary || "" }));
+  var meta = el("p", { "class": "meta" });
+  var prLabel = (pr.repo || "") + "#" + (pr.number || "");
+  meta.appendChild(safeUrl(pr.url) ? el("a", { href: pr.url }, prLabel) : document.createTextNode(prLabel));
+  meta.appendChild(document.createTextNode(" · "));
+  meta.appendChild(el("code", null, (pr.base || "") + "..." + (pr.head || "")));
+  (data.prs || []).forEach(function (x) { meta.appendChild(document.createTextNode(" · ")); meta.appendChild(safeUrl(x.url) ? el("a", { href: x.url }, x.label || x.url) : document.createTextNode(x.label || "")); });
+  meta.appendChild(document.createTextNode(" · " + (pr.date || "") + " · checked with " + (pr.person || "")));
+  app.appendChild(meta);
+  if (data.sample) app.appendChild(el("p", { "class": "panel callout" }, "Sample data from the worked example. File references are illustrative. Replace the JSON with the real check."));
+
+  // Legend with counts
+  var counts = { green: 0, yellow: 0, red: 0, untested: 0, untouched: 0 };
+  items.forEach(function (it) { counts[u(it)]++; });
+  var legend = el("ul", { "class": "legend" });
+  ["green", "yellow", "red", "untested", "untouched"].forEach(function (k) {
+    var info = k === "untouched" ? ["Not touched", "A hotspot this PR does not touch."] : COLORS[k];
+    if (k === "untouched" && !counts[k]) return;
+    legend.appendChild(el("li", { "class": "u-" + k, title: info[1] }, el("span", { "class": "count" }, String(counts[k])), el("span", { "class": "dot" }), el("span", null, info[0])));
+  });
+  app.appendChild(legend);
+
+  // Graph and detail
+  var layout = el("div", { "class": "layout" });
+  var left = el("div"), detail = el("aside", { id: "detail", "class": "panel", "aria-live": "polite" });
+  layout.appendChild(left); layout.appendChild(detail); app.appendChild(layout);
+
+  function nodeButton(it) {
+    var b = el("button", { type: "button", "class": "node u-" + u(it), "aria-pressed": "false", title: colorName(it) }, el("span", { text: it.label }));
+    if (it.ownPattern) b.appendChild(el("span", { "class": "tag" }, "own pattern"));
+    b.addEventListener("click", function () { select(selected === it.id ? null : it.id, true); });
+    (nodeEls[it.id] = nodeEls[it.id] || []).push(b);
+    return b;
+  }
+
+  var above = items.filter(function (i) { return i.kind === "new"; });
+  var below = items.filter(function (i) { return i.kind === "existing"; });
+  // Order the sea row under the pieces that build on it, to cut crossings.
+  below.forEach(function (b) {
+    var idx = []; edges.forEach(function (e) { if (e.to === b.id) above.forEach(function (a, i) { if (a.id === e.from) idx.push(i); }); });
+    b._rank = idx.length ? idx.reduce(function (s, x) { return s + x; }, 0) / idx.length : above.length;
+  });
+  below.sort(function (a, b) { return a._rank - b._rank; });
+
+  var berg = el("div", { "class": "berg" });
+  var svgNS = "http://www.w3.org/2000/svg";
+  var svg = document.createElementNS(svgNS, "svg"); svg.setAttribute("class", "edges"); svg.setAttribute("aria-hidden", "true");
+  var sky = el("div", { "class": "sky" }, el("p", { "class": "zone-label" }, "Above water: new in this PR"));
+  var skyRow = el("div", { "class": "row" }); above.forEach(function (it) { skyRow.appendChild(nodeButton(it)); }); sky.appendChild(skyRow);
+  var sea = el("div", { "class": "sea" });
+  var seaRow = el("div", { "class": "row" }); below.forEach(function (it) { seaRow.appendChild(nodeButton(it)); }); sea.appendChild(seaRow);
+  sea.appendChild(el("p", { "class": "zone-label", style: "margin:12px 0 0" }, "Below water: already in production"));
+  berg.appendChild(svg); berg.appendChild(sky); berg.appendChild(sea);
+  left.appendChild(el("p", { "class": "eyebrow" }, "The iceberg"));
+  left.appendChild(el("h2", null, "Click any piece to open its explanation"));
+  left.appendChild(berg);
+
+  [["decision", "Decisions"], ["hotspot", "Hotspots"]].forEach(function (pair) {
+    var list = items.filter(function (i) { return i.kind === pair[0]; });
+    if (!list.length) return;
+    var row = el("div", { "class": "row" }); list.forEach(function (it) { row.appendChild(nodeButton(it)); });
+    left.appendChild(el("div", { "class": "strip" }, el("p", { "class": "eyebrow" }, pair[1]), row));
+  });
+
+  var paths = [];
+  function drawEdges() {
+    var box = berg.getBoundingClientRect();
+    svg.setAttribute("width", box.width); svg.setAttribute("height", box.height);
+    svg.setAttribute("viewBox", "0 0 " + box.width + " " + box.height);
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    paths = [];
+    edges.forEach(function (e) {
+      var a = nodeEls[e.from] && nodeEls[e.from][0], b = nodeEls[e.to] && nodeEls[e.to][0];
+      if (!a || !b || !berg.contains(a) || !berg.contains(b)) return;
+      var ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+      var x1 = ra.left + ra.width / 2 - box.left, y1 = ra.bottom - box.top;
+      var x2 = rb.left + rb.width / 2 - box.left, y2 = rb.top - box.top;
+      var my = (y1 + y2) / 2;
+      var p = document.createElementNS(svgNS, "path");
+      p.setAttribute("d", "M" + x1 + "," + y1 + " C" + x1 + "," + my + " " + x2 + "," + my + " " + x2 + "," + y2);
+      p._e = e; svg.appendChild(p); paths.push(p);
+    });
+    highlight();
+  }
+  function highlight() {
+    var near = selected ? neighbors(selected) : null;
+    Object.keys(nodeEls).forEach(function (id) {
+      nodeEls[id].forEach(function (b) {
+        b.setAttribute("aria-pressed", String(id === selected));
+        b.classList.toggle("dim", !!near && !near[id] && b.closest(".chips") == null);
+      });
+    });
+    paths.forEach(function (p) { p.classList.toggle("hot", !!selected && (p._e.from === selected || p._e.to === selected)); });
+  }
+
+  // Detail panel
+  function part(title, body) { return body ? el("div", { "class": "part" }, el("p", { "class": "eyebrow" }, title), body) : null; }
+  function paras(list) { if (!list || !list.length) return null; var d = el("div"); [].concat(list).forEach(function (t) { d.appendChild(el("p", { text: t })); }); return d; }
+  function mini(it) {
+    var ups = [], downs = [];
+    var touches = it.kind === "decision" || it.kind === "hotspot";
+    if (touches) (it.about || []).forEach(function (a) { if (byId[a]) downs.push(byId[a]); });
+    else edges.forEach(function (e) { if (e.to === it.id && byId[e.from]) ups.push(byId[e.from]); if (e.from === it.id && byId[e.to]) downs.push(byId[e.to]); });
+    if (!ups.length && !downs.length) return null;
+    var W = 170, H = 44, G = 14, VG = 34, width = 2 * W + G + 20;
+    function chunk(list) { var out = []; for (var k = 0; k < list.length; k += 2) out.push(list.slice(k, k + 2)); return out; }
+    var rows = chunk(ups).concat([[it]], chunk(downs));
+    var height = rows.length * H + (rows.length - 1) * VG + 40;
+    var s = document.createElementNS(svgNS, "svg"); s.setAttribute("viewBox", "0 0 " + width + " " + height); s.setAttribute("class", "mini"); s.setAttribute("role", "img"); s.style.maxWidth = width + "px";
+    s.setAttribute("aria-label", it.label + " and what it connects to");
+    var boxes = [];
+    rows.forEach(function (row, r) {
+      var y = 20 + r * (H + VG), total = row.length * (W + G) - G, x0 = (width - total) / 2;
+      row.forEach(function (n, i) {
+        var x = x0 + i * (W + G), g = document.createElementNS(svgNS, "g");
+        var rect = document.createElementNS(svgNS, "rect");
+        rect.setAttribute("x", x); rect.setAttribute("y", y); rect.setAttribute("width", W); rect.setAttribute("height", H);
+        rect.setAttribute("class", "u-" + u(n));
+        if (n === it) rect.setAttribute("stroke-width", "3");
+        var t = document.createElementNS(svgNS, "text"); t.setAttribute("text-anchor", "middle");
+        var lines = wrap(n.label, 24);
+        lines.forEach(function (ln, li) { var ts = document.createElementNS(svgNS, "tspan"); ts.setAttribute("x", x + W / 2); ts.setAttribute("y", y + H / 2 + 4 + (li - (lines.length - 1) / 2) * 15); ts.textContent = ln; t.appendChild(ts); });
+        var tt = document.createElementNS(svgNS, "title"); tt.textContent = n.label;
+        g.appendChild(rect); g.appendChild(t); g.appendChild(tt); s.appendChild(g);
+        boxes.push({ n: n, x: x + W / 2, top: y, bottom: y + H });
+      });
+    });
+    var c = boxes.filter(function (b) { return b.n === it; })[0];
+    boxes.forEach(function (b) {
+      if (ups.indexOf(b.n) >= 0) line(b.x, b.bottom, c.x, c.top);
+      else if (downs.indexOf(b.n) >= 0) line(c.x, c.bottom, b.x, b.top);
+    });
+    function line(x1, y1, x2, y2) { var l = document.createElementNS(svgNS, "line"); l.setAttribute("x1", x1); l.setAttribute("y1", y1); l.setAttribute("x2", x2); l.setAttribute("y2", y2); s.insertBefore(l, s.firstChild); }
+    var cap = document.createElementNS(svgNS, "text"); cap.setAttribute("x", 6); cap.setAttribute("y", 12); cap.setAttribute("class", "cap");
+    cap.textContent = touches ? "BELOW: WHAT IT TOUCHES" : ups.length ? "ABOVE: WHAT BUILDS ON IT" : "BELOW: WHAT IT BUILDS ON"; s.appendChild(cap);
+    return s;
+  }
+  function wrap(text, max) {
+    var lines = [""];
+    String(text).split(/\s+/).forEach(function (w) {
+      var cur = lines[lines.length - 1];
+      if (!cur) lines[lines.length - 1] = w;
+      else if ((cur + " " + w).length <= max) lines[lines.length - 1] = cur + " " + w;
+      else lines.push(w);
+    });
+    if (lines.length > 2) { lines = lines.slice(0, 2); lines[1] = lines[1].slice(0, max - 1) + "…"; }
+    return lines.map(function (l) { return l.length > max ? l.slice(0, max - 1) + "…" : l; });
+  }
+  function add(node) { if (node) detail.appendChild(node); }
+  function render(it) {
+    while (detail.firstChild) detail.removeChild(detail.firstChild);
+    if (!it) {
+      detail.appendChild(el("p", { "class": "eyebrow" }, "Deep dive"));
+      detail.appendChild(el("p", { "class": "empty" }, "Pick a piece on the iceberg, a decision, or a hotspot. Red and yellow first: those are what is still unclear."));
+      var todo = items.filter(function (i) { return u(i) === "red"; }).concat(items.filter(function (i) { return u(i) === "yellow"; }));
+      if (todo.length) { var ch = el("div", { "class": "chips" }); todo.forEach(function (i) { ch.appendChild(nodeButton(i)); }); detail.appendChild(ch); }
+      return;
+    }
+    detail.appendChild(el("p", { "class": "eyebrow" }, KINDS[it.kind] || it.kind));
+    detail.appendChild(el("h2", { text: it.label }));
+    detail.appendChild(el("p", null, el("span", { "class": "badge u-" + u(it) }, colorName(it)), it.ownPattern ? el("span", { "class": "badge u-untested", style: "margin-left:6px" }, "Own pattern") : null));
+    if (it.colorWhy) detail.appendChild(el("p", { "class": "why-color", text: it.colorWhy }));
+    add(part("In plain words", paras(it.plain)));
+    var conn = el("div"), m = mini(it); if (m) conn.appendChild(m);
+    if (it.flow && it.flow.length) {
+      var ol = el("ol", { "class": "flow" });
+      it.flow.forEach(function (f) { var li = el("li", { text: f.step }); if (f.ref) li.appendChild(el("code", { "class": "ref" }, f.ref)); ol.appendChild(li); });
+      conn.appendChild(el("p", { "class": "eyebrow", style: "margin-top:14px;color:var(--ink-soft)" }, "The real path, step by step")); conn.appendChild(ol);
+    }
+    add(part("How it connects", conn.childNodes.length ? conn : null));
+    add(part("In this codebase", paras(it.codebase)));
+    if (it.where && it.where.length) {
+      var ul = el("ul", { "class": "where" });
+      it.where.forEach(function (w) {
+        var li = el("li"), url = safeUrl(w.url);
+        li.appendChild(url ? el("a", { href: url }, el("code", null, w.ref)) : el("code", null, w.ref));
+        if (w.note) li.appendChild(document.createTextNode(": " + w.note));
+        ul.appendChild(li);
+      });
+      add(part("Where it lives", ul));
+    }
+    if (it.tradeoffs && it.tradeoffs.length) {
+      var td = el("div");
+      it.tradeoffs.forEach(function (t) {
+        var dl = el("dl");
+        [["Chose", t.chose], ["Over", t.over], ["Gain", t.gain], ["Cost", t.cost], ["Who feels it", t.who]].forEach(function (r) { if (r[1]) { dl.appendChild(el("dt", null, r[0])); dl.appendChild(el("dd", { text: r[1] })); } });
+        td.appendChild(el("div", { "class": "trade panel" }, dl));
+      });
+      add(part("Trade-offs", td));
+    }
+    if (it.watch && it.watch.length) { var wl = el("ul", { "class": "watch" }); it.watch.forEach(function (w) { wl.appendChild(el("li", { text: w })); }); add(part("What to watch", wl)); }
+    var qs = quiz.filter(function (q) { return (q.about || []).indexOf(it.id) >= 0; });
+    if (qs.length) { var qd = el("div"); qs.forEach(function (q) { qd.appendChild(qaBlock(q)); }); add(part("From your check", qd)); }
+    var near = Object.keys(neighbors(it.id)).filter(function (id) { return id !== it.id && byId[id]; });
+    if (near.length) { var ch2 = el("div", { "class": "chips" }); near.forEach(function (id) { ch2.appendChild(nodeButton(byId[id])); }); add(part("Connected", ch2)); }
+  }
+  var VERDICT = { right: ["Right", "green"], partly: ["Partly right", "yellow"], wrong: ["Wrong", "red"], unsure: ["Unsure", "red"] };
+  function qaBlock(q) {
+    var v = VERDICT[q.verdict] || ["", "untested"];
+    var d = el("div", { "class": "qa panel" }, el("p", { "class": "q", text: q.q }), el("p", { "class": "small", text: "Why it matters: " + (q.why || "") }));
+    var a = el("p", { text: "Answer: " + (q.answer || "") }); a.appendChild(document.createTextNode(" ")); a.appendChild(el("span", { "class": "badge u-" + v[1] }, v[0])); d.appendChild(a);
+    if (q.correction) d.appendChild(el("p", { text: "Correct map: " + q.correction }));
+    if (q.explainedBack) d.appendChild(el("p", { "class": "small", text: "Explained back: " + q.explainedBack }));
+    return d;
+  }
+  function select(id, push) {
+    selected = id && byId[id] ? id : null;
+    // Chips in the panel are rebuilt on each render; drop their old buttons.
+    Object.keys(nodeEls).forEach(function (k) { nodeEls[k] = nodeEls[k].filter(function (b) { return !detail.contains(b); }); });
+    render(selected ? byId[selected] : null);
+    highlight();
+    if (push) { try { history.replaceState(null, "", selected ? "#" + encodeURIComponent(selected) : location.pathname + location.search); } catch (e) {} }
+    if (push && selected && window.innerWidth < 1000) detail.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  // Quiz, simplify, and actions below the map
+  if (quiz.length) {
+    var qsec = el("section", null, el("p", { "class": "eyebrow" }, "Quiz"), el("h2", null, "Every question, in the order asked"));
+    quiz.forEach(function (q, i) {
+      var v = VERDICT[q.verdict] || ["", "untested"];
+      var s = el("summary", null, (i + 1) + ". "); rich(s, q.q); s.appendChild(document.createTextNode(" ")); s.appendChild(el("span", { "class": "badge u-" + v[1] }, v[0]));
+      var body = qaBlock(q); body.className = "qa";
+      qsec.appendChild(el("details", { "class": "panel" }, s, body));
+    });
+    app.appendChild(qsec);
+  }
+  if (data.simplify && data.simplify.length) {
+    var tb = el("tbody");
+    data.simplify.forEach(function (r) { tb.appendChild(el("tr", null, el("td", { text: r.opportunity }), el("td", { text: r.simpler }), el("td", { text: r.status }))); });
+    app.appendChild(el("section", null, el("p", { "class": "eyebrow" }, "Simplify"), el("h2", null, "Simpler shapes"),
+      el("div", { "class": "table-wrap" }, el("table", null, el("thead", null, el("tr", null, el("th", null, "Opportunity"), el("th", null, "Simpler shape"), el("th", null, "Status"))), tb))));
+  }
+  if (data.actions && data.actions.length) {
+    var ul2 = el("ul", { "class": "checks" }); data.actions.forEach(function (a) { ul2.appendChild(el("li", { text: a })); });
+    app.appendChild(el("section", null, el("p", { "class": "eyebrow" }, "Before you merge"), el("h2", null, "Action items and places to look"), ul2));
+  }
+
+  function fromHash() { try { return decodeURIComponent((location.hash || "").slice(1)); } catch (e) { return ""; } }
+  window.addEventListener("hashchange", function () { var h = fromHash(); if (h !== selected) select(byId[h] ? h : null, false); });
+  var start = fromHash();
+  select(byId[start] ? start : null, false);
+  drawEdges();
+  if (window.ResizeObserver) new ResizeObserver(drawEdges).observe(berg); else window.addEventListener("resize", drawEdges);
+})();
+</script>
+</body>
+</html>
