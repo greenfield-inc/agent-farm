@@ -58,7 +58,7 @@ Write these after the quiz, so the quiz is not an open book. Every piece, existi
 - **Trade-offs:** what was chosen, what it was chosen over, the gain, the cost, and who feels it, with the number when data can size it.
 - **What to watch:** what could break, and what to check by hand.
 
-Every item needs `plain`, `codebase` and `where`. Add `flow` wherever there is a code path to follow, `tradeoffs` for decisions and for pieces that made one, and `watch` wherever something could break. Go deepest where understanding is weakest: red and yellow items, hotspots the PR touches, and pieces with their own pattern get every section in full. Green and grey items still get every section that applies, in a few sentences each. Simple words never mean vague claims: every step and claim still cites file:line or evidence, and a diagram shows the real path, not a generic sketch.
+Every item needs `plain`, `codebase` and `where`, except a hotspot the PR does not touch, which needs only `plain`. Add `flow` wherever there is a code path to follow, `tradeoffs` for decisions and for pieces that made one, and `watch` wherever something could break. Go deepest where understanding is weakest: red and yellow items, hotspots the PR touches, and pieces with their own pattern get every section in full. Green and grey items still get every section that applies, in a few sentences each. Simple words never mean vague claims: every step and claim still cites file:line or evidence, and a diagram shows the real path, not a generic sketch.
 
 ## 5. Publish the iceberg
 
@@ -66,7 +66,8 @@ Copy [references/iceberg-template.html](references/iceberg-template.html) and re
 
 The JSON holds:
 
-- `pr`: `title`, `url`, `repo` (`owner/name`), `number`, `base`, `head` (the short SHA), `date`, `person`. For a feature across several pull requests, use the feature as `title` and add `prs`, a list of `label` and `url`.
+- `pr`: `title`, `url`, `repo` (`owner/name`), `number`, `base`, `head` (the short SHA), `date`, `person`. For a feature across several pull requests, use the feature as `title`.
+- `prs` (top level, optional): for a feature across several pull requests, a list of `label` and `url` for each.
 - `summary` (top level, not inside `pr`): the one sentence from the foundation.
 - `items`: one per piece, each with `id`, `kind` (`new`, `existing`, `decision` or `hotspot`), `label`, `understanding` (`green`, `yellow`, `red`, `untested` or `untouched`), `colorWhy`, `ownPattern` (true for a new piece with nothing below it), `about` (ids a decision or hotspot concerns), and the deep dive: `plain` and `codebase` (lists of paragraphs), `flow` (`step`, `ref`), `where` (`ref` as `path:line`, `url` as `https://github.com/<repo>/blob/<full head SHA>/<path>#L<line>`, optional `note`), `tradeoffs` (`chose`, `over`, `gain`, `cost`, `who`) and `watch`.
 - `edges`: `from` a new piece `to` the existing system it builds on.

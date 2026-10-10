@@ -167,21 +167,55 @@ ul.checks li::before { content: ""; position: absolute; left: 0; top: 4px; width
   "summary": "The chat app already has per-user and per-chat notification settings; mentions adds a few nullable columns to them and a second push path for mention alerts.",
   "items": [
     {
-      "id": "picker", "kind": "new", "label": "The @ picker in the composer", "understanding": "green",
+      "id": "picker",
+      "kind": "new",
+      "label": "The @ picker in the composer",
+      "understanding": "green",
       "colorWhy": "Not asked directly, but the person described the data source correctly while answering about old clients.",
-      "plain": ["When you type @ in a message, a little list pops up with the people you can tag, like picking a friend's name from your phone's contacts while texting."],
-      "codebase": ["The picker reads the chat's participants and team rosters that the app has already loaded. It makes no new request to the server."],
-      "where": [{"ref": "app/composer/MentionPicker.tsx:12", "note": "filters the loaded participants as you type"}],
-      "flow": [
-        {"step": "Person types @ in the composer"},
-        {"step": "Picker filters participants and team rosters already in memory", "ref": "app/composer/MentionPicker.tsx:12"},
-        {"step": "Chosen person is inserted as readable `@Name` text, and their ID is kept beside it", "ref": "app/composer/insertMention.ts:8"}
+      "plain": [
+        "When you type @ in a message, a little list pops up with the people you can tag, like picking a friend's name from your phone's contacts while texting."
       ],
-      "tradeoffs": [{"chose": "Use rosters already in the client", "over": "A new search endpoint", "gain": "No new query and no new load on the server", "cost": "Only people already loaded can be picked", "who": "Staff in very large teams may not see everyone"}],
-      "watch": ["Large teams: check the roster really is fully loaded before the picker opens."]
+      "codebase": [
+        "The picker reads the chat's participants and team rosters that the app has already loaded. It makes no new request to the server."
+      ],
+      "where": [
+        {
+          "ref": "app/composer/MentionPicker.tsx:12",
+          "note": "filters the loaded participants as you type"
+        }
+      ],
+      "flow": [
+        {
+          "step": "Person types @ in the composer"
+        },
+        {
+          "step": "Picker filters participants and team rosters already in memory",
+          "ref": "app/composer/MentionPicker.tsx:12"
+        },
+        {
+          "step": "Chosen person is inserted as readable `@Name` text, and their ID is kept beside it",
+          "ref": "app/composer/insertMention.ts:8"
+        }
+      ],
+      "tradeoffs": [
+        {
+          "chose": "Use rosters already in the client",
+          "over": "A new search endpoint",
+          "gain": "No new query and no new load on the server",
+          "cost": "Only people already loaded can be picked",
+          "who": "Staff in very large teams may not see everyone"
+        }
+      ],
+      "watch": [
+        "Large teams: check the roster really is fully loaded before the picker opens."
+      ]
     },
     {
-      "id": "alerts", "kind": "new", "label": "Mention alerts, a second push path", "ownPattern": true, "understanding": "red",
+      "id": "alerts",
+      "kind": "new",
+      "label": "Mention alerts, a second push path",
+      "ownPattern": true,
+      "understanding": "red",
       "colorWhy": "Answered that muting a chat stops mention alerts. It does not, and after the correction the person was still unsure which settings win.",
       "plain": [
         "Normally, when someone sends a message, everyone in the chat gets a buzz on their phone. If you mute a chat, the buzzing stops.",
@@ -191,82 +225,525 @@ ul.checks li::before { content: ""; position: absolute; left: 0; top: 4px; width
         "This is a new path beside ordinary message pushes, so it has no existing pattern below it. It checks global mute-until and the two global toggles, and ignores the per-chat level on purpose."
       ],
       "where": [
-        {"ref": "server/push/mentionAlerts.ts:40", "note": "decides who gets a mention alert"},
-        {"ref": "server/push/sendMessagePush.ts:88", "note": "the ordinary push path it sits beside"}
+        {
+          "ref": "server/push/mentionAlerts.ts:40",
+          "note": "decides who gets a mention alert"
+        },
+        {
+          "ref": "server/push/sendMessagePush.ts:88",
+          "note": "the ordinary push path it sits beside"
+        }
       ],
       "flow": [
-        {"step": "Message saved with its `mentions` list", "ref": "server/messages/save.ts:51"},
-        {"step": "Ordinary push goes to members who have not muted the chat", "ref": "server/push/sendMessagePush.ts:88"},
-        {"step": "Mention alert goes to each mentioned person unless global mute-until or a mention toggle is on", "ref": "server/push/mentionAlerts.ts:40"}
+        {
+          "step": "Message saved with its `mentions` list",
+          "ref": "server/messages/save.ts:51"
+        },
+        {
+          "step": "Ordinary push goes to members who have not muted the chat",
+          "ref": "server/push/sendMessagePush.ts:88"
+        },
+        {
+          "step": "Mention alert goes to each mentioned person unless global mute-until or a mention toggle is on",
+          "ref": "server/push/mentionAlerts.ts:40"
+        }
       ],
-      "tradeoffs": [{"chose": "Mention alerts cross chat mutes", "over": "Chat mutes block mentions too", "gain": "People who muted busy chats still hear when someone needs them", "cost": "A muted chat can still notify you, which can surprise people", "who": "Admins with muted chats. Size it: count admins with at least one muted chat."}],
-      "watch": ["A person mentioned twice in one message should get one alert, not two.", "Support may hear \"I muted this chat and it still buzzed.\" The release notes should say why."]
+      "tradeoffs": [
+        {
+          "chose": "Mention alerts cross chat mutes",
+          "over": "Chat mutes block mentions too",
+          "gain": "People who muted busy chats still hear when someone needs them",
+          "cost": "A muted chat can still notify you, which can surprise people",
+          "who": "Admins with muted chats. Size it: count admins with at least one muted chat."
+        }
+      ],
+      "watch": [
+        "A person mentioned twice in one message should get one alert, not two.",
+        "Support may hear \"I muted this chat and it still buzzed.\" The release notes should say why."
+      ]
     },
     {
-      "id": "toggles", "kind": "new", "label": "Two global toggles: mute team mentions, mute all mentions", "understanding": "untested",
+      "id": "toggles",
+      "kind": "new",
+      "label": "Two global toggles: mute team mentions, mute all mentions",
+      "understanding": "untested",
       "colorWhy": "Not asked in the check.",
-      "plain": ["Two switches in your settings: one stops alerts when someone tags your whole team, the other stops every mention alert."],
-      "codebase": ["Stored as `users.mute_team_mentions` and `users.mute_all_mentions` on the existing user settings row."],
-      "where": [{"ref": "server/db/migrations/0142_mentions.sql:3"}]
+      "plain": [
+        "Two switches in your settings: one stops alerts when someone tags your whole team, the other stops every mention alert."
+      ],
+      "codebase": [
+        "Stored as `users.mute_team_mentions` and `users.mute_all_mentions` on the existing user settings row."
+      ],
+      "where": [
+        {
+          "ref": "server/db/migrations/0142_mentions.sql:3"
+        }
+      ]
     },
     {
-      "id": "level", "kind": "new", "label": "A per-chat level: all, mentions, or nothing", "understanding": "yellow",
+      "id": "level",
+      "kind": "new",
+      "label": "A per-chat level: all, mentions, or nothing",
+      "understanding": "yellow",
       "colorWhy": "First answered \"per user\", then explained it back correctly after the correction.",
-      "plain": ["Each chat gets its own volume knob: tell me about every message, only when I'm tagged, or nothing. Your knob for one chat does not change any other chat."],
-      "codebase": ["Stored as `chat_member_settings.mention_level`, one value per person per chat, on the per-chat metadata that already holds read state. Review found every member was sent everyone's level; now only your own entry carries it."],
-      "where": [{"ref": "server/db/migrations/0142_mentions.sql:9"}, {"ref": "server/chats/serializeMetadata.ts:30", "note": "sends only your own level"}],
-      "tradeoffs": [{"chose": "Level controls ordinary messages only", "over": "Level also gates mention alerts", "gain": "Mentions always reach you unless you turn them off globally", "cost": "\"Nothing\" does not mean silent", "who": "Anyone who sets a chat to Nothing"}],
-      "watch": ["The settings screen label for Nothing should say mentions still come through."]
+      "plain": [
+        "Each chat gets its own volume knob: tell me about every message, only when I'm tagged, or nothing. Your knob for one chat does not change any other chat."
+      ],
+      "codebase": [
+        "Stored as `chat_member_settings.mention_level`, one value per person per chat, on the per-chat metadata that already holds read state. Review found every member was sent everyone's level; now only your own entry carries it."
+      ],
+      "where": [
+        {
+          "ref": "server/db/migrations/0142_mentions.sql:9"
+        },
+        {
+          "ref": "server/chats/serializeMetadata.ts:30",
+          "note": "sends only your own level"
+        }
+      ],
+      "tradeoffs": [
+        {
+          "chose": "Level controls ordinary messages only",
+          "over": "Level also gates mention alerts",
+          "gain": "Mentions always reach you unless you turn them off globally",
+          "cost": "\"Nothing\" does not mean silent",
+          "who": "Anyone who sets a chat to Nothing"
+        }
+      ],
+      "watch": [
+        "The settings screen label for Nothing should say mentions still come through."
+      ]
     },
     {
-      "id": "stored", "kind": "new", "label": "Who was mentioned, stored with each message", "understanding": "green",
+      "id": "stored",
+      "kind": "new",
+      "label": "Who was mentioned, stored with each message",
+      "understanding": "green",
       "colorWhy": "Answered the old-clients question right without help.",
-      "plain": ["Each message keeps a hidden list of who was tagged, next to the normal words everyone can read."],
-      "codebase": ["`messages.mentions` is a JSON list of user IDs stored beside the readable `@Name` text, so old app builds still show readable text."],
-      "where": [{"ref": "server/db/migrations/0142_mentions.sql:15"}]
+      "plain": [
+        "Each message keeps a hidden list of who was tagged, next to the normal words everyone can read."
+      ],
+      "codebase": [
+        "`messages.mentions` is a JSON list of user IDs stored beside the readable `@Name` text, so old app builds still show readable text."
+      ],
+      "where": [
+        {
+          "ref": "server/db/migrations/0142_mentions.sql:15"
+        }
+      ]
     },
     {
-      "id": "badge", "kind": "new", "label": "An inbox @N badge for unread mentions", "understanding": "untested",
+      "id": "badge",
+      "kind": "new",
+      "label": "An inbox @N badge for unread mentions",
+      "understanding": "untested",
       "colorWhy": "Not asked in the check. It was added after the plan.",
-      "plain": ["A small number on each chat in your inbox that counts how many times you were tagged since you last looked."],
-      "codebase": ["Counted when the inbox loads, from messages after your existing seen time, through the existing message index, capped at the latest 100 per chat. Nothing is stored."],
-      "where": [{"ref": "server/inbox/countMentions.ts:20"}],
-      "tradeoffs": [{"chose": "Compute the badge on read", "over": "Store an `unread_mentions` column", "gain": "No schema change and no extra write per message", "cost": "One bounded indexed read per inbox load and chat update", "who": "Server load at peak inbox opens"}]
+      "plain": [
+        "A small number on each chat in your inbox that counts how many times you were tagged since you last looked."
+      ],
+      "codebase": [
+        "Counted when the inbox loads, from messages after your existing seen time, through the existing message index, capped at the latest 100 per chat. Nothing is stored."
+      ],
+      "where": [
+        {
+          "ref": "server/inbox/countMentions.ts:20"
+        }
+      ],
+      "tradeoffs": [
+        {
+          "chose": "Compute the badge on read",
+          "over": "Store an `unread_mentions` column",
+          "gain": "No schema change and no extra write per message",
+          "cost": "One bounded indexed read per inbox load and chat update",
+          "who": "Server load at peak inbox opens"
+        }
+      ]
     },
-    {"id": "usersettings", "kind": "existing", "label": "Per-user notification settings", "understanding": "untested", "plain": ["Your phone-wide notification choices, like quiet until 8am."], "codebase": ["The `users` row: global mute-until and other user-wide choices."]},
-    {"id": "chatmeta", "kind": "existing", "label": "Per-chat notification metadata", "understanding": "yellow", "colorWhy": "Came up in the per-chat level question.", "plain": ["A small note the app keeps for you in each chat: what you've read and how loud the chat should be."], "codebase": ["`chat_member_settings`, sent with every chat update."]},
-    {"id": "rosters", "kind": "existing", "label": "Chat participants and team rosters", "understanding": "green", "plain": ["The list of who is in each chat and each team, already on your phone."], "codebase": ["Loaded with the chat list; no new query."]},
-    {"id": "push", "kind": "existing", "label": "Message text and push delivery", "understanding": "untested", "plain": ["The words of every message and the system that buzzes phones."], "codebase": ["Every message's readable text and its ordinary push."]},
-    {"id": "index", "kind": "existing", "label": "Message index by chat and send time", "understanding": "untested", "plain": ["A sorted shelf of messages by chat and time, so finding recent ones is fast."], "codebase": ["`(chat_id, sent_at DESC)`"]},
-
-    {"id": "d-cross", "kind": "decision", "label": "Mention alerts cross chat mutes", "understanding": "red", "about": ["alerts", "level"], "colorWhy": "Same gap as mention alerts: the person expected chat mutes to win.", "tradeoffs": [{"chose": "Mentions cross chat mutes", "over": "Chat mutes block mentions", "gain": "People who muted busy chats still hear when needed", "cost": "A muted chat can still notify you", "who": "Admins with muted chats"}]},
-    {"id": "d-text", "kind": "decision", "label": "Keep @Name text, store picks separately", "understanding": "green", "about": ["stored"], "tradeoffs": [{"chose": "Readable text plus a separate `mentions` field", "over": "User IDs inside the text", "gain": "Old clients show plain text", "cost": "One more column", "who": "People on older app builds"}]},
-    {"id": "d-badge", "kind": "decision", "label": "Compute the @N badge on read", "understanding": "untested", "about": ["badge", "index"], "tradeoffs": [{"chose": "Count on read", "over": "Store a counter", "gain": "No schema, no write per mention", "cost": "A read per inbox load", "who": "Server load at peak"}]},
-
-    {"id": "h-data", "kind": "hotspot", "label": "Data source", "understanding": "green", "about": ["picker", "rosters"], "plain": ["The picker reads rosters the client already has. Review trimmed the per-chat view so only your own mention level is sent."]},
-    {"id": "h-hier", "kind": "hotspot", "label": "Hierarchy", "understanding": "red", "about": ["alerts", "level", "toggles", "usersettings"], "plain": ["The per-chat level controls ordinary messages only. Mention alerts stop only for global mute-until and the two toggles."]},
-    {"id": "h-deploy", "kind": "hotspot", "label": "Deploy and old clients", "understanding": "green", "about": ["stored"], "plain": ["Old builds show `@Name` as plain text and ignore the `mentions` field."]},
-    {"id": "h-schema", "kind": "hotspot", "label": "Schema and data", "understanding": "yellow", "colorWhy": "Not asked directly; takes the worst color of what it touches, the per-chat level.", "about": ["toggles", "level", "stored"], "plain": ["Four nullable columns on three tables, all additive; no backfill."]},
-    {"id": "h-infra", "kind": "hotspot", "label": "Infra", "understanding": "untouched", "plain": ["Not touched."]},
-    {"id": "h-after", "kind": "hotspot", "label": "Added after the plan", "understanding": "untested", "about": ["badge"], "plain": ["The inbox @N badge, asked for in the pair review. It adds no schema."]}
+    {
+      "id": "usersettings",
+      "kind": "existing",
+      "label": "Per-user notification settings",
+      "understanding": "untested",
+      "plain": [
+        "Your phone-wide notification choices, like quiet until 8am."
+      ],
+      "codebase": [
+        "The `users` row: global mute-until and other user-wide choices."
+      ],
+      "where": [
+        {
+          "ref": "server/settings/userNotifications.ts:15",
+          "note": "reads global mute-until and the mention toggles"
+        }
+      ]
+    },
+    {
+      "id": "chatmeta",
+      "kind": "existing",
+      "label": "Per-chat notification metadata",
+      "understanding": "yellow",
+      "colorWhy": "Came up in the per-chat level question.",
+      "plain": [
+        "A small note the app keeps for you in each chat: what you've read and how loud the chat should be."
+      ],
+      "codebase": [
+        "`chat_member_settings`, sent with every chat update."
+      ],
+      "where": [
+        {
+          "ref": "server/chats/serializeMetadata.ts:30",
+          "note": "sends each person their own per-chat settings"
+        }
+      ]
+    },
+    {
+      "id": "rosters",
+      "kind": "existing",
+      "label": "Chat participants and team rosters",
+      "understanding": "green",
+      "plain": [
+        "The list of who is in each chat and each team, already on your phone."
+      ],
+      "codebase": [
+        "Loaded with the chat list; no new query."
+      ],
+      "where": [
+        {
+          "ref": "app/chats/useParticipants.ts:9",
+          "note": "participants and team rosters loaded with the chat list"
+        }
+      ]
+    },
+    {
+      "id": "push",
+      "kind": "existing",
+      "label": "Message text and push delivery",
+      "understanding": "untested",
+      "plain": [
+        "The words of every message and the system that buzzes phones."
+      ],
+      "codebase": [
+        "Every message's readable text and its ordinary push."
+      ],
+      "where": [
+        {
+          "ref": "server/push/sendMessagePush.ts:88",
+          "note": "the ordinary message push"
+        }
+      ]
+    },
+    {
+      "id": "index",
+      "kind": "existing",
+      "label": "Message index by chat and send time",
+      "understanding": "untested",
+      "plain": [
+        "A sorted shelf of messages by chat and time, so finding recent ones is fast."
+      ],
+      "codebase": [
+        "`(chat_id, sent_at DESC)`"
+      ],
+      "where": [
+        {
+          "ref": "server/db/migrations/0098_message_index.sql:4",
+          "note": "the index the @N badge reads through"
+        }
+      ]
+    },
+    {
+      "id": "d-cross",
+      "kind": "decision",
+      "label": "Mention alerts cross chat mutes",
+      "understanding": "red",
+      "about": [
+        "alerts",
+        "level"
+      ],
+      "colorWhy": "Same gap as mention alerts: the person expected chat mutes to win.",
+      "tradeoffs": [
+        {
+          "chose": "Mentions cross chat mutes",
+          "over": "Chat mutes block mentions",
+          "gain": "People who muted busy chats still hear when needed",
+          "cost": "A muted chat can still notify you",
+          "who": "Admins with muted chats"
+        }
+      ],
+      "plain": [
+        "If you mute a chat, should someone tagging you by name still reach you? This PR says yes: a mention is a person asking for you, so it gets through."
+      ],
+      "codebase": [
+        "The mention-alert path checks only global mute-until and the two mention toggles, and skips the per-chat level on purpose."
+      ],
+      "where": [
+        {
+          "ref": "server/push/mentionAlerts.ts:40",
+          "note": "the recipient check that skips the per-chat level"
+        }
+      ]
+    },
+    {
+      "id": "d-text",
+      "kind": "decision",
+      "label": "Keep @Name text, store picks separately",
+      "understanding": "green",
+      "about": [
+        "stored"
+      ],
+      "tradeoffs": [
+        {
+          "chose": "Readable text plus a separate `mentions` field",
+          "over": "User IDs inside the text",
+          "gain": "Old clients show plain text",
+          "cost": "One more column",
+          "who": "People on older app builds"
+        }
+      ],
+      "plain": [
+        "Each message keeps the readable `@Name` words and, separately, a hidden list of who was tagged, so an old app that knows nothing about mentions still shows normal text."
+      ],
+      "codebase": [
+        "The `mentions` list of user IDs is stored beside the message text; the text itself never holds IDs."
+      ],
+      "where": [
+        {
+          "ref": "server/messages/save.ts:51",
+          "note": "writes the text and the mentions list side by side"
+        }
+      ]
+    },
+    {
+      "id": "d-badge",
+      "kind": "decision",
+      "label": "Compute the @N badge on read",
+      "understanding": "untested",
+      "about": [
+        "badge",
+        "index"
+      ],
+      "tradeoffs": [
+        {
+          "chose": "Count on read",
+          "over": "Store a counter",
+          "gain": "No schema, no write per mention",
+          "cost": "A read per inbox load",
+          "who": "Server load at peak"
+        }
+      ],
+      "plain": [
+        "The @N number is counted fresh each time the inbox loads, instead of keeping a running tally that every new message would have to update."
+      ],
+      "codebase": [
+        "Counted from messages after your existing seen time through the existing message index, capped at the latest 100 per chat."
+      ],
+      "where": [
+        {
+          "ref": "server/inbox/countMentions.ts:20",
+          "note": "the bounded count"
+        }
+      ]
+    },
+    {
+      "id": "h-data",
+      "kind": "hotspot",
+      "label": "Data source",
+      "understanding": "green",
+      "about": [
+        "picker",
+        "rosters"
+      ],
+      "plain": [
+        "The picker reads rosters the client already has. Review trimmed the per-chat view so only your own mention level is sent."
+      ],
+      "codebase": [
+        "No new query: the picker filters rosters already in memory, and the per-chat view now sends only your own mention level."
+      ],
+      "where": [
+        {
+          "ref": "app/composer/MentionPicker.tsx:12"
+        },
+        {
+          "ref": "server/chats/serializeMetadata.ts:30"
+        }
+      ]
+    },
+    {
+      "id": "h-hier",
+      "kind": "hotspot",
+      "label": "Hierarchy",
+      "understanding": "red",
+      "about": [
+        "alerts",
+        "level",
+        "toggles",
+        "usersettings"
+      ],
+      "plain": [
+        "The per-chat level controls ordinary messages only. Mention alerts stop only for global mute-until and the two toggles."
+      ],
+      "codebase": [
+        "Ordinary pushes check the per-chat level; mention alerts check only global mute-until and the two toggles."
+      ],
+      "where": [
+        {
+          "ref": "server/push/mentionAlerts.ts:40"
+        },
+        {
+          "ref": "server/push/sendMessagePush.ts:88"
+        }
+      ]
+    },
+    {
+      "id": "h-deploy",
+      "kind": "hotspot",
+      "label": "Deploy and old clients",
+      "understanding": "green",
+      "about": [
+        "stored"
+      ],
+      "plain": [
+        "Old builds show `@Name` as plain text and ignore the `mentions` field."
+      ],
+      "codebase": [
+        "Old builds read the message text and ignore the unknown `mentions` field, so they show plain `@Name` text."
+      ],
+      "where": [
+        {
+          "ref": "server/messages/save.ts:51"
+        }
+      ]
+    },
+    {
+      "id": "h-schema",
+      "kind": "hotspot",
+      "label": "Schema and data",
+      "understanding": "yellow",
+      "colorWhy": "Not asked directly; takes the worst color of what it touches, the per-chat level.",
+      "about": [
+        "toggles",
+        "level",
+        "stored"
+      ],
+      "plain": [
+        "Four nullable columns on three tables, all additive; no backfill."
+      ],
+      "codebase": [
+        "Four nullable columns on three tables, all additive, with no backfill: two toggles on the user row, the per-chat level, and the mentions list on messages."
+      ],
+      "where": [
+        {
+          "ref": "server/db/migrations/0142_mentions.sql:3"
+        }
+      ]
+    },
+    {
+      "id": "h-infra",
+      "kind": "hotspot",
+      "label": "Infra",
+      "understanding": "untouched",
+      "plain": [
+        "Not touched."
+      ]
+    },
+    {
+      "id": "h-after",
+      "kind": "hotspot",
+      "label": "Added after the plan",
+      "understanding": "untested",
+      "about": [
+        "badge"
+      ],
+      "plain": [
+        "The inbox @N badge, asked for in the pair review. It adds no schema."
+      ],
+      "codebase": [
+        "The @N badge was asked for in the pair review. It reads existing data through an existing index, so it adds no schema."
+      ],
+      "where": [
+        {
+          "ref": "server/inbox/countMentions.ts:20"
+        }
+      ]
+    }
   ],
   "edges": [
-    {"from": "picker", "to": "rosters"},
-    {"from": "alerts", "to": "push"},
-    {"from": "alerts", "to": "usersettings"},
-    {"from": "toggles", "to": "usersettings"},
-    {"from": "level", "to": "chatmeta"},
-    {"from": "stored", "to": "push"},
-    {"from": "badge", "to": "index"},
-    {"from": "badge", "to": "chatmeta"}
+    {
+      "from": "picker",
+      "to": "rosters"
+    },
+    {
+      "from": "alerts",
+      "to": "push"
+    },
+    {
+      "from": "alerts",
+      "to": "usersettings"
+    },
+    {
+      "from": "toggles",
+      "to": "usersettings"
+    },
+    {
+      "from": "level",
+      "to": "chatmeta"
+    },
+    {
+      "from": "stored",
+      "to": "push"
+    },
+    {
+      "from": "badge",
+      "to": "index"
+    },
+    {
+      "from": "badge",
+      "to": "chatmeta"
+    }
   ],
   "quiz": [
-    {"q": "Is the mention level per user or per chat?", "why": "It decides where people find the setting and which rows the migration touches.", "answer": "Per user.", "verdict": "wrong", "correction": "Per chat, in `chat_member_settings.mention_level`. The per-user controls are the two global toggles.", "explainedBack": "Each chat has its own level; the global switches live on the user.", "about": ["level", "chatmeta"]},
-    {"q": "Does setting a chat to \"Nothing\" stop mention alerts?", "why": "People who think they muted a chat will still get mention alerts, and support will hear about it.", "answer": "Yes.", "verdict": "wrong", "correction": "\"Nothing\" stops ordinary messages only. Mention alerts cross chat mutes; only global mute-until and the two toggles stop them.", "explainedBack": "Not sure which one wins when both are set.", "about": ["alerts", "d-cross", "h-hier"]},
-    {"q": "What do old app builds show for a mention?", "why": "People on older builds must see readable text, not raw IDs.", "answer": "Plain `@Name` text.", "verdict": "right", "about": ["stored", "h-deploy", "d-text"]}
+    {
+      "q": "Is the mention level per user or per chat?",
+      "why": "It decides where people find the setting and which rows the migration touches.",
+      "answer": "Per user.",
+      "verdict": "wrong",
+      "correction": "Per chat, in `chat_member_settings.mention_level`. The per-user controls are the two global toggles.",
+      "explainedBack": "Each chat has its own level; the global switches live on the user.",
+      "about": [
+        "level",
+        "chatmeta"
+      ]
+    },
+    {
+      "q": "Does setting a chat to \"Nothing\" stop mention alerts?",
+      "why": "People who think they muted a chat will still get mention alerts, and support will hear about it.",
+      "answer": "Yes.",
+      "verdict": "wrong",
+      "correction": "\"Nothing\" stops ordinary messages only. Mention alerts cross chat mutes; only global mute-until and the two toggles stop them.",
+      "explainedBack": "Not sure which one wins when both are set.",
+      "about": [
+        "alerts",
+        "d-cross",
+        "h-hier"
+      ]
+    },
+    {
+      "q": "What do old app builds show for a mention?",
+      "why": "People on older builds must see readable text, not raw IDs.",
+      "answer": "Plain `@Name` text.",
+      "verdict": "right",
+      "about": [
+        "stored",
+        "h-deploy",
+        "d-text"
+      ]
+    }
   ],
   "simplify": [
-    {"opportunity": "Team-level mention settings", "simpler": "Global toggles plus the per-chat level", "status": "Done: cut during simplification"}
+    {
+      "opportunity": "Team-level mention settings",
+      "simpler": "Global toggles plus the per-chat level",
+      "status": "Done: cut during simplification"
+    }
   ],
   "actions": [
     "Count admins with at least one muted chat, and decide whether the release notes need to explain mention alerts.",
@@ -334,7 +811,7 @@ ul.checks li::before { content: ""; position: absolute; left: 0; top: 4px; width
   meta.appendChild(safeUrl(pr.url) ? el("a", { href: pr.url }, prLabel) : document.createTextNode(prLabel));
   meta.appendChild(document.createTextNode(" · "));
   meta.appendChild(el("code", null, (pr.base || "") + "..." + (pr.head || "")));
-  (data.prs || []).forEach(function (x) { meta.appendChild(document.createTextNode(" · ")); meta.appendChild(safeUrl(x.url) ? el("a", { href: x.url }, x.label || x.url) : document.createTextNode(x.label || "")); });
+  (data.prs || pr.prs || []).forEach(function (x) { meta.appendChild(document.createTextNode(" · ")); meta.appendChild(safeUrl(x.url) ? el("a", { href: x.url }, x.label || x.url) : document.createTextNode(x.label || "")); });
   meta.appendChild(document.createTextNode(" · " + (pr.date || "") + " · checked with " + (pr.person || "")));
   app.appendChild(meta);
   if (data.sample) app.appendChild(el("p", { "class": "panel callout" }, "Sample data from the worked example. File references are illustrative. Replace the JSON with the real check."));
