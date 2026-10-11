@@ -10,7 +10,7 @@ An opt-in check. Offer it once, when a pull request is finished (checks, agent r
 
 ## 1. Map the iceberg
 
-Read the PR body, its ticket or plan, the diff against its base, and the review and QA notes. Back every claim with a file:line, commit or query.
+Read the PR body, its ticket or plan, the diff against its base, and the review and QA notes. Back every claim with a file:line, commit or query. Before a question or correction depends on how an external provider or library behaves, check its primary docs or code; when the check disproves the map, fix the map and drop or fix the question.
 
 - **Above water.** Each new piece, one plain sentence each.
 - **Below water.** For each new piece, the existing system it builds on, by name. A piece with nothing below it created its own pattern: mark it and treat it as a decision.
@@ -22,7 +22,7 @@ Read the PR body, its ticket or plan, the diff against its base, and the review 
   - Schema and data: every schema or data-migration change (new, altered or dropped columns, tables, indexes, constraints, backfills), and where each is applied or backfilled so far.
   - Infra: crons, workers, queues, Terraform, new env vars or secrets.
   - Added after the plan: everything in the diff the ticket or plan did not name.
-- **Simplify.** Schema the feature could drop, helpers that duplicate existing ones (search for them), and settings or layers nobody asked for. Name the simpler shape.
+- **Simplify.** Schema the feature could drop, helpers that duplicate existing ones (search for them), and settings or layers nobody asked for. Name the simpler shape and what it removes (code, config, schema, per-request work); these are often the most valuable answers.
 
 Explain from the foundation, not the code: each new piece in one sentence that names the existing system it builds on, and the whole PR in one such sentence at the top of the report. Example: "The chat app already has per-user and per-chat notification settings; mentions adds two columns to them."
 
@@ -31,10 +31,18 @@ Explain from the foundation, not the code: each new piece in one sentence that n
 - Show only the tip: the above-water list.
 - Ask one question at a time and wait for the answer. Examples: "Why was this built this way?", "What does this build on?", "When the chat is muted and someone mentions you, who wins?"
 - Give every question its why: the production consequence of a wrong answer. Example: "Why does a stalled upload start a cron that sends the message for the user? Why it matters: it is new infra that acts on a user's behalf, and other messaging apps finish the upload in the background with no cron."
-- Ask hotspots first, then decisions, then simplification. Aim for 3 questions on a small PR and up to 8 on a large one, and stop early when the person asks.
-- Judge each answer as right, partly right, wrong, or unsure. For partly right or wrong, give the correct map with its evidence, then ask the person to explain it back in one sentence and record what they say.
+- Ask hotspots first, then decisions, then simplification. Size the question count to the PR, and stop early when the person asks:
+  - Small, under 800 changed lines: 3-5 questions.
+  - Medium, 800-2,000 lines: 5-8 questions.
+  - Large, over 2,000 lines: 8-12 questions.
+
+  Changed lines are additions plus deletions in the PR's own diff against its base branch, leaving out tests, lockfiles, and generated or vendored files. A stacked PR is not charged for its parent's lines.
+- Rank candidate questions by how likely the situation is in real use times the harm of a wrong answer, and drop ones that are possible but unrealistic. Prefer what staff, customers or end users would see over deploy mechanics the person plainly knows. When the person waves a question off as obvious or unrealistic, ask no more of that kind.
+- When a UI change has no screenshots, show a text mockup of the screen when asking about it, and add screenshots to the QA action items.
+- Judge each answer as right, partly right, wrong, or unsure. For partly right or wrong, give the correct map with its evidence, then ask the person to explain it back in one sentence and record what they say. A correct follow-up question, or a decision that shows understanding, counts as the explain-back.
 - When an answer shows the map is wrong, correct the map and say so.
-- Record each decision the person makes (cut a column, remove a cron) as an action item under Before you merge. Change code only when the person asks.
+- When a decision is needed (the person is unsure, asks what you think, or a finding needs a disposition), offer 2-4 options through the host's ask-the-user or multiple-choice tool when it has one, the recommended option first and labeled "(Recommended)". Give each option its trade-off and rough size (lines, files, config), and use previews for UI copy or mockups. Without such a tool, list the options the same way in text.
+- Give every finding a disposition: fold in now (small, on the PR's own code; send it to the PR's implementer once the person agrees), file an issue (bigger work, or behavior that predates the PR), or accept (unrealistic, or a deliberate trade-off). Before folding in a UI change, ask the UX questions with mockup previews and the exact copy. Record each decision and disposition (cut a column, remove a cron) as an action item under Before you merge. Change code only when the person asks.
 
 ## 3. Color the map
 
@@ -42,7 +50,7 @@ After the quiz, give every piece, existing system, decision and hotspot one colo
 
 - **Green, well understood:** answered right without help, or explained it correctly unprompted while answering another question (say which in its reason).
 - **Yellow, partly understood:** partly right, or wrong and then explained it back correctly.
-- **Red, still ambiguous:** wrong or unsure even after the correction, or the code itself leaves the answer unclear (an open question, two paths that disagree).
+- **Red, still ambiguous:** wrong or unsure even after the correction, or the code itself leaves the answer unclear (an open question, two paths that disagree). An item the person was unsure about and then deliberately accepted is not still ambiguous: keep `red`, set `accepted: true`, and start `colorWhy` with "Accepted risk:" and the reason. The page labels it Accepted risk.
 - **Grey, not asked:** no question touched it.
 
 In the JSON these are `green`, `yellow`, `red` and `untested`; a hotspot the PR does not touch is `untouched`, shown as "Not touched". Each quiz question lists the item ids it tested in its `about`. An item takes the worst color of the questions that list it; partly right counts as yellow even when the person did not explain it back. A decision or hotspot that no question tested takes the worst color of the items it concerns, or stays grey when those are grey too. Write one sentence on why each item got its color.
@@ -69,7 +77,7 @@ The JSON holds:
 - `pr`: `title`, `url`, `repo` (`owner/name`), `number`, `base`, `head` (the short SHA), `date`, `person`. For a feature across several pull requests, use the feature as `title`.
 - `prs` (top level, optional): for a feature across several pull requests, a list of `label` and `url` for each.
 - `summary` (top level, not inside `pr`): the one sentence from the foundation.
-- `items`: one per piece, each with `id`, `kind` (`new`, `existing`, `decision` or `hotspot`), `label`, `understanding` (`green`, `yellow`, `red`, `untested` or `untouched`), `colorWhy`, `ownPattern` (true for a new piece with nothing below it), `about` (ids a decision or hotspot concerns), and the deep dive: `plain` and `codebase` (lists of paragraphs), `flow` (`step`, `ref`), `where` (`ref` as `path:line`, `url` as `https://github.com/<repo>/blob/<full head SHA>/<path>#L<line>`, optional `note`), `tradeoffs` (`chose`, `over`, `gain`, `cost`, `who`) and `watch`.
+- `items`: one per piece, each with `id`, `kind` (`new`, `existing`, `decision` or `hotspot`), `label`, `understanding` (`green`, `yellow`, `red`, `untested` or `untouched`), `colorWhy`, `accepted` (true for a deliberately accepted risk), `ownPattern` (true for a new piece with nothing below it), `about` (ids a decision or hotspot concerns), and the deep dive: `plain` and `codebase` (lists of paragraphs), `flow` (`step`, `ref`), `where` (`ref` as `path:line`, `url` as `https://github.com/<repo>/blob/<full head SHA>/<path>#L<line>`, optional `note`), `tradeoffs` (`chose`, `over`, `gain`, `cost`, `who`) and `watch`.
 - `edges`: `from` a new piece `to` the existing system it builds on.
 - `quiz`: each question in order with `q`, `why`, `answer`, `verdict` (`right`, `partly`, `wrong` or `unsure`), `correction`, `explainedBack`, and `about` (the item ids it tested).
 - `simplify` (`opportunity`, `simpler`, `status`) and `actions` (Before you merge items).
@@ -83,3 +91,5 @@ Publish it as a private page:
 - When publishing fails, keep the local page, tell the person, and post a Markdown comment on the PR with the summary, each item with its color and its plain-words explanation, the quiz, and the action items.
 
 Report the link, the red and yellow items, the action items, and the answers you corrected.
+
+**Stacked PRs checked one at a time.** Start with a table of each PR's changed lines and tier, and go in stack order. While quizzing on one PR, map the next and build each page in the background. After fold-ins, mark each changed PR "needs re-review" wherever the team tracks status, start one delta re-review per PR only after its last fold-in lands, then QA, and have the page's action items note which fold-ins are still pending.
