@@ -791,7 +791,7 @@ ul.checks li::before { content: ""; position: absolute; left: 0; top: 4px; width
   }
   function safeUrl(u) { return /^https?:\/\//i.test(u || "") ? u : null; }
   function u(it) { return it.understanding && (COLORS[it.understanding] || it.understanding === "untouched") ? it.understanding : "untested"; }
-  function colorName(it) { return u(it) === "untouched" ? "Not touched" : COLORS[u(it)][0]; }
+  function colorName(it) { return u(it) === "untouched" ? "Not touched" : u(it) === "red" && it.accepted ? "Accepted risk" : COLORS[u(it)][0]; }
   function neighbors(id) {
     var set = {}; set[id] = true;
     edges.forEach(function (e) { if (e.from === id) set[e.to] = true; if (e.to === id) set[e.from] = true; });
