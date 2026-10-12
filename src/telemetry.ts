@@ -11,7 +11,7 @@ import {nativeCommand,type LaunchMetadata,type Manifest} from './runtime.js';
 import {telemetryProject} from './telemetry-query.js';
 import {exportTelemetry} from './telemetry-export.js';
 
-interface Descriptor {directory:string;bundle:string;route:string;harness:'claude'|'codex';launch:LaunchMetadata;captureContent?:boolean}
+interface Descriptor {directory:string;bundle:string;route:string;harness:'claude'|'codex';launch:LaunchMetadata;captureContent?:boolean;launchId?:string}
 type Attribute = {key:string;value:Record<string,unknown>};
 const attributes=(values:Record<string,unknown>):Attribute[]=>Object.entries(values).filter(([,v])=>v!==undefined).map(([key,value])=>({key,value:typeof value==='boolean'?{boolValue:value}:typeof value==='number'?{intValue:String(value)}:Array.isArray(value)?{arrayValue:{values:value.map(v=>({stringValue:String(v)}))}}:{stringValue:String(value)}}));
 const sensitive=/(token|secret|password|credential|authorization|api[-_]?key|cookie)/i;
@@ -60,7 +60,8 @@ export async function startSession(descriptor:Descriptor,argv:string[],env:NodeJ
   fs.mkdirSync(directory,{mode:0o700});
   const user=os.userInfo();
   const metadata={
-    'agent_farm.session.id':id,'agent_farm.parent.session.id':env.AGENT_FARM_SESSION_ID,
+    // The launch ID names the conversation `--resume` reopens; it is an identifier, not content, so it stays readable.
+    'agent_farm.session.id':id,'agent_farm.launch.id':descriptor.launchId,'agent_farm.parent.session.id':env.AGENT_FARM_SESSION_ID,
     'agent_farm.capture_content':descriptor.captureContent===true,
     'agent_farm.session.trace_id':traceId,'agent_farm.session.span_id':spanId,
     'agent_farm.profile':manifest.profile,'agent_farm.profile.variant':manifest.variant,'agent_farm.plugin':agent.plugin??manifest.plugin,

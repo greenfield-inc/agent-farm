@@ -7,7 +7,7 @@ import os from 'node:os';
 import {parseArgs} from 'node:util';
 import {resolveWorkspace,resolveInteractiveWorkspace,trustWorkspace,untrustWorkspace,showWorkspace} from './workspaces.js';
 import {build,variantLabel,resolveProfile,splitVariant} from './compiler.js';
-import {run,execute,nativeResume,readLaunchRecord} from './runtime.js';
+import {run,execute,nativeResume,readLaunchRecord,resumeLaunchId,telemetryStore} from './runtime.js';
 import {loginCommand} from './mcp-auth.js';
 import {loadWorkspace,unloadWorkspace,loadedWorkspaces} from './user-workspaces.js';
 import {inspectProfile,listProfiles} from './inspect.js';
@@ -49,7 +49,8 @@ if (rawArgs[0] === 'doctor' && rawArgs.length === 1) {
 
 /** The profile variant that launched a recorded session, unless the command names one. */
 function resumedProfile(root:string,requested:string,id:string,workspace:Parameters<typeof resolveProfile>[2]):string {
-  const record=readLaunchRecord(id);
+  // A telemetry session ID resolves to its launch here too, so the launch's variant is the one reopened.
+  const record=readLaunchRecord(resumeLaunchId(id,telemetryStore(root,workspace?.telemetry)));
   if (splitVariant(requested).variant!==undefined || !record?.variant) return requested;
   return resolveProfile(root,requested,workspace).profile===record.profile ? `${requested}:${record.variant}` : requested;
 }
