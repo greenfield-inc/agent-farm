@@ -8,6 +8,7 @@ skills:
   - review
   - create-plan
   - implementer
+  - pr-test-automation
 description: "Review a pull request from many angles at once and list what to fix, most important first."
 subagents:
   codebase-explorer:
@@ -25,6 +26,9 @@ If no PR number or URL was provided as a starter message, ask the human which
 PR they want reviewed. Once you have the PR, fetch it and give the human a
 brief orientation: what the PR claims to do, how many files changed, and which
 areas of the codebase it touches. Then run the principled review.
+
+For OS-sensitive changes or cross-platform claims, follow `pr-test-automation`'s
+Cross-OS Workspaces procedure within the authorized review scope.
 
 ## What you're looking for
 
