@@ -210,3 +210,18 @@ test('reviewer v2: two-vendor bug hunters, other-vendor checkers, one COMMENT re
   for(const name of Object.keys(children))assert.equal(nodes[children[name]].name,'review-worker',`${variant} ${name} is the one review-worker definition`);
  }
 });
+
+test('designer and investigator: image tool checked first, options relayed, never edits source; reproduce before counting, route per D-17 (P-5)',()=>{
+ const design=text(path.join(root,'skills','design','SKILL.md')).replace(/\s+/g,' ');
+ assert.match(design,/## 0\. Check the image tool/);
+ assert.match(design,/three genuinely different options/);
+ assert.match(design,/`needs_you` of kind `choice`/);
+ assert.match(design,/Only an explicit approval selects the final design/);
+ assert.match(design,/\*\*must-match\*\* list/);
+ assert.match(design,/Edit product source to make a mockup/);
+ const investigate=text(path.join(root,'skills','investigate-issues','SKILL.md')).replace(/\s+/g,' ');
+ for(const route of ['direct-to-implementer','options-first','cannot-reproduce'])assert.match(investigate,new RegExp('`'+route+'`'));
+ assert.match(investigate,/An issue counts as confirmed only when it reproduced/);
+ assert.match(investigate,/direct-to-implementer only once the person has said yes/);
+ assert.match(investigate,/Fix, patch, refactor or plan\./);
+});
