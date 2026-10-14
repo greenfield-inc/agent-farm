@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{Feature name brief}</title>
+<style>
+:root {
+  --bg: #fbfaf6; --panel: #ffffff; --ink: #1d2420; --muted: #5d6861; --line: #dcdfd6;
+  --accent: #2f7d4f; --accent-soft: #e4f1e7;
+  --warn: #9a5b00; --warn-soft: #fbefd9;
+  --bad: #a23a2f; --bad-soft: #f9e4e1;
+  --code: #f0f1eb;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141815; --panel: #1b211d; --ink: #e7ebe6; --muted: #9aa69e; --line: #2e3731;
+    --accent: #6fc38d; --accent-soft: #1e3327;
+    --warn: #e5b566; --warn-soft: #352a15;
+    --bad: #ef9388; --bad-soft: #3a1f1c;
+    --code: #232a25;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+main { max-width: 46rem; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 1.85rem; line-height: 1.25; margin: 0 0 .3rem; }
+h2 { font-size: 1.3rem; line-height: 1.3; margin: 2.2rem 0 .6rem; padding-top: .8rem; border-top: 1px solid var(--line); }
+h3 { font-size: 1.05rem; margin: 1.4rem 0 .4rem; }
+a { color: var(--accent); }
+.lede { color: var(--muted); margin: 0 0 .8rem; }
+.meta { color: var(--muted); font-size: .88rem; }
+.chip { display: inline-block; font-size: .78rem; font-weight: 600; line-height: 1.5; padding: .05rem .6rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent); vertical-align: middle; }
+.chip.warn { background: var(--warn-soft); color: var(--warn); }
+.chip.bad { background: var(--bad-soft); color: var(--bad); }
+.panel, .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: .8rem 1rem; margin: .8rem 0; }
+.card h3 { margin-top: 0; }
+.callout { border-left: 4px solid var(--accent); background: var(--accent-soft); padding: .6rem 1rem; margin: 1rem 0; border-radius: 0 6px 6px 0; }
+.callout.warn { border-color: var(--warn); background: var(--warn-soft); }
+.callout.bad { border-color: var(--bad); background: var(--bad-soft); }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 640px) { .pair { grid-template-columns: 1fr; } }
+table { width: 100%; border-collapse: collapse; font-size: .92rem; margin: .6rem 0; }
+th, td { text-align: left; vertical-align: top; padding: .4rem .5rem; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+th { color: var(--muted); font-weight: 600; }
+code { background: var(--code); padding: .05rem .3rem; border-radius: 4px; font-size: .9em; overflow-wrap: anywhere; }
+pre { background: var(--code); padding: .8rem; overflow-x: auto; border-radius: 6px; font-size: .88rem; }
+pre code { padding: 0; background: none; }
+dl { margin: .4rem 0; }
+dt { font-weight: 600; }
+dd { margin: 0 0 .5rem 1rem; }
+details { border: 1px solid var(--line); border-radius: 6px; padding: .4rem .8rem; margin: .6rem 0; background: var(--panel); }
+summary { cursor: pointer; font-weight: 600; }
+nav.contents ul { columns: 2; padding-left: 1.2rem; margin: .4rem 0; }
+@media (max-width: 640px) { nav.contents ul { columns: 1; } }
+figure { margin: 1rem 0; }
+figcaption { color: var(--muted); font-size: .85rem; }
+svg { width: 100%; height: auto; display: block; }
+svg text { fill: var(--ink); font: 13px -apple-system, "Segoe UI", sans-serif; }
+svg .small { font-size: 11px; fill: var(--muted); }
+svg .box { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+svg .hot { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+svg .warnbox { fill: var(--warn-soft); stroke: var(--warn); stroke-width: 1.5; }
+svg .line { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+svg .path { stroke: var(--accent); stroke-width: 2; fill: none; }
+svg .dash { stroke-dasharray: 5 4; }
+svg .head { fill: var(--muted); }
+svg .headhot { fill: var(--accent); }
+footer { color: var(--muted); font-size: .85rem; margin-top: 3rem; border-top: 1px solid var(--line); padding-top: .8rem; }
+</style>
+<script type="application/json" id="doc-meta">
+{ "kind": "brief", "id": "work-slug",
+  "status": "draft", "revision": 1,
+  "supersedes": null, "updated": "2026-10-14",
+  "defines": [],
+  "cites": [],
+  "open": { "needs_decision": 0, "assumptions": 0 } }
+</script>
+</head>
+<body>
+<main>
+<!-- Template: copy this file, replace every {instruction} with content, and fill doc-meta.
+     "id" is the work's slug; "updated" is today's date. List every ID this page defines in "defines"
+     (each needs an element with that id) and every ID it mentions in "cites".
+     Set "open" to the number of NEEDS DECISION and ASSUMPTION markers left in the visible text.
+     A section that does not apply says "n/a because ..." instead of being deleted. -->
+<h1>Brief: {the problem in a few words} <span class="chip">draft</span></h1>
+<p class="lede">{one-line summary of the problem, understandable in a minute by someone outside the conversation}</p>
+
+<figure>
+<svg viewBox="0 0 640 120" role="img" aria-labelledby="draw-title">
+  <title id="draw-title">{one-sentence description of the drawing}</title>
+  <rect x="20" y="20" width="600" height="80" rx="8" class="box dash"/>
+  <text x="40" y="65">{drawing: today versus wanted, boxes and arrows; dashed for the gap}</text>
+</svg>
+</figure>
+
+<nav class="contents" id="contents" aria-label="Contents">
+<h2>Contents</h2>
+<ul>
+  <li><a href="#problem">The problem</a></li>
+  <li><a href="#who">Who it affects</a></li>
+  <li><a href="#today-wanted">Today and wanted</a></li>
+  <li><a href="#success">Success</a></li>
+  <li><a href="#appetite">Appetite</a></li>
+  <li><a href="#constraints">Constraints</a></li>
+  <li><a href="#non-goals">Non-goals</a></li>
+  <li><a href="#unknowns">Unknowns</a></li>
+  <li><a href="#open-decisions">Open decisions</a></li>
+  <li><a href="#evidence">Evidence</a></li>
+  <li><a href="#sources">Sources</a></li>
+  <li><a href="#related">Related</a></li>
+</ul>
+<p class="meta">{links to the related bundle files: explainers, options, decisions, cover sheet}</p>
+</nav>
+
+<section id="problem">
+<h2>The problem</h2>
+<p>{one specific story first, then one plain paragraph; facts only, no solution}</p>
+</section>
+
+<section id="who">
+<h2>Who it affects</h2>
+<p>{the users who have this problem and their situation}</p>
+</section>
+
+<section id="today-wanted">
+<h2>Today and wanted</h2>
+<div class="pair">
+  <div class="panel"><h3>Today</h3><p>{screenshot, diagram, or a short story of how it works today}</p></div>
+  <div class="panel"><h3>Wanted</h3><p>{the same, for how it should work; an outcome, not a design}</p></div>
+</div>
+</section>
+
+<section id="success">
+<h2>Success</h2>
+<div class="card" id="{SC-n}"><strong>{SC-n}</strong> {one observable outcome a user can do afterwards; one card per criterion, numbered in order from one, each card's id equal to its ID}</div>
+</section>
+
+<section id="appetite">
+<h2>Appetite</h2>
+<p>{how much this is worth, for example "one PR, about a day", and what gets cut if it runs over}</p>
+</section>
+
+<section id="constraints">
+<h2>Constraints</h2>
+<p>{limits the solution must respect}</p>
+</section>
+
+<section id="non-goals">
+<h2>Non-goals</h2>
+<p>{what this work will not do}</p>
+</section>
+
+<section id="unknowns">
+<h2>Unknowns</h2>
+<p>{facts we lack, each as a NEEDS DECISION marker in square brackets, and choices made without asking as ASSUMPTION markers; "none" when there are none}</p>
+</section>
+
+<section id="open-decisions">
+<h2>Open decisions</h2>
+<p>{each decision named, not chosen, linked to its options section; once settled, link the D-n that settled it}</p>
+</section>
+
+<section id="evidence">
+<h2>Evidence</h2>
+<p>{screenshots, quotes, links, bug report; mark each known or suspected}</p>
+</section>
+
+<section id="sources">
+<h2>Sources</h2>
+<p>{where the facts on this page came from}</p>
+</section>
+
+<section id="related">
+<h2>Related</h2>
+<p>{links to the other pages in this bundle and outside it}</p>
+</section>
+
+<section id="change-log">
+<h2>Change log</h2>
+<ul><li>{date} · revision {n} · {what changed}</li></ul>
+</section>
+
+<footer>{origin of the work · linked issue · anything else a reader needs to find the source}</footer>
+</main>
+</body>
+</html>

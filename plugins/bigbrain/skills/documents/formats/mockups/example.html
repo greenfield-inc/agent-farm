@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockups: dark-mode toggle</title>
+<style>
+:root {
+  --bg: #fbfaf6; --panel: #ffffff; --ink: #1d2420; --muted: #5d6861; --line: #dcdfd6;
+  --accent: #2f7d4f; --accent-soft: #e4f1e7;
+  --warn: #9a5b00; --warn-soft: #fbefd9;
+  --bad: #a23a2f; --bad-soft: #f9e4e1;
+  --code: #f0f1eb;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141815; --panel: #1b211d; --ink: #e7ebe6; --muted: #9aa69e; --line: #2e3731;
+    --accent: #6fc38d; --accent-soft: #1e3327;
+    --warn: #e5b566; --warn-soft: #352a15;
+    --bad: #ef9388; --bad-soft: #3a1f1c;
+    --code: #232a25;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 46rem; margin: 0 auto; padding: 24px 16px 64px; }
+h1 { font-size: 1.75rem; line-height: 1.25; margin: 0 0 .25rem; }
+h2 { font-size: 1.25rem; margin: 2rem 0 .5rem; padding-top: .75rem; border-top: 1px solid var(--line); }
+h3 { font-size: 1.05rem; margin: 1.25rem 0 .25rem; }
+a { color: var(--accent); }
+.summary { color: var(--muted); margin: .25rem 0 1rem; }
+.meta-line { color: var(--muted); font-size: .85rem; margin: 0; }
+.chip { display: inline-block; font-size: .78rem; font-weight: 600; padding: 1px 10px; border-radius: 999px; border: 1px solid var(--accent); background: var(--accent-soft); color: var(--accent); vertical-align: middle; }
+.chip.warn { border-color: var(--warn); background: var(--warn-soft); color: var(--warn); }
+.chip.bad { border-color: var(--bad); background: var(--bad-soft); color: var(--bad); }
+.chip.muted { border-color: var(--line); background: var(--code); color: var(--muted); }
+.panel, .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin: 12px 0; }
+.callout { background: var(--panel); border-left: 4px solid var(--accent); padding: 8px 14px; margin: 12px 0; }
+.callout.warn { border-left-color: var(--warn); background: var(--warn-soft); }
+.callout.bad { border-left-color: var(--bad); background: var(--bad-soft); }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; margin: 8px 0; }
+th, td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+th { color: var(--muted); font-weight: 600; }
+code { background: var(--code); padding: 0 4px; border-radius: 4px; font-size: .88em; overflow-wrap: anywhere; }
+pre { background: var(--code); padding: 10px 12px; border-radius: 6px; overflow-x: auto; font-size: .85rem; }
+img { max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); }
+details { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; margin: 10px 0; }
+summary { cursor: pointer; font-weight: 600; }
+ul, ol { padding-left: 1.3rem; }
+svg.draw { display: block; width: 100%; height: auto; margin: 16px 0 8px; }
+svg.draw text { fill: var(--ink); font: 13px system-ui, -apple-system, sans-serif; }
+svg.draw text.small { fill: var(--muted); font-size: 11px; }
+svg.draw .box { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+svg.draw .hot { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+svg.draw .warnbox { fill: var(--warn-soft); stroke: var(--warn); stroke-width: 1.5; }
+svg.draw .badbox { fill: var(--bad-soft); stroke: var(--bad); stroke-width: 1.5; }
+svg.draw .line { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+svg.draw .path { stroke: var(--accent); stroke-width: 2; fill: none; }
+svg.draw .dash { stroke-dasharray: 5 4; }
+svg.draw .head { fill: var(--muted); }
+svg.draw .headhot { fill: var(--accent); }
+footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; }
+</style>
+<script type="application/json" id="doc-meta">
+{ "kind": "mockups", "id": "dark-mode-toggle", "status": "done", "revision": 3,
+  "supersedes": null, "updated": "2026-10-14",
+  "defines": [],
+  "cites": ["Q-1", "D-1", "J-1", "J-2"],
+  "open": { "needs_decision": 0, "assumptions": 0 } }
+</script>
+</head>
+<body>
+<main>
+<h1>Mockups: dark-mode toggle <span class="chip">built</span></h1>
+<p class="summary">Two rounds for the Appearance row in Settings. Round 2 option B was approved and built.</p>
+<p class="meta-line"><a href="../index.html">Back to the brief</a> · <a href="design-notes.html">Design notes</a></p>
+
+<svg class="draw" viewBox="0 0 640 150" role="img" aria-label="Round 1 had three options A, B and C; B was refined in round 2, approved as D-1, and built">
+  <defs><marker id="mk-ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="headhot" d="M0,0 L8,4 L0,8z"/></marker></defs>
+  <text x="20" y="20">Round 1</text>
+  <rect class="box dash" x="20" y="30" width="110" height="30" rx="6"/><text x="32" y="50">A switch</text>
+  <rect class="hot" x="20" y="68" width="110" height="30" rx="6"/><text x="32" y="88">B segmented</text>
+  <rect class="box dash" x="20" y="106" width="110" height="30" rx="6"/><text x="32" y="126">C dropdown</text>
+  <path class="path" d="M130 83 H196" marker-end="url(#mk-ah)"/>
+  <text x="200" y="20">Round 2</text>
+  <rect class="hot" x="200" y="68" width="130" height="30" rx="6"/><text x="212" y="88">B refined</text>
+  <path class="path" d="M330 83 H396" marker-end="url(#mk-ah)"/>
+  <rect class="hot" x="400" y="68" width="100" height="30" rx="6"/><text x="412" y="88">Q-1 → D-1</text>
+  <path class="path" d="M500 83 H546" marker-end="url(#mk-ah)"/>
+  <rect class="hot" x="550" y="68" width="70" height="30" rx="6"/><text x="562" y="88">built</text>
+</svg>
+
+<section id="brief">
+<h2>Brief</h2>
+<p><strong>Screen:</strong> Settings, signed in. <strong>What changes:</strong> a new Appearance row with a theme choice, and dark values for the whole screen. <strong>What must be preserved:</strong> the existing rows, their order, the card layout, and the 480px breakpoint from the <a href="design-notes.html#layout">design notes</a>.</p>
+</section>
+
+<section id="current">
+<h2>Current</h2>
+<div class="cols">
+  <figure class="panel"><img src="settings-current.svg" alt="Settings today on desktop, light"><figcaption class="meta-line">Desktop, light</figcaption></figure>
+  <figure class="panel"><img src="settings-current-phone.svg" alt="Settings today on a phone, light"><figcaption class="meta-line">Phone, light</figcaption></figure>
+</div>
+</section>
+
+<section id="rounds">
+<h2>Rounds</h2>
+<h3>Round 1</h3>
+<article class="card">
+  <strong>Option A: one switch</strong> · <a href="settings-v1-a.svg">settings-v1-a.svg</a>
+  <img src="settings-v1-a.svg" alt="A single Dark mode switch">
+  <p><strong>Approach</strong> A "Dark mode" on/off switch. <strong>Self-critique</strong> Simplest, but it cannot express "follow my device", and off is ambiguous. <strong>Invented details</strong> the label text.</p>
+</article>
+<article class="card">
+  <strong>Option B: segmented control</strong> · <a href="settings-v1-b.svg">settings-v1-b.svg</a>
+  <img src="settings-v1-b.svg" alt="System, Light and Dark side by side">
+  <p><strong>Approach</strong> System, Light and Dark side by side. <strong>Self-critique</strong> All choices visible; needs a plan for narrow screens, and selection shown by colour only. <strong>Invented details</strong> System as the default.</p>
+</article>
+<article class="card">
+  <strong>Option C: dropdown</strong> · <a href="settings-v1-c.svg">settings-v1-c.svg</a>
+  <img src="settings-v1-c.svg" alt="A dropdown showing System">
+  <p><strong>Approach</strong> A dropdown. <strong>Self-critique</strong> Compact, but hides the choices and needs two taps. <strong>Invented details</strong> none.</p>
+</article>
+<h3>Round 2</h3>
+<article class="card">
+  <strong>Option B, refined</strong> · <a href="settings-v2-b.html">settings-v2-b.html</a> <span class="chip">approved</span>
+  <p><strong>Approach</strong> Round 1's B with a check mark on the selected segment, a hint line, a full-width layout under 480px, and a focus ring that differs from the accent in dark. <strong>Self-critique</strong> The hint adds a line to every theme row; worth it for "System". <strong>Invented details</strong> the hint wording.</p>
+</article>
+</section>
+
+<section id="approved">
+<h2>Approved</h2>
+<div class="callout">Round 2 option B, <a href="settings-v2-b.html">settings-v2-b.html</a>, approved via <a href="../decisions.html#Q-1">Q-1</a> → <a href="../decisions.html#D-1">D-1</a>. Rebuilt in HTML so the verifier can compare it exactly. Status: built.</div>
+</section>
+
+<section id="must-match">
+<h2>Must match</h2>
+<table>
+  <tr><th>Screen and state</th><th>Viewport · theme</th><th>Checked by</th></tr>
+  <tr><td>Settings, Dark selected, focus on the control</td><td>desktop · dark</td><td><a href="../cover-sheet.html#J-1">J-1</a></td></tr>
+  <tr><td>Settings, Dark selected, control under its label</td><td>phone · dark</td><td><a href="../cover-sheet.html#J-1">J-1</a></td></tr>
+  <tr><td>Settings after reload, Dark still selected</td><td>phone · dark</td><td><a href="../cover-sheet.html#J-2">J-2</a></td></tr>
+</table>
+</section>
+
+<section id="annotations">
+<h2>Annotations</h2>
+<ul>
+  <li>The selected segment shows a check mark as well as the accent fill.</li>
+  <li>Focus ring: <code>--focus</code>, 3px, 2px offset; yellow in dark so it never matches the accent.</li>
+  <li>Under 480px the control spans the row and each segment takes a third.</li>
+</ul>
+</section>
+
+<section id="illustrative">
+<h2>Illustrative</h2>
+<p>Not requirements: the "Demo" display name, the value 25, and the exact hint wording.</p>
+</section>
+
+<section id="rejected">
+<h2>Rejected</h2>
+<table>
+  <tr><th>Option</th><th>Why</th></tr>
+  <tr><td>Round 1 A, switch</td><td>Cannot express "follow my device"</td></tr>
+  <tr><td>Round 1 C, dropdown</td><td>Hides the choices; two taps</td></tr>
+</table>
+</section>
+
+<section id="change-log">
+<h2>Change log</h2>
+<ul>
+  <li>2026-10-14 rev 3: status built; QA round 2 matched the mockup.</li>
+  <li>2026-10-14 rev 2: round 2 option B ready-for-build after D-1.</li>
+  <li>2026-10-14 rev 1: round 1, exploring.</li>
+</ul>
+</section>
+</main>
+</body>
+</html>

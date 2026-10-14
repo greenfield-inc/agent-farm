@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{Feature name plan}</title>
+<style>
+:root {
+  --bg: #fbfaf6; --panel: #ffffff; --ink: #1d2420; --muted: #5d6861; --line: #dcdfd6;
+  --accent: #2f7d4f; --accent-soft: #e4f1e7;
+  --warn: #9a5b00; --warn-soft: #fbefd9;
+  --bad: #a23a2f; --bad-soft: #f9e4e1;
+  --code: #f0f1eb;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141815; --panel: #1b211d; --ink: #e7ebe6; --muted: #9aa69e; --line: #2e3731;
+    --accent: #6fc38d; --accent-soft: #1e3327;
+    --warn: #e5b566; --warn-soft: #352a15;
+    --bad: #ef9388; --bad-soft: #3a1f1c;
+    --code: #232a25;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+main { max-width: 46rem; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 1.85rem; line-height: 1.25; margin: 0 0 .3rem; }
+h2 { font-size: 1.3rem; line-height: 1.3; margin: 2.2rem 0 .6rem; padding-top: .8rem; border-top: 1px solid var(--line); }
+h3 { font-size: 1.05rem; margin: 1.4rem 0 .4rem; }
+a { color: var(--accent); }
+.lede { color: var(--muted); margin: 0 0 .8rem; }
+.meta { color: var(--muted); font-size: .88rem; }
+.chip { display: inline-block; font-size: .78rem; font-weight: 600; line-height: 1.5; padding: .05rem .6rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent); vertical-align: middle; }
+.chip.warn { background: var(--warn-soft); color: var(--warn); }
+.chip.bad { background: var(--bad-soft); color: var(--bad); }
+.panel, .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: .8rem 1rem; margin: .8rem 0; }
+.card h3 { margin-top: 0; }
+.callout { border-left: 4px solid var(--accent); background: var(--accent-soft); padding: .6rem 1rem; margin: 1rem 0; border-radius: 0 6px 6px 0; }
+.callout.warn { border-color: var(--warn); background: var(--warn-soft); }
+.callout.bad { border-color: var(--bad); background: var(--bad-soft); }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 640px) { .pair { grid-template-columns: 1fr; } }
+table { width: 100%; border-collapse: collapse; font-size: .92rem; margin: .6rem 0; }
+th, td { text-align: left; vertical-align: top; padding: .4rem .5rem; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+th { color: var(--muted); font-weight: 600; }
+code { background: var(--code); padding: .05rem .3rem; border-radius: 4px; font-size: .9em; overflow-wrap: anywhere; }
+pre { background: var(--code); padding: .8rem; overflow-x: auto; border-radius: 6px; font-size: .88rem; }
+pre code { padding: 0; background: none; }
+dl { margin: .4rem 0; }
+dt { font-weight: 600; }
+dd { margin: 0 0 .5rem 1rem; }
+details { border: 1px solid var(--line); border-radius: 6px; padding: .4rem .8rem; margin: .6rem 0; background: var(--panel); }
+summary { cursor: pointer; font-weight: 600; }
+nav.contents ul { columns: 2; padding-left: 1.2rem; margin: .4rem 0; }
+@media (max-width: 640px) { nav.contents ul { columns: 1; } }
+figure { margin: 1rem 0; }
+figcaption { color: var(--muted); font-size: .85rem; }
+svg { width: 100%; height: auto; display: block; }
+svg text { fill: var(--ink); font: 13px -apple-system, "Segoe UI", sans-serif; }
+svg .small { font-size: 11px; fill: var(--muted); }
+svg .box { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+svg .hot { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+svg .warnbox { fill: var(--warn-soft); stroke: var(--warn); stroke-width: 1.5; }
+svg .line { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+svg .path { stroke: var(--accent); stroke-width: 2; fill: none; }
+svg .dash { stroke-dasharray: 5 4; }
+svg .head { fill: var(--muted); }
+svg .headhot { fill: var(--accent); }
+footer { color: var(--muted); font-size: .85rem; margin-top: 3rem; border-top: 1px solid var(--line); padding-top: .8rem; }
+ol.flow { padding-left: 1.4rem; }
+ol.flow li { margin: .3rem 0; }
+</style>
+<script type="application/json" id="doc-meta">
+{ "kind": "cover-sheet", "id": "work-slug",
+  "status": "draft", "revision": 1,
+  "supersedes": null, "updated": "2026-10-14",
+  "defines": [],
+  "cites": [],
+  "open": { "needs_decision": 0, "assumptions": 0 } }
+</script>
+</head>
+<body>
+<main>
+<!-- Template: copy this file, replace every {instruction} with content, and fill doc-meta.
+     "id" is the work's slug; "updated" is today's date. List every ID this page defines in "defines"
+     (each needs an element with that id) and every ID it mentions in "cites".
+     Set "open" to the number of NEEDS DECISION and ASSUMPTION markers left in the visible text.
+     A section that does not apply says "n/a because ..." instead of being deleted. -->
+<h1>Plan: {feature} <span class="chip">draft</span></h1>
+<p class="lede">{one-line outcome for the user}</p>
+
+<figure>
+<svg viewBox="0 0 640 120" role="img" aria-labelledby="draw-title">
+  <title id="draw-title">{one-sentence description of the drawing}</title>
+  <rect x="20" y="20" width="600" height="80" rx="8" class="box dash"/>
+  <text x="40" y="65">{drawing: the system after the change, packages labelled, the new path in accent}</text>
+</svg>
+</figure>
+
+<section id="control-flow-summary">
+<p class="panel"><strong>Control flow:</strong> {review points and QA settings in one line}</p>
+</section>
+
+<nav class="contents" id="contents" aria-label="Contents">
+<h2>Contents</h2>
+<ul>
+  <li><a href="#three-sentences">In three sentences</a></li>
+  <li><a href="#before-after">Before and after</a></li>
+  <li><a href="#decisions-locked">Decisions locked</a></li>
+  <li><a href="#deferred">Deferred</a></li>
+  <li><a href="#scope">Scope</a></li>
+  <li><a href="#cross-cutting">Cross-cutting</a></li>
+  <li><a href="#how-we-know">How we will know it works</a></li>
+  <li><a href="#packages">Packages</a></li>
+  <li><a href="#control-flow">Control flow</a></li>
+  <li><a href="#open-markers">Open markers</a></li>
+  <li><a href="#look-first">Look at these first</a></li>
+  <li><a href="#change-log">Change log</a></li>
+</ul>
+<p class="meta">{links to the related bundle files}</p>
+</nav>
+
+<section id="three-sentences">
+<h2>In three sentences</h2>
+<p>{what, approach, and what the user gets, citing SC-n}</p>
+</section>
+
+<section id="before-after">
+<h2>Before and after</h2>
+<div class="pair">
+  <div class="panel"><h3>Before</h3><p>{diagram or screenshot of today}</p></div>
+  <div class="panel"><h3>After</h3><p>{diagram or approved mockups; the screens that must match}</p></div>
+</div>
+</section>
+
+<section id="decisions-locked">
+<h2>Decisions locked</h2>
+<table>
+  <thead><tr><th>Decision</th><th>Chosen</th><th>Rejected</th><th>Why</th></tr></thead>
+  <tbody><tr><td>{D-n, linked}</td><td>{chosen}</td><td>{rejected}</td><td>{why}</td></tr></tbody>
+</table>
+</section>
+
+<section id="deferred">
+<h2>Deferred</h2>
+<table>
+  <thead><tr><th>Item</th><th>Why</th><th>Revisit when</th></tr></thead>
+  <tbody><tr><td>{item}</td><td>{why}</td><td>{trigger}</td></tr></tbody>
+</table>
+</section>
+
+<section id="scope">
+<h2>Scope</h2>
+<p>{what this plan changes}</p>
+</section>
+
+<section id="constraints">
+<h2>Constraints</h2>
+<p>{limits the build must respect}</p>
+</section>
+
+<section id="non-goals">
+<h2>Non-goals</h2>
+<p>{what this plan will not do}</p>
+</section>
+
+<section id="ask-first">
+<h2>Ask-first actions</h2>
+<p>{actions the implementer must ask about before taking}</p>
+</section>
+
+<section id="cross-cutting">
+<h2>Cross-cutting</h2>
+<table>
+  <tbody>
+    <tr><th>Security</th><td>{"addressed in P-n: ..." or "n/a because ..."}</td></tr>
+    <tr><th>Privacy</th><td>{same}</td></tr>
+    <tr><th>Observability</th><td>{same}</td></tr>
+    <tr><th>Migration and rollback</th><td>{same}</td></tr>
+    <tr><th>Performance</th><td>{same}</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="how-we-know">
+<h2>How we will know it works</h2>
+<article class="card" id="{J-n}">
+<h3>{J-n} · {journey name} <span class="meta">covers {SC-n · P-n}</span></h3>
+<p><strong>Given</strong> {starting state}<br>
+<strong>When</strong> {the user's action}<br>
+<strong>Then</strong> {the observable result}<br>
+<strong>Continues to</strong> {bug fixes and risky changes: behavior that must not change; otherwise delete this line}<br>
+<strong>Check</strong> {app | command | test} · {evidence file, named J-n-step-viewport-theme}</p>
+</article>
+<article class="card" id="{S-n}">
+<h3>{S-n} · {suite name} <span class="meta">covers {P-n}</span></h3>
+<p>Run <code>{command}</code> → expect {result}.</p>
+</article>
+<p class="meta">{One card per journey and suite; the text matches control-flow.json flows exactly.}</p>
+</section>
+
+<section id="packages">
+<h2>Packages</h2>
+<article class="card" id="{P-n}">
+<h3>{P-n} · {package name}</h3>
+<p><strong>Outcome:</strong> {what is true when it is done} <span class="meta">Labels: {labels} · Depends on: {P-n or nothing}</span></p>
+<p>{rollback line when it touches data; otherwise delete this line}</p>
+<details><summary>Approach</summary><p>{files, functions, and how it is built}</p></details>
+</article>
+</section>
+
+<section id="control-flow" data-control-flow-revision="1">
+<h2>Control flow</h2>
+<p class="meta">Rendered from control-flow.json, revision {n}, approved by {D-n}. Do not hand-edit. Set data-control-flow-revision to the JSON's revision. No nested sections here.</p>
+<svg viewBox="0 0 640 70" role="img" aria-labelledby="cf-title">
+  <title id="cf-title">{the steps in order, review points in accent}</title>
+  <rect x="20" y="18" width="600" height="34" rx="6" class="box dash"/>
+  <text x="36" y="40" class="small">{one box per step}</text>
+</svg>
+<ol class="flow">
+  <li data-step="{step id}"><code>{step id}</code> · {actor} · {do} · {package, flows, scope, reason_kind and reason, spawn, as the step has them; a qa step adds "up to N rounds"; a waived review says "no review (waived), D-n"}</li>
+</ol>
+</section>
+
+<section id="open-markers">
+<h2>Open markers</h2>
+<p>{remaining ASSUMPTION markers, each in square brackets; NEEDS DECISION must be 0}</p>
+</section>
+
+<section id="look-first">
+<h2>Look at these first</h2>
+<p>{the places a reviewer should read first, and why}</p>
+</section>
+
+<section id="change-log">
+<h2>Change log</h2>
+<ul><li>{date} · revision {n} · {what changed}</li></ul>
+</section>
+</main>
+</body>
+</html>

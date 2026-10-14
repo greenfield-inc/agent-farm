@@ -1,0 +1,11 @@
+variants:
+  opus:
+    agent: implementer-opus
+  astra:
+    agent: implementer-codex
+  sol:
+    agent: implementer-codex
+    model:
+      name: gpt-6.1-sol
+      reasoning: medium
+default: opus

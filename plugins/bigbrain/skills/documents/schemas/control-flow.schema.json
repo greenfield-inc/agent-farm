@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "control-flow.schema.json",
+  "title": "Bigbrain control flow",
+  "description": "control-flow.json: the source of truth for a cover sheet's Control flow section. The planner writes it; the orchestrator, implementer and reviewer read it.",
+  "type": "object",
+  "required": ["version", "revision", "qa", "flows", "steps"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "const": 1 },
+    "revision": { "type": "integer", "minimum": 1 },
+    "approved_by": { "type": ["string", "null"], "pattern": "^D-[0-9]+$" },
+    "qa": {
+      "type": "object",
+      "required": ["max_rounds"],
+      "additionalProperties": false,
+      "properties": {
+        "max_rounds": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "mockups": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "jank_checklist": { "type": "boolean" },
+        "viewports": { "type": "array", "uniqueItems": true, "items": { "enum": ["desktop", "tablet", "phone"] } },
+        "themes": { "type": "array", "uniqueItems": true, "items": { "enum": ["light", "dark"] } }
+      }
+    },
+    "flows": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^J-[0-9]+$": { "$ref": "#/$defs/journey" },
+        "^S-[0-9]+$": { "$ref": "#/$defs/suite" }
+      }
+    },
+    "steps": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/step" } }
+  },
+  "$defs": {
+    "covers": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "^(SC|P)-[0-9]+$" } },
+    "journey": {
+      "type": "object",
+      "required": ["covers", "given", "when", "then", "check"],
+      "additionalProperties": false,
+      "properties": {
+        "covers": { "$ref": "#/$defs/covers" },
+        "given": { "type": "string", "minLength": 1 },
+        "when": { "type": "string", "minLength": 1 },
+        "then": { "type": "string", "minLength": 1 },
+        "continues": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "check": {
+          "type": "object",
+          "required": ["method", "evidence"],
+          "additionalProperties": false,
+          "properties": {
+            "method": { "enum": ["app", "command", "test"] },
+            "evidence": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "suite": {
+      "type": "object",
+      "required": ["covers", "run", "expect"],
+      "additionalProperties": false,
+      "properties": {
+        "covers": { "$ref": "#/$defs/covers" },
+        "run": { "type": "string", "minLength": 1 },
+        "expect": { "type": "string", "minLength": 1 }
+      }
+    },
+    "flowIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "^(J|S)-[0-9]+$" } },
+    "step": {
+      "type": "object",
+      "required": ["id", "actor", "do"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-zA-Z0-9-]*$" },
+        "actor": { "enum": ["implementer", "orchestrator"] },
+        "do": { "enum": ["build", "verify", "qa", "pr", "review", "design"] },
+        "package": { "type": "string", "pattern": "^P-[0-9]+$" },
+        "flows": { "$ref": "#/$defs/flowIds" },
+        "spawn": { "enum": ["verifier"] },
+        "skills": { "type": "array", "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" } },
+        "max_rounds": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "scope": {
+          "anyOf": [
+            { "const": "all" },
+            { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "^P-[0-9]+$" } }
+          ]
+        },
+        "reason_kind": { "enum": ["irreversible", "schema", "security", "shared-contract"] },
+        "reason": { "type": "string", "minLength": 1 },
+        "profile": { "type": "string", "pattern": "^bigbrain/reviewer(:(codex|claude))?$" },
+        "review": { "const": "none" },
+        "approved_by": { "type": "string", "pattern": "^D-[0-9]+$" },
+        "note": { "type": "string" }
+      }
+    }
+  }
+}

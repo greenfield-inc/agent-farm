@@ -1,0 +1,193 @@
+{
+  "$comment": "Required sections per page kind. Each entry is the id of an element the page must contain. check-bundle reads this file; templates and examples follow it.",
+  "brief": {
+    "file": "index.html",
+    "defines": [
+      "SC"
+    ],
+    "sections": [
+      "contents",
+      "problem",
+      "who",
+      "today-wanted",
+      "success",
+      "appetite",
+      "constraints",
+      "non-goals",
+      "unknowns",
+      "open-decisions",
+      "evidence",
+      "sources",
+      "related",
+      "change-log"
+    ]
+  },
+  "explainer": {
+    "file": "explainers/<topic>.html",
+    "defines": [],
+    "sections": [
+      "gist",
+      "how-it-works",
+      "walkthrough",
+      "diagrams",
+      "glossary",
+      "misconceptions",
+      "not-this",
+      "still-fuzzy"
+    ]
+  },
+  "options": {
+    "file": "options.html",
+    "defines": [],
+    "sections": [
+      "contents",
+      "decision-1",
+      "socrates",
+      "learned",
+      "change-log"
+    ]
+  },
+  "decisions": {
+    "file": "decisions.html",
+    "defines": [
+      "D",
+      "Q"
+    ],
+    "sections": [
+      "links",
+      "status",
+      "entries",
+      "deferred",
+      "change-log"
+    ]
+  },
+  "cover-sheet": {
+    "file": "cover-sheet.html",
+    "defines": [
+      "P",
+      "J",
+      "S"
+    ],
+    "sections": [
+      "control-flow-summary",
+      "contents",
+      "three-sentences",
+      "before-after",
+      "decisions-locked",
+      "deferred",
+      "scope",
+      "constraints",
+      "non-goals",
+      "ask-first",
+      "cross-cutting",
+      "how-we-know",
+      "packages",
+      "control-flow",
+      "open-markers",
+      "look-first",
+      "change-log"
+    ]
+  },
+  "design-notes": {
+    "file": "mockups/design-notes.html",
+    "defines": [],
+    "sections": [
+      "screens",
+      "layout",
+      "type",
+      "tokens",
+      "colour",
+      "components",
+      "density",
+      "do-dont"
+    ]
+  },
+  "mockups": {
+    "file": "mockups/index.html",
+    "defines": [],
+    "sections": [
+      "brief",
+      "current",
+      "rounds",
+      "approved",
+      "must-match",
+      "annotations",
+      "illustrative",
+      "rejected",
+      "change-log"
+    ]
+  },
+  "verification": {
+    "file": "evidence/verification.html",
+    "defines": [],
+    "sections": [
+      "tested",
+      "summary",
+      "checks",
+      "mockup-fidelity",
+      "jank",
+      "fix-log",
+      "assumed",
+      "surprises",
+      "open-items"
+    ]
+  },
+  "bug-report": {
+    "file": "index.html",
+    "defines": [
+      "B"
+    ],
+    "sections": [
+      "repro",
+      "expected",
+      "actual",
+      "evidence",
+      "locus",
+      "hypotheses",
+      "gone-when",
+      "route",
+      "not-doing"
+    ]
+  },
+  "post-mortem": {
+    "file": "post-mortem.html",
+    "defines": [],
+    "sections": [
+      "outcome",
+      "timeline",
+      "implementation",
+      "factors",
+      "surprises",
+      "unexpected",
+      "critical-decisions",
+      "wrong-assumptions",
+      "thrashing",
+      "verification",
+      "actions",
+      "lessons"
+    ]
+  },
+  "learning": {
+    "file": "learning/learning.html",
+    "defines": [],
+    "sections": [
+      "summary",
+      "iceberg",
+      "deep-dive",
+      "quiz",
+      "before-merge"
+    ]
+  },
+  "map": {
+    "file": "map.html",
+    "defines": [],
+    "sections": [
+      "needs-you",
+      "order",
+      "control-flows",
+      "lanes",
+      "logs",
+      "end"
+    ]
+  }
+}

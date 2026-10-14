@@ -66,6 +66,19 @@ independent; each plugin's version is in its `plugin.yaml`.
   skills are vendored unchanged from mattpocock/skills (see
   `plugins/greenfield/THIRD_PARTY_NOTICES.md`).
 
+- **bigbrain**: authored in this repository, except its 16 copies of greenfield
+  skills, which are pinned to a greenfield commit. Never hand-edit a copy. Every
+  file under its `profiles/`, `agents/`, `skills/` and `instructions/` is
+  checksummed in `plugin.yaml`, so after any edit to a bigbrain file, and to move
+  the copies to a newer greenfield, run:
+
+  ```sh
+  node scripts/sync-bigbrain-from-greenfield.mjs [--commit <greenfield commit>]
+  ```
+
+  `--check` (run it before committing) fails on an edited copy or stale checksums and
+  reports drift from the current greenfield as information.
+
 Check a plugin before release with
 `node dist/cli.js plugin validate plugins/<name> --config-root "$(mktemp -d)"`.
 

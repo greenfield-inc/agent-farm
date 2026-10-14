@@ -70,6 +70,7 @@ gitignored.
 ## Scripts
 
 - `scripts/vendor-orchestra.mjs`: regenerates `plugins/orchestra` from pinned upstream commits. See [RUNBOOK.md](../RUNBOOK.md#update-bundled-plugins).
+- `scripts/sync-bigbrain-from-greenfield.mjs`: copies bigbrain's pinned greenfield skills and rewrites `plugins/bigbrain/plugin.yaml`'s checksums; `--check` verifies them. See [RUNBOOK.md](../RUNBOOK.md#update-bundled-plugins).
 - `scripts/orchestra-guide.html`: the source for `plugins/orchestra/index.html`. The vendor script copies it into place.
 - `scripts/provider-smoke.mjs`: checks provider routing end to end against a local fake gateway. Run it after `pnpm build`. It needs the native `claude` and `codex` CLIs on PATH, and uses no real credentials.
 

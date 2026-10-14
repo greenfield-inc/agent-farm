@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How a note is stored</title>
+<style>
+:root {
+  --bg: #fbfaf6; --panel: #ffffff; --ink: #1d2420; --muted: #5d6861; --line: #dcdfd6;
+  --accent: #2f7d4f; --accent-soft: #e4f1e7;
+  --warn: #9a5b00; --warn-soft: #fbefd9;
+  --bad: #a23a2f; --bad-soft: #f9e4e1;
+  --code: #f0f1eb;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141815; --panel: #1b211d; --ink: #e7ebe6; --muted: #9aa69e; --line: #2e3731;
+    --accent: #6fc38d; --accent-soft: #1e3327;
+    --warn: #e5b566; --warn-soft: #352a15;
+    --bad: #ef9388; --bad-soft: #3a1f1c;
+    --code: #232a25;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+main { max-width: 46rem; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 1.85rem; line-height: 1.25; margin: 0 0 .3rem; }
+h2 { font-size: 1.3rem; line-height: 1.3; margin: 2.2rem 0 .6rem; padding-top: .8rem; border-top: 1px solid var(--line); }
+h3 { font-size: 1.05rem; margin: 1.4rem 0 .4rem; }
+a { color: var(--accent); }
+.lede { color: var(--muted); margin: 0 0 .8rem; }
+.meta { color: var(--muted); font-size: .88rem; }
+.chip { display: inline-block; font-size: .78rem; font-weight: 600; line-height: 1.5; padding: .05rem .6rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent); vertical-align: middle; }
+.chip.warn { background: var(--warn-soft); color: var(--warn); }
+.chip.bad { background: var(--bad-soft); color: var(--bad); }
+.panel, .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: .8rem 1rem; margin: .8rem 0; }
+.card h3 { margin-top: 0; }
+.callout { border-left: 4px solid var(--accent); background: var(--accent-soft); padding: .6rem 1rem; margin: 1rem 0; border-radius: 0 6px 6px 0; }
+.callout.warn { border-color: var(--warn); background: var(--warn-soft); }
+.callout.bad { border-color: var(--bad); background: var(--bad-soft); }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 640px) { .pair { grid-template-columns: 1fr; } }
+table { width: 100%; border-collapse: collapse; font-size: .92rem; margin: .6rem 0; }
+th, td { text-align: left; vertical-align: top; padding: .4rem .5rem; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+th { color: var(--muted); font-weight: 600; }
+code { background: var(--code); padding: .05rem .3rem; border-radius: 4px; font-size: .9em; overflow-wrap: anywhere; }
+pre { background: var(--code); padding: .8rem; overflow-x: auto; border-radius: 6px; font-size: .88rem; }
+pre code { padding: 0; background: none; }
+dl { margin: .4rem 0; }
+dt { font-weight: 600; }
+dd { margin: 0 0 .5rem 1rem; }
+details { border: 1px solid var(--line); border-radius: 6px; padding: .4rem .8rem; margin: .6rem 0; background: var(--panel); }
+summary { cursor: pointer; font-weight: 600; }
+nav.contents ul { columns: 2; padding-left: 1.2rem; margin: .4rem 0; }
+@media (max-width: 640px) { nav.contents ul { columns: 1; } }
+figure { margin: 1rem 0; }
+figcaption { color: var(--muted); font-size: .85rem; }
+svg { width: 100%; height: auto; display: block; }
+svg text { fill: var(--ink); font: 13px -apple-system, "Segoe UI", sans-serif; }
+svg .small { font-size: 11px; fill: var(--muted); }
+svg .box { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+svg .hot { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+svg .warnbox { fill: var(--warn-soft); stroke: var(--warn); stroke-width: 1.5; }
+svg .line { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+svg .path { stroke: var(--accent); stroke-width: 2; fill: none; }
+svg .dash { stroke-dasharray: 5 4; }
+svg .head { fill: var(--muted); }
+svg .headhot { fill: var(--accent); }
+footer { color: var(--muted); font-size: .85rem; margin-top: 3rem; border-top: 1px solid var(--line); padding-top: .8rem; }
+</style>
+<script type="application/json" id="doc-meta">
+{ "kind": "explainer", "id": "note-body",
+  "status": "approved", "revision": 1,
+  "supersedes": null, "updated": "2026-10-14",
+  "defines": [],
+  "cites": [],
+  "open": { "needs_decision": 0, "assumptions": 0 } }
+</script>
+</head>
+<body>
+<main>
+<h1>How a Jotter note is stored and shown <span class="chip">approved</span></h1>
+<p class="lede">How things work today, before any export exists. Pure explanation: no plan and no steps.</p>
+
+<figure>
+<svg viewBox="0 0 640 150" role="img" aria-labelledby="draw-title">
+  <title id="draw-title">The editor saves a list of blocks; the server stores them as JSON; the viewer draws each block</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="head"/></marker>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="headhot"/></marker>
+  </defs>
+  <rect x="10" y="40" width="150" height="60" rx="8" class="box"/>
+  <text x="28" y="66">Editor</text>
+  <text x="28" y="86" class="small">you type and tick</text>
+  <path d="M160,70 L240,70" class="line" marker-end="url(#a)"/>
+  <text x="170" y="62" class="small">save</text>
+  <rect x="240" y="30" width="170" height="80" rx="8" class="hot"/>
+  <text x="258" y="56">notes table</text>
+  <text x="258" y="76" class="small">title: text</text>
+  <text x="258" y="94" class="small">body: JSON list of blocks</text>
+  <path d="M410,70 L490,70" class="path" marker-end="url(#ah)"/>
+  <text x="420" y="62" class="small">load</text>
+  <rect x="490" y="40" width="140" height="60" rx="8" class="box"/>
+  <text x="508" y="66">Viewer</text>
+  <text x="508" y="86" class="small">draws each block</text>
+  <text x="240" y="140" class="small">The stored body is never text. Formatting lives in the block types.</text>
+</svg>
+</figure>
+
+<section id="gist">
+<h2>Gist</h2>
+<p>A Jotter note has a title and a body. The body is not text: it is a list of blocks, each with a type such as paragraph, heading, checklist item or code. The server keeps that list as JSON. The browser turns each block into what you see. Anything that wants the note as text, such as copy and paste, has to rebuild the text from the blocks, and today only the browser's own copy does that, badly.</p>
+</section>
+
+<section id="how-it-works">
+<h2>How it works now</h2>
+<p>When you type, the editor keeps a list of blocks in memory. A new line starts a new paragraph block. Typing "# " at the start turns the block into a heading. Pressing the checkbox button turns it into a checklist item with a <code>done</code> flag that starts false. Ticking the box flips the flag; the text does not change.</p>
+<p>Two seconds after you stop typing, the editor sends the whole list to the server. The server checks that the body is under 100 KB and stores it in the <code>body</code> column of the <code>notes</code> table, next to the title, the owner and the note id (such as <code>n42</code>).</p>
+<p>Links are not separate blocks. They are marks inside a block's text: a span of characters with an <code>href</code> attached. The viewer draws the span as a link. When you copy, the browser copies the visible words and, depending on the target app, may drop the address.</p>
+</section>
+
+<section id="walkthrough">
+<h2>One walkthrough: the "Trip plan" note</h2>
+<p>You create a note titled "Trip plan", type a heading "Day 1", add a checklist item "Book train" and tick it, then write "See the map" and link the word "map". The stored body is:</p>
+<pre><code>[
+  { "type": "heading",   "level": 2, "text": "Day 1" },
+  { "type": "checklist", "done": true, "text": "Book train" },
+  { "type": "paragraph", "text": "See the map",
+    "marks": [ { "from": 8, "to": 11, "href": "https://example.com/map" } ] }
+]</code></pre>
+<p>The title is stored on its own, not as a block. When you open the note again, the viewer reads the list and draws a heading, a ticked box, and a sentence with one link. Nothing in this path produces plain text.</p>
+</section>
+
+<section id="diagrams">
+<h2>Diagrams</h2>
+<figure>
+<svg viewBox="0 0 640 120" role="img" aria-labelledby="states-title">
+  <title id="states-title">A checklist block has two states, and only the done flag changes between them</title>
+  <defs>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="head"/></marker>
+  </defs>
+  <rect x="60" y="30" width="200" height="56" rx="8" class="box"/>
+  <text x="78" y="54">checklist, done: false</text>
+  <text x="78" y="74" class="small">drawn as an empty box</text>
+  <rect x="380" y="30" width="200" height="56" rx="8" class="hot"/>
+  <text x="398" y="54">checklist, done: true</text>
+  <text x="398" y="74" class="small">drawn as a ticked box</text>
+  <path d="M260,48 L380,48" class="line" marker-end="url(#b)"/>
+  <text x="300" y="42" class="small">tick</text>
+  <path d="M380,70 L260,70" class="line" marker-end="url(#b)"/>
+  <text x="296" y="86" class="small">untick</text>
+</svg>
+<figcaption>States of a checklist block. The text never carries the tick.</figcaption>
+</figure>
+</section>
+
+<section id="glossary">
+<h2>Glossary</h2>
+<dl>
+  <dt>Note</dt><dd>One record: id, owner, title, body.</dd>
+  <dt>Block</dt><dd>One item in a note's body, with a type and text.</dd>
+  <dt>Mark</dt><dd>Formatting on a span of a block's text, such as a link.</dd>
+  <dt>Body cap</dt><dd>The 100 KB limit the server enforces on a stored body.</dd>
+</dl>
+</section>
+
+<section id="misconceptions">
+<h2>Common misconceptions</h2>
+<ul>
+  <li><strong>"The body is Markdown already."</strong> It is not. "# " is an editor shortcut; the stored block says <code>"type": "heading"</code>.</li>
+  <li><strong>"The title is the first heading."</strong> The title is a separate column. A note can have no headings at all.</li>
+  <li><strong>"Titles are unique."</strong> They are not. Only the note id is unique.</li>
+</ul>
+</section>
+
+<section id="not-this">
+<h2>What this is not</h2>
+<p>This page does not say how an export should work, which format it should use, or where it should run. Those choices are on the <a href="../options.html">options page</a>. Nothing here has been decided by this page.</p>
+</section>
+
+<section id="still-fuzzy">
+<h2>Still fuzzy</h2>
+<ul>
+  <li>Old notes from before the code block type may store code as a paragraph with a monospace mark. How many exist is unknown.</li>
+</ul>
+</section>
+
+<footer>Written by the planner on 2026-10-14 from reading the note editor and the notes table. <a href="../index.html">Back to the brief</a>.</footer>
+</main>
+</body>
+</html>

@@ -29,12 +29,13 @@ Codex CLI installed and authenticated. On Windows, turn on Developer Mode
 npm install --global @greenfieldco/agent-farm
 agent-farm init
 agent-farm plugin install orchestra    # optional: the overseer profile below
+agent-farm plugin install bigbrain     # optional: the one-front-door workflow below
 ```
 
 `agent-farm init` checks your prerequisites, installs the default `greenfield`
 plugin (its profiles and skills), explains how everything fits together, and
-offers to launch your first session. The `orchestra` plugin ships in the same
-package but is installed only when you ask for it. After
+offers to launch your first session. The `orchestra` and `bigbrain` plugins ship in the same
+package but are installed only when you ask for them. After
 upgrading Agent Farm, rerun `agent-farm plugin install` and
 `agent-farm plugin install NAME` for each plugin you use, to pick up new profiles.
 
@@ -88,7 +89,9 @@ existing installs. `dcouple/raw` became `greenfield/implementer`; `dcouple/ideat
 and `dcouple/implementer` were not moved. An installed `dcouple` keeps working
 until you run `agent-farm plugin uninstall dcouple`.
 
-**Guides** — Each plugin has a one-page visual guide to its profiles and how work is routed: [greenfield](plugins/greenfield/index.html), [orchestra](plugins/orchestra/index.html), and [dcouple](plugins/dcouple/index.html). They're also on Grain: [greenfield](https://rungrain.com/share/49gtyr7fi7hm75n71itmmlgl), [orchestra](https://rungrain.com/share/dmnwnvk2hbvsxcart76f29jk), and [dcouple](https://rungrain.com/share/6uxd73wjm97a2n2shyg5m6xz).
+**bigbrain** — An opt-in alternative to greenfield (`agent-farm plugin install bigbrain`): you talk only to `bigbrain/orchestrator`, which relays every worker's questions to you, every plan carries a control flow the implementer runs step by step, reviews happen only at planned points or on your word, and every document passes a bundled checker. See [plugins/bigbrain/README.md](plugins/bigbrain/README.md).
+
+**Guides** — Each plugin has a one-page visual guide to its profiles and how work is routed: [greenfield](plugins/greenfield/index.html), [orchestra](plugins/orchestra/index.html), [bigbrain](plugins/bigbrain/index.html), and [dcouple](plugins/dcouple/index.html). They're also on Grain: [greenfield](https://rungrain.com/share/49gtyr7fi7hm75n71itmmlgl), [orchestra](https://rungrain.com/share/dmnwnvk2hbvsxcart76f29jk), and [dcouple](https://rungrain.com/share/6uxd73wjm97a2n2shyg5m6xz).
 
 **Variants** — Some profiles come in more than one version, such as a Claude
 and a Codex planner. They're one profile with variants, and the menu shows
@@ -168,6 +171,7 @@ of these files: connections name environment variables instead of holding values
 ```sh
 agent-farm plugin install                 # bundled greenfield
 agent-farm plugin install orchestra
+agent-farm plugin install bigbrain
 agent-farm plugin install /path/to/plugin
 agent-farm plugin list
 agent-farm profiles list
@@ -191,9 +195,9 @@ plugins, workspaces and trust, launch arguments, telemetry, and providers.
 - [Development](docs/development.md): build, test, and contribute
 - [Runbook](RUNBOOK.md): releases and bundled-plugin updates
 - [Example configurations](examples/)
-- Plugin guides: [greenfield](plugins/greenfield/README.md), [orchestra](plugins/orchestra/README.md), [dcouple](plugins/dcouple/index.html)
+- Plugin guides: [greenfield](plugins/greenfield/README.md), [orchestra](plugins/orchestra/README.md), [bigbrain](plugins/bigbrain/README.md), [dcouple](plugins/dcouple/index.html)
 
 The bundled plugins are not all edited here. Maintainers publish `plugins/dcouple/`
 from a separate source repository, and `plugins/orchestra/` is generated from
 upstream by a script, so hand edits to either are overwritten. `plugins/greenfield/`
-is written here. See [RUNBOOK.md](RUNBOOK.md#update-bundled-plugins).
+is written here, and so is `plugins/bigbrain/`, except its pinned copies of greenfield skills, which a script refreshes. See [RUNBOOK.md](RUNBOOK.md#update-bundled-plugins).
