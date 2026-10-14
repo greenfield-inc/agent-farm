@@ -191,3 +191,22 @@ test('the implementer runs the control flow alone, with the QA loop, narrow writ
  const kinds=JSON.parse(text(path.join(root,'skills','documents','kinds.json')));
  for(const id of ['unexpected','critical-decisions','wrong-assumptions','thrashing'])assert.ok(kinds['post-mortem'].sections.includes(id),id);
 });
+
+test('reviewer v2: two-vendor bug hunters, other-vendor checkers, one COMMENT review with the step marker, no fixes (P-4)',()=>{
+ const skill=text(path.join(root,'skills','review','SKILL.md')).replace(/\s+/g,' ');
+ assert.match(skill,/post exactly one GitHub review with event `COMMENT`/);
+ assert.match(skill,/<!-- bigbrain-review step=<step id> head=<sha> -->/);
+ assert.match(skill,/\*\*Must-Fix\*\* only if a checker confirmed it/);
+ assert.match(skill,/Suggestion\*\* at most five/);
+ assert.match(skill,/Check only those F-n on the new head/);
+ assert.match(skill,/You never fix, never approve or request changes/);
+ assert.match(skill,/`checker-claude` for a candidate from a Codex worker, `checker-codex` for one from a Claude worker/);
+ assert.ok(fs.existsSync(path.join(root,'skills','review','CRITERIA.md')));
+ for(const variant of ['codex','claude']){
+  const resolved=resolveProfile(root,`reviewer:${variant}`),nodes=resolved.nodes,children=nodes.main.children;
+  const harness=name=>nodes[children[name]].harness;
+  assert.notEqual(harness('bug-hunter-a'),harness('bug-hunter-b'),'bug hunters on different vendors');
+  assert.deepEqual([harness('checker-claude'),harness('checker-codex')],['claude','codex']);
+  for(const name of Object.keys(children))assert.equal(nodes[children[name]].name,'review-worker',`${variant} ${name} is the one review-worker definition`);
+ }
+});

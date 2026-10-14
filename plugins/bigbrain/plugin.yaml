@@ -124,7 +124,10 @@ checksums:
   skills/quick-verify/SKILL.md: f1a6912e6188654d456f50018a5b99ce0afbd8000bcbec895621ff62696b645a
   skills/quick-verify/metadata/codex.yaml: f6786d928d9220b0b05c85352c44daa631b1c72b1709438251b3c3d23d4a37e8
   skills/research-web/SKILL.md: e4d7741a699f69bf350485695fcce75e526aa4d9d6bbfd8e4e755c969bbab163
-  skills/review/SKILL.md: 4b2bd701d9f06d5abf6c82b3fc3be4ea6aa7072052ea5bd82fc285f4b4398664
+  skills/review/CRITERIA.md: 0b35d5052d2a03a5842bd174815aad530c7d2537722bc7d149a4468ff687dd4d
+  skills/review/SKILL.md: 66e978a26652a5a3cf14439d0e0083499e66d729446a50d21e8144baf3fdba78
+  skills/review/references/findings.md: 709b93b7b62f0d7c79df0b45e785e45dfa9eb8ca4e4a01defee20f356153ec6e
+  skills/review/references/worker-briefs.md: e701cdd9740a7cabe16c38afb43200ef0a448156c6be948eedc9a3b6718268ca
   skills/session-trace/SKILL.md: 41856b20114f871cedbbd64cd2349d5947c29f45f1a960aa69c6eef4cb74f26b
   skills/session-trace/references/page-guide.md: 2e6074da875c317c21b062ff3d1bc28231cf1c7fc95a24cab6fcde0d12633797
   skills/session-trace/scripts/build-trace.mjs: f2bf29b7b92ea303f9677746bc9ffdc9451c61702b6306e5b196c63ad021e4a6
