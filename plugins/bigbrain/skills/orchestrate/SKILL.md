@@ -70,14 +70,19 @@ Before dispatching into a repository, resolve its document destination and conve
 
 ## Events, not polling
 
-Watch with the host's event stream, listing worker reports explicitly, for example:
+Arm every wait so that it **ends** when an event arrives: an agent harness wakes you when a background command finishes, not when it prints. A `runpane watch --follow` never finishes, and piping it into `grep -m1` does not help, because the watch only exits on its next write. Use a non-follow watch on a named cursor, which blocks until entries arrive:
 
 ```sh
-runpane watch --session <Session> --follow --quiet --json \
-  --kinds agent.report,agent.blocked,agent.idle,panel.exited,pane.gone,pr.checks,pr.merged
+# once: create the cursor at "now"
+runpane watch --pane <feature Pane id> --as bigbrain-orch --kinds agent.report --timeout-ms 0 --quiet
+# each wait, as a background command; it exits on the first report
+until out=$(runpane watch --pane <feature Pane id> --as bigbrain-orch --kinds agent.report,panel.exited,pane.gone \
+  --timeout-ms 120000 --quiet 2>/dev/null | grep -v '^RESET'); [ -n "$out" ]; do sleep 2; done; printf '%s\n' "$out"
 ```
 
-On each `agent.report`, read the worker's status file (its absolute path is the report's summary path) and act on its `state`. The status file is the truth; the Pane report state is only a signal (`contract.md` has the mapping). Deduplicate repeated events by worker and event. No sleep loops, transcript tails or repeated screen reads. A quiet worker is normal; inspect once only on a reported failure, a timeout or a concrete error.
+Use `--session <Session>` instead of `--pane` when the work spans Panes in one Session. Give each cursor its own `--as` name: watches without one share a default cursor and supersede each other. After acting on the event, arm the next wait. Run one wait at a time.
+
+On each report, read the worker's status file (its absolute path is the report's summary path) and act on its `state`. The status file is the truth; the Pane report state is only a signal (`contract.md` has the mapping). Deduplicate repeated events by worker and event. No timed status checks, transcript tails or repeated screen reads. A quiet worker is normal; inspect once only on a reported failure, a timeout or a concrete error.
 
 ## The relay
 
