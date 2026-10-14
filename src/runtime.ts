@@ -91,11 +91,12 @@ export function canonical(value: unknown): string {
   if (value && typeof value === 'object') return '{' + Object.entries(value).filter(([,v]) => v !== undefined).sort(([a],[b]) => a.localeCompare(b)).map(([k,v]) => JSON.stringify(k)+':'+canonical(v)).join(',') + '}';
   return JSON.stringify(value);
 }
-export function files(root: string): string[] {
+export function files(root: string, skip?: (relative: string, directory: boolean) => boolean): string[] {
   const result: string[] = [];
   function visit(folder: string) {
     for (const entry of fs.readdirSync(folder, {withFileTypes: true}).sort((a,b)=>a.name.localeCompare(b.name))) {
       const p = path.join(folder, entry.name);
+      if (skip?.(path.relative(root,p), entry.isDirectory())) continue;
       if (entry.isSymbolicLink()) throw new Error(`Symlinks are not supported in bundle inputs: ${p}`);
       if (entry.isDirectory()) visit(p);
       else if (entry.isFile()) result.push(p);
@@ -105,12 +106,27 @@ export function files(root: string): string[] {
   if (fs.lstatSync(root).isSymbolicLink()) throw new Error(`Symlink directory: ${root}`);
   visit(root); return result;
 }
-export function fileMap(root: string): Record<string,string> {
-  return Object.fromEntries(files(root).filter(p=>p!==path.join(root,'checksums.json')).map(p=>[path.relative(root,p),hash(fs.readFileSync(p))]));
+export function fileMap(root: string, skip?: (relative: string, directory: boolean) => boolean): Record<string,string> {
+  return Object.fromEntries(files(root,skip).filter(p=>p!==path.join(root,'checksums.json')).map(p=>[path.relative(root,p),hash(fs.readFileSync(p))]));
 }
+// Skills may leave caches in their bundled folder at run time (uv's .venv and uv.lock, Python and pytest caches,
+// tool caches under node_modules). Integrity checks skip them unless the bundle itself ships files at that path.
+const runtimeCacheFolders=new Set(['.venv','__pycache__','.pytest_cache']);
+function runtimeCaches(expected: Record<string,string>): (relative: string, directory: boolean) => boolean {
+  const tracked=Object.keys(expected);
+  return (relative,directory)=>{
+    if (directory) {
+      const parts=relative.split(path.sep), name=parts.at(-1)!;
+      const cache=runtimeCacheFolders.has(name) || (name==='.cache' && parts.at(-2)==='node_modules');
+      return cache && !tracked.some(key=>key.startsWith(relative+path.sep));
+    }
+    return path.basename(relative)==='uv.lock' && !(relative in expected);
+  };
+}
+function checksums(bundle: string): Record<string,string> { return JSON.parse(fs.readFileSync(path.join(bundle,'checksums.json'),'utf8')); }
 export function verify(bundle: string): void {
-  const expected = JSON.parse(fs.readFileSync(path.join(bundle,'checksums.json'),'utf8'));
-  if (canonical(fileMap(bundle)) !== canonical(expected)) throw new Error('Bundle integrity check failed; refusing modified bundle');
+  const expected = checksums(bundle);
+  if (canonical(fileMap(bundle,runtimeCaches(expected))) !== canonical(expected)) throw new Error('Bundle integrity check failed; refusing modified bundle');
 }
 function acceptedArguments(agent: Agent): string {
   const entries=Object.entries(agent.argument_definitions ?? {}).map(([key,item])=>item.values ? `${key} (${item.values.join('|')})` : `${key} (${item.type})`);
@@ -146,7 +162,8 @@ function materializeLaunch(bundle: string, route: string, launch: LaunchMetadata
   if (fs.existsSync(destination)) { verify(destination); return destination; }
   const staging=fs.mkdtempSync(path.join(path.dirname(bundle),'.launching-'));
   try {
-    fs.cpSync(bundle,staging,{recursive:true});
+    const caches=runtimeCaches(checksums(bundle));
+    fs.cpSync(bundle,staging,{recursive:true,filter:source=>source===bundle || !caches(path.relative(bundle,source),fs.lstatSync(source).isDirectory())});
     const selected=manifest.nodes[route]!;
     selected.model=launch.model.name; selected.reasoning_effort=launch.model.reasoning; selected.speed=launch.model.speed; selected.launch=launch;
     fs.writeFileSync(path.join(staging,'manifest.json'),JSON.stringify(manifest,null,2));

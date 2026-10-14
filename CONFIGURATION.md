@@ -354,6 +354,9 @@ profile edits, and Agent Farm upgrades, so later launches can resume the same
 thread. A different profile, workspace, or directory uses a different home;
 process child routes also have separate homes. Bundles remain content-addressed
 and integrity-checked, while skill links in the runtime home refresh on launch.
+The check ignores caches a skill leaves in its bundled folder (`.venv`,
+`__pycache__`, `.pytest_cache`, `node_modules/.cache` and an untracked
+`uv.lock`), so they don't block a resume. Any other added or edited file is refused.
 
 ### Resuming a session
 
