@@ -3,7 +3,7 @@ version: 0.1.0
 cli_major: 0
 source:
   repository: https://github.com/greenfield-inc/agent-farm
-  commit: c9660b56790830430f32e5a04975a3740bb173f4
+  commit: 5ae9b63d09495907b098aebced8a0702b38da290
 checksums:
   agents/designer.md: 4e8ab26d8ccd575a2c0fdbaaa38ad7ed7f0dcab607d0c5c7da0e7bb817e85d1d
   agents/explorer.md: 1635f450fb53b7a435e550cdf8b91e44826512f23461836416a3da32f1dc5e6f
@@ -79,13 +79,13 @@ checksums:
   skills/documents/schemas/status.schema.json: 9938de5fc9bca7d9d72a761584523404b90ad2ae45df302267a1856ccf2a8b9c
   skills/documents/schemas/verification.schema.json: 123f9f7234d5511e8aa3fe7331b2980f1a7bb87f5051c26730cd5a411ec3e437
   skills/documents/scripts/check-bundle.mjs: 6ca100e5d1042a1313266b9063af2524b242941b865e0140c329cf79762c430c
-  skills/excalidraw-pr-diagrams/README.md: a2830d1948b03db2c0d4e72f2bb9870f855bd7d945dfcc4d05fe9aab49a1711a
-  skills/excalidraw-pr-diagrams/SKILL.md: 8f0ef8cee660fa8262425fc3db6031c77b97023dc95757056c1cd454870e4b7e
+  skills/excalidraw-pr-diagrams/README.md: 7da1d4a66c311fe60ea176b5a918e28d0e62a98dc1ff5470e5ac24f3f8727ce7
+  skills/excalidraw-pr-diagrams/SKILL.md: abc1cdca48c2cc0a5feda95d10e315dd2c5e7adcfe4fe88c4a64139ca8fc8147
   skills/excalidraw-pr-diagrams/references/color-palette.md: 275164ffee5b1c2c36ddeb5bbdbd73765aa8b337bd1bfe8b02a5a8d5f9581c7c
   skills/excalidraw-pr-diagrams/references/element-templates.md: 11234630e5642779a0baa2380c913125f15084dcd05d553db2899182d66f22aa
   skills/excalidraw-pr-diagrams/references/json-schema.md: 9048830015f3c0c4e075aa983763990d2a3d19fa32f0577917b6bfb49aeb9bd7
   skills/excalidraw-pr-diagrams/references/pyproject.toml: b68f2d373a50b623bb04f3f96e9ce12118d89b01d5ac7a538820f64e7fbdcdd0
-  skills/excalidraw-pr-diagrams/references/render_excalidraw.py: f178207993afcc6b19e8b6954036ff2e8f03e6489062451f6dcd9f21d5999478
+  skills/excalidraw-pr-diagrams/references/render_excalidraw.py: c8c703455044faa84bbad2585b900c67e436e0c9772d45f32d4fce591f9d9120
   skills/excalidraw-pr-diagrams/references/render_template.html: 5caa1087d0fa68cdc873103aa761590cb16d2ae888d67a08d517ebab01ca110d
   skills/explain/SKILL.md: 26588e0aff49ada0e878cf6f8005eb123a0dc0043e663ffa19b89d76057b35af
   skills/implement-plan/SKILL.md: a8383706b613bcc916837f455ebf9683d3d899001f3112648ea70347996bf41e
