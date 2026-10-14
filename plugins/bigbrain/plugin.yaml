@@ -136,5 +136,7 @@ checksums:
   skills/tdd/agents/openai.yaml: ea6f01cf1b8c06a4b0f5b649d74b1b8ce8685e72af1b38d70d877693e092af0b
   skills/tdd/mocking.md: 3ceb807fdf4a47d6a93d4d9a891e5ba6d362a6247bd08adc451feebfc17361ef
   skills/tdd/tests.md: 859f9e592c188fda4fc7277dd180e4ce9c7a2e13f6efe1f6f29eccc9d28c106a
-  skills/teach/SKILL.md: 8cbb41955c3fb8d1d21dd325543064ec5afa8a481a445a14ff1a001fa2998cd6
+  skills/teach/SKILL.md: e06b6d4180dbd7b404550ce62f852f8c2e8c692eacf52d726a9e909060b9f3b9
+  skills/teach/references/iceberg-template.html: f999ae6fbff45b3faad7dbacde8af3b5218bb2b338aee78d14e3f591673bfa3b
+  skills/teach/references/worked-example.md: a28d38777d35304efdcf564540952692e424b8d8e9336332175a64f478fcfa4a
   skills/verify-app/SKILL.md: da3abc4df931eff4f763da3e9ee4ab24a7a3a8de45ba45c3e1cb6b24dc6ac750

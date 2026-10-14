@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bigbrain guide</title>
+<style>
+:root {
+  --bg: #fbfbfd; --bg-alt: #f5f5f7; --surface: #ffffff; --ink: #1d1d1f; --muted: #6e6e73; --faint: #86868b;
+  --line: #e3e3e8; --line-strong: #d2d2d7;
+  --you: #1f9d4c; --you-soft: #e8f7ed; --you-ink: #146b33;
+  --orch: #5e5ce6; --orch-soft: #efeffd; --orch-ink: #3634a3;
+  --link: #0066cc; --code: #ececf0; --shadow: 0 2px 4px rgba(0,0,0,.03), 0 12px 40px rgba(0,0,0,.07);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000; --bg-alt: #0b0b0c; --surface: #1c1c1e; --ink: #f5f5f7; --muted: #a1a1a6; --faint: #8e8e93;
+    --line: #2c2c2e; --line-strong: #3a3a3c;
+    --you: #30d158; --you-soft: #0f2918; --you-ink: #8ff0aa;
+    --orch: #7d7aff; --orch-soft: #1c1b3a; --orch-ink: #bcbaff;
+    --link: #2997ff; --code: #2c2c2e; --shadow: none;
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-snap-type: y proximity; scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "Segoe UI", system-ui, sans-serif; letter-spacing: -0.01em; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+.slide { min-height: 100vh; min-height: 100svh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 12vh 24px; scroll-snap-align: start; }
+.slide:nth-of-type(even) { background: var(--bg-alt); }
+.inner { width: 100%; max-width: 1040px; min-width: 0; }
+.kicker { color: var(--you); font-weight: 600; font-size: 17px; margin: 0 0 12px; }
+h1 { font: 700 clamp(56px, 11vw, 120px)/1 -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", system-ui, sans-serif; letter-spacing: -0.045em; margin: 0; }
+h2 { font: 700 clamp(36px, 6vw, 64px)/1.05 -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", system-ui, sans-serif; letter-spacing: -0.035em; margin: 0; }
+h3 { font-size: 20px; letter-spacing: -0.02em; margin: 40px 0 16px; }
+.sub { color: var(--muted); font-size: clamp(19px, 2.4vw, 26px); line-height: 1.3; letter-spacing: -0.02em; margin: 18px auto 0; max-width: 30em; }
+.stage { margin-top: 56px; }
+.ic { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.scroll-hint { margin-top: 64px; color: var(--faint); font-size: 14px; }
+code { font: 0.86em "SF Mono", ui-monospace, Menlo, monospace; background: var(--code); border-radius: 6px; padding: 2px 7px; letter-spacing: 0; overflow-wrap: anywhere; }
+
+/* statements */
+.statements { display: grid; gap: 28px; max-width: 780px; margin: 0 auto; text-align: left; }
+.statement { display: flex; align-items: center; gap: 22px; }
+.statement .badge { flex: none; width: 60px; height: 60px; border-radius: 18px; display: grid; place-items: center; background: var(--you-soft); color: var(--you); font: 700 26px/1 -apple-system, system-ui, sans-serif; }
+.statement b { display: block; font: 700 clamp(22px, 3vw, 30px)/1.15 -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif; letter-spacing: -0.025em; }
+.statement span { display: block; color: var(--muted); font-size: 15px; margin-top: 4px; }
+
+/* your part */
+.steps { display: flex; justify-content: center; align-items: flex-start; gap: 8px; flex-wrap: wrap; list-style: none; margin: 0; padding: 0; }
+.steps li { width: 168px; display: flex; flex-direction: column; align-items: center; }
+.steps .bubble { width: 84px; height: 84px; border-radius: 26px; display: grid; place-items: center; background: var(--you); color: #fff; box-shadow: 0 10px 30px rgba(31,157,76,.28); }
+.steps .bubble .ic { width: 38px; height: 38px; stroke-width: 1.9; }
+.steps b { font-size: 24px; letter-spacing: -0.02em; margin-top: 16px; }
+.steps span { color: var(--muted); font-size: 15px; margin-top: 2px; }
+.steps .n { color: var(--you); font-size: 13px; font-weight: 700; margin-top: 12px; letter-spacing: .04em; }
+@media (prefers-color-scheme: dark) { .steps .bubble { color: #002b0f; box-shadow: none; } }
+
+/* tiles + cards */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; text-align: left; }
+.tile { background: var(--surface); border-radius: 24px; padding: 24px 22px 22px; box-shadow: var(--shadow); border: 1px solid var(--line); }
+.tile b { display: block; font-size: 21px; letter-spacing: -0.02em; line-height: 1.2; }
+.tile span { display: block; color: var(--muted); font-size: 15px; margin-top: 6px; line-height: 1.4; }
+.tile .to { display: inline-block; margin-top: 14px; font-size: 13px; color: var(--muted); }
+.choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; text-align: left; }
+.choice { background: var(--surface); border-radius: 28px; padding: 28px 26px; border: 1px solid var(--line); box-shadow: var(--shadow); }
+.choice .label { font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+.choice .big { font: 600 19px/1.3 "SF Mono", ui-monospace, Menlo, monospace; letter-spacing: 0; margin: 14px 0 8px; overflow-wrap: anywhere; }
+.choice .small { color: var(--muted); font-size: 15px; }
+.choice.pick { border: 2px solid var(--you); }
+.choice.pick .label { color: var(--you); }
+.checks { text-align: left; max-width: 760px; margin: 28px auto 0; padding: 22px 26px 22px 46px; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; box-shadow: var(--shadow); color: var(--muted); font-size: 15px; }
+.checks li { margin: 4px 0; }
+
+/* tables */
+.tablewrap { max-width: 100%; overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; box-shadow: var(--shadow); text-align: left; -webkit-overflow-scrolling: touch; }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+.wide table { min-width: 760px; }
+th, td { padding: 12px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+tr:last-child td { border-bottom: 0; }
+td:first-child { font-weight: 600; white-space: nowrap; }
+td small { color: var(--muted); font-size: 13px; }
+td.m { color: var(--muted); }
+.wide td:first-child code, .ids td:first-child { white-space: nowrap; }
+
+/* diagrams */
+.map { width: 100%; max-width: 900px; margin: 0 auto; background: var(--surface); border-radius: 28px; padding: 26px 20px 16px; border: 1px solid var(--line); box-shadow: var(--shadow); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.map svg { width: 100%; min-width: 640px; height: auto; display: block; }
+.map.small svg { min-width: 560px; }
+.legend { color: var(--muted); font-size: 14px; margin-top: 14px; }
+.legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; vertical-align: -1px; margin: 0 6px 0 14px; }
+.legend i.y { background: var(--you-soft); border: 2px solid var(--you); }
+.legend i.o { background: var(--orch-soft); border: 2px solid var(--orch); }
+.legend i.a { background: var(--surface); border: 1.5px solid var(--line-strong); }
+.legend i.d { background: var(--surface); border: 1.5px dashed var(--line-strong); }
+.note { color: var(--faint); font-size: 15px; margin: 24px auto 0; max-width: 46em; }
+
+pre code { background: none; padding: 0; font-size: inherit; }
+pre { text-align: left; font: 15px/1.7 "SF Mono", ui-monospace, Menlo, monospace; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 22px 26px; overflow-x: auto; max-width: 760px; margin: 0 auto; box-shadow: var(--shadow); }
+.links { display: flex; justify-content: center; gap: 28px; flex-wrap: wrap; margin-top: 36px; font-size: 17px; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.fine { color: var(--faint); font-size: 13px; margin-top: 48px; }
+
+/* dots */
+.dots { position: fixed; right: 20px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 10px; z-index: 5; }
+.dots a { width: 8px; height: 8px; border-radius: 50%; background: var(--line-strong); }
+.dots a:hover { background: var(--you); }
+@media (max-width: 720px) {
+  .dots { display: none; }
+  .slide { padding: 72px 16px; }
+  .steps li { width: 44%; margin-bottom: 18px; }
+  .statement { gap: 16px; }
+  .statement .badge { width: 48px; height: 48px; font-size: 21px; }
+  .map { padding: 18px 12px 12px; border-radius: 20px; }
+  pre { font-size: 13px; padding: 18px; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+.d-box { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1; }
+.d-opt { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1.2; stroke-dasharray: 5 4; }
+.d-lane { fill: none; stroke: var(--line-strong); stroke-width: 1.2; }
+.d-line { fill: none; stroke: var(--faint); stroke-opacity: .6; stroke-width: 1.3; }
+.d-ldash { fill: none; stroke: var(--faint); stroke-opacity: .6; stroke-width: 1.3; stroke-dasharray: 5 4; }
+.d-arrow { fill: var(--faint); fill-opacity: .7; }
+.d-gate { fill: var(--you-soft); stroke: var(--you); stroke-width: 2.2; }
+.d-orch { fill: var(--orch-soft); stroke: var(--orch); stroke-width: 1.8; }
+.d-orch-dash { fill: var(--orch-soft); stroke: var(--orch); stroke-width: 1.6; stroke-dasharray: 5 4; }
+.d-t, .d-b, .d-s, .d-m { fill: var(--faint); }
+.d-b { font: 600 13.5px -apple-system, BlinkMacSystemFont, "Helvetica Neue", system-ui, sans-serif; fill: var(--muted); }
+.d-s { font: 12px -apple-system, BlinkMacSystemFont, "Helvetica Neue", system-ui, sans-serif; }
+.d-m { font: 11.5px "SF Mono", ui-monospace, Menlo, monospace; }
+.d-hb { fill: var(--you-ink); font: 700 15px -apple-system, BlinkMacSystemFont, "Helvetica Neue", system-ui, sans-serif; }
+.d-hs { fill: var(--you-ink); font: 12.5px -apple-system, BlinkMacSystemFont, "Helvetica Neue", system-ui, sans-serif; }
+.d-ob { fill: var(--orch-ink); font: 700 14px -apple-system, BlinkMacSystemFont, "Helvetica Neue", system-ui, sans-serif; }
+.d-os { fill: var(--orch-ink); font: 12px -apple-system, BlinkMacSystemFont, "Helvetica Neue", system-ui, sans-serif; }
+.d-om { fill: var(--orch-ink); font: 11.5px "SF Mono", ui-monospace, Menlo, monospace; }
+</style>
+</head>
+<body>
+<nav class="dots" aria-label="Slides"><a href="#intro" aria-label="intro"></a><a href="#rules" aria-label="rules"></a><a href="#front-door" aria-label="front door"></a><a href="#you" aria-label="your part"></a><a href="#lifecycle" aria-label="one feature"></a><a href="#profiles" aria-label="profiles"></a><a href="#documents" aria-label="documents"></a><a href="#quick-fix" aria-label="quick fixes"></a><a href="#start" aria-label="start"></a></nav>
+<main>
+
+<section class="slide" id="intro"><div class="inner"><p class="kicker">Agent Farm plugin</p><h1>Bigbrain</h1><p class="sub">You talk to one orchestrator, and it runs planners, designers, implementers and reviewers for you from a plan you approve.</p><div class="stage"><p class="scroll-hint">Scroll to begin ↓</p></div></div></section>
+
+<section class="slide" id="rules"><div class="inner"><p class="kicker">Three rules</p><h2>What carries it.</h2><p class="sub">A second way to run features with Agent Farm, next to greenfield.</p><div class="stage"><div class="statements">
+<div class="statement"><div class="badge">1</div><div><b>One front door.</b><span>You talk only to <code>bigbrain/orchestrator</code>. Questions, approvals and pages to look at all reach you through it.</span></div></div>
+<div class="statement"><div class="badge">2</div><div><b>The plan is the program.</b><span>Every approved cover sheet ships a <code>control-flow.json</code>: what to build, which flows to prove, where review happens.</span></div></div>
+<div class="statement"><div class="badge">3</div><div><b>Reviews are planned or asked for.</b><span>A reviewer runs only at a review step in the control flow, or after you say yes. Implementers never start reviewers.</span></div></div>
+</div></div></div></section>
+
+<section class="slide" id="front-door"><div class="inner"><p class="kicker">The front door</p><h2>Workers never ask you directly.</h2><p class="sub">They write a status file and report. The orchestrator relays the question and sends your answer back.</p><div class="stage"><div class="map"><svg viewBox="0 0 760 500" role="img" aria-labelledby="fd-title fd-desc">
+<title id="fd-title">The front door and the relay loop</title>
+<desc id="fd-desc">You talk only to the orchestrator. It starts worker tabs in one Pane per feature: planner, designer, implementer, reviewer, investigator and teacher. A worker that needs you writes needs_you with a Q-n to its status file, reports with runpane report, the orchestrator relays the question to you with the recommended answer first, and submits answer Q-n to that tab only. The worker records the decision and continues.</desc>
+<defs><marker id="ah1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-arrow"/></marker></defs>
+
+<rect x="290" y="14" width="180" height="40" rx="20" class="d-gate"/>
+<text x="380" y="39" text-anchor="middle" class="d-hb">You</text>
+<path d="M350,56 V100" class="d-line" marker-end="url(#ah1)"/>
+<path d="M410,100 V58" class="d-line" marker-end="url(#ah1)"/>
+<text x="340" y="83" text-anchor="end" class="d-s">your answers and approvals</text>
+<text x="420" y="83" class="d-s">questions, options, pages to look at</text>
+
+<rect x="190" y="104" width="380" height="58" rx="10" class="d-orch"/>
+<text x="380" y="128" text-anchor="middle" class="d-ob">bigbrain/orchestrator · Opus 5.5 medium</text>
+<text x="380" y="148" text-anchor="middle" class="d-os">starts workers · relays every question · keeps the map</text>
+<path d="M380,162 V196" class="d-line" marker-end="url(#ah1)"/>
+<text x="390" y="184" class="d-s">starts tabs (runpane panels create)</text>
+
+<rect x="20" y="198" width="720" height="104" rx="14" class="d-lane"/>
+<text x="36" y="220" class="d-b">One Pane per feature: worker tabs</text>
+<g>
+<rect x="36" y="232" width="108" height="56" rx="8" class="d-box"/><text x="90" y="256" text-anchor="middle" class="d-b">planner</text><text x="90" y="275" text-anchor="middle" class="d-s">only plans</text>
+<rect x="152" y="232" width="108" height="56" rx="8" class="d-box"/><text x="206" y="256" text-anchor="middle" class="d-b">designer</text><text x="206" y="275" text-anchor="middle" class="d-s">mockup options</text>
+<rect x="268" y="232" width="108" height="56" rx="8" class="d-box"/><text x="322" y="256" text-anchor="middle" class="d-b">implementer</text><text x="322" y="275" text-anchor="middle" class="d-s">the only writer</text>
+<rect x="384" y="232" width="108" height="56" rx="8" class="d-box"/><text x="438" y="256" text-anchor="middle" class="d-b">reviewer</text><text x="438" y="275" text-anchor="middle" class="d-s">no fixes</text>
+<rect x="500" y="232" width="108" height="56" rx="8" class="d-box"/><text x="554" y="256" text-anchor="middle" class="d-b">investigator</text><text x="554" y="275" text-anchor="middle" class="d-s">never fixes</text>
+<rect x="616" y="232" width="108" height="56" rx="8" class="d-box"/><text x="670" y="256" text-anchor="middle" class="d-b">teacher</text><text x="670" y="275" text-anchor="middle" class="d-s">never blocks</text>
+</g>
+
+<path d="M110,302 V346" class="d-line" marker-end="url(#ah1)"/>
+<text x="120" y="330" class="d-s">worker writes, then reports</text>
+<path d="M665,348 V304" class="d-line" marker-end="url(#ah1)"/>
+<text x="655" y="330" text-anchor="end" class="d-s">worker records it, continues</text>
+
+<g>
+<rect x="30" y="350" width="160" height="78" rx="8" class="d-box"/>
+<text x="110" y="372" text-anchor="middle" class="d-b">1 · status file</text>
+<text x="110" y="393" text-anchor="middle" class="d-m">needs_you: Q-7</text>
+<text x="110" y="413" text-anchor="middle" class="d-s">.agent/status/&lt;role&gt;.json</text>
+<rect x="215" y="350" width="160" height="78" rx="8" class="d-box"/>
+<text x="295" y="372" text-anchor="middle" class="d-b">2 · runpane report</text>
+<text x="295" y="393" text-anchor="middle" class="d-m">--state blocked</text>
+<text x="295" y="413" text-anchor="middle" class="d-m">--question "Q-7: …"</text>
+<rect x="400" y="350" width="160" height="78" rx="8" class="d-orch"/>
+<text x="480" y="372" text-anchor="middle" class="d-ob">3 · relay</text>
+<text x="480" y="393" text-anchor="middle" class="d-os">asks you, one round,</text>
+<text x="480" y="413" text-anchor="middle" class="d-os">recommended answer first</text>
+<rect x="585" y="350" width="160" height="78" rx="8" class="d-orch"/>
+<text x="665" y="372" text-anchor="middle" class="d-ob">4 · panels submit</text>
+<text x="665" y="393" text-anchor="middle" class="d-om">answer: Q-7 → …</text>
+<text x="665" y="413" text-anchor="middle" class="d-os">to that tab only</text>
+</g>
+<path d="M190,389 H213" class="d-line" marker-end="url(#ah1)"/>
+<path d="M375,389 H398" class="d-line" marker-end="url(#ah1)"/>
+<path d="M560,389 H583" class="d-line" marker-end="url(#ah1)"/>
+
+<text x="380" y="462" text-anchor="middle" class="d-s">A checkpoint reports as ready. clarify: Q-7 → … keeps Q-7 open; nothing is recorded.</text>
+<text x="380" y="482" text-anchor="middle" class="d-s">Without an orchestrator, a worker puts its questions in its reply and stops instead of guessing.</text>
+</svg></div><p class="legend"><i class="y"></i>You<i class="o"></i>Orchestrator<i class="a"></i>Workers</p><p class="note">States: <code>running</code> · <code>needs_you</code> · <code>checkpoint</code> · <code>blocked</code> · <code>done</code> · <code>failed</code>. The full contract is <a href="instructions/contract.md">instructions/contract.md</a>.</p></div></div></section>
+
+<section class="slide" id="you"><div class="inner"><p class="kicker">Your part</p><h2>All in one chat.</h2><p class="sub">Each of these reaches you through the orchestrator.</p><div class="stage"><ol class="steps">
+<li><div class="bubble"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="n">STEP 1</div><b>Describe</b><span>the work</span></li>
+<li><div class="bubble"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div class="n">STEP 2</div><b>Answer</b><span>the interview</span></li>
+<li><div class="bubble"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg></div><div class="n">STEP 3</div><b>Pick</b><span>a design, if any</span></li>
+<li><div class="bubble"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div class="n">STEP 4</div><b>Approve</b><span>the cover sheet</span></li>
+<li><div class="bubble"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/></svg></div><div class="n">STEP 5</div><b>Merge</b><span>nobody does it for you</span></li>
+</ol><p class="note">Also yours: any review the plan does not list (“review now, or continue?”), and the teacher’s quiz if you take it.</p></div></div></section>
+
+<section class="slide" id="lifecycle"><div class="inner"><p class="kicker">One feature</p><h2>From idea to merge.</h2><p class="sub">The planner plans, you approve, the implementer runs the control flow step by step.</p><div class="stage"><div class="map"><svg viewBox="0 0 760 750" role="img" aria-labelledby="lc-title lc-desc">
+<title id="lc-title">The lifecycle of one feature</title>
+<desc id="lc-desc">You describe the work and the orchestrator starts a planner. The planner's interview is relayed to you one round at a time and your answers land in decisions.html as D-n. For interface work an optional designer offers mockup options and you pick one. You approve the cover sheet after the orchestrator runs check-bundle. The implementer then runs the control flow: build each package, verify flows, an optional checkpoint review run by the orchestrator, the QA loop for up to max_rounds, then the PR and post-mortem, and the end review. Unplanned reviews are a question to you. The orchestrator offers the teacher once, and you merge.</desc>
+<defs><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-arrow"/></marker></defs>
+
+<rect x="270" y="14" width="220" height="38" rx="19" class="d-gate"/>
+<text x="380" y="38" text-anchor="middle" class="d-hb">You describe the work</text>
+<path d="M380,52 V76" class="d-line" marker-end="url(#ah2)"/>
+<rect x="220" y="78" width="320" height="46" rx="10" class="d-orch"/>
+<text x="380" y="97" text-anchor="middle" class="d-ob">orchestrator starts a planner</text>
+<text x="380" y="114" text-anchor="middle" class="d-os">in a new Pane for the feature</text>
+<path d="M255,124 V150" class="d-line" marker-end="url(#ah2)"/>
+
+<rect x="40" y="152" width="430" height="66" rx="8" class="d-box"/>
+<text x="255" y="174" text-anchor="middle" class="d-b">planner · interview, relayed</text>
+<text x="255" y="193" text-anchor="middle" class="d-s">interview → explain → brief → options → spike</text>
+<text x="255" y="209" text-anchor="middle" class="d-s">then the cover sheet and control-flow.json</text>
+<rect x="500" y="152" width="230" height="66" rx="8" class="d-gate"/>
+<text x="615" y="174" text-anchor="middle" class="d-hb">you answer</text>
+<text x="615" y="193" text-anchor="middle" class="d-hs">one round, recommended first</text>
+<text x="615" y="209" text-anchor="middle" class="d-hs">lands as D-n in decisions.html</text>
+<path d="M470,176 H498" class="d-line" marker-end="url(#ah2)"/>
+<path d="M500,198 H472" class="d-line" marker-end="url(#ah2)"/>
+<path d="M255,218 V242" class="d-line" marker-end="url(#ah2)"/>
+
+<rect x="40" y="244" width="430" height="60" rx="8" class="d-opt"/>
+<text x="255" y="268" text-anchor="middle" class="d-b">designer · only for interface work</text>
+<text x="255" y="288" text-anchor="middle" class="d-s">planner asks for design → three mockup options per round</text>
+<rect x="500" y="244" width="230" height="60" rx="8" class="d-gate"/>
+<text x="615" y="268" text-anchor="middle" class="d-hb">you pick</text>
+<text x="615" y="288" text-anchor="middle" class="d-hs">an option, the same way</text>
+<path d="M470,274 H498" class="d-ldash" marker-end="url(#ah2)"/>
+<path d="M255,304 V328" class="d-line" marker-end="url(#ah2)"/>
+
+<rect x="40" y="330" width="430" height="60" rx="10" class="d-gate"/>
+<text x="255" y="354" text-anchor="middle" class="d-hb">you approve the cover sheet</text>
+<text x="255" y="374" text-anchor="middle" class="d-hs">the orchestrator runs check-bundle --stage approve first</text>
+<rect x="500" y="330" width="230" height="60" rx="8" class="d-orch"/>
+<text x="615" y="354" text-anchor="middle" class="d-ob">check-bundle fails?</text>
+<text x="615" y="374" text-anchor="middle" class="d-os">sent back to the planner to fix</text>
+<path d="M500,360 H472" class="d-ldash" marker-end="url(#ah2)"/>
+<path d="M255,390 V418" class="d-line" marker-end="url(#ah2)"/>
+<text x="265" y="409" class="d-s">orchestrator starts the implementer</text>
+
+<rect x="20" y="420" width="720" height="232" rx="14" class="d-lane"/>
+<text x="36" y="443" class="d-b">implementer runs control-flow.json · the only writer</text>
+<text x="726" y="443" text-anchor="end" class="d-s">Opus 5.5, Astra or Sol, medium</text>
+<g>
+<rect x="35" y="460" width="160" height="72" rx="8" class="d-box"/>
+<text x="115" y="483" text-anchor="middle" class="d-b">build P-n</text>
+<text x="115" y="503" text-anchor="middle" class="d-s">tdd, quick-verify</text>
+<text x="115" y="520" text-anchor="middle" class="d-s">one package at a time</text>
+<rect x="215" y="460" width="160" height="72" rx="8" class="d-box"/>
+<text x="295" y="483" text-anchor="middle" class="d-b">verify</text>
+<text x="295" y="503" text-anchor="middle" class="d-s">prove the listed flows</text>
+<text x="295" y="520" text-anchor="middle" class="d-s">J-n journeys, S-n suites</text>
+<rect x="395" y="460" width="160" height="72" rx="8" class="d-orch-dash"/>
+<text x="475" y="483" text-anchor="middle" class="d-ob">[checkpoint review]</text>
+<text x="475" y="503" text-anchor="middle" class="d-os">only with a reason</text>
+<text x="475" y="520" text-anchor="middle" class="d-os">push, wait, one reviewer</text>
+<rect x="575" y="460" width="155" height="72" rx="8" class="d-box"/>
+<text x="652" y="483" text-anchor="middle" class="d-b">qa loop</text>
+<text x="652" y="503" text-anchor="middle" class="d-s">verifier checks, fix, repeat</text>
+<text x="652" y="520" text-anchor="middle" class="d-s">≤ max_rounds (default 3)</text>
+</g>
+<path d="M195,496 H213" class="d-line" marker-end="url(#ah2)"/>
+<path d="M375,496 H393" class="d-line" marker-end="url(#ah2)"/>
+<path d="M555,496 H573" class="d-line" marker-end="url(#ah2)"/>
+<path d="M652,532 V547 H115 V560" class="d-line" marker-end="url(#ah2)"/>
+<g>
+<rect x="35" y="562" width="160" height="72" rx="8" class="d-box"/>
+<text x="115" y="585" text-anchor="middle" class="d-b">pr</text>
+<text x="115" y="605" text-anchor="middle" class="d-s">prepare-pr, babysit-pr</text>
+<text x="115" y="622" text-anchor="middle" class="d-s">until checks are green</text>
+<rect x="215" y="562" width="160" height="72" rx="8" class="d-box"/>
+<text x="295" y="585" text-anchor="middle" class="d-b">post-mortem</text>
+<text x="295" y="605" text-anchor="middle" class="d-m">post-mortem.html</text>
+<rect x="395" y="562" width="160" height="72" rx="8" class="d-orch"/>
+<text x="475" y="585" text-anchor="middle" class="d-ob">end review</text>
+<text x="475" y="605" text-anchor="middle" class="d-os">scope: all · always last</text>
+<text x="475" y="622" text-anchor="middle" class="d-os">waived only on your word</text>
+<rect x="575" y="562" width="155" height="72" rx="8" class="d-gate"/>
+<text x="652" y="585" text-anchor="middle" class="d-hb">you, if unplanned</text>
+<text x="652" y="605" text-anchor="middle" class="d-hs">“review now,</text>
+<text x="652" y="622" text-anchor="middle" class="d-hs">or continue?”</text>
+</g>
+<path d="M195,598 H213" class="d-line" marker-end="url(#ah2)"/>
+<path d="M375,598 H393" class="d-line" marker-end="url(#ah2)"/>
+<path d="M573,598 H557" class="d-ldash" marker-end="url(#ah2)"/>
+<path d="M260,652 V678" class="d-line" marker-end="url(#ah2)"/>
+
+<rect x="150" y="680" width="220" height="52" rx="10" class="d-opt"/>
+<text x="260" y="702" text-anchor="middle" class="d-b">teacher offered once</text>
+<text x="260" y="721" text-anchor="middle" class="d-s">quizzes you · never blocks merging</text>
+<path d="M370,706 H428" class="d-line" marker-end="url(#ah2)"/>
+<rect x="430" y="680" width="220" height="52" rx="10" class="d-gate"/>
+<text x="540" y="702" text-anchor="middle" class="d-hb">you merge</text>
+<text x="540" y="721" text-anchor="middle" class="d-hs">nobody merges for you</text>
+</svg></div><p class="legend"><i class="y"></i>You act<i class="o"></i>Orchestrator runs it<i class="a"></i>Runs on its own<i class="d"></i>Only when planned or needed</p><p class="note">At a review step the implementer pushes and waits; the orchestrator starts exactly one reviewer for that scope; must-fix items go back, a follow-up checks only those, then <code>continue:</code>. Checkpoints need a <code>reason_kind</code>: irreversible, schema, security or shared-contract. Details: <a href="skills/documents/references/control-flow.md">control-flow.md</a>.</p></div></div></section>
+
+<section class="slide" id="profiles"><div class="inner"><p class="kicker">Profiles</p><h2>Who does what.</h2><p class="sub">The first variant is the default. Every worker gets its status file and source document from the orchestrator.</p><div class="stage"><div class="tablewrap wide"><table>
+<thead><tr><th>Profile</th><th>Entry model</th><th>Helpers</th><th>Does</th></tr></thead>
+<tbody>
+<tr><td><code>orchestrator</code></td><td>Opus 5.5 medium</td><td class="m">none</td><td>Talks to you, starts workers, relays every question, runs review and design steps, keeps the workstream map</td></tr>
+<tr><td><code>planner</code><br><small>:claude / :codex</small></td><td>Opus 5.5 high / Astra high</td><td class="m">explorer, researcher, socrates</td><td>Interview (relayed), explain, brief, options, spike, then the cover sheet and <code>control-flow.json</code>. Only plans</td></tr>
+<tr><td><code>designer</code></td><td>Sol medium (Codex)</td><td class="m">none</td><td>Captures screens, writes design notes, three mockup options per round with Codex’s image tool, records the approved design</td></tr>
+<tr><td><code>implementer</code><br><small>:opus / :astra / :sol</small></td><td>Opus 5.5 / Astra / Sol, medium</td><td class="m">explorer, verifier</td><td>Runs the control flow: build, verify, QA loop, PR, post-mortem. The only writer on the branch</td></tr>
+<tr><td><code>reviewer</code><br><small>:codex / :claude</small></td><td>Sol high / Opus 5.5 high</td><td class="m">review-worker</td><td>At a planned step: two-vendor finders, an other-vendor checker per finding, one <code>COMMENT</code> review. No fixes</td></tr>
+<tr><td><code>investigator</code><br><small>:claude / :codex</small></td><td>Opus 5.5 high / Sol high</td><td class="m">verifier, explorer</td><td><code>mode=report</code> reproduces a bug and writes a report; <code>mode=sweep</code> hunts an <code>area</code> for issues. Never fixes</td></tr>
+<tr><td><code>teacher</code></td><td>Opus 5.5 high</td><td class="m">explorer</td><td>Quizzes you on a feature’s PRs through the orchestrator and publishes a learning page. Never blocks merging</td></tr>
+</tbody></table></div>
+<h3>The five helpers</h3>
+<div class="tiles">
+<div class="tile"><b>verifier</b><span>Drives the app: QA, mockup fidelity, jank.</span></div>
+<div class="tile"><b>explorer</b><span>One read-only codebase question, or a cold read.</span></div>
+<div class="tile"><b>researcher</b><span>One web question.</span></div>
+<div class="tile"><b>review-worker</b><span>A finder or a checker for the reviewer.</span></div>
+<div class="tile"><b>socrates</b><span>One challenge before you pick an option.</span></div>
+</div><p class="note">Claude helpers under a Claude profile run natively; a helper on the other vendor runs as a separate process.</p></div></div></section>
+
+<section class="slide" id="documents"><div class="inner"><p class="kicker">Documents</p><h2>Pages you can check.</h2><p class="sub">Every page comes from a template, carries a <code>doc-meta</code> block and stable IDs, and passes <code>check-bundle</code> before it changes stage.</p><div class="stage">
+<div class="map small"><svg viewBox="0 0 760 250" role="img" aria-labelledby="dc-title dc-desc">
+<title id="dc-title">A bundle and its checker</title>
+<desc id="dc-desc">A bundle holds the brief with SC-n, the cover sheet with P-n, J-n and S-n plus control-flow.json, decisions.html with D-n and Q-n, review findings with F-n and bug reports with B-n. check-bundle, which needs only Node, checks them before each stage: draft, approve and done.</desc>
+<defs><marker id="ah3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-arrow"/></marker></defs>
+<g>
+<rect x="20" y="16" width="134" height="68" rx="8" class="d-box"/><text x="87" y="39" text-anchor="middle" class="d-b">brief</text><text x="87" y="57" text-anchor="middle" class="d-m">index.html</text><text x="87" y="74" text-anchor="middle" class="d-s">SC-n</text>
+<rect x="164" y="16" width="134" height="68" rx="8" class="d-box"/><text x="231" y="39" text-anchor="middle" class="d-b">cover sheet</text><text x="231" y="57" text-anchor="middle" class="d-s">P-n, J-n, S-n</text><text x="231" y="74" text-anchor="middle" class="d-m">control-flow.json</text>
+<rect x="308" y="16" width="134" height="68" rx="8" class="d-box"/><text x="375" y="39" text-anchor="middle" class="d-b">decisions</text><text x="375" y="57" text-anchor="middle" class="d-m">decisions.html</text><text x="375" y="74" text-anchor="middle" class="d-s">D-n, Q-n</text>
+<rect x="452" y="16" width="134" height="68" rx="8" class="d-box"/><text x="519" y="39" text-anchor="middle" class="d-b">findings</text><text x="519" y="57" text-anchor="middle" class="d-m">findings/*.md</text><text x="519" y="74" text-anchor="middle" class="d-s">F-n</text>
+<rect x="596" y="16" width="134" height="68" rx="8" class="d-box"/><text x="663" y="39" text-anchor="middle" class="d-b">bug report</text><text x="663" y="57" text-anchor="middle" class="d-s">investigator</text><text x="663" y="74" text-anchor="middle" class="d-s">B-n</text>
+</g>
+<path d="M87,84 V100 H663 V84 M231,84 V100 M375,84 V100 M519,84 V100" class="d-line"/>
+<path d="M380,100 V124" class="d-line" marker-end="url(#ah3)"/>
+<rect x="230" y="126" width="300" height="50" rx="10" class="d-orch"/>
+<text x="380" y="147" text-anchor="middle" class="d-om">check-bundle.mjs</text>
+<text x="380" y="166" text-anchor="middle" class="d-os">needs only Node · also checks status files</text>
+<path d="M380,176 V190 M210,190 H550 M210,190 V204 M380,190 V204 M550,190 V204" class="d-line"/>
+<rect x="150" y="206" width="120" height="30" rx="15" class="d-box"/><text x="210" y="226" text-anchor="middle" class="d-m">--stage draft</text>
+<rect x="315" y="206" width="130" height="30" rx="15" class="d-gate"/><text x="380" y="226" text-anchor="middle" class="d-m" style="fill:var(--you-ink)">--stage approve</text>
+<rect x="490" y="206" width="120" height="30" rx="15" class="d-box"/><text x="550" y="226" text-anchor="middle" class="d-m">--stage done</text>
+</svg></div>
+
+<h3>IDs</h3>
+<div class="tablewrap ids"><table>
+<thead><tr><th>Prefix</th><th>What</th><th>Defined in</th></tr></thead>
+<tbody>
+<tr><td>SC-n</td><td>success criterion</td><td>brief (<code>index.html</code>)</td></tr>
+<tr><td>P-n, J-n, S-n</td><td>package, journey (Given/When/Then/Check), suite (command → result)</td><td>cover sheet</td></tr>
+<tr><td>D-n, Q-n</td><td>decision, and the relay question it came from</td><td><code>decisions.html</code></td></tr>
+<tr><td>F-n</td><td>review finding</td><td><code>findings/*.md</code></td></tr>
+<tr><td>B-n</td><td>bug</td><td>bug report</td></tr>
+</tbody></table></div>
+<p class="note">IDs are never reused; documents cite them instead of copying text.</p>
+
+<h3>Two markers</h3>
+<div class="choices">
+<div class="choice pick"><div class="label">Blocks approval</div><div class="big">[NEEDS DECISION: …]</div><div class="small">Becomes a question to you before the page can change stage.</div></div>
+<div class="choice"><div class="label">Made without asking</div><div class="big">[ASSUMPTION: …]</div><div class="small">Marks a choice made without asking.</div></div>
+</div>
+
+<h3>What check-bundle checks</h3>
+<ul class="checks">
+<li>required sections, <code>doc-meta</code>, ID definitions and citations</li>
+<li>both JSON sources against their schemas</li>
+<li>the cover sheet still shows what <code>control-flow.json</code> will run</li>
+<li>nobody added, removed or reworded a verification check</li>
+<li>every J/S has a verdict before done</li>
+<li>relative links resolve</li>
+</ul>
+</div></div></section>
+
+<section class="slide" id="quick-fix"><div class="inner"><p class="kicker">Quick fixes</p><h2>Only on your word.</h2><p class="sub">Ask for a simple fix, or approve one in words, and it goes straight to an implementer.</p><div class="stage"><div class="map small"><svg viewBox="0 0 760 210" role="img" aria-labelledby="qf-title qf-desc">
+<title id="qf-title">The quick-fix route</title>
+<desc id="qf-desc">You ask for a simple fix or approve one in words. The orchestrator sends a quick-fix brief straight to an implementer, which commits to the feature branch or a new branch with a draft PR labelled no-plan, verifies its own work and reports what it checked. There is no planner, cover sheet or reviewer. It never happens without your explicit word.</desc>
+<defs><marker id="ah4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-arrow"/></marker></defs>
+<rect x="30" y="20" width="160" height="72" rx="10" class="d-gate"/>
+<text x="110" y="45" text-anchor="middle" class="d-hb">you ask for a fix</text>
+<text x="110" y="65" text-anchor="middle" class="d-hs">or approve one</text>
+<text x="110" y="81" text-anchor="middle" class="d-hs">in words</text>
+<rect x="215" y="20" width="160" height="72" rx="8" class="d-orch"/>
+<text x="295" y="45" text-anchor="middle" class="d-ob">orchestrator</text>
+<text x="295" y="65" text-anchor="middle" class="d-os">sends a quick-fix brief:</text>
+<text x="295" y="81" text-anchor="middle" class="d-os">task in your words</text>
+<rect x="400" y="20" width="160" height="72" rx="8" class="d-box"/>
+<text x="480" y="45" text-anchor="middle" class="d-b">implementer</text>
+<text x="480" y="65" text-anchor="middle" class="d-s">feature branch, or new</text>
+<text x="480" y="81" text-anchor="middle" class="d-s">draft PR labelled no-plan</text>
+<rect x="585" y="20" width="160" height="72" rx="8" class="d-box"/>
+<text x="665" y="45" text-anchor="middle" class="d-b">verifies its own work</text>
+<text x="665" y="65" text-anchor="middle" class="d-s">reports what</text>
+<text x="665" y="81" text-anchor="middle" class="d-s">it checked</text>
+<path d="M190,56 H213" class="d-line" marker-end="url(#ah4)"/>
+<path d="M375,56 H398" class="d-line" marker-end="url(#ah4)"/>
+<path d="M560,56 H583" class="d-line" marker-end="url(#ah4)"/>
+<g>
+<rect x="115" y="122" width="110" height="30" rx="15" class="d-opt"/><text x="170" y="142" text-anchor="middle" class="d-s">no planner</text>
+<line x1="135" y1="137" x2="205" y2="137" class="d-line"/>
+<rect x="245" y="122" width="130" height="30" rx="15" class="d-opt"/><text x="310" y="142" text-anchor="middle" class="d-s">no cover sheet</text>
+<line x1="265" y1="137" x2="355" y2="137" class="d-line"/>
+<rect x="395" y="122" width="130" height="30" rx="15" class="d-opt"/><text x="460" y="142" text-anchor="middle" class="d-s">no control flow</text>
+<line x1="415" y1="137" x2="505" y2="137" class="d-line"/>
+<rect x="545" y="122" width="110" height="30" rx="15" class="d-opt"/><text x="600" y="142" text-anchor="middle" class="d-s">no reviewer</text>
+<line x1="565" y1="137" x2="635" y2="137" class="d-line"/>
+</g>
+<text x="380" y="188" text-anchor="middle" class="d-hb">Never without your explicit word.</text>
+</svg></div></div></div></section>
+
+<section class="slide" id="start"><div class="inner"><h2>Get started.</h2><div class="stage"><pre><code>agent-farm plugin install bigbrain
+agent-farm run bigbrain/orchestrator --directory /path/to/project</code></pre><p class="note">Run it as a Pane Session coordinator or in a Pane tab. Pane must be installed with <code>runpane</code> on <code>PATH</code>.</p><div class="links"><a href="README.md">Read the README ›</a><a href="instructions/contract.md">The contract ›</a><a href="skills/documents/references/control-flow.md">Control flow ›</a></div><p class="fine">Bigbrain · an Agent Farm plugin</p></div></div></section>
+</main>
+</body>
+</html>

@@ -225,3 +225,14 @@ test('designer and investigator: image tool checked first, options relayed, neve
  assert.match(investigate,/direct-to-implementer only once the person has said yes/);
  assert.match(investigate,/Fix, patch, refactor or plan\./);
 });
+
+test('teacher: one quiz question at a time through the relay, no recommended answer, learning page published, never blocks merging (P-6)',()=>{
+ const teach=text(path.join(root,'skills','teach','SKILL.md')).replace(/\s+/g,' ');
+ assert.match(teach,/Send \*\*one question at a time\*\* as a `needs_you` of kind `quiz`/);
+ assert.match(teach,/no options and no recommended answer/);
+ assert.match(teach,/\*\*`learning\/learning\.html`\*\*/);
+ assert.match(teach,/You never change code/);
+ assert.match(teach,/never blocks merging/);
+ for(const file of ['iceberg-template.html','worked-example.md'])assert.ok(fs.existsSync(path.join(root,'skills','teach','references',file)),file);
+ assert.ok(fs.existsSync(path.join(root,'README.md')));
+});
