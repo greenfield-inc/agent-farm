@@ -63,7 +63,7 @@ gitignored.
 
 - `src/`: the CLI (`cli.ts`, `commands.ts`), compiler, runtime, plugins, workspaces, telemetry, and dashboard.
 - `src/runtime.ts` is copied into every launch bundle as `runtime.mjs` and runs without the package installed. Import only `node:` builtins there.
-- `tests/*.test.mjs`: `node:test` suites that run against `dist/`. Subfolders hold data only: `tests/fixtures/bigbrain/` has bigbrain's golden bundles, which `tests/bigbrain-documents.test.mjs` checks with the `check-bundle` script and mutates into negative cases.
+- `tests/*.test.mjs`: `node:test` suites that run against `dist/`.
 - `plugins/`: the bundled plugins that the npm package ships. See [RUNBOOK.md](../RUNBOOK.md#update-bundled-plugins) for how each one is updated.
 - `examples/`: sample agents, skills, and a repository workspace.
 

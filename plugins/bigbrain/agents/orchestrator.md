@@ -10,9 +10,7 @@ instructions_files:
 skills:
   - orchestrate
   - page
-  - interview
   - session-trace
-  - handoff
   - documents
 description: "The only interface to the person: start bigbrain workers, relay every question back, run each plan's control flow, and keep the workstream map. Never does project work."
 args:

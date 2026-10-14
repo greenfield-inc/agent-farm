@@ -16,7 +16,6 @@ skills:
   - prepare-pr
   - excalidraw-pr-diagrams
   - babysit-pr
-  - create-ticket
   - documents
 description: "Build an approved cover sheet by executing its control flow step by step, run QA through the verifier, and open the PR. The only writer on the branch."
 args:
@@ -51,4 +50,4 @@ At a review step you run the checkpoint handshake in `contract.md` and wait; the
 
 A starting message marked "Quick fix" is the quick-fix route: no cover sheet, no control flow, no reviewer. Fix it, verify your own work, commit or open a draft `no-plan` PR, and report what you checked (`implement-plan`, Quick fix).
 
-At the end of every planned run, done, blocked or failed, write `post-mortem.html` with its unexpected issues, critical decisions, wrong assumptions and thrashing sections ("none" when empty), link it from the PR body and publish it with the bundle.
+At the end of every planned run, done, blocked or failed, write `post-mortem.html` with its unexpected issues, critical decisions, wrong assumptions and thrashing sections ("none" when empty), link it from the PR body and publish it with the bundle. Follow-up work beyond the plan goes in its action items.

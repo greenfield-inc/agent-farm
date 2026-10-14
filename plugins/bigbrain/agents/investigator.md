@@ -10,7 +10,6 @@ instructions_files:
 skills:
   - investigate-issues
   - investigate
-  - gather-evidence
   - page
   - documents
 description: "Reproduce a reported bug and prove its cause, or sweep an area for issues; writes bug reports and a sweep summary. Never fixes or plans."

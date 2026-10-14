@@ -33,6 +33,7 @@ Every bigbrain cover sheet ships `control-flow.json` in its bundle. It is the pr
 ```
 
 - `flows` holds every J-n and S-n the cover sheet defines, keyed by ID. A journey is Given / When / Then with a Check (method `app`, `command` or `test`, and the evidence expected). A bug fix adds `continues` lines for behaviour that must not change. A suite is a command and its expected result. `covers` cites the SC-n or P-n it proves.
+- Every changed screen is reached by a journey or QA flow that includes its empty state and its long-content/overflow state, plus loading and error where they exist.
 - `revision` goes up with every change; `approved_by` is the D-n that approved this revision.
 - Steps cite only P/J/S IDs the cover sheet defines. The checker rejects anything else.
 
@@ -42,7 +43,7 @@ Every bigbrain cover sheet ships `control-flow.json` in its bundle. It is the pr
 | --- | --- | --- |
 | `build` | implementer | Implement one package (`package`) with `tdd` and `quick-verify`. |
 | `verify` | implementer | Prove the listed `flows`. With `spawn: "verifier"` the verifier drives the app; otherwise the implementer runs the commands itself. |
-| `qa` | implementer | The QA loop: the verifier checks the listed flows, mockup fidelity and the jank checklist; the implementer fixes; repeat up to `max_rounds`. |
+| `qa` | implementer | The QA loop: the verifier checks the listed flows, mockup fidelity, and the jank checklist on every screen the PR's changed files render; the implementer fixes; repeat up to `max_rounds`. |
 | `pr` | implementer | `prepare-pr` (linking the verification page), then `babysit-pr` until checks are green. |
 | `review` | orchestrator | The implementer pushes, reports checkpoint and waits. The orchestrator starts one reviewer with `scope`. Must-fix items come back, a follow-up checks only those, then the implementer resumes. |
 | `design` | orchestrator | A design decision in the middle of a build: the orchestrator starts the designer, relays its options, and returns the approved design. The implementer waits at this step as at a review. |

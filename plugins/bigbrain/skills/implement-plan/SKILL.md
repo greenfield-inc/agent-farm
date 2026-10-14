@@ -37,7 +37,7 @@ Run the steps in order. Before each one, set `step` to its id in your status fil
 | --- | --- | --- |
 | `build` | `tdd`, `quick-verify`, `codebase-design` when an interface or seam is in question, `investigate` when something breaks unexpectedly | Build the package's outcome, test-first at the seams the cover sheet's checks imply. Commit in small, focused commits on the feature branch and push. |
 | `verify` | `quick-verify` | Prove the listed flows. S-n: run the command yourself and keep the output. J-n, or any step with `spawn: "verifier"`: brief the verifier (below). Write the results into `verification.json`. |
-| `qa` | (the verifier brings `verify-app`, `pr-test-automation` and `design`) | The QA loop below. |
+| `qa` | (the verifier brings `verify-app` and `design`) | The QA loop below. |
 | `pr` | `prepare-pr`, `excalidraw-pr-diagrams`, `babysit-pr` | The PR step below. |
 | `review`, `design` | none | The checkpoint handshake in `contract.md`: commit, push, run `check-bundle`, set `state: checkpoint` with `{ step, scope, head }`, report, and change nothing on the branch until `continue:`. Fix only the must-fix F-n the orchestrator sends, then check in again. You never start a reviewer or a designer. |
 
@@ -55,7 +55,7 @@ After each verify or QA step, render `evidence/verification.html` from the JSON 
 
 `qa.max_rounds` (or the step's `max_rounds`) caps the rounds; the default is 3. For round N = 1, 2, …:
 
-1. **Brief the verifier** with the round number; the app and how to start it; the commit; the flows the step lists, as written in `control-flow.json`; the approved mockups and their must-match screens; the viewports and themes; the jank checklist in `design-quality.md`; and the evidence folder `evidence/qa/round-N/`. The verifier checks independently and returns results with evidence; it does not see your reasoning.
+1. **Brief the verifier** with the round number; the app and how to start it; the commit; the flows the step lists, as written in `control-flow.json`; the approved mockups and their must-match screens; the viewports and themes; the jank checklist in `design-quality.md`; the PR's changed files; and the evidence folder `evidence/qa/round-N/`. The verifier maps the changed files to the screens they render and checks every changed screen in its empty, long-content/overflow, loading and error states (the jank checklist), even when no journey visits it. A screen or state it cannot reach is `undetermined` with the reason. The verifier checks independently and returns results with evidence; it does not see your reasoning.
 2. **Record** every result in `verification.json` (rows, `mockup_fidelity`, `jank`) with `round: N`.
 3. **Fix** each fail that is in scope: find the cause, fix it with a test where one fits, commit, and add a `fix_log` entry (`round`, `finding`, `cause`, `fix_commit`, `rechecked: false`).
 4. **Next round** rechecks every fail from this round and every flow a fix could have touched; set `rechecked: true` and `fixed_in_round` when it passes.

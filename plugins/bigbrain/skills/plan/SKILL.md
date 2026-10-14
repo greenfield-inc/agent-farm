@@ -28,6 +28,7 @@ All in the existing bundle, each from its `documents` template:
 - A bug fix adds "continues to" lines for behaviour that must not change.
 - Whole-feature commands are suites: **Run** a command, **expect** a result.
 - Cover backend, frontend, integration and design behaviour, including empty, error, loading, duplicate and permission cases when they apply, and every screen the approved mockups mark must-match.
+- Every screen the change touches is covered by a journey or QA flow that includes its **empty state** and its **long-content/overflow state**, plus loading and error where they exist. A screen with no journey of its own gets one for those states.
 - Mark known environment and fixture needs. A planned check is planned; only an observed result counts. A missing capability leaves its check open.
 
 ### The control flow
@@ -45,7 +46,7 @@ Render the Control flow section on the cover sheet from the JSON, as the referen
 Before relaying the plan, check it yourself against the brief and the approved design:
 
 - Scope, exclusions, constraints and locked decisions agree; every package explains approach, reuse, new systems, schema and data impact, and dependencies; assumptions are marked `[ASSUMPTION: …]`.
-- Every required behaviour has a J/S with an observable outcome; every must-match screen is covered; prerequisites are honest.
+- Every required behaviour has a J/S with an observable outcome; every must-match screen is covered; every changed screen has a journey through its empty and long-content/overflow states (and loading/error where they exist); prerequisites are honest.
 - The page holds everything the person must review, including exact copy or contract semantics when they matter.
 - Zero `[NEEDS DECISION]` markers. Each one becomes a relay question first.
 - `node <documents skill>/scripts/check-bundle.mjs <bundle> --stage approve` passes.

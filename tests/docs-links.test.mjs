@@ -8,9 +8,6 @@ import {fileURLToPath} from 'node:url';
 const root=fileURLToPath(new URL('../',import.meta.url));
 // GitHub's heading anchor: lowercase, drop punctuation, spaces become hyphens.
 const slug=heading=>heading.trim().toLowerCase().replace(/[^\p{L}\p{N} _-]/gu,'').replace(/ /g,'-');
-// Bigbrain keeps greenfield skills byte-identical (D-15). These links in its copies point at greenfield skills
-// that bigbrain does not bundle; standing-rules.md governs what the copies say.
-const pinnedCopyLinks=new Set(['plugins/bigbrain/skills/create-ticket/SKILL.md: ../ui-mockup/SKILL.md','plugins/bigbrain/skills/create-ticket/SKILL.md: ../explain-visually/SKILL.md']);
 const anchors=file=>new Set(fs.readFileSync(file,'utf8').replace(/```[\s\S]*?```/g,'').split('\n').flatMap(line=>{const m=line.match(/^#{1,6}\s+(.*)/);return m?[slug(m[1].replace(/[`*]/g,''))]:[];}));
 
 test('relative links and anchors in tracked Markdown resolve',()=>{
@@ -23,7 +20,8 @@ test('relative links and anchors in tracked Markdown resolve',()=>{
    if(/^[a-z][a-z0-9+.-]*:/i.test(link))continue;
    const [target,anchor]=link.split('#');
    const resolved=target?path.join(root,path.dirname(file),target):path.join(root,file);
-   if(!fs.existsSync(resolved)){if(!pinnedCopyLinks.has(`${file}: ${link}`))broken.push(`${file}: ${link}`);}
+   // bigbrain's quick-verify is a byte-identical greenfield copy; bigbrain does not ship the pr-test-automation it links to.
+   if(!fs.existsSync(resolved)){if(`${file}: ${link}`!=='plugins/bigbrain/skills/quick-verify/SKILL.md: ../pr-test-automation/references/cross-os-workspaces.md')broken.push(`${file}: ${link}`);}
    else if(anchor&&resolved.endsWith('.md')&&!anchors(resolved).has(anchor))broken.push(`${file}: ${link} (missing anchor)`);
   }
  }

@@ -110,3 +110,11 @@ Constraints  files or areas to stay inside; anything that needs a decision
 Status file  /abs/worktree/.agent/status/implementer.json
 ```
 
+## Copied skills: what bigbrain reads differently
+
+The copied greenfield skills stay byte-identical. Where they name something bigbrain does not ship, read them this way:
+
+- `options`, "mockup": the planner sets `needs: design` and the designer makes the mockups.
+- `babysit-pr`, `create-ticket`: record the follow-up in the post-mortem's action items instead.
+- `session-trace`, `handoff`: not used in bigbrain. Moving work to another machine is Pane's `runpane handoff`.
+- `quick-verify`, the Cross-OS Workspaces link into `pr-test-automation`: not shipped in bigbrain. An OS-specific check you cannot run is `undetermined` with the reason.
