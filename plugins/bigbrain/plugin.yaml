@@ -6,11 +6,11 @@ source:
   commit: c9660b56790830430f32e5a04975a3740bb173f4
 checksums:
   agents/designer.md: b308c51b9d5e2ad054f041875ffa59cf3b3302f6659786d85babcfb7d66a8a77
-  agents/explorer.md: d28908a44bfa9ff420d5ca1c4600fa6924bb9ce874386daa539fc8a8d3900522
-  agents/implementer-codex.md: 909b2136f089cf035ffcd2ce157c0edc31224a85cd4c3e6507888005f76afd68
-  agents/implementer-opus.md: 80344d79df7750655b8f87f8a5a6da3967244b3710f7a763f900e90f40742bfa
-  agents/investigator-codex.md: 02567caab885f7dec7d1abfa38f97ffcd2c70ec9da96eebc2221cc3573242d38
-  agents/investigator.md: f588b9d553fb51cea547ea11ebafe08ab9c6b22f0b13ef860daced423325cf55
+  agents/explorer.md: 1635f450fb53b7a435e550cdf8b91e44826512f23461836416a3da32f1dc5e6f
+  agents/implementer-codex.md: cc582fbfb4789a0178891ef11d6b23a1afaa0a59978fa6a39bc3405038603eb3
+  agents/implementer-opus.md: c19e5ef85b93c87ce441aba8e1d3289c171913a18f8471ee795f0f627c88288e
+  agents/investigator-codex.md: 805b1274952499b249430dd463e67066a85227f6fe400aff0889ce4eaccb54fa
+  agents/investigator.md: d2879b84f87c40922f932c68db2f18a774b558d4d2d269339d405dc88722b440
   agents/orchestrator.md: 8c3836f5f4a1cd9ec3a77f0e809c5a5f06f9f07922da260751c8d6fc079964f9
   agents/planner-codex.md: 523f5b5eba7199bc26fc74ea3bb70e5788156e68f97352a8f35bb85d795bdc88
   agents/planner.md: a444f3c14a78151b3e6c6226f8e9508f7fe5070588d5763cfc6a33b206bac53e
@@ -21,7 +21,7 @@ checksums:
   agents/socrates.md: b893cb2283ead6cec8bb061841b25a750b007cace9f3c37ec21a13c27d9daf9c
   agents/teacher.md: 9b310b0da3c8a1157fc48e19fa4f9495756a0e08d822d342fb740b35849c899f
   agents/verifier.md: 9da2a3c793c811d95f13e27739ebbedcdea625f6318f511a92f0df65b14ec76c
-  instructions/contract.md: 2259187573c116aef09ecf21e9eb38048427fc5dda2254713ce171dcb8f6be27
+  instructions/contract.md: 657f0ca37dd1ced818e4cd6d6b21a3a3228807f9e82779448adff2bd0d432891
   instructions/glossary.md: 7b71453f005486e686456f32b57fa7bac4bbb9eeecd81fd6f2c9948373b55a52
   instructions/planner-documents.md: 941ca2c42d53a3c76e83e7c0a95446f5c5c07bde0d62758c848bf0b1f4124a7b
   instructions/planner-identity.md: a184359f32525ff2439224e13ede4068d43903a63bb828d83115493760ed21fe
@@ -45,14 +45,13 @@ checksums:
   skills/codebase-design/DESIGN-IT-TWICE.md: 8e740bf98446dbd4dfdc132ac4346d9a7eedaf93de6a495889171cf7f99f16bd
   skills/codebase-design/SKILL.md: 2c20617f87ec8af6a434859f381b2f061a69b530444e74eb39e78bb016a6d1e2
   skills/codebase-design/agents/openai.yaml: edebc9e4fcfe102114012575eaa9600b9b5fd08c311664f389c36e7bc717740f
-  skills/cold-read/SKILL.md: ffca715188c0ef7dc673b42cb3012fbf1e2361c3ae677a8171e67b79d5243112
   skills/design/SKILL.md: d60f15a12836308c55e3f5507285965d9e1ec4a0e6499f3cf16fd68ab64fac6c
   skills/design/references/design-quality.md: 204442227b91f8820fa1c4907d8bd8f43c771208f8e8440246fadb39bd878e0a
-  skills/documents/SKILL.md: eb66707539e293e352a487c48e488b7ef313e9eca22ebe38fae68d8bfc10bbb8
+  skills/documents/SKILL.md: 9da4749faedc2996f0a2f11a62fada0d29d90fb7ae0820b322ad38fb8ffce0f1
   skills/documents/formats/brief/example.html: 5588c0a16e7bf000a0c65de5a5e9ba513d7bce34c84e02bb554157aa27570dd6
   skills/documents/formats/brief/template.html: 90841deb2612db4f6abecda81a2cfc6399d3065640e807d35fec5648859f3b7b
-  skills/documents/formats/bug-report/example.html: af3a00bc51029ae33f94a90779cb8561e74c840afcd22351e758f93dabb9c452
-  skills/documents/formats/bug-report/template.html: 25f3dd54ef8863347ba4331b2856bdd783d05dc61bb0ce7ccd5d3a6c2b98a1a9
+  skills/documents/formats/bug-report/example.html: e12a8890c78041e7f4ffd20a7834a3f843d555630355e42752e8e7905674b5e4
+  skills/documents/formats/bug-report/template.html: c31586dcaf102a070f679f8f2e2e0eabdec6eb62c9bfa0f7671c2a4ac6e6a490
   skills/documents/formats/cover-sheet/example.html: 7cda6279d121df6c0fafa18bb5adccbb2c166ab5679682537eb698d8857d4e75
   skills/documents/formats/cover-sheet/template.html: 3f66319828987f3b48fede58b4728d218f9a2b4ccb99ff7bbe270821a2cae7cd
   skills/documents/formats/decisions/example.html: 347f56acbdd932622ef0d48ab840373ab049adf106e486132bf1d1fad39d6f09
@@ -71,14 +70,12 @@ checksums:
   skills/documents/formats/options/template.html: 62b48dc52da60f481b6f5debbf1afd142c1d67f5a44511f29afd3e7d1e52bee4
   skills/documents/formats/post-mortem/example.html: 463d8915e62c3328b0b3ecb2895aba56741495d810859207005dcb89afded7e9
   skills/documents/formats/post-mortem/template.html: 97a0f42d0e1cda9fbaa7dadb81224a405ce47670e27785788a4a3b8998ab9916
-  skills/documents/formats/sweep/example.html: e832210027f81fdbe96bdfe6eb3de9c96b029a85c593f506aec570470c55d3ef
-  skills/documents/formats/sweep/template.html: 0aa4a071931c0e010ebd5d5f2ffe8cfc60841b1e5d8c8531faa0ddba4a645b94
   skills/documents/formats/verification/example.html: 104e167de7da9660494962a6d2c6c7d240641d96f42501f7df758ee8868b95e0
   skills/documents/formats/verification/template.html: ad723b69b77678b72d4034f236d14f8d2422880fac91991f2a5326b6ea6ed1ba
-  skills/documents/kinds.json: 5fcda164f4b5c31e036a72026a841a8df2d922298ea2e2bddc13fe1183cae86e
+  skills/documents/kinds.json: 30653fa6bcaf98ca8820e4536518403accade980dd50c77e0dfff1130ca03c3d
   skills/documents/references/control-flow.md: 01bbfbd9895f4e99d98fd54ac0b45b33e48dce63aa6a1fc5c49e5da6e1dfb2d8
   skills/documents/schemas/control-flow.schema.json: d63f7963c80de8487f1ca27b959a524107cbd4d5fa22532cdb87ed5b7ed49f92
-  skills/documents/schemas/doc-meta.schema.json: 525ca5f13c80cfc820ef6a4e81d5ad092c20c565dfa0d40c02dc11d23ae83521
+  skills/documents/schemas/doc-meta.schema.json: 42c9b753180f261c990f0007f062f1d97266fb15bf4e76892a2d3232f00a2fef
   skills/documents/schemas/status.schema.json: 9938de5fc9bca7d9d72a761584523404b90ad2ae45df302267a1856ccf2a8b9c
   skills/documents/schemas/verification.schema.json: 123f9f7234d5511e8aa3fe7331b2980f1a7bb87f5051c26730cd5a411ec3e437
   skills/documents/scripts/check-bundle.mjs: 6ca100e5d1042a1313266b9063af2524b242941b865e0140c329cf79762c430c
@@ -91,15 +88,15 @@ checksums:
   skills/excalidraw-pr-diagrams/references/render_excalidraw.py: f178207993afcc6b19e8b6954036ff2e8f03e6489062451f6dcd9f21d5999478
   skills/excalidraw-pr-diagrams/references/render_template.html: 5caa1087d0fa68cdc873103aa761590cb16d2ae888d67a08d517ebab01ca110d
   skills/explain/SKILL.md: 26588e0aff49ada0e878cf6f8005eb123a0dc0043e663ffa19b89d76057b35af
-  skills/implement-plan/SKILL.md: 04430213b92265fb89c8e514796bd8e1268bca206b47e9429d38f12aa0001482
+  skills/implement-plan/SKILL.md: a8383706b613bcc916837f455ebf9683d3d899001f3112648ea70347996bf41e
   skills/interview/SKILL.md: 4632bf435dd8158e64e52c46937c95577159bf2250b89633e64ad33d4f3c1c39
   skills/interview/references/decision-log-template.md: ad61b41c20e6d734c82418cb9a7b4ee46820a98e6cbbcb201dcda84357f0bc27
   skills/interview/references/question-format.md: 53ea57ce0ca40e7e74bdec11e661e0249fe2989ca1684ba5c6b348499bef54a4
-  skills/investigate-issues/SKILL.md: 388941facdffb465ff5e2ff86dfb797d99e497f29918a24211065098291a4606
+  skills/investigate-issues/SKILL.md: 4263fbc4117609435b0b761c7934e1a1224d96cfedea85e2abd056234324f2d5
   skills/investigate/SKILL.md: b0199e594f142eaf17a44c193de78e04463212d7b2cdc9a858796d0d51d1e5e6
   skills/options/SKILL.md: 265e16a8a542d6ba5901a1a55209e5838e7002235d1381873eda4b6feea0787e
   skills/options/references/options-template.md: cd82cdf9f56b4cdaa76c37f273beda59cecca97f46baeb046a2cc14700864579
-  skills/orchestrate/SKILL.md: 0b608c4155a2bf924cbbb7100922cfba95d19a14ff4445eabcd8e729c14bb806
+  skills/orchestrate/SKILL.md: 127f1a4ba28e20bcdad87e504138c638aaa560a4e5577fb90b607ce6bbf99f5f
   skills/orchestrate/references/addendum-template.md: 8e06366c88f4b56a9be53587a4502b9dabc843eab68361fb82ae4ebba9525338
   skills/orchestrate/references/host-policy.md: c86e6a045d40aada6354891aa08cf4046a6a97c044068b25b2fc18b45cd9e338
   skills/orchestrate/references/ledger.md: 3dd1fd106bb6a95ada6364b5f4cb8d4d666565fde5986dcd3fddf3aac8faab10

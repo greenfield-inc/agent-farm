@@ -14,7 +14,7 @@ Every bigbrain page is built from a template here, carries a `doc-meta` block, a
 3. Fill `doc-meta`: `kind`, a kebab-case `id`, `status`, `revision`, `supersedes`, `updated`, the IDs this page `defines` (each also an element `id` on the page, so `decisions.html#D-4` links), the IDs it `cites`, and the counts of open `[NEEDS DECISION` and `[ASSUMPTION` markers.
 4. Add the page to `bundle.json`'s `documents`.
 
-Kinds: brief, explainer, options, decisions, cover-sheet, design-notes, mockups, verification, bug-report, sweep, post-mortem, learning, map.
+Kinds: brief, explainer, options, decisions, cover-sheet, design-notes, mockups, verification, bug-report, post-mortem, learning, map.
 
 ## JSON sources
 

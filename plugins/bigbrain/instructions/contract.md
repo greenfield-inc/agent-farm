@@ -118,3 +118,4 @@ The copied greenfield skills stay byte-identical. Where they name something bigb
 - `babysit-pr`, `create-ticket`: record the follow-up in the post-mortem's action items instead.
 - `session-trace`, `handoff`: not used in bigbrain. Moving work to another machine is Pane's `runpane handoff`.
 - `quick-verify`, the Cross-OS Workspaces link into `pr-test-automation`: not shipped in bigbrain. An OS-specific check you cannot run is `undetermined` with the reason.
+- `prepare-pr`, its `cold-read` step: not shipped in bigbrain. Skip it.

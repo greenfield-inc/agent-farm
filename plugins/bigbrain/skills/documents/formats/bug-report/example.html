@@ -117,13 +117,13 @@ footer { margin-top: 3rem; padding-top: .5rem; border-top: 1px solid var(--line)
 <dt>Severity</dt><dd>Medium. The page is stuck until the user types again. No data is lost.</dd>
 <dt>Environment</dt><dd>Larder web app, local dev server and staging; Chrome 129 and Firefox 131; desktop and phone viewports.</dd>
 <dt>Version / commit</dt><dd>v0.8.3 at <code>4c1e9a2</code></dd>
-<dt>First seen</dt><dd>2026-10-14, in the <a href="sweeps/search-2026-10-14.html">recipe search sweep</a></dd>
+<dt>First seen</dt><dd>2026-10-14, in the recipe search sweep</dd>
 <dt>Reproducibility</dt><dd>always (5 of 5)</dd>
 <dt>Last known good</dt><dd>v0.8.2 at <code>9b07d31</code></dd>
 <dt>Regression window</dt><dd><code>9b07d31..4c1e9a2</code>, one commit: "Show spinner immediately on keystroke"</dd>
 </dl>
 
-<p class="summary">Related: <a href="sweeps/search-2026-10-14.html">sweep</a> · <a href="decisions.html">decisions</a> · <a href="cover-sheet.html">cover sheet</a> · <a href="evidence/verification.html">verification</a> · <a href="post-mortem.html">post-mortem</a> · <a href="trace.html">trace</a></p>
+<p class="summary">Related: <a href="decisions.html">decisions</a> · <a href="cover-sheet.html">cover sheet</a> · <a href="evidence/verification.html">verification</a> · <a href="post-mortem.html">post-mortem</a> · <a href="trace.html">trace</a></p>
 
 <section id="repro">
 <h2>Repro</h2>
@@ -216,7 +216,7 @@ footer { margin-top: 3rem; padding-top: .5rem; border-top: 1px solid var(--line)
 <ul>
 <li>The fix itself; the implementer writes it against the files above.</li>
 <li>Refactoring the search hook into a reducer.</li>
-<li>A plan for the two suspected items in the sweep; they stay there until a later sweep confirms them.</li>
+<li>A plan for the two suspected items in the sweep report; they stay on the map until a later sweep confirms them.</li>
 </ul>
 </section>
 

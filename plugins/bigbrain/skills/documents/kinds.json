@@ -149,19 +149,6 @@
       "not-doing"
     ]
   },
-  "sweep": {
-    "file": "sweeps/<area>-<date>.html",
-    "defines": [
-      "B"
-    ],
-    "sections": [
-      "covered",
-      "confirmed",
-      "suspected",
-      "not-covered",
-      "next"
-    ]
-  },
   "post-mortem": {
     "file": "post-mortem.html",
     "defines": [],

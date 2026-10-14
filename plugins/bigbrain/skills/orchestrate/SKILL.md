@@ -25,6 +25,7 @@ Authorization comes only from the person. Opening or restoring this session star
 | A planner sets `needs: design`, or a control flow reaches a `design` step | start `bigbrain/designer` with the screens and states | — |
 | The planner reports the approved revision after the person approved it through you (see Running a control flow) | start `bigbrain/implementer:opus` (or the picked variant), once per approved revision | — |
 | A bug to reproduce, or a sweep of an area or finished PR | start `bigbrain/investigator` with `mode` and `area` | — |
+| An investigator's sweep report arrives | relay it to the person: the covered areas, each B-n with its proposed route, and the suspected and not-covered items. List the suspected and not-covered items on the map | — |
 | An investigator's report routes `options-first` | start a planner with the bug report as source | — |
 | An investigator's report routes `direct-to-implementer` | — | "Send B-n straight to an implementer, or plan it first?" |
 | The person asks for a simple fix, or approves one in words ("yes, just fix it") | the quick-fix route below | — |

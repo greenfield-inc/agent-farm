@@ -26,8 +26,10 @@ The goal is a report someone else can act on. The first move is reproduction, no
 1. **Plan the coverage:** the flows and areas to exercise and how (app via the verifier, tests, reading), written down before you start.
 2. **Hunt:** drive the flows through the verifier (including empty, error, long-content, phone and dark states, and the jank checklist in the `design` skill's `design-quality.md` when the verifier has it); read the riskiest changed code with the explorer; run the tests.
 3. **Reproduce before counting.** An issue counts as confirmed only when it reproduced, with evidence. Each confirmed issue gets its own bug report (report mode steps 3 to 6, one B-n each). Anything unreproduced is "suspected", with why you suspect it and what would confirm it.
-4. **Write the sweep summary** at `sweeps/<area>-<date>.html` from the `sweep` template: covered (with method), confirmed (B-n, severity, route, how reproduced), suspected, not covered and why, and the proposed routing per B-n for the orchestrator to relay.
-5. Run `check-bundle` on each bundle, set your status to `done` with the summary path and the B-n list, and report.
+4. **No summary page.** Run `check-bundle` on each bug-report bundle, set your status to `done` with the B-n list, and report. The `runpane report` summary file carries three short sections, plus the proposed route for each B-n (with its path) for the orchestrator to relay:
+   - **Covered:** the areas and flows exercised, each with its method.
+   - **Suspected, not reproduced:** each item, why you suspect it, and what would confirm it.
+   - **Not covered:** what was out of reach, and why.
 
 ## Never
 

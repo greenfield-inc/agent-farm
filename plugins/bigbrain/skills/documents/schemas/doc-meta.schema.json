@@ -8,7 +8,7 @@
   "additionalProperties": false,
   "properties": {
     "kind": {
-      "enum": ["brief", "explainer", "options", "decisions", "cover-sheet", "design-notes", "mockups", "verification", "bug-report", "sweep", "post-mortem", "learning", "map"]
+      "enum": ["brief", "explainer", "options", "decisions", "cover-sheet", "design-notes", "mockups", "verification", "bug-report", "post-mortem", "learning", "map"]
     },
     "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
     "status": { "enum": ["draft", "ready-for-review", "approved", "in-build", "done", "superseded", "withdrawn"] },

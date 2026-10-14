@@ -66,7 +66,7 @@ independent; each plugin's version is in its `plugin.yaml`.
   skills are vendored unchanged from mattpocock/skills (see
   `plugins/greenfield/THIRD_PARTY_NOTICES.md`).
 
-- **bigbrain**: authored in this repository, except its 18 copies of greenfield
+- **bigbrain**: authored in this repository, except its 17 copies of greenfield
   skills, which are pinned to a greenfield commit. Never hand-edit a copy. Every
   file under its `profiles/`, `agents/`, `skills/` and `instructions/` is
   checksummed in `plugin.yaml`, so after any edit to a bigbrain file, and to move

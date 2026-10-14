@@ -41,7 +41,7 @@ Run the steps in order. Before each one, set `step` to its id in your status fil
 | `pr` | `prepare-pr`, `excalidraw-pr-diagrams`, `babysit-pr` | The PR step below. |
 | `review`, `design` | none | The checkpoint handshake in `contract.md`: commit, push, run `check-bundle`, set `state: checkpoint` with `{ step, scope, head }`, report, and change nothing on the branch until `continue:`. Fix only the must-fix F-n the orchestrator sends, then check in again. You never start a reviewer or a designer. |
 
-Use `explorer` for large read-only questions about the codebase (with file:line answers) and for cold reads of the PR body. Never give a helper write work, and never run parallel writing subagents.
+Use `explorer` for large read-only questions about the codebase (with file:line answers). Never give a helper write work, and never run parallel writing subagents.
 
 Anything the plan leaves open that is a product, design, scope or approval question goes to the person as a `needs_you`; keep building what is not blocked. Routine technical choices are yours: record the consequential ones in the Surprises log and the post-mortem's critical decisions. A change to a check, a step or the scope is not yours to make: ask for a new plan revision through a `needs_you`.
 
@@ -66,7 +66,7 @@ Watch for thrashing: a fix that breaks something fixed earlier, or the same area
 ## The PR step
 
 1. Run `check-bundle <bundle> --stage done`. A pending row means a step did not run: go back and run it, or record it as undetermined with the reason.
-2. Use `prepare-pr`. The first line is an imperative, standalone summary. The body follows the bigbrain PR layout: why (SC-n delivered), concepts and approach (D-n), walkthrough by P-n, validation (the J/S verdict summary, QA rounds used, a link to the verification page) and limitations. Add a size note when more than about 1,000 lines changed, saying why it is not split. Skip `prepare-pr`'s offer of another simplify pass. The cold read goes to `explorer`.
+2. Use `prepare-pr`. The first line is an imperative, standalone summary. The body follows the bigbrain PR layout: why (SC-n delivered), concepts and approach (D-n), walkthrough by P-n, validation (the J/S verdict summary, QA rounds used, a link to the verification page) and limitations. Add a size note when more than about 1,000 lines changed, saying why it is not split. Skip `prepare-pr`'s offer of another simplify pass and its `cold-read` step.
 3. Use `babysit-pr` until the required checks and bots are green. It never merges.
 4. Then the end review: check in at the end review step with the handshake (it is the last step). When it is waived, the orchestrator decides with the person whether to review.
 

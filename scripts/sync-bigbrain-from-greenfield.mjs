@@ -14,7 +14,7 @@ import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 
-export const COPIED=['page','brief','options','explain','spike','interview','architecture-diagram','codebase-design','tdd','quick-verify','investigate','verify-app','prepare-pr','excalidraw-pr-diagrams','babysit-pr','session-trace','cold-read','research-web'];
+export const COPIED=['page','brief','options','explain','spike','interview','architecture-diagram','codebase-design','tdd','quick-verify','investigate','verify-app','prepare-pr','excalidraw-pr-diagrams','babysit-pr','session-trace','research-web'];
 const SECTIONS=['profiles','agents','skills','instructions','references'];
 // npm never packs these, so a checksummed copy of one would fail validation after npm install.
 const NOT_SHIPPED=new Set(['.gitignore','.npmignore','.npmrc','.DS_Store']);

@@ -38,7 +38,7 @@ The first variant is the default. Every worker takes `parent` (its status file) 
 | `investigator` (`:claude`) / `:codex` | Opus 5.5 high / Sol high | verifier, explorer | `--arg mode=report` reproduces a bug and writes a report; `mode=sweep` hunts an `area` for issues. Never fixes |
 | `teacher` | Opus 5.5 high | explorer | Quizzes you on a feature's PRs through the orchestrator and publishes a learning page. Never blocks merging |
 
-Helpers: `verifier` (drives the app, QA, mockup fidelity, jank), `explorer` (one read-only codebase question, or a cold read), `researcher` (one web question), `review-worker` (finder or checker), `socrates` (one challenge before you pick an option). Claude helpers under a Claude profile run natively; a helper on the other vendor runs as a separate process. The reviewer's default Codex lead running Claude process workers was tested end to end before this release.
+Helpers: `verifier` (drives the app, QA, mockup fidelity, jank), `explorer` (one read-only codebase question), `researcher` (one web question), `review-worker` (finder or checker), `socrates` (one challenge before you pick an option). Claude helpers under a Claude profile run natively; a helper on the other vendor runs as a separate process. The reviewer's default Codex lead running Claude process workers was tested end to end before this release.
 
 ## What happens to one feature
 
@@ -89,4 +89,4 @@ Bundles are local by default. A destination (a document workspace) comes from yo
 
 ## Maintaining this plugin
 
-18 skills are byte-identical copies of greenfield's, pinned to a commit and checksummed with the rest of the plugin; never edit them here. After editing any bigbrain file, run `node scripts/sync-bigbrain-from-greenfield.mjs` to refresh the checksums; `--check` (run it before every commit to this plugin) fails on an edited copy or stale checksums. See [RUNBOOK.md](../../RUNBOOK.md#update-bundled-plugins). The copies keep greenfield's wording in two harmless places (the local bundle root `tmp/greenfield/` and an offer of `greenfield/simplify-and-refactor`); bigbrain's standing rules override what they say about asking you directly, and `instructions/contract.md` says how bigbrain reads the rest.
+17 skills are byte-identical copies of greenfield's, pinned to a commit and checksummed with the rest of the plugin; never edit them here. After editing any bigbrain file, run `node scripts/sync-bigbrain-from-greenfield.mjs` to refresh the checksums; `--check` (run it before every commit to this plugin) fails on an edited copy or stale checksums. See [RUNBOOK.md](../../RUNBOOK.md#update-bundled-plugins). The copies keep greenfield's wording in two harmless places (the local bundle root `tmp/greenfield/` and an offer of `greenfield/simplify-and-refactor`); bigbrain's standing rules override what they say about asking you directly, and `instructions/contract.md` says how bigbrain reads the rest.
