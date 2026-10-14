@@ -71,6 +71,12 @@ test('the sync check passes on the committed plugin and fails on a hand-edited c
  const stale=run([sync,'--check','--plugin',copy]);
  assert.equal(stale.status,1);
  assert.match(stale.stderr,/checksums are stale for bigbrain-owned instructions\/glossary\.md/);
+ fs.copyFileSync(path.join(root,'instructions','glossary.md'),path.join(copy,'instructions','glossary.md'));
+ fs.rmSync(path.join(copy,'skills','page'),{recursive:true});
+ const missing=run([sync,'--check','--plugin',copy]);
+ assert.equal(missing.status,1);
+ assert.match(missing.stderr,/copied skill page is missing/,'a deleted copy is reported by name, not as a crash (F-9)');
+ assert.doesNotMatch(missing.stderr,/ENOENT|at .*sync-bigbrain/);
  const greenfield=path.join(path.dirname(copy),'greenfield');
  fs.cpSync(path.join(repo,'plugins','greenfield'),greenfield,{recursive:true});
  fs.appendFileSync(path.join(greenfield,'skills','spike','SKILL.md'),'\nUpstream change.\n');
@@ -150,4 +156,21 @@ test('writing limits: always-loaded instructions under 200 lines, owned SKILL.md
    assert.doesNotMatch(text(file),/\b(claude-[a-z0-9-]+|gpt-[0-9][a-z0-9.-]*|Opus|Sonnet|Astra|Sol)\b/,`${rel(file)} names a model`);
   }
  }
+});
+
+test('the relay and control-flow contract keep the review-P-2 fixes (F-2, F-3, F-5, F-6, F-8)',()=>{
+ const orchestrate=text(path.join(root,'skills','orchestrate','SKILL.md')).replace(/\s+/g,' ');
+ const contract=text(path.join(root,'instructions','contract.md')).replace(/\s+/g,' ');
+ const flow=text(path.join(root,'skills','documents','references','control-flow.md')).replace(/\s+/g,' ');
+ const relay=text(path.join(root,'skills','orchestrate','references','relay.md')).replace(/\s+/g,' ');
+ assert.match(orchestrate,/send `continue: <step>` only when no must-fix remains/,'F-2: the follow-up result is read before release');
+ assert.match(orchestrate,/Checkpoint at a waived review step.{0,80}Confirm its `approved_by` D-n.{0,60}Start no reviewer\./,'F-3: a waiver starts no reviewer');
+ assert.match(orchestrate,/Only an explicit "review now" starts a reviewer/);
+ assert.match(contract,/A waived end review .* starts no reviewer/);
+ assert.match(flow,/the orchestrator starts no reviewer/);
+ assert.match(orchestrate,/Approval is two steps\..*do not start anything yet\..*When the planner reports `done` for that revision/,'F-5: dispatch after the planner persists approval');
+ assert.match(contract,/`clarify: Q-7 → .*`: not an answer\. Keep Q-7 open/,'F-6: a question back is not an answer');
+ assert.match(relay,/send `clarify: Q-n → <their question>`/);
+ assert.doesNotMatch(relay,/answer: Q-n → \(question back\)/);
+ assert.match(orchestrate,/a `quiz` skips steps 1, 4 and 5 and shows no recommended answer in step 3 \(no answering from a source, no recommended answer, no D-n\)/,'F-8: quiz semantics come first');
 });

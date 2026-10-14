@@ -53,7 +53,8 @@ Every bigbrain cover sheet ships `control-flow.json` in its bundle. It is the pr
 
 - Every flow ends with an end review: a `review` step with `"scope": "all"`, last among the review steps, normally right after `pr`.
 - A checkpoint (a review step with a list of packages as `scope`) is added only with a `reason_kind`: `irreversible`, `schema`, `security` or `shared-contract`, and a one-line `reason`.
-- "No review" is allowed only on the person's explicit word: the end review step stays, with `"review": "none"` and `approved_by` naming the D-n that recorded their word.
+- "No review" is allowed only on the person's explicit word: the end review step stays, with `"review": "none"` and `approved_by` naming the D-n that recorded their word. The implementer still stops there; the orchestrator starts no reviewer and puts "review now, or continue?" to the person. Only an explicit "review now" starts one.
+- The end review (or its waiver) is the last step; nothing runs after it.
 - `profile` picks the reviewer variant; the default is the reviewer profile's default.
 - The planner settles the review points with the person during the interview. Anything else is unplanned: the orchestrator asks the person before acting on it, and an implementer never starts a reviewer.
 
@@ -75,10 +76,13 @@ The cover sheet's Control flow section is generated from the JSON; never hand-ed
     <li data-step="review-P-1">review P-1 <span>planned · shared-contract: the theme tokens every later screen uses</span></li>
     …
     <li data-step="review-final">review all <span>planned · end</span></li>
+    <!-- a waived end review renders as: review all · no review (waived), D-n -->
   </ol>
   <p>Anything else: the orchestrator asks you first.</p>
 </section>
 ```
+
+Each step's line shows what it will make workers do: its `do`, package, flows, scope, `reason_kind`, "up to N rounds" for a `qa` step, "no review (waived)" and the D-n for a waiver, and the section shows the QA viewports and themes. `check-bundle` checks those facts against the JSON.
 
 Put a one-line summary near the top of the page too (`#control-flow-summary`): the review points and the QA settings. A small inline-SVG strip of the steps is welcome beside the list.
 

@@ -46,7 +46,7 @@ It needs only Node. Exit 0 is pass; each failure names its rule:
 | `open-counts` | `doc-meta.open` disagrees with the markers on the page |
 | `needs-decision` | a `[NEEDS DECISION` sits on an approved, in-build or done page, or anywhere at `--stage approve` or `done` |
 | `links` | a relative link or anchor does not resolve inside the bundle |
-| `schema:control-flow`, `control-flow-refs`, `review-points`, `control-flow-render` | the flow is invalid, cites unknown IDs, lacks an end review or a checkpoint reason, or the cover sheet's section no longer matches it |
+| `schema:control-flow`, `control-flow-refs`, `review-points`, `control-flow-render` | the flow is invalid (including a bare `null`, `false`, `0` or `""`), cites unknown IDs, lacks a checkpoint reason, does not end with the end review or its waiver, or the cover sheet's section no longer shows the same steps and facts |
 | `schema:verification`, `verification-rows`, `verification-reworded`, `verification-verdicts` | rows are added, removed, reworded, or still pending at `--stage done` |
 | `schema:status`, `status-state` | a status file is invalid or its state and blocks disagree |
 

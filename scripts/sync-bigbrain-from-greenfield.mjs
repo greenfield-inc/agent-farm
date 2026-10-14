@@ -88,6 +88,7 @@ export function check(plugin,greenfield){
   for(const name of COPIED){
    const ours=path.join(plugin,'skills',name),theirs=path.join(greenfield,'skills',name);
    if(!fs.existsSync(theirs)){notes.push(`greenfield no longer has ${name}`);continue;}
+   if(!fs.existsSync(ours))continue; // already reported as missing above
    const list=dir=>Object.fromEntries(walk(dir).filter(shipped).map(file=>[path.relative(dir,file).split(path.sep).join('/'),sha256(fs.readFileSync(file))]));
    const a=list(ours),b=list(theirs),changed=[...new Set([...Object.keys(a),...Object.keys(b)])].filter(key=>a[key]!==b[key]);
    if(changed.length)notes.push(`greenfield's ${name} differs from the pinned copy (${changed.join(', ')}); re-sync when you want it`);

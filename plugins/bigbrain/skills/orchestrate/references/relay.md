@@ -24,7 +24,7 @@ By kind:
 | `quiz` | the teacher's one question, its files, and "answer in your own words" — no recommended answer | no D-n; `answer: Q-n → <their words>` |
 | `fyi` | nothing in chat; a line in the map's needs-you or log section | none |
 
-When the answer comes back, quote it before submitting it, exactly as given when it was free text. If the person asks something back instead of answering, answer from the bundle with a citation, or relay the clarification to the worker as `answer: Q-n → (question back) …` and wait for its next report.
+When the answer comes back, quote it before submitting it, exactly as given when it was free text. If the person asks something back instead of answering, answer from the bundle with a citation when it can, and ask again. Otherwise send `clarify: Q-n → <their question>` to the worker; Q-n stays open, no D-n is taken, and the worker reports its needs_you again with the clarification. Only a real answer is sent as `answer:`.
 
 Unplanned review question, always exactly this choice:
 

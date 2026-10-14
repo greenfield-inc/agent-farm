@@ -21,7 +21,7 @@ checksums:
   agents/socrates.md: b893cb2283ead6cec8bb061841b25a750b007cace9f3c37ec21a13c27d9daf9c
   agents/teacher.md: 9b310b0da3c8a1157fc48e19fa4f9495756a0e08d822d342fb740b35849c899f
   agents/verifier.md: a35c01892870cc31dc76e21752cd861e8364ae04fef518268867080da87199fa
-  instructions/contract.md: d3dd5266b6908f96aa4a6ef63de40200c5115a5341efc124c0659afc4213f9ca
+  instructions/contract.md: 91ac95576c24b4efe2da812fd29ced362c18a4adb1652fe4d27cd2a8452139c2
   instructions/glossary.md: 7b71453f005486e686456f32b57fa7bac4bbb9eeecd81fd6f2c9948373b55a52
   instructions/planner-documents.md: 941ca2c42d53a3c76e83e7c0a95446f5c5c07bde0d62758c848bf0b1f4124a7b
   instructions/planner-identity.md: a184359f32525ff2439224e13ede4068d43903a63bb828d83115493760ed21fe
@@ -51,13 +51,13 @@ checksums:
   skills/create-ticket/references/intent-handoff.md: 05d0a68bb662eeff2b1a9d5ba95c8433bcac5b342c274dcdcd162d7d6a87180a
   skills/create-ticket/references/socrates.md: f70a000f7d1a3ee5b291fd398c78d1e9fb9832c0e90a37af2b76726c36f7d49a
   skills/design/SKILL.md: 6645578637bffc8728882146e10c6b24368a59a2b4eddb06e88defc0134fcba7
-  skills/documents/SKILL.md: 1edb921fecf219dade4798fefdc75c19bd6bfb98abf3aa764d526a62dcf26e79
+  skills/documents/SKILL.md: eb66707539e293e352a487c48e488b7ef313e9eca22ebe38fae68d8bfc10bbb8
   skills/documents/formats/brief/example.html: 5588c0a16e7bf000a0c65de5a5e9ba513d7bce34c84e02bb554157aa27570dd6
   skills/documents/formats/brief/template.html: 90841deb2612db4f6abecda81a2cfc6399d3065640e807d35fec5648859f3b7b
   skills/documents/formats/bug-report/example.html: af3a00bc51029ae33f94a90779cb8561e74c840afcd22351e758f93dabb9c452
   skills/documents/formats/bug-report/template.html: 25f3dd54ef8863347ba4331b2856bdd783d05dc61bb0ce7ccd5d3a6c2b98a1a9
-  skills/documents/formats/cover-sheet/example.html: 8d83019db079a1d68fd19faabf2d999cb241642ef7c5037a5bd97115bb3b5562
-  skills/documents/formats/cover-sheet/template.html: 9fd62c5a0ee26bc5d258eb97ae23fea1a2153d82e5e529bc55772943257e496c
+  skills/documents/formats/cover-sheet/example.html: 7cda6279d121df6c0fafa18bb5adccbb2c166ab5679682537eb698d8857d4e75
+  skills/documents/formats/cover-sheet/template.html: 3f66319828987f3b48fede58b4728d218f9a2b4ccb99ff7bbe270821a2cae7cd
   skills/documents/formats/decisions/example.html: 347f56acbdd932622ef0d48ab840373ab049adf106e486132bf1d1fad39d6f09
   skills/documents/formats/decisions/template.html: 49d5433907c854b29441f75cc6ed8f41af64352d45e011d70d5bdbb4d55ee66f
   skills/documents/formats/design-notes/example.html: a124da4be177fe6c10074b732cae4fe698a0352cfe66d59ab3e6e15f0901a07f
@@ -79,12 +79,12 @@ checksums:
   skills/documents/formats/verification/example.html: 104e167de7da9660494962a6d2c6c7d240641d96f42501f7df758ee8868b95e0
   skills/documents/formats/verification/template.html: ad723b69b77678b72d4034f236d14f8d2422880fac91991f2a5326b6ea6ed1ba
   skills/documents/kinds.json: 5fcda164f4b5c31e036a72026a841a8df2d922298ea2e2bddc13fe1183cae86e
-  skills/documents/references/control-flow.md: 44c20d8b84a14101d8265e632643c036b19e9a262ffc4284682c3d0a201a7437
+  skills/documents/references/control-flow.md: d4499373e7f5a7c837eaf87f6bd96d74a11b73d827709661cf371c1ce529cb08
   skills/documents/schemas/control-flow.schema.json: d63f7963c80de8487f1ca27b959a524107cbd4d5fa22532cdb87ed5b7ed49f92
   skills/documents/schemas/doc-meta.schema.json: 525ca5f13c80cfc820ef6a4e81d5ad092c20c565dfa0d40c02dc11d23ae83521
   skills/documents/schemas/status.schema.json: 9938de5fc9bca7d9d72a761584523404b90ad2ae45df302267a1856ccf2a8b9c
   skills/documents/schemas/verification.schema.json: 123f9f7234d5511e8aa3fe7331b2980f1a7bb87f5051c26730cd5a411ec3e437
-  skills/documents/scripts/check-bundle.mjs: 8b194fdd8341c4761c63896af4de0a4c9737decf2e97f309657f90186b047a6f
+  skills/documents/scripts/check-bundle.mjs: 6ca100e5d1042a1313266b9063af2524b242941b865e0140c329cf79762c430c
   skills/excalidraw-pr-diagrams/README.md: a2830d1948b03db2c0d4e72f2bb9870f855bd7d945dfcc4d05fe9aab49a1711a
   skills/excalidraw-pr-diagrams/SKILL.md: 8f0ef8cee660fa8262425fc3db6031c77b97023dc95757056c1cd454870e4b7e
   skills/excalidraw-pr-diagrams/references/color-palette.md: 275164ffee5b1c2c36ddeb5bbdbd73765aa8b337bd1bfe8b02a5a8d5f9581c7c
@@ -104,11 +104,11 @@ checksums:
   skills/investigate/SKILL.md: b0199e594f142eaf17a44c193de78e04463212d7b2cdc9a858796d0d51d1e5e6
   skills/options/SKILL.md: 265e16a8a542d6ba5901a1a55209e5838e7002235d1381873eda4b6feea0787e
   skills/options/references/options-template.md: cd82cdf9f56b4cdaa76c37f273beda59cecca97f46baeb046a2cc14700864579
-  skills/orchestrate/SKILL.md: 80398607be0f112808939a43614cb01d7a9cd22ccc59572c6cf0f981021282e0
+  skills/orchestrate/SKILL.md: 0b608c4155a2bf924cbbb7100922cfba95d19a14ff4445eabcd8e729c14bb806
   skills/orchestrate/references/addendum-template.md: 8e06366c88f4b56a9be53587a4502b9dabc843eab68361fb82ae4ebba9525338
   skills/orchestrate/references/host-policy.md: c86e6a045d40aada6354891aa08cf4046a6a97c044068b25b2fc18b45cd9e338
   skills/orchestrate/references/ledger.md: 3dd1fd106bb6a95ada6364b5f4cb8d4d666565fde5986dcd3fddf3aac8faab10
-  skills/orchestrate/references/relay.md: 025657075256f679152eddb0670a958ebdec49fa3fba58cf2c00c891cc97dcb2
+  skills/orchestrate/references/relay.md: 151e2ce9c4e98ba0b2be932ebea7a4bbb50c32aaff15ca995de2ec3311014300
   skills/page/SKILL.md: 79e3b86d07b9478a742370a07e1e60c98b79a83a697a65c8d8f14ce2c37194b7
   skills/page/references/bundle.md: fbee349a023e646f5d0e27b460f6d19c789b19212a02b727e1c688ec52ac8bb4
   skills/page/references/post-mortem.md: 6f8f3f594d7aaa705ef44cbc013dc4ab98d7edc4cd3717e0aa5b46b7b3282ec0

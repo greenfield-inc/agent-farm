@@ -64,6 +64,7 @@ A `fyi` needs no report of its own; the orchestrator batches it into the map. Ea
 The orchestrator submits plain text lines to the asking tab only:
 
 - `answer: Q-7 → Invoice id. Recorded as D-12.` The worker records it where its skill says (the planner in `decisions.html`; others cite the D-n), clears `needs_you`, sets `running`, and continues. A free-text answer is quoted exactly.
+- `clarify: Q-7 → <the person's question back>`: not an answer. Keep Q-7 open and `needs_you` set, record nothing, add the clarification to the question (in `why` or the page), and report the same needs_you again.
 - `continue: <step id>`: resume after a checkpoint, or after `blocked`.
 - `review: <step id> → must-fix F-2, F-5 (findings: <path>)`: fix exactly those, then run the checkpoint handshake again for the follow-up.
 - `review: <step id> → no must-fix (findings: <path>)`: followed by `continue: <step id>`.
@@ -82,7 +83,7 @@ At a control-flow step with `do: review`:
 5. Must-fix items come back as `review: <step> → must-fix …`. The implementer fixes only those, pushes, and repeats step 2 with the new head. The orchestrator starts a follow-up that checks only those items.
 6. `continue: <step>` resumes the flow at the next step.
 
-The same handshake runs for the end review after the `pr` step; there `continue:` means the work is done.
+The same handshake runs for the end review after the `pr` step; there `continue:` means the work is done. A waived end review (`"review": "none"`) still gets the handshake: the orchestrator starts no reviewer, puts "review now, or continue?" to the person, and sends `continue:` or a reviewer's findings accordingly.
 
 ## Starting message and helper brief
 

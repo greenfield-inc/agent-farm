@@ -125,7 +125,13 @@ test('the control flow must match its rendered section, cite real packages, and 
  assert.deepEqual(rules(check(end)),['review-points']);
  const waived=copy(t,'bug-fix');
  editJson(waived,'control-flow.json',f=>{const step=f.steps.find(s=>s.scope==='all');step.review='none';step.approved_by='D-1';});
- assert.equal(check(waived).status,0,'"review": "none" with its D-n is a valid end review');
+ assert.deepEqual(rules(check(waived)),['control-flow-render'],'a waiver the page does not show fails');
+ edit(waived,'cover-sheet.html',html=>html.replace(/(<li[^>]*data-step="review-final"[^>]*>[\s\S]*?)<\/li>/,'$1 · no review (waived), D-1</li>'));
+ assert.equal(check(waived).status,0,'"review": "none" with its D-n, shown on the page, is a valid end review');
+ const trailing=copy(t,'bug-fix');
+ editJson(trailing,'control-flow.json',f=>{f.steps.push({id:'build-after-review',actor:'implementer',do:'build',package:'P-1'});});
+ edit(trailing,'cover-sheet.html',html=>html.replace(/(<li[^>]*data-step="review-final"[\s\S]*?<\/li>)/,'$1<li data-step="build-after-review">build · implementer · P-1</li>'));
+ assert.deepEqual(rules(check(trailing)),['review-points'],'nothing may run after the end review (F-7)');
  const schema=copy(t,'bug-fix');
  editJson(schema,'control-flow.json',f=>{f.steps[0].do='deploy';});
  assert.deepEqual(rules(check(schema)),['schema:control-flow']);
@@ -141,4 +147,29 @@ test('status files: a valid needs_you passes; state and blocks must agree',t=>{
  assert.deepEqual(rules(check('--status',write('checkpoint.json',{...base,state:'checkpoint',needs_you:null}))),['status-state']);
  assert.equal(check('--status',write('cp.json',{...base,profile:'bigbrain/implementer:opus',state:'checkpoint',needs_you:null,checkpoint:{step:'review-P-1',scope:['P-1'],head:'3f9c2ab'},pr:12})).status,0);
  assert.deepEqual(rules(check('--status',write('kind.json',{...base,needs_you:{...base.needs_you,kind:'chat'}}))),['schema:status']);
+});
+
+test('a falsy JSON root is validated, not skipped: null, false, 0 and "" each fail their schema (F-1)',t=>{
+ for(const [file,rule] of [['control-flow.json','schema:control-flow'],['evidence/verification.json','schema:verification']])
+  for(const value of ['null','false','0','""']){
+   const dir=copy(t,'small-feature');
+   fs.writeFileSync(path.join(dir,file),value);
+   assert.ok(rules(check(dir,'--stage','done')).includes(rule),`${file} = ${value}`);
+  }
+});
+
+test('the rendered Control flow must show what each step will do, not only its id (F-4)',t=>{
+ const reason=copy(t,'ui-feature');
+ edit(reason,'cover-sheet.html',html=>html.replace(/(data-step="review-p1"[\s\S]*?)shared-contract/,'$1planned'));
+ assert.deepEqual(rules(check(reason)),['control-flow-render'],'a checkpoint shown without its reason_kind');
+ const scope=copy(t,'bug-fix');
+ editJson(scope,'control-flow.json',f=>{f.steps.find(s=>s.id==='review-final').scope=['P-1'];f.steps.find(s=>s.id==='review-final').reason_kind='schema';f.steps.find(s=>s.id==='review-final').reason='x';});
+ assert.ok(rules(check(scope)).includes('control-flow-render'),'scope changed in the JSON but not on the page');
+ const rounds=copy(t,'small-feature');
+ editJson(rounds,'control-flow.json',f=>{f.qa.max_rounds=9;});
+ editJson(rounds,'evidence/verification.json',v=>{v.qa.max_rounds=9;});
+ assert.deepEqual(rules(check(rounds)),['control-flow-render'],'QA rounds raised without re-rendering');
+ const theme=copy(t,'ui-feature');
+ edit(theme,'cover-sheet.html',html=>html.replace(/(<section[^>]*id="control-flow"[\s\S]*?)light, dark/,'$1light'));
+ assert.deepEqual(rules(check(theme)),['control-flow-render'],'a QA theme dropped from the page');
 });

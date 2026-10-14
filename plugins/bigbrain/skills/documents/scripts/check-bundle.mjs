@@ -116,20 +116,22 @@ export function checkBundle(dir,{stage='draft'}={}){
  const flowFile=path.join(dir,'control-flow.json');
  let flow;
  if(fs.existsSync(flowFile)){
-  try{flow=readJson(flowFile);}catch(error){fail('schema:control-flow','control-flow.json',`not JSON: ${error.message}`);}
-  const problems=flow?validate(schemas['control-flow'],flow):[];
+  let parsed=false;
+  try{flow=readJson(flowFile);parsed=true;}catch(error){fail('schema:control-flow','control-flow.json',`not JSON: ${error.message}`);}
+  // Validate every parsed value, falsy ones included: null, false, 0 and "" are not control flows.
+  const problems=parsed?validate(schemas['control-flow'],flow):[];
   problems.forEach(p=>fail('schema:control-flow','control-flow.json',p));
-  if(flow&&!problems.length)checkFlow(dir,flow,coverSheet,defined,fail);
+  if(parsed&&!problems.length)checkFlow(dir,flow,coverSheet,defined,fail);
   else flow=undefined;
  }else if(coverSheet)fail('control-flow-refs','control-flow.json','the bundle has a cover sheet but no control-flow.json');
 
  const verificationFile=path.join(dir,'evidence','verification.json');
  if(fs.existsSync(verificationFile)){
-  let record;
-  try{record=readJson(verificationFile);}catch(error){fail('schema:verification','evidence/verification.json',`not JSON: ${error.message}`);}
-  const problems=record?validate(schemas.verification,record):[];
+  let record,parsed=false;
+  try{record=readJson(verificationFile);parsed=true;}catch(error){fail('schema:verification','evidence/verification.json',`not JSON: ${error.message}`);}
+  const problems=parsed?validate(schemas.verification,record):[];
   problems.forEach(p=>fail('schema:verification','evidence/verification.json',p));
-  if(record&&!problems.length&&flow)checkVerification(dir,record,flow,stage,fail);
+  if(parsed&&!problems.length&&flow)checkVerification(dir,record,flow,stage,fail);
  }else if(flow&&stage!=='draft')fail('verification-rows','evidence/verification.json',`missing; the planner creates one row per J/S before ${stage}`);
  return finish(errors);
 }
@@ -170,8 +172,8 @@ function checkFlow(dir,flow,coverSheet,defined,fail){
   }
  }
  for(const id of declared)if(/^P-/.test(id)&&!steps.some(s=>s.do==='build'&&s.package===id))fail('control-flow-refs',file,`package ${id} has no build step`);
- const reviews=steps.filter(s=>s.do==='review');
- if(!reviews.length||reviews.at(-1).scope!=='all')fail('review-points',file,'the last review step must be the end review (scope "all"), or a "review": "none" waiver with its D-n');
+ const last=steps.at(-1);
+ if(last.do!=='review'||last.scope!=='all')fail('review-points',file,`the last step must be the end review (scope "all"), or a "review": "none" waiver with its D-n; found ${last.id} (${last.do}) after it`);
  for(const mockup of flow.qa.mockups??[])if(!fs.existsSync(path.join(dir,mockup)))fail('links',file,`qa.mockups lists ${mockup}, which does not exist`);
  if(coverSheet){
   const match=/<[^>]+\bid\s*=\s*["']control-flow["'][^>]*>([\s\S]*?)<\/section>/i.exec(coverSheet.html)??/<[^>]+\bid\s*=\s*["']control-flow["'][^>]*>([\s\S]*)/i.exec(coverSheet.html);
@@ -181,7 +183,30 @@ function checkFlow(dir,flow,coverSheet,defined,fail){
   if(Number(revision)!==flow.revision)fail('control-flow-render',coverSheet.doc,`the Control flow section shows revision ${revision??'none'}, control-flow.json is revision ${flow.revision}; re-render it from the JSON`);
   const rendered=[...section.matchAll(/data-step\s*=\s*["']([^"']+)["']/g)].map(m=>m[1]);
   if(!isDeepStrictEqual(rendered,steps.map(s=>s.id)))fail('control-flow-render',coverSheet.doc,`the Control flow section lists steps [${rendered.join(', ')}], control-flow.json has [${steps.map(s=>s.id).join(', ')}]`);
+  else checkRenderedFacts(coverSheet.doc,flow,section,fail);
  }
+}
+
+// Each rendered step must show what the JSON will make workers do, so the person approves the program that runs.
+function checkRenderedFacts(doc,flow,section,fail){
+ const parts=section.split(/(?=<[^>]+\bdata-step\s*=)/).slice(1);
+ const words=html=>visibleText(html).replace(/\s+/g,' ').toLowerCase();
+ for(const [i,step] of flow.steps.entries()){
+  const text=words(parts[i]??''),missing=[];
+  const want=(fact,shown=[fact])=>{if(!shown.some(s=>text.includes(String(s).toLowerCase())))missing.push(fact);};
+  want(step.do,step.do==='pr'?['pr','pull request']:[step.do]);
+  if(step.package)want(step.package);
+  for(const id of step.flows??[])want(id);
+  if(step.do==='review'){
+   for(const id of step.scope==='all'?['all']:step.scope)want(`scope ${id}`,[id]);
+   if(step.reason_kind)want(step.reason_kind);
+   if(step.review==='none'){want('no review (waived)',['waived','no review','review: none','"review": "none"']);want(step.approved_by);}
+  }
+  if(step.do==='qa'){const rounds=step.max_rounds??flow.qa.max_rounds;want(`${rounds} rounds`,[`${rounds} round`,`≤${rounds}`,`≤ ${rounds}`]);}
+  if(missing.length)fail('control-flow-render',doc,`the Control flow line for ${step.id} does not show ${missing.join(', ')}; re-render it from control-flow.json`);
+ }
+ const all=words(section);
+ for(const value of [...(flow.qa.viewports??[]),...(flow.qa.themes??[])])if(!all.includes(value))fail('control-flow-render',doc,`the Control flow section does not show the QA ${flow.qa.viewports?.includes(value)?'viewport':'theme'} ${value}`);
 }
 
 function checkVerification(dir,record,flow,stage,fail){
