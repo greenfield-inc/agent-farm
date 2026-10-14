@@ -89,6 +89,9 @@ test('cited and mentioned IDs must be defined, and each defined ID needs an anch
  const mention=copy(t,'small-feature');
  edit(mention,'post-mortem.html',html=>html.replace('</main>','<p>See P-77.</p></main>'));
  assert.deepEqual(rules(check(mention)),['ids-defined']);
+ const map=copy(t,'session');
+ edit(map,'map.html',html=>html.replace('</main>','<p>Waiting on D-41 in another bundle.</p></main>'));
+ assert.equal(check(map).status,0,'the Session map may mention IDs defined in the bundles it lists');
  const anchor=copy(t,'bug-fix');
  edit(anchor,'index.html',html=>html.replace(/id="B-1"/,'id="bug-one"'));
  assert.ok(rules(check(anchor)).includes('id-anchors'));

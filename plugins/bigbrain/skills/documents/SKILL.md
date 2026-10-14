@@ -42,7 +42,7 @@ It needs only Node. Exit 0 is pass; each failure names its rule:
 | `doc-meta` | a listed page (other than `trace.html`) has no valid `doc-meta` |
 | `sections` | a page lacks a required section of its kind |
 | `id-anchors` | a defined ID has no element with that id, or the kind may not define that prefix |
-| `ids-unique`, `ids-defined` | an ID is defined twice, or a cited or mentioned ID is defined nowhere |
+| `ids-unique`, `ids-defined` | an ID is defined twice, or a cited or mentioned ID is defined nowhere (the Session map may mention IDs from the bundles it lists) |
 | `open-counts` | `doc-meta.open` disagrees with the markers on the page |
 | `needs-decision` | a `[NEEDS DECISION` sits on an approved, in-build or done page, or anywhere at `--stage approve` or `done` |
 | `links` | a relative link or anchor does not resolve inside the bundle |

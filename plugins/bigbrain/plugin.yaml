@@ -51,7 +51,7 @@ checksums:
   skills/create-ticket/references/intent-handoff.md: 05d0a68bb662eeff2b1a9d5ba95c8433bcac5b342c274dcdcd162d7d6a87180a
   skills/create-ticket/references/socrates.md: f70a000f7d1a3ee5b291fd398c78d1e9fb9832c0e90a37af2b76726c36f7d49a
   skills/design/SKILL.md: 6645578637bffc8728882146e10c6b24368a59a2b4eddb06e88defc0134fcba7
-  skills/documents/SKILL.md: be1f3e4fd9eac4d110be933444cbd4ae22e18c62c44e8dbd1285d1fd65448bac
+  skills/documents/SKILL.md: 1edb921fecf219dade4798fefdc75c19bd6bfb98abf3aa764d526a62dcf26e79
   skills/documents/formats/brief/example.html: 5588c0a16e7bf000a0c65de5a5e9ba513d7bce34c84e02bb554157aa27570dd6
   skills/documents/formats/brief/template.html: 90841deb2612db4f6abecda81a2cfc6399d3065640e807d35fec5648859f3b7b
   skills/documents/formats/bug-report/example.html: af3a00bc51029ae33f94a90779cb8561e74c840afcd22351e758f93dabb9c452
@@ -84,7 +84,7 @@ checksums:
   skills/documents/schemas/doc-meta.schema.json: 525ca5f13c80cfc820ef6a4e81d5ad092c20c565dfa0d40c02dc11d23ae83521
   skills/documents/schemas/status.schema.json: 9938de5fc9bca7d9d72a761584523404b90ad2ae45df302267a1856ccf2a8b9c
   skills/documents/schemas/verification.schema.json: 123f9f7234d5511e8aa3fe7331b2980f1a7bb87f5051c26730cd5a411ec3e437
-  skills/documents/scripts/check-bundle.mjs: 3af5ee04a5725f5b8b732d6d59c78cc4721d26eca7fe8b88fb01b403df3cbeff
+  skills/documents/scripts/check-bundle.mjs: 8b194fdd8341c4761c63896af4de0a4c9737decf2e97f309657f90186b047a6f
   skills/excalidraw-pr-diagrams/README.md: a2830d1948b03db2c0d4e72f2bb9870f855bd7d945dfcc4d05fe9aab49a1711a
   skills/excalidraw-pr-diagrams/SKILL.md: 8f0ef8cee660fa8262425fc3db6031c77b97023dc95757056c1cd454870e4b7e
   skills/excalidraw-pr-diagrams/references/color-palette.md: 275164ffee5b1c2c36ddeb5bbdbd73765aa8b337bd1bfe8b02a5a8d5f9581c7c

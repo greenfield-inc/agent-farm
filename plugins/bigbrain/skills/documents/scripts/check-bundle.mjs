@@ -103,7 +103,8 @@ export function checkBundle(dir,{stage='draft'}={}){
    const prefix=id.split('-')[0];if(!spec.defines.includes(prefix))fail('id-anchors',doc,`a ${meta.kind} page cannot define ${prefix}-n IDs (${id})`);
   }
   for(const id of meta.cites)if(!defined.has(id))fail('ids-defined',doc,`cites ${id}, which no page defines`);
-  for(const id of new Set([...text.matchAll(ID)].map(m=>m[0])))if(!defined.has(id))fail('ids-defined',doc,`mentions ${id}, which no page defines`);
+  // The Session map spans bundles, so the IDs it mentions live in other bundles.
+  if(meta.kind!=='map')for(const id of new Set([...text.matchAll(ID)].map(m=>m[0])))if(!defined.has(id))fail('ids-defined',doc,`mentions ${id}, which no page defines`);
   const decisions=count(text,'[NEEDS DECISION'),assumptions=count(text,'[ASSUMPTION');
   if(decisions!==meta.open.needs_decision)fail('open-counts',doc,`doc-meta says ${meta.open.needs_decision} NEEDS DECISION marker(s), the page has ${decisions}`);
   if(assumptions!==meta.open.assumptions)fail('open-counts',doc,`doc-meta says ${meta.open.assumptions} ASSUMPTION marker(s), the page has ${assumptions}`);
