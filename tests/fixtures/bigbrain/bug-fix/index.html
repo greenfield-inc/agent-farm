@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B-1: Empty search spins forever</title>
+<style>
+:root {
+  --bg: #fbfaf6; --panel: #ffffff; --ink: #1d2420; --muted: #5d6861; --line: #dcdfd6;
+  --accent: #2f7d4f; --accent-soft: #e4f1e7;
+  --warn: #9a5b00; --warn-soft: #fbefd9;
+  --bad: #a23a2f; --bad-soft: #f9e4e1;
+  --code: #f0f1eb;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141815; --panel: #1b211d; --ink: #e7ebe6; --muted: #9aa69e; --line: #2e3731;
+    --accent: #6fc38d; --accent-soft: #1e3327;
+    --warn: #e5b566; --warn-soft: #352a15;
+    --bad: #ef9388; --bad-soft: #3a1f1c;
+    --code: #232a25;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 72ch; margin: 0 auto; padding: 24px 16px 64px; }
+h1 { font-size: 1.6rem; line-height: 1.25; margin: 0 0 .25rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 .5rem; padding-bottom: .25rem; border-bottom: 1px solid var(--line); }
+h3 { font-size: 1rem; margin: 1.25rem 0 .25rem; }
+a { color: var(--accent); }
+.summary { color: var(--muted); margin: .25rem 0 1rem; }
+.chip { display: inline-block; font-size: .8rem; font-weight: 600; padding: .05rem .6rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent); vertical-align: middle; }
+.chip.warn { background: var(--warn-soft); color: var(--warn); }
+.chip.bad { background: var(--bad-soft); color: var(--bad); }
+.chip.muted { background: var(--code); color: var(--muted); }
+.panel, .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin: 1rem 0; }
+.callout { background: var(--panel); border-left: 4px solid var(--accent); padding: 8px 14px; margin: 1rem 0; }
+.callout.warn { border-color: var(--warn); background: var(--warn-soft); }
+.callout.bad { border-color: var(--bad); background: var(--bad-soft); }
+.side { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 600px) { .side { grid-template-columns: 1fr; } }
+dl.meta { display: grid; grid-template-columns: max-content 1fr; gap: 2px 14px; margin: 1rem 0; font-size: .95rem; }
+dl.meta dt { color: var(--muted); }
+dl.meta dd { margin: 0; }
+.wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: .92rem; margin: .5rem 0 1rem; }
+th, td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-weight: 600; }
+code { background: var(--code); padding: 0 .3em; border-radius: 4px; font-size: .9em; }
+pre { background: var(--code); padding: 10px 12px; border-radius: 6px; overflow-x: auto; font-size: .85rem; line-height: 1.45; }
+details { margin: .5rem 0; }
+summary { cursor: pointer; color: var(--muted); }
+.gwt b { display: inline-block; min-width: 5.5em; color: var(--muted); font-weight: 600; }
+svg.draw { width: 100%; height: auto; display: block; margin: 1rem 0 1.5rem; }
+svg.draw .box { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+svg.draw .hot { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+svg.draw .bad { fill: var(--bad-soft); stroke: var(--bad); stroke-width: 2; }
+svg.draw .warn { fill: var(--warn-soft); stroke: var(--warn); stroke-width: 1.5; }
+svg.draw .dash { stroke-dasharray: 5 4; }
+svg.draw .t { fill: var(--ink); font: 13px system-ui, sans-serif; }
+svg.draw .m { fill: var(--muted); font: 12px system-ui, sans-serif; }
+svg.draw .line { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+svg.draw .line.hot { stroke: var(--accent); fill: none; }
+svg.draw .line.bad { stroke: var(--bad); fill: none; }
+svg.draw .head { fill: var(--muted); }
+footer { margin-top: 3rem; padding-top: .5rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; }
+</style>
+<script type="application/json" id="doc-meta">
+{
+  "kind": "bug-report",
+  "id": "empty-search-spinner",
+  "status": "done",
+  "revision": 2,
+  "supersedes": null,
+  "updated": "2026-10-14",
+  "defines": [
+    "B-1"
+  ],
+  "cites": [
+    "D-1"
+  ],
+  "open": {
+    "needs_decision": 0,
+    "assumptions": 1
+  }
+}
+</script>
+</head>
+<body>
+<main>
+<header>
+<h1 id="B-1">B-1: Empty search shows a spinner forever <span class="chip">done</span></h1>
+<p class="summary">Clearing the box on the recipe search page leaves the loading spinner running, and the empty state never appears.</p>
+</header>
+
+<svg class="draw" viewBox="0 0 640 190" role="img" aria-labelledby="draw-title">
+<title id="draw-title">Why the spinner never stops</title>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head" d="M0 0 L10 5 L0 10 z"/></marker></defs>
+<rect class="box" x="10" y="20" width="130" height="54" rx="8"/>
+<text class="t" x="24" y="44">User clears</text><text class="t" x="24" y="62">the search box</text>
+<rect class="hot" x="175" y="20" width="150" height="54" rx="8"/>
+<text class="t" x="189" y="44">useSearch sets</text><text class="t" x="189" y="62">loading = true</text>
+<rect class="bad" x="360" y="20" width="130" height="54" rx="8"/>
+<text class="t" x="374" y="44">Empty query:</text><text class="t" x="374" y="62">return early</text>
+<rect class="bad" x="520" y="20" width="110" height="54" rx="8"/>
+<text class="t" x="534" y="44">Spinner</text><text class="t" x="534" y="62">stays forever</text>
+<path class="line" d="M140 47 H171" marker-end="url(#arrow)"/>
+<path class="line" d="M325 47 H356" marker-end="url(#arrow)"/>
+<path class="line bad" d="M490 47 H516" marker-end="url(#arrow)"/>
+<rect class="box dash" x="360" y="118" width="270" height="54" rx="8"/>
+<text class="m" x="374" y="141">Never reached for an empty query:</text><text class="m" x="374" y="159">fetch, then loading = false</text>
+<path class="line dash" d="M425 74 V114" marker-end="url(#arrow)"/>
+<text class="m" x="10" y="141">Regression: setLoading(true) moved</text><text class="m" x="10" y="159">above the empty guard in 4c1e9a2.</text>
+</svg>
+
+<dl class="meta">
+<dt>Severity</dt><dd>Medium. The page is stuck until the user types again. No data is lost.</dd>
+<dt>Environment</dt><dd>Larder web app, local dev server and staging; Chrome 129 and Firefox 131; desktop and phone viewports.</dd>
+<dt>Version / commit</dt><dd>v0.8.3 at <code>4c1e9a2</code></dd>
+<dt>First seen</dt><dd>2026-10-14, in the <a href="sweeps/search-2026-10-14.html">recipe search sweep</a></dd>
+<dt>Reproducibility</dt><dd>always (5 of 5)</dd>
+<dt>Last known good</dt><dd>v0.8.2 at <code>9b07d31</code></dd>
+<dt>Regression window</dt><dd><code>9b07d31..4c1e9a2</code>, one commit: "Show spinner immediately on keystroke"</dd>
+</dl>
+
+<p class="summary">Related: <a href="sweeps/search-2026-10-14.html">sweep</a> · <a href="decisions.html">decisions</a> · <a href="cover-sheet.html">cover sheet</a> · <a href="evidence/verification.html">verification</a> · <a href="post-mortem.html">post-mortem</a> · <a href="trace.html">trace</a></p>
+
+<section id="repro">
+<h2>Repro</h2>
+<ol>
+<li>Start from a clean state: <code>pnpm dev</code> with the seeded recipe fixture, a fresh browser profile, signed out.</li>
+<li>Open <code>/search</code>.</li>
+<li>Type <code>soup</code> and wait for results (12 recipes).</li>
+<li>Select the text in the search box and delete it.</li>
+<li>Wait 5 seconds.</li>
+</ol>
+<p>Submitting an empty box with Enter, without typing first, also reproduces it.</p>
+</section>
+
+<section id="expected">
+<h2>Expected</h2>
+<p>Within a moment of clearing the box, the spinner goes away and the page shows the "Type to search recipes" empty state, as it did in v0.8.2.</p>
+<p>[ASSUMPTION: an empty query should show the "Type to search recipes" empty state, as v0.8.2 did, not the last results.]</p>
+</section>
+
+<section id="actual">
+<h2>Actual</h2>
+<p>The spinner keeps turning. The old results are hidden and the empty state never shows. Typing any letter brings the page back.</p>
+</section>
+
+<section id="evidence">
+<h2>Evidence</h2>
+<p>Known (observed), not guessed:</p>
+<ul>
+<li>Screenshot after 5 seconds: <a href="evidence/repro/B-1-spinner-desktop-light.svg">B-1-spinner-desktop-light.svg</a>.</li>
+<li>Network panel: no request to <code>/api/recipes</code> after the box is cleared. The last request (<code>q=soup</code>) returned 200 in 140 ms.</li>
+<li>Component state in the React devtools after clearing: <code>{ query: "", loading: true, results: [], error: null }</code>.</li>
+<li>A failing unit test, written by the investigator, reproduces it without a browser:</li>
+</ul>
+<pre>FAIL  src/search/useSearch.test.ts
+  useSearch
+    x clears loading when the query is emptied (1012 ms)
+      expect(result.current.loading).toBe(false)
+      Expected: false
+      Received: true</pre>
+<p>No console errors appear.</p>
+</section>
+
+<section id="locus">
+<h2>Likely locus</h2>
+<div class="wrap"><table>
+<thead><tr><th>Where</th><th>Why</th><th>Confidence</th></tr></thead>
+<tbody>
+<tr><td><code>src/search/useSearch.ts</code>, the effect at lines 18 to 31</td><td><code>setLoading(true)</code> now runs before the <code>if (!query.trim()) return</code> guard.</td><td><span class="chip bad">high</span></td></tr>
+<tr><td><code>src/search/SearchPage.tsx</code>, the spinner condition</td><td>Shows the spinner whenever <code>loading</code> is true, before checking the query.</td><td><span class="chip warn">medium</span></td></tr>
+<tr><td><code>src/api/recipes.ts</code></td><td>The abort path on a cancelled request swallows the error.</td><td><span class="chip muted">low</span></td></tr>
+</tbody>
+</table></div>
+</section>
+
+<section id="hypotheses">
+<h2>Hypotheses</h2>
+<p>Ranked by how well they fit the evidence. None is chosen here.</p>
+<ol>
+<li><strong>The empty guard returns after loading is set.</strong> Fits all the evidence: no request, <code>loading: true</code>, and the window is one commit that moved that line.</li>
+<li><strong>Clearing aborts the in-flight request, and the abort path never resets loading.</strong> Would also leave loading on, but the last request had already finished before the box was cleared.</li>
+<li><strong>The spinner reads stale state.</strong> Would show a spinner with <code>loading: false</code>; the devtools show <code>true</code>, so this fits worst.</li>
+</ol>
+</section>
+
+<section id="gone-when">
+<h2>Gone when</h2>
+<div class="panel gwt">
+<p><b>Given</b> the search page is showing results for "soup"<br>
+<b>When</b> the user clears the search box<br>
+<b>Then</b> within 300 ms the spinner is gone and the "Type to search recipes" empty state shows</p>
+<p><b>Continues to</b> show the spinner while a non-empty query is loading, then its results<br>
+<b>Continues to</b> show the error banner when the request fails<br>
+<b>Continues to</b> keep the <code>?q=</code> URL parameter in step with the box</p>
+</div>
+</section>
+
+<section id="route">
+<h2>Route</h2>
+<p><span class="chip">direct-to-implementer</span> The locus is one hook, the fix is small, and nothing needs choosing. Approved as <a href="decisions.html#D-1">D-1</a>.</p>
+<dl class="meta">
+<dt>Files allowed</dt><dd><code>src/search/useSearch.ts</code>, <code>src/search/useSearch.test.ts</code>, and <code>src/search/SearchPage.tsx</code> (the empty-state branch only)</dd>
+<dt>Constraints</dt><dd>No new dependencies. Keep the 250 ms debounce. Keep the spinner and empty-state designs as they are.</dd>
+<dt>Ask first</dt><dd>Changing <code>src/api/recipes.ts</code>, the debounce, or any page other than search.</dd>
+<dt>Escalate if</dt><dd>The new test still fails with the guard moved, or the fix grows past about 40 changed lines.</dd>
+</dl>
+</section>
+
+<section id="not-doing">
+<h2>Not doing here</h2>
+<ul>
+<li>The fix itself; the implementer writes it against the files above.</li>
+<li>Refactoring the search hook into a reducer.</li>
+<li>A plan for the two suspected items in the sweep; they stay there until a later sweep confirms them.</li>
+</ul>
+</section>
+
+<footer>
+<p>Origin: investigator, mode=sweep, recipe search, 2026-10-14. Change log: revision 1 filed as ready-for-review; revision 2 marked done after PR #42 merged at <code>e7d2b10</code>.</p>
+</footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workstream map</title>
+<style>
+:root {
+  --bg: #fbfaf6; --panel: #ffffff; --ink: #1d2420; --muted: #5d6861; --line: #dcdfd6;
+  --accent: #2f7d4f; --accent-soft: #e4f1e7;
+  --warn: #9a5b00; --warn-soft: #fbefd9;
+  --bad: #a23a2f; --bad-soft: #f9e4e1;
+  --code: #f0f1eb;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141815; --panel: #1b211d; --ink: #e7ebe6; --muted: #9aa69e; --line: #2e3731;
+    --accent: #6fc38d; --accent-soft: #1e3327;
+    --warn: #e5b566; --warn-soft: #352a15;
+    --bad: #ef9388; --bad-soft: #3a1f1c;
+    --code: #232a25;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 46rem; margin: 0 auto; padding: 24px 16px 64px; }
+h1 { font-size: 1.75rem; line-height: 1.25; margin: 0 0 .25rem; }
+h2 { font-size: 1.25rem; margin: 2rem 0 .5rem; padding-top: .75rem; border-top: 1px solid var(--line); }
+h3 { font-size: 1.05rem; margin: 1.25rem 0 .25rem; }
+a { color: var(--accent); }
+.summary { color: var(--muted); margin: .25rem 0 1rem; }
+.meta-line { color: var(--muted); font-size: .85rem; margin: 0; }
+.chip { display: inline-block; font-size: .78rem; font-weight: 600; padding: 1px 10px; border-radius: 999px; border: 1px solid var(--accent); background: var(--accent-soft); color: var(--accent); vertical-align: middle; }
+.chip.warn { border-color: var(--warn); background: var(--warn-soft); color: var(--warn); }
+.chip.bad { border-color: var(--bad); background: var(--bad-soft); color: var(--bad); }
+.chip.muted { border-color: var(--line); background: var(--code); color: var(--muted); }
+.panel, .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin: 12px 0; }
+.callout { background: var(--panel); border-left: 4px solid var(--accent); padding: 8px 14px; margin: 12px 0; }
+.callout.warn { border-left-color: var(--warn); background: var(--warn-soft); }
+.callout.bad { border-left-color: var(--bad); background: var(--bad-soft); }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; margin: 8px 0; }
+th, td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+th { color: var(--muted); font-weight: 600; }
+code { background: var(--code); padding: 0 4px; border-radius: 4px; font-size: .88em; overflow-wrap: anywhere; }
+pre { background: var(--code); padding: 10px 12px; border-radius: 6px; overflow-x: auto; font-size: .85rem; }
+img { max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); }
+details { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; margin: 10px 0; }
+summary { cursor: pointer; font-weight: 600; }
+ul, ol { padding-left: 1.3rem; }
+svg.draw { display: block; width: 100%; height: auto; margin: 16px 0 8px; }
+svg.draw text { fill: var(--ink); font: 13px system-ui, -apple-system, sans-serif; }
+svg.draw text.small { fill: var(--muted); font-size: 11px; }
+svg.draw .box { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+svg.draw .hot { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+svg.draw .warnbox { fill: var(--warn-soft); stroke: var(--warn); stroke-width: 1.5; }
+svg.draw .badbox { fill: var(--bad-soft); stroke: var(--bad); stroke-width: 1.5; }
+svg.draw .line { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+svg.draw .path { stroke: var(--accent); stroke-width: 2; fill: none; }
+svg.draw .dash { stroke-dasharray: 5 4; }
+svg.draw .head { fill: var(--muted); }
+svg.draw .headhot { fill: var(--accent); }
+footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; }
+</style>
+<script type="application/json" id="doc-meta">
+{"kind":"map","id":"feature-slug","status":"draft","revision":1,"supersedes":null,"updated":"2026-10-14","defines":[],"cites":[],"open":{"needs_decision":0,"assumptions":0}}
+</script>
+</head>
+<body>
+<main>
+<h1>Workstream map <span class="chip muted">draft</span></h1>
+<p class="summary">{One sentence: the work items in this Session and whether anything needs you.}</p>
+
+<svg class="draw" viewBox="0 0 640 90" role="img" aria-label="Placeholder for the drawing">
+  <rect class="box dash" x="20" y="10" width="600" height="70" rx="8"/>
+  <text x="36" y="50">Drawing goes here (see the note below)</text>
+</svg>
+<p class="meta-line">{Inline SVG of the order of work: one lane per item, stages as boxes, dependencies as dashed arrows, the critical path in the accent colour.}</p>
+
+<section id="header" class="panel">
+<p>{Table: Session id · updated · workers running / queued / done · cost and time.}</p>
+</section>
+
+<section id="needs-you">
+<h2>Needs you</h2>
+<p>{Every open Q-n, newest blocking first, each linked to where it is defined. "Nothing open." when empty.}</p>
+</section>
+
+<section id="order">
+<h2>Order of work</h2>
+<p>{The dependency graph by stage in words, and the critical path.}</p>
+</section>
+
+<section id="control-flows">
+<h2>Control flows</h2>
+<p>{Table, per item: current step | next review point | QA round.}</p>
+</section>
+
+<section id="lanes">
+<h2>Lanes</h2>
+<p>{Table: item | repo | Pane | profile | status | plan | PR | review | verification | learning page | trace | check-bundle.}</p>
+</section>
+
+<section id="logs">
+<h2>Logs</h2>
+<p>{Decisions (D-n), addenda, and cleanup, newest first.}</p>
+</section>
+
+<section id="end">
+<h2>End of run</h2>
+<p>{Done, needs review, open Panes and why, traces. "n/a because the run is still going" until it ends.}</p>
+</section>
+
+<!-- Fill every section. A section that does not apply says "n/a because …"; never delete one. Keep the doc-meta defines, cites and open counts in step with the page. -->
+</main>
+</body>
+</html>

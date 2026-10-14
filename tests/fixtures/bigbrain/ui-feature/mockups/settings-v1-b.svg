@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 220" width="380" height="110" font-family="system-ui, sans-serif">
+<title>Round 1 option B: three-way segmented control</title>
+<rect width="760" height="220" fill="#f6f7f9"/>
+<rect x="20" y="20" width="720" height="180" rx="10" fill="#ffffff" stroke="#dde1e6"/>
+<text x="40" y="60" font-size="16" fill="#1b1f24">Notes per page</text><text x="720" y="60" font-size="16" fill="#5f6873" text-anchor="end">25</text>
+<line x1="36" x2="724" y1="82" y2="82" stroke="#dde1e6"/>
+<text x="40" y="124" font-size="16" fill="#1b1f24">Appearance</text>
+<rect x="420" y="101" width="100" height="38" rx="8" fill="#2f6fdf" stroke="#2f6fdf"/><text x="470" y="126" font-size="15" text-anchor="middle" fill="#ffffff">System</text>
+<rect x="520" y="101" width="100" height="38" rx="8" fill="#ffffff" stroke="#dde1e6"/><text x="570" y="126" font-size="15" text-anchor="middle" fill="#1b1f24">Light</text>
+<rect x="620" y="101" width="100" height="38" rx="8" fill="#ffffff" stroke="#dde1e6"/><text x="670" y="126" font-size="15" text-anchor="middle" fill="#1b1f24">Dark</text>
+<text x="40" y="176" font-size="13" fill="#5f6873">Option B: System, Light, Dark side by side. All choices visible at once.</text>
+</svg>

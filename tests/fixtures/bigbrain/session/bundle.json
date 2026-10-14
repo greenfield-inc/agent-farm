@@ -1,0 +1,10 @@
+{
+  "slug": "session-2026-10-14",
+  "title": "Session 2026-10-14: dark mode and note export",
+  "status": "done",
+  "documents": ["map.html", "decisions.html"],
+  "ids": { "D": 2, "Q": 2 },
+  "destination": "local",
+  "published": { "kind": null, "id": null, "url": null },
+  "updated": "2026-10-14T00:00:00Z"
+}

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diagram Kit</title>
+<!-- Copy what you need. Keep the tokens and the edge classes as they are so every diagram reads the same way. -->
+<style>
+/* Tokens: the house page palette, unchanged, plus --ext for external services. */
+:root{--bg:#fbfaf6;--panel:#ffffff;--ink:#1d2420;--muted:#5d6861;--line:#dcdfd6;--accent:#2f7d4f;--accent-soft:#e4f1e7;--warn:#9a5b00;--warn-soft:#fbefd9;--bad:#a23a2f;--bad-soft:#f9e4e1;--code:#f0f1eb;--ext:#6b46a8;--ext-soft:#efe8f8}
+@media (prefers-color-scheme:dark){:root{--bg:#141815;--panel:#1b211d;--ink:#e7ebe6;--muted:#9aa69e;--line:#2e3731;--accent:#6fc38d;--accent-soft:#1e3327;--warn:#e5b566;--warn-soft:#352a15;--bad:#ef9388;--bad-soft:#3a1f1c;--code:#232a25;--ext:#c3a6ef;--ext-soft:#2a2238}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif}
+.wrap{max-width:1040px;margin:0 auto;padding:20px 16px 60px}h2{font-size:18px;margin:28px 0 8px}
+/* frame around every diagram: scrolls sideways on phones instead of shrinking text */
+.diag{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px}
+.diag svg{display:block;min-width:720px;width:100%;height:auto;color:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--muted);margin:8px 0}
+.legend i{display:inline-block;width:22px;height:0;border-top:2px solid;vertical-align:middle;margin-right:6px}
+/* boxes */
+.bx{fill:var(--panel);stroke:var(--line);stroke-width:1.5}          /* existing component */
+.bxn{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.5}          /* new component */
+.bxx{fill:var(--ext-soft);stroke:var(--ext);stroke-width:1.5}          /* external service */
+.bxr{fill:var(--bad-soft);stroke:var(--bad);stroke-width:1.5}          /* alert / human */
+.frame{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}  /* deployment / boundary */
+.chip{fill:var(--code);stroke:var(--line);stroke-width:1.2}
+.chipn{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.5}
+/* text */
+.bt{font-size:14px;font-weight:650;fill:var(--ink)}.bs{font-size:12px;fill:var(--muted)}.cs{font-size:12.5px;fill:var(--ink)}.fl{font-size:12px;fill:var(--muted)}
+.el{font-size:11.5px;fill:var(--muted)}                              /* edge label: latency · cost */
+/* edges: one meaning each */
+.e-sync{stroke:var(--muted);stroke-width:1.6;fill:none}             /* request/response */
+.e-new{stroke:var(--accent);stroke-width:1.8;fill:none}                /* new path */
+.e-async{stroke:var(--warn);stroke-width:1.6;stroke-dasharray:6 4;fill:none}  /* queued / background */
+.e-ext{stroke:var(--ext);stroke-width:1.8;fill:none}                /* call to external service */
+.e-alert{stroke:var(--bad);stroke-width:1.8;fill:none}              /* alert / escalation */
+.m-sync{fill:var(--muted)}.m-new{fill:var(--accent)}.m-async{fill:var(--warn)}.m-ext{fill:var(--ext)}.m-alert{fill:var(--bad)}
+/* sequence diagrams */
+.lane{fill:var(--panel);stroke:var(--line);stroke-width:1.5}.life{stroke:var(--line);stroke-width:1.2;stroke-dasharray:3 4}
+.n{font-size:11px;font-weight:700;fill:var(--panel)}.nb-sync{fill:var(--muted)}.nb-new{fill:var(--accent)}.nb-async{fill:var(--warn)}.nb-ext{fill:var(--ext)}.nb-alert{fill:var(--bad)}
+.steps{font-size:14px}.steps li{margin:4px 0}
+</style></head><body><div class="wrap">
+
+<h2>1. System diagram: what runs where</h2>
+<div class="legend"><span><i style="border-color:var(--muted)"></i>sync</span><span><i style="border-color:var(--accent)"></i>new path</span><span><i style="border-color:var(--warn);border-top-style:dashed"></i>async</span><span><i style="border-color:var(--ext)"></i>external</span><span><i style="border-color:var(--bad)"></i>alert</span></div>
+<div class="diag"><svg viewBox="0 0 900 300" role="img" aria-label="Example system diagram">
+<defs>
+ <marker id="k-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" class="m-sync"/></marker>
+ <marker id="k-n" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" class="m-new"/></marker>
+ <marker id="k-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" class="m-async"/></marker>
+ <marker id="k-x" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" class="m-ext"/></marker>
+ <marker id="k-r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" class="m-alert"/></marker>
+</defs>
+<rect x="14" y="60" width="140" height="58" rx="10" class="bx"/><text x="84" y="85" class="bt" text-anchor="middle">Clients</text><text x="84" y="103" class="bs" text-anchor="middle">web · mobile</text>
+<rect x="200" y="14" width="420" height="270" rx="14" class="frame"/><text x="214" y="34" class="fl">deployment · one image</text>
+<rect x="216" y="46" width="388" height="100" rx="10" class="bx"/><text x="230" y="68" class="bt">API server</text><text x="230" y="86" class="bs">existing</text>
+<rect x="230" y="96" width="170" height="34" rx="6" class="chipn"/><text x="242" y="118" class="cs">new: inline check</text>
+<rect x="216" y="172" width="388" height="96" rx="10" class="bx"/><text x="230" y="194" class="bt">Async server</text><text x="230" y="212" class="bs">existing task runner</text>
+<rect x="230" y="222" width="170" height="34" rx="6" class="chipn"/><text x="242" y="244" class="cs">new: 30 s sweep</text>
+<rect x="680" y="46" width="200" height="58" rx="10" class="bx"/><text x="780" y="71" class="bt" text-anchor="middle">Database</text><text x="780" y="89" class="bs" text-anchor="middle">+2 tables</text>
+<rect x="680" y="136" width="200" height="58" rx="10" class="bxx"/><text x="780" y="161" class="bt" text-anchor="middle">External API</text><text x="780" y="179" class="bs" text-anchor="middle">under BAA</text>
+<rect x="680" y="222" width="200" height="58" rx="10" class="bxr"/><text x="780" y="247" class="bt" text-anchor="middle">Alerts channel</text><text x="780" y="265" class="bs" text-anchor="middle">humans review</text>
+<path d="M154,89 L214,89" class="e-sync" marker-end="url(#k-s)"/>
+<path d="M604,80 L678,76" class="e-new" marker-end="url(#k-n)"/><text x="612" y="70" class="el">&lt;5 ms</text>
+<path d="M410,146 L410,170" class="e-async" marker-end="url(#k-a)"/><text x="418" y="162" class="el">&lt;60 s</text>
+<path d="M604,214 C640,214 650,165 678,165" class="e-ext" marker-end="url(#k-x)"/><text x="612" y="232" class="el">$1–2/mo</text>
+<path d="M604,250 L678,250" class="e-alert" marker-end="url(#k-r)"/>
+</svg></div>
+
+<h2>2. Flow diagram: one scenario, numbered</h2>
+<div class="diag"><svg viewBox="0 0 900 250" role="img" aria-label="Example flow">
+<defs><marker id="f-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" class="m-sync"/></marker><marker id="f-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" class="m-async"/></marker></defs>
+<line x1="90" y1="52" x2="90" y2="240" class="life"/><rect x="28" y="6" width="124" height="44" rx="8" class="lane"/><text x="90" y="33" class="bt" text-anchor="middle">Client</text>
+<line x1="330" y1="52" x2="330" y2="240" class="life"/><rect x="268" y="6" width="124" height="44" rx="8" class="lane"/><text x="330" y="33" class="bt" text-anchor="middle">API</text>
+<line x1="570" y1="52" x2="570" y2="240" class="life"/><rect x="508" y="6" width="124" height="44" rx="8" class="lane"/><text x="570" y="33" class="bt" text-anchor="middle">Database</text>
+<line x1="810" y1="52" x2="810" y2="240" class="life"/><rect x="748" y="6" width="124" height="44" rx="8" class="lane"/><text x="810" y="33" class="bt" text-anchor="middle">Worker</text>
+<path d="M90,90 L326,90" class="e-sync" marker-end="url(#f-s)"/><circle cx="110" cy="90" r="10" class="nb-sync"/><text x="110" y="94" class="n" text-anchor="middle">1</text><text x="130" y="82" class="el">send message</text>
+<path d="M330,130 L566,130" class="e-sync" marker-end="url(#f-s)"/><circle cx="350" cy="130" r="10" class="nb-sync"/><text x="350" y="134" class="n" text-anchor="middle">2</text><text x="370" y="122" class="el">store + label</text>
+<path d="M570,170 L806,170" class="e-async" marker-end="url(#f-a)"/><circle cx="590" cy="170" r="10" class="nb-async"/><text x="590" y="174" class="n" text-anchor="middle">3</text><text x="610" y="162" class="el">task, &lt;60 s</text>
+<path d="M330,210 L94,210" class="e-sync" marker-end="url(#f-s)"/><circle cx="310" cy="210" r="10" class="nb-sync"/><text x="310" y="214" class="n" text-anchor="middle">4</text><text x="130" y="202" class="el">delivered</text>
+</svg></div>
+<ol class="steps"><li>The client sends a message.</li><li>The API stores it and attaches labels inline.</li><li>A background task picks it up within 60 seconds.</li><li>The client sees it delivered. <b>Outcome:</b> nothing blocked.</li></ol>
+</div></body></html>

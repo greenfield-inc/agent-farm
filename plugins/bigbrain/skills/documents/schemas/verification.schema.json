@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "verification.schema.json",
+  "title": "Bigbrain verification",
+  "description": "evidence/verification.json: one row per J/S on the cover sheet. The planner creates the rows and copies each flow exactly. The implementer and verifier set only verdict, method, evidence, commit and round, and append to the logs.",
+  "type": "object",
+  "required": ["version", "control_flow_revision", "tested", "qa", "rows"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "const": 1 },
+    "control_flow_revision": { "type": "integer", "minimum": 1 },
+    "tested": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "commit": { "type": ["string", "null"] },
+        "branch": { "type": ["string", "null"] },
+        "pr": { "type": ["integer", "null"] },
+        "environment": { "type": ["string", "null"] }
+      }
+    },
+    "qa": {
+      "type": "object",
+      "required": ["rounds_used", "max_rounds"],
+      "additionalProperties": false,
+      "properties": {
+        "rounds_used": { "type": "integer", "minimum": 0 },
+        "max_rounds": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "rows": { "type": "array", "items": { "$ref": "#/$defs/row" } },
+    "mockup_fidelity": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["screen", "mockup", "built", "result"],
+        "additionalProperties": false,
+        "properties": {
+          "screen": { "type": "string" },
+          "mockup": { "type": "string" },
+          "built": { "type": "string" },
+          "result": { "$ref": "#/$defs/verdict" },
+          "must_match_diffs": { "type": "array", "items": { "type": "string" } },
+          "acceptable_diffs": { "type": "array", "items": { "type": "string" } },
+          "round": { "type": ["integer", "null"] }
+        }
+      }
+    },
+    "jank": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["item", "result"],
+        "additionalProperties": false,
+        "properties": {
+          "item": { "type": "string" },
+          "result": { "$ref": "#/$defs/verdict" },
+          "evidence": { "type": "array", "items": { "type": "string" } },
+          "fixed_in_round": { "type": ["integer", "null"] }
+        }
+      }
+    },
+    "fix_log": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["round", "finding", "cause", "fix_commit", "rechecked"],
+        "additionalProperties": false,
+        "properties": {
+          "round": { "type": "integer", "minimum": 1 },
+          "finding": { "type": "string" },
+          "cause": { "type": "string" },
+          "fix_commit": { "type": ["string", "null"] },
+          "rechecked": { "type": "boolean" }
+        }
+      }
+    },
+    "assumed": { "type": "array", "items": { "type": "string" } },
+    "surprises": { "type": "array", "items": { "type": "string" } },
+    "open_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["item", "why", "next"],
+        "additionalProperties": false,
+        "properties": {
+          "item": { "type": "string" },
+          "why": { "type": "string" },
+          "next": { "type": "string" },
+          "question": { "type": ["string", "null"], "pattern": "^Q-[0-9]+$" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "verdict": { "enum": ["pending", "pass", "fail", "undetermined"] },
+    "row": {
+      "type": "object",
+      "required": ["id", "flow", "verdict", "method", "evidence", "commit", "round"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^(J|S)-[0-9]+$" },
+        "flow": { "type": "object", "description": "An exact copy of control-flow.json flows[id]. Nobody rewords it." },
+        "verdict": { "$ref": "#/$defs/verdict" },
+        "method": { "enum": [null, "app", "command", "test", "reading"] },
+        "evidence": { "type": "array", "items": { "type": "string" } },
+        "commit": { "type": ["string", "null"] },
+        "round": { "type": ["integer", "null"], "minimum": 0 }
+      }
+    }
+  }
+}

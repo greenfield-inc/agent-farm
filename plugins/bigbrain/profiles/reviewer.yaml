@@ -1,0 +1,6 @@
+variants:
+  codex:
+    agent: reviewer-codex
+  claude:
+    agent: reviewer-claude
+default: codex

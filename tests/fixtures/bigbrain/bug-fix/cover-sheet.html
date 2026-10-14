@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan: empty search spinner fix</title>
+<style>
+:root {
+  --bg: #fbfaf6; --panel: #ffffff; --ink: #1d2420; --muted: #5d6861; --line: #dcdfd6;
+  --accent: #2f7d4f; --accent-soft: #e4f1e7;
+  --warn: #9a5b00; --warn-soft: #fbefd9;
+  --bad: #a23a2f; --bad-soft: #f9e4e1;
+  --code: #f0f1eb;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141815; --panel: #1b211d; --ink: #e7ebe6; --muted: #9aa69e; --line: #2e3731;
+    --accent: #6fc38d; --accent-soft: #1e3327;
+    --warn: #e5b566; --warn-soft: #352a15;
+    --bad: #ef9388; --bad-soft: #3a1f1c;
+    --code: #232a25;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 72ch; margin: 0 auto; padding: 24px 16px 64px; }
+h1 { font-size: 1.6rem; line-height: 1.25; margin: 0 0 .25rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 .5rem; padding-bottom: .25rem; border-bottom: 1px solid var(--line); }
+h3 { font-size: 1rem; margin: 1.25rem 0 .25rem; }
+a { color: var(--accent); }
+.summary { color: var(--muted); margin: .25rem 0 1rem; }
+.chip { display: inline-block; font-size: .8rem; font-weight: 600; padding: .05rem .6rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent); vertical-align: middle; }
+.chip.warn { background: var(--warn-soft); color: var(--warn); }
+.chip.bad { background: var(--bad-soft); color: var(--bad); }
+.chip.muted { background: var(--code); color: var(--muted); }
+.panel, .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin: 1rem 0; }
+.callout { background: var(--panel); border-left: 4px solid var(--accent); padding: 8px 14px; margin: 1rem 0; }
+.callout.warn { border-color: var(--warn); background: var(--warn-soft); }
+.callout.bad { border-color: var(--bad); background: var(--bad-soft); }
+.side { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 600px) { .side { grid-template-columns: 1fr; } }
+dl.meta { display: grid; grid-template-columns: max-content 1fr; gap: 2px 14px; margin: 1rem 0; font-size: .95rem; }
+dl.meta dt { color: var(--muted); }
+dl.meta dd { margin: 0; }
+.wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: .92rem; margin: .5rem 0 1rem; }
+th, td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-weight: 600; }
+code { background: var(--code); padding: 0 .3em; border-radius: 4px; font-size: .9em; }
+pre { background: var(--code); padding: 10px 12px; border-radius: 6px; overflow-x: auto; font-size: .85rem; line-height: 1.45; }
+details { margin: .5rem 0; }
+summary { cursor: pointer; color: var(--muted); }
+.gwt b { display: inline-block; min-width: 5.5em; color: var(--muted); font-weight: 600; }
+svg.draw { width: 100%; height: auto; display: block; margin: 1rem 0 1.5rem; }
+svg.draw .box { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+svg.draw .hot { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+svg.draw .bad { fill: var(--bad-soft); stroke: var(--bad); stroke-width: 2; }
+svg.draw .warn { fill: var(--warn-soft); stroke: var(--warn); stroke-width: 1.5; }
+svg.draw .dash { stroke-dasharray: 5 4; }
+svg.draw .t { fill: var(--ink); font: 13px system-ui, sans-serif; }
+svg.draw .m { fill: var(--muted); font: 12px system-ui, sans-serif; }
+svg.draw .line { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+svg.draw .line.hot { stroke: var(--accent); fill: none; }
+svg.draw .line.bad { stroke: var(--bad); fill: none; }
+svg.draw .head { fill: var(--muted); }
+footer { margin-top: 3rem; padding-top: .5rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; }
+</style>
+<script type="application/json" id="doc-meta">
+{
+  "kind": "cover-sheet",
+  "id": "empty-search-spinner-plan",
+  "status": "done",
+  "revision": 1,
+  "supersedes": null,
+  "updated": "2026-10-14",
+  "defines": [
+    "P-1",
+    "J-1",
+    "S-1"
+  ],
+  "cites": [
+    "B-1",
+    "D-1"
+  ],
+  "open": {
+    "needs_decision": 0,
+    "assumptions": 1
+  }
+}
+</script>
+</head>
+<body>
+<main>
+<header>
+<h1>Plan: empty search spinner fix <span class="chip">done</span></h1>
+<p class="summary">Clearing the search box shows the empty state again instead of a spinner that never stops.</p>
+</header>
+
+<svg class="draw" viewBox="0 0 640 170" role="img" aria-labelledby="draw-title">
+<title id="draw-title">Before and after clearing the box</title>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head" d="M0 0 L10 5 L0 10 z"/></marker></defs>
+<text class="m" x="10" y="20">Before (v0.8.3)</text>
+<rect class="box" x="10" y="30" width="130" height="44" rx="8"/><text class="t" x="24" y="57">Clear the box</text>
+<rect class="box" x="180" y="30" width="150" height="44" rx="8"/><text class="t" x="194" y="57">loading = true</text>
+<rect class="bad" x="370" y="30" width="150" height="44" rx="8"/><text class="t" x="384" y="57">Spinner forever</text>
+<path class="line" d="M140 52 H176" marker-end="url(#arrow)"/><path class="line bad" d="M330 52 H366" marker-end="url(#arrow)"/>
+<text class="m" x="10" y="106">After (P-1)</text>
+<rect class="box" x="10" y="116" width="130" height="44" rx="8"/><text class="t" x="24" y="143">Clear the box</text>
+<rect class="hot" x="180" y="116" width="150" height="44" rx="8"/><text class="t" x="194" y="143">Empty: loading off</text>
+<rect class="hot" x="370" y="116" width="150" height="44" rx="8"/><text class="t" x="384" y="143">Empty state</text>
+<path class="line" d="M140 138 H176" marker-end="url(#arrow)"/><path class="line hot" d="M330 138 H366" marker-end="url(#arrow)"/>
+</svg>
+
+<section id="control-flow-summary">
+<h2>Control flow summary</h2>
+<p>Build, verify, QA (up to 2 rounds, desktop and phone, light and dark, jank checklist on), open the PR, then one end review of everything. No checkpoint reviews. Approved by <a href="decisions.html#D-1">D-1</a>.</p>
+</section>
+
+<section id="contents">
+<h2>Contents</h2>
+<p><a href="#three-sentences">In three sentences</a> · <a href="#before-after">Before / After</a> · <a href="#decisions-locked">Decisions</a> · <a href="#how-we-know">How we will know</a> · <a href="#packages">Packages</a> · <a href="#control-flow">Control flow</a></p>
+<p>Related: <a href="index.html">bug report</a> · <a href="decisions.html">decisions</a> · <a href="control-flow.json">control-flow.json</a> · <a href="evidence/verification.html">verification</a> · <a href="post-mortem.html">post-mortem</a></p>
+</section>
+
+<section id="three-sentences">
+<h2>In three sentences</h2>
+<p>Clearing the search box leaves the spinner on forever (<a href="index.html#B-1">B-1</a>). We move the empty-query check in <code>useSearch</code> above the line that turns loading on, and drive the change with the failing test from the bug report. Users get the "Type to search recipes" empty state back the moment they clear the box.</p>
+</section>
+
+<section id="before-after">
+<h2>Before / After</h2>
+<div class="side">
+<div class="panel"><strong>Before</strong><p>Clearing the box hides the results and shows a spinner that never stops. See <a href="evidence/repro/B-1-spinner-desktop-light.svg">the repro screenshot</a>.</p></div>
+<div class="panel"><strong>After</strong><p>Clearing the box shows the empty state within 300 ms. See <a href="evidence/qa/round-2/J-1-cleared-desktop-light.svg">the QA screenshot</a>.</p></div>
+</div>
+<p>Screens that must match: none; no mockups because the empty state already exists.</p>
+</section>
+
+<section id="decisions-locked">
+<h2>Decisions locked</h2>
+<div class="wrap"><table>
+<thead><tr><th>ID</th><th>Chosen</th><th>Rejected</th><th>Why</th></tr></thead>
+<tbody><tr><td><a href="decisions.html#D-1">D-1</a></td><td>Direct to the implementer</td><td>Options first</td><td>One hook, one-commit regression, a failing test ready</td></tr></tbody>
+</table></div>
+</section>
+
+<section id="deferred">
+<h2>Deferred</h2>
+<div class="wrap"><table>
+<thead><tr><th>Item</th><th>Why</th><th>Revisit when</th></tr></thead>
+<tbody><tr><td>Reducer refactor of the search hook</td><td>Widens the change for no user gain</td><td>A second state bug in the hook</td></tr></tbody>
+</table></div>
+</section>
+
+<section id="scope">
+<h2>Scope</h2>
+<p><code>src/search/useSearch.ts</code>, <code>src/search/useSearch.test.ts</code>, and the empty-state branch of <code>src/search/SearchPage.tsx</code>.</p>
+</section>
+
+<section id="constraints">
+<h2>Constraints</h2>
+<p>No new dependencies. Keep the 250 ms debounce. Keep the spinner and empty-state designs.</p>
+</section>
+
+<section id="non-goals">
+<h2>Non-goals</h2>
+<p>No refactor of the hook, no new empty-state design, and nothing for the sweep's suspected items.</p>
+</section>
+
+<section id="ask-first">
+<h2>Ask-first actions</h2>
+<p>Changing <code>src/api/recipes.ts</code>, the debounce, or any page other than search.</p>
+</section>
+
+<section id="cross-cutting">
+<h2>Cross-cutting</h2>
+<ul>
+<li>Security: n/a because no input handling or auth changes.</li>
+<li>Privacy: n/a because no data is stored or sent.</li>
+<li>Observability: n/a because the page logs nothing today and the fix adds no new failure path.</li>
+<li>Migration and rollback: n/a because there is no data; rollback is a revert of one commit pair.</li>
+<li>Performance: addressed in <a href="#P-1">P-1</a>; an empty query now makes no request at all.</li>
+</ul>
+</section>
+
+<section id="how-we-know">
+<h2>How we will know it works</h2>
+<article class="card gwt" id="J-1">
+<h3>J-1 · Clearing the box shows the empty state <span class="chip muted">covers P-1</span></h3>
+<p><b>Given</b> the search page is showing results for &quot;soup&quot;<br>
+<b>When</b> the user clears the search box<br>
+<b>Then</b> within 300 ms the spinner is gone and the &quot;Type to search recipes&quot; empty state shows</p>
+<p><b>Continues to</b> show the spinner while a non-empty query is loading, then its results<br>
+<b>Continues to</b> show the error banner when the request fails<br>
+<b>Continues to</b> keep the ?q= URL parameter in step with the box</p>
+<p><b>Check</b> app: screenshots of the cleared state on desktop light and phone dark, plus one of a loading query, in evidence/qa/</p>
+<p>[ASSUMPTION: 300 ms is a fair upper bound for "within a moment"; the debounce alone is 250 ms.]</p>
+</article>
+<article class="card" id="S-1">
+<h3>S-1 · Search unit tests <span class="chip muted">covers P-1</span></h3>
+<p>Run <code>pnpm test src/search</code> → expect all tests pass, including &quot;clears loading when the query is emptied&quot;.</p>
+</article>
+</section>
+
+<section id="packages">
+<h2>Packages</h2>
+<article class="card" id="P-1">
+<h3>P-1 · Spinner clears on an empty query</h3>
+<p><strong>Outcome:</strong> an empty or whitespace query never turns loading on, and shows the empty state.</p>
+<p><span class="chip muted">bug-fix</span> <span class="chip muted">frontend</span> · Depends on: nothing · Rollback: n/a because it touches no data.</p>
+<details><summary>Approach</summary>
+<p>Start from the failing test in the bug report. Move the <code>if (!query.trim())</code> guard above <code>setLoading(true)</code>, and in that branch clear the results and set loading to false. Leave the fetch path as it is.</p>
+</details>
+</article>
+</section>
+
+<section id="control-flow" data-control-flow-revision="1">
+<h2>Control flow</h2>
+<p>Rendered from <a href="control-flow.json">control-flow.json</a>, revision 1. Do not edit by hand.</p>
+<ol>
+<li data-step="build-p1"><strong>build-p1</strong> · build · implementer · package <a href="#P-1">P-1</a> · skills: tdd</li>
+<li data-step="verify"><strong>verify</strong> · verify · implementer · flows <a href="#J-1">J-1</a>, <a href="#S-1">S-1</a></li>
+<li data-step="qa"><strong>qa</strong> · qa · implementer · flows <a href="#J-1">J-1</a> · spawns the verifier · up to 2 rounds</li>
+<li data-step="pr"><strong>pr</strong> · pr · implementer</li>
+<li data-step="review-final"><strong>review-final</strong> · review · orchestrator · scope all · End review of the whole PR.</li>
+</ol>
+<p>QA: up to 2 rounds · viewports desktop, phone · themes light, dark · jank checklist on · no mockups.</p>
+</section>
+
+<section id="open-markers">
+<h2>Open markers</h2>
+<p>NEEDS DECISION: 0. One assumption remains, on <a href="#J-1">J-1</a>: the 300 ms bound.</p>
+</section>
+
+<section id="look-first">
+<h2>Look at these first</h2>
+<ol>
+<li><a href="#J-1">J-1</a>, the "continues to" lines: they guard the loading path that still has to work.</li>
+<li><a href="index.html#route">The route limits</a> in the bug report.</li>
+</ol>
+</section>
+
+<section id="change-log">
+<h2>Change log</h2>
+<ul>
+<li>2026-10-14 · revision 1 · written from B-1 and approved through D-1.</li>
+<li>2026-10-14 · status done after PR #42 merged; see <a href="post-mortem.html">the post-mortem</a>.</li>
+</ul>
+</section>
+</main>
+</body>
+</html>

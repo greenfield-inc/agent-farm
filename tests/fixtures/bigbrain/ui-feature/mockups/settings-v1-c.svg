@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 220" width="380" height="110" font-family="system-ui, sans-serif">
+<title>Round 1 option C: dropdown menu</title>
+<rect width="760" height="220" fill="#f6f7f9"/>
+<rect x="20" y="20" width="720" height="180" rx="10" fill="#ffffff" stroke="#dde1e6"/>
+<text x="40" y="60" font-size="16" fill="#1b1f24">Notes per page</text><text x="720" y="60" font-size="16" fill="#5f6873" text-anchor="end">25</text>
+<line x1="36" x2="724" y1="82" y2="82" stroke="#dde1e6"/>
+<text x="40" y="124" font-size="16" fill="#1b1f24">Appearance</text>
+<rect x="560" y="101" width="160" height="38" rx="8" fill="#ffffff" stroke="#c4cad1"/><text x="576" y="126" font-size="15" fill="#1b1f24">System</text><path d="M694 116 l8 8 l8 -8" stroke="#5f6873" stroke-width="2" fill="none"/>
+<text x="40" y="176" font-size="13" fill="#5f6873">Option C: a dropdown. Compact, but the choices are hidden until opened.</text>
+</svg>

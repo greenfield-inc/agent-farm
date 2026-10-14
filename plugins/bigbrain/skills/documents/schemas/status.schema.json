@@ -1,0 +1,262 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "status.schema.json",
+  "title": "Bigbrain worker status",
+  "description": ".agent/status/<role>.json: the only channel from a worker to the orchestrator. contract.md says when each field changes.",
+  "type": "object",
+  "required": [
+    "profile",
+    "source",
+    "state",
+    "step",
+    "needs_you",
+    "checks",
+    "assumptions",
+    "pr",
+    "updated"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "profile": {
+      "type": "string",
+      "pattern": "^bigbrain/[a-z][a-z0-9-]*(:[a-z][a-z0-9-]*)?$"
+    },
+    "source": {
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "running",
+        "needs_you",
+        "checkpoint",
+        "blocked",
+        "done",
+        "failed"
+      ]
+    },
+    "step": {
+      "type": "string"
+    },
+    "round": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "needs_you": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/needs_you"
+        }
+      ]
+    },
+    "needs": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "screens"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "design"
+            },
+            "screens": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "note": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "checkpoint": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "step",
+            "head"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "step": {
+              "type": "string"
+            },
+            "scope": {
+              "anyOf": [
+                {
+                  "const": "all"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^P-[0-9]+$"
+                  }
+                }
+              ]
+            },
+            "head": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{7,40}$"
+            }
+          }
+        }
+      ]
+    },
+    "checks": {
+      "type": "object",
+      "required": [
+        "pass",
+        "fail",
+        "undetermined"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "pass": {
+          "$ref": "#/$defs/flowIds"
+        },
+        "fail": {
+          "$ref": "#/$defs/flowIds"
+        },
+        "undetermined": {
+          "$ref": "#/$defs/flowIds"
+        }
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "pr": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "head": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "check_bundle": {
+      "enum": [
+        "pass",
+        "fail",
+        "not-run"
+      ]
+    },
+    "failure": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "updated": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "$defs": {
+    "flowIds": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^(J|S)-[0-9]+$"
+      }
+    },
+    "needs_you": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "title",
+        "questions",
+        "files",
+        "blocking"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^Q-[0-9]+$"
+        },
+        "kind": {
+          "enum": [
+            "question",
+            "approval",
+            "choice",
+            "quiz",
+            "fyi"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "questions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "q"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "q": {
+                "type": "string",
+                "minLength": 1
+              },
+              "why": {
+                "type": "string"
+              },
+              "options": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "blocking": {
+          "type": "boolean"
+        },
+        "waiting": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 560" width="640" height="280" font-family="system-ui, sans-serif">
+<title>J-1 before, desktop, light (round 2)</title>
+<rect width="1280" height="560" fill="#f6f7f9"/>
+<rect width="1280" height="56" fill="#ffffff" stroke="#dde1e6"/><text x="32" y="35" font-size="20" font-weight="700" fill="#1b1f24">Pocket Notes</text>
+<text x="280" y="104" font-size="26" font-weight="700" fill="#1b1f24">Settings</text>
+<rect x="280" y="124" width="720" height="250" rx="10" fill="#ffffff" stroke="#dde1e6"/>
+<text x="300" y="164" font-size="16" fill="#1b1f24">Display name</text><text x="980" y="164" font-size="16" fill="#5f6873" text-anchor="end">Demo</text><line x1="296" x2="984" y1="186" y2="186" stroke="#dde1e6"/>
+<text x="300" y="220" font-size="16" fill="#1b1f24">Notes per page</text><text x="980" y="220" font-size="16" fill="#5f6873" text-anchor="end">25</text><line x1="296" x2="984" y1="242" y2="242" stroke="#dde1e6"/>
+<text x="300" y="276" font-size="16" fill="#1b1f24">Appearance</text>
+<rect x="680" y="251" width="100" height="38" rx="8" fill="#ffffff" stroke="#dde1e6"/><text x="730" y="276" font-size="15" text-anchor="middle" fill="#1b1f24">System</text>
+<rect x="780" y="251" width="100" height="38" rx="0" fill="#2f6fdf" stroke="#2f6fdf"/><text x="830" y="276" font-size="15" text-anchor="middle" fill="#ffffff">Light</text>
+<rect x="880" y="251" width="100" height="38" rx="8" fill="#ffffff" stroke="#dde1e6"/><text x="930" y="276" font-size="15" text-anchor="middle" fill="#1b1f24">Dark</text>
+<text x="280" y="536" font-size="14" fill="#5f6873">J-1 before: Light selected (round 2)</text>
+</svg>

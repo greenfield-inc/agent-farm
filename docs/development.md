@@ -63,13 +63,14 @@ gitignored.
 
 - `src/`: the CLI (`cli.ts`, `commands.ts`), compiler, runtime, plugins, workspaces, telemetry, and dashboard.
 - `src/runtime.ts` is copied into every launch bundle as `runtime.mjs` and runs without the package installed. Import only `node:` builtins there.
-- `tests/*.test.mjs`: `node:test` suites that run against `dist/`.
+- `tests/*.test.mjs`: `node:test` suites that run against `dist/`. Subfolders hold data only: `tests/fixtures/bigbrain/` has bigbrain's golden bundles, which `tests/bigbrain-documents.test.mjs` checks with the `check-bundle` script and mutates into negative cases.
 - `plugins/`: the bundled plugins that the npm package ships. See [RUNBOOK.md](../RUNBOOK.md#update-bundled-plugins) for how each one is updated.
 - `examples/`: sample agents, skills, and a repository workspace.
 
 ## Scripts
 
 - `scripts/vendor-orchestra.mjs`: regenerates `plugins/orchestra` from pinned upstream commits. See [RUNBOOK.md](../RUNBOOK.md#update-bundled-plugins).
+- `scripts/sync-bigbrain-from-greenfield.mjs`: copies bigbrain's pinned greenfield skills and rewrites `plugins/bigbrain/plugin.yaml`'s checksums; `--check` verifies them. See [RUNBOOK.md](../RUNBOOK.md#update-bundled-plugins).
 - `scripts/orchestra-guide.html`: the source for `plugins/orchestra/index.html`. The vendor script copies it into place.
 - `scripts/provider-smoke.mjs`: checks provider routing end to end against a local fake gateway. Run it after `pnpm build`. It needs the native `claude` and `codex` CLIs on PATH, and uses no real credentials.
 

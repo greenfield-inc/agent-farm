@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B-n: {summary}</title>
+<style>
+:root {
+  --bg: #fbfaf6; --panel: #ffffff; --ink: #1d2420; --muted: #5d6861; --line: #dcdfd6;
+  --accent: #2f7d4f; --accent-soft: #e4f1e7;
+  --warn: #9a5b00; --warn-soft: #fbefd9;
+  --bad: #a23a2f; --bad-soft: #f9e4e1;
+  --code: #f0f1eb;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141815; --panel: #1b211d; --ink: #e7ebe6; --muted: #9aa69e; --line: #2e3731;
+    --accent: #6fc38d; --accent-soft: #1e3327;
+    --warn: #e5b566; --warn-soft: #352a15;
+    --bad: #ef9388; --bad-soft: #3a1f1c;
+    --code: #232a25;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 72ch; margin: 0 auto; padding: 24px 16px 64px; }
+h1 { font-size: 1.6rem; line-height: 1.25; margin: 0 0 .25rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 .5rem; padding-bottom: .25rem; border-bottom: 1px solid var(--line); }
+h3 { font-size: 1rem; margin: 1.25rem 0 .25rem; }
+a { color: var(--accent); }
+.summary { color: var(--muted); margin: .25rem 0 1rem; }
+.chip { display: inline-block; font-size: .8rem; font-weight: 600; padding: .05rem .6rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent); vertical-align: middle; }
+.chip.warn { background: var(--warn-soft); color: var(--warn); }
+.chip.bad { background: var(--bad-soft); color: var(--bad); }
+.chip.muted { background: var(--code); color: var(--muted); }
+.panel, .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin: 1rem 0; }
+.callout { background: var(--panel); border-left: 4px solid var(--accent); padding: 8px 14px; margin: 1rem 0; }
+.callout.warn { border-color: var(--warn); background: var(--warn-soft); }
+.callout.bad { border-color: var(--bad); background: var(--bad-soft); }
+.side { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 600px) { .side { grid-template-columns: 1fr; } }
+dl.meta { display: grid; grid-template-columns: max-content 1fr; gap: 2px 14px; margin: 1rem 0; font-size: .95rem; }
+dl.meta dt { color: var(--muted); }
+dl.meta dd { margin: 0; }
+.wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: .92rem; margin: .5rem 0 1rem; }
+th, td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-weight: 600; }
+code { background: var(--code); padding: 0 .3em; border-radius: 4px; font-size: .9em; }
+pre { background: var(--code); padding: 10px 12px; border-radius: 6px; overflow-x: auto; font-size: .85rem; line-height: 1.45; }
+details { margin: .5rem 0; }
+summary { cursor: pointer; color: var(--muted); }
+.gwt b { display: inline-block; min-width: 5.5em; color: var(--muted); font-weight: 600; }
+svg.draw { width: 100%; height: auto; display: block; margin: 1rem 0 1.5rem; }
+svg.draw .box { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+svg.draw .hot { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+svg.draw .bad { fill: var(--bad-soft); stroke: var(--bad); stroke-width: 2; }
+svg.draw .warn { fill: var(--warn-soft); stroke: var(--warn); stroke-width: 1.5; }
+svg.draw .dash { stroke-dasharray: 5 4; }
+svg.draw .t { fill: var(--ink); font: 13px system-ui, sans-serif; }
+svg.draw .m { fill: var(--muted); font: 12px system-ui, sans-serif; }
+svg.draw .line { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+svg.draw .line.hot { stroke: var(--accent); fill: none; }
+svg.draw .line.bad { stroke: var(--bad); fill: none; }
+svg.draw .head { fill: var(--muted); }
+footer { margin-top: 3rem; padding-top: .5rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; }
+</style>
+<script type="application/json" id="doc-meta">
+{
+  "kind": "bug-report",
+  "id": "bug-slug",
+  "status": "draft",
+  "revision": 1,
+  "supersedes": null,
+  "updated": "2026-10-14",
+  "defines": [],
+  "cites": [],
+  "open": {
+    "needs_decision": 0,
+    "assumptions": 0
+  }
+}
+</script>
+</head>
+<body>
+<main>
+<header>
+<h1 id="B-n">B-n: {summary under 60 characters: the problem, not the fix} <span class="chip muted">draft</span></h1>
+<p class="summary">{one sentence: what the user sees go wrong, and where}</p>
+</header>
+
+<svg class="draw" viewBox="0 0 640 100" role="img" aria-labelledby="draw-title">
+<title id="draw-title">{one drawing of the failure: the path from the user action to the wrong result; red for where it breaks, dashed for what never runs}</title>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head" d="M0 0 L10 5 L0 10 z"/></marker></defs>
+<rect class="box" x="10" y="28" width="170" height="44" rx="8"/><text class="t" x="24" y="55">{step}</text>
+<rect class="hot" x="235" y="28" width="170" height="44" rx="8"/><text class="t" x="249" y="55">{step that matters}</text>
+<rect class="bad" x="460" y="28" width="170" height="44" rx="8"/><text class="t" x="474" y="55">{what goes wrong}</text>
+<path class="line" d="M180 50 H231" marker-end="url(#arrow)"/><path class="line bad" d="M405 50 H456" marker-end="url(#arrow)"/>
+</svg>
+
+<dl class="meta">
+<dt>Severity</dt><dd>{low | medium | high | critical, and what it costs the user}</dd>
+<dt>Environment</dt><dd>{app, server, browsers or OS, viewports}</dd>
+<dt>Version / commit</dt><dd>{release and commit where it was seen}</dd>
+<dt>First seen</dt><dd>{date, and by what: sweep link, user report, alert}</dd>
+<dt>Reproducibility</dt><dd>{always | sometimes (N of M) | once}</dd>
+<dt>Last known good</dt><dd>{commit or release, or "unknown" with why}</dd>
+<dt>Regression window</dt><dd>{commit range, or "n/a because" it never worked}</dd>
+</dl>
+
+<p class="summary">Related: {links to the sweep, decisions, cover sheet, verification and post-mortem once they exist}</p>
+
+<section id="repro">
+<h2>Repro</h2>
+<ol><li>{numbered steps from a clean state: data, account, starting page}</li></ol>
+</section>
+
+<section id="expected">
+<h2>Expected</h2>
+<p>{what should happen; mark a guess about intended behavior with an ASSUMPTION marker}</p>
+</section>
+
+<section id="actual">
+<h2>Actual</h2>
+<p>{what happens instead, observed, in plain words}</p>
+</section>
+
+<section id="evidence">
+<h2>Evidence</h2>
+<p>{logs, screenshots, failing tests and request ids, quoted exactly; facts only, link files inside the bundle}</p>
+</section>
+
+<section id="locus">
+<h2>Likely locus</h2>
+<p>{a table of files or systems, each with why it is suspected and high | medium | low confidence}</p>
+</section>
+
+<section id="hypotheses">
+<h2>Hypotheses</h2>
+<p>{ranked guesses with how well each fits the evidence; none chosen}</p>
+</section>
+
+<section id="gone-when">
+<h2>Gone when</h2>
+<div class="panel gwt">
+<p><b>Given</b> {starting state}<br><b>When</b> {the action}<br><b>Then</b> {the observable right result}</p>
+<p><b>Continues to</b> {behavior that must not change; one line each}</p>
+</div>
+</section>
+
+<section id="route">
+<h2>Route</h2>
+<p>{direct-to-implementer | options-first | cannot-reproduce, and why; link the D-n that approved it}</p>
+<dl class="meta">
+<dt>Files allowed</dt><dd>{direct-to-implementer only: the files the fix may touch; otherwise "n/a because" the route}</dd>
+<dt>Constraints</dt><dd>{what must stay as it is}</dd>
+<dt>Ask first</dt><dd>{changes that need a question through the relay}</dd>
+<dt>Escalate if</dt><dd>{the signs that the fix is bigger than this report says}</dd>
+</dl>
+</section>
+
+<section id="not-doing">
+<h2>Not doing here</h2>
+<p>{the fix, refactors and plans this report leaves out}</p>
+</section>
+
+<footer>
+<p>{origin: who found it and how; change log by revision}</p>
+</footer>
+</main>
+</body>
+</html>

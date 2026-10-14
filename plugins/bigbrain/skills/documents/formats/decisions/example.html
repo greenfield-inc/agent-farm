@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Markdown export decisions</title>
+<style>
+:root {
+  --bg: #fbfaf6; --panel: #ffffff; --ink: #1d2420; --muted: #5d6861; --line: #dcdfd6;
+  --accent: #2f7d4f; --accent-soft: #e4f1e7;
+  --warn: #9a5b00; --warn-soft: #fbefd9;
+  --bad: #a23a2f; --bad-soft: #f9e4e1;
+  --code: #f0f1eb;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141815; --panel: #1b211d; --ink: #e7ebe6; --muted: #9aa69e; --line: #2e3731;
+    --accent: #6fc38d; --accent-soft: #1e3327;
+    --warn: #e5b566; --warn-soft: #352a15;
+    --bad: #ef9388; --bad-soft: #3a1f1c;
+    --code: #232a25;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+main { max-width: 46rem; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 1.85rem; line-height: 1.25; margin: 0 0 .3rem; }
+h2 { font-size: 1.3rem; line-height: 1.3; margin: 2.2rem 0 .6rem; padding-top: .8rem; border-top: 1px solid var(--line); }
+h3 { font-size: 1.05rem; margin: 1.4rem 0 .4rem; }
+a { color: var(--accent); }
+.lede { color: var(--muted); margin: 0 0 .8rem; }
+.meta { color: var(--muted); font-size: .88rem; }
+.chip { display: inline-block; font-size: .78rem; font-weight: 600; line-height: 1.5; padding: .05rem .6rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent); vertical-align: middle; }
+.chip.warn { background: var(--warn-soft); color: var(--warn); }
+.chip.bad { background: var(--bad-soft); color: var(--bad); }
+.panel, .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: .8rem 1rem; margin: .8rem 0; }
+.card h3 { margin-top: 0; }
+.callout { border-left: 4px solid var(--accent); background: var(--accent-soft); padding: .6rem 1rem; margin: 1rem 0; border-radius: 0 6px 6px 0; }
+.callout.warn { border-color: var(--warn); background: var(--warn-soft); }
+.callout.bad { border-color: var(--bad); background: var(--bad-soft); }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 640px) { .pair { grid-template-columns: 1fr; } }
+table { width: 100%; border-collapse: collapse; font-size: .92rem; margin: .6rem 0; }
+th, td { text-align: left; vertical-align: top; padding: .4rem .5rem; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+th { color: var(--muted); font-weight: 600; }
+code { background: var(--code); padding: .05rem .3rem; border-radius: 4px; font-size: .9em; overflow-wrap: anywhere; }
+pre { background: var(--code); padding: .8rem; overflow-x: auto; border-radius: 6px; font-size: .88rem; }
+pre code { padding: 0; background: none; }
+dl { margin: .4rem 0; }
+dt { font-weight: 600; }
+dd { margin: 0 0 .5rem 1rem; }
+details { border: 1px solid var(--line); border-radius: 6px; padding: .4rem .8rem; margin: .6rem 0; background: var(--panel); }
+summary { cursor: pointer; font-weight: 600; }
+nav.contents ul { columns: 2; padding-left: 1.2rem; margin: .4rem 0; }
+@media (max-width: 640px) { nav.contents ul { columns: 1; } }
+figure { margin: 1rem 0; }
+figcaption { color: var(--muted); font-size: .85rem; }
+svg { width: 100%; height: auto; display: block; }
+svg text { fill: var(--ink); font: 13px -apple-system, "Segoe UI", sans-serif; }
+svg .small { font-size: 11px; fill: var(--muted); }
+svg .box { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+svg .hot { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+svg .warnbox { fill: var(--warn-soft); stroke: var(--warn); stroke-width: 1.5; }
+svg .line { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+svg .path { stroke: var(--accent); stroke-width: 2; fill: none; }
+svg .dash { stroke-dasharray: 5 4; }
+svg .head { fill: var(--muted); }
+svg .headhot { fill: var(--accent); }
+footer { color: var(--muted); font-size: .85rem; margin-top: 3rem; border-top: 1px solid var(--line); padding-top: .8rem; }
+</style>
+<script type="application/json" id="doc-meta">
+{ "kind": "decisions", "id": "markdown-export",
+  "status": "approved", "revision": 3,
+  "supersedes": null, "updated": "2026-10-14",
+  "defines": ["D-1", "D-2", "D-3", "Q-1", "Q-2", "Q-3"],
+  "cites": ["SC-2", "SC-3", "P-1", "P-2"],
+  "open": { "needs_decision": 0, "assumptions": 0 } }
+</script>
+</head>
+<body>
+<main>
+<h1>Decision log: Markdown export <span class="chip">approved</span></h1>
+<p class="lede">Every material decision is settled. Three relay questions became three decisions.</p>
+
+<figure>
+<svg viewBox="0 0 640 140" role="img" aria-labelledby="draw-title">
+  <title id="draw-title">Each relay question became one decision: Q-1 to D-1, Q-2 to D-2, Q-3 to D-3</title>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="headhot"/></marker>
+  </defs>
+  <g>
+    <rect x="20" y="12" width="140" height="32" rx="6" class="box"/><text x="34" y="33">Q-1 file shape</text>
+    <path d="M160,28 L250,28" class="path" marker-end="url(#ah)"/>
+    <rect x="250" y="12" width="370" height="32" rx="6" class="hot"/><text x="264" y="33">D-1 one .md per note, zip for "all"</text>
+  </g>
+  <g>
+    <rect x="20" y="56" width="140" height="32" rx="6" class="box"/><text x="34" y="77">Q-2 where built</text>
+    <path d="M160,72 L250,72" class="path" marker-end="url(#ah)"/>
+    <rect x="250" y="56" width="370" height="32" rx="6" class="hot"/><text x="264" y="77">D-2 server endpoint, one serializer</text>
+  </g>
+  <g>
+    <rect x="20" y="100" width="140" height="32" rx="6" class="box"/><text x="34" y="121">Q-3 approve plan</text>
+    <path d="M160,116 L250,116" class="path" marker-end="url(#ah)"/>
+    <rect x="250" y="100" width="370" height="32" rx="6" class="hot"/><text x="264" y="121">D-3 plan approved, end review only</text>
+  </g>
+</svg>
+</figure>
+
+<section id="links">
+<h2>Links</h2>
+<p><a href="index.html">Brief</a> · <a href="options.html">Options</a> · <a href="cover-sheet.html">Cover sheet</a> · Mockups: n/a because the change adds one menu item and one button to existing screens.</p>
+</section>
+
+<section id="status">
+<h2>Status</h2>
+<p class="callout">Open: 0. Every material decision is settled.</p>
+</section>
+
+<section id="questions">
+<h2>Relay questions</h2>
+<table>
+  <thead><tr><th>Question</th><th>Asked</th><th>Answer</th></tr></thead>
+  <tbody>
+    <tr id="Q-1"><td><strong>Q-1</strong> One Markdown file per note, or one file with every note?</td><td>Round 1</td><td>One per note, zip for all (Recommended). Became D-1.</td></tr>
+    <tr id="Q-2"><td><strong>Q-2</strong> Build the Markdown on the server or in the browser?</td><td>Round 1</td><td>Server (Recommended). Became D-2.</td></tr>
+    <tr id="Q-3"><td><strong>Q-3</strong> Approve the cover sheet, revision 1, with only the end review?</td><td>Round 2</td><td>Approved. Became D-3.</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="entries">
+<h2>Decisions</h2>
+
+<article class="card" id="D-1">
+<h3>D-1 · accepted · 2026-10-14 · from Q-1 (Round 1)</h3>
+<dl>
+  <dt>Context</dt><dd>Users want both a single note and a whole account out. Titles repeat. See <a href="options.html#decision-1">options, decision 1</a>.</dd>
+  <dt>Decision</dt><dd>We will export one Markdown file per note, and bundle every note's file in one .zip for "export all".</dd>
+  <dt>Consequences</dt><dd>Each file stands alone in another editor; SC-2 is met; file names must be unique inside the zip (SC-3).</dd>
+  <dt>Supersedes</dt><dd>—</dd>
+  <dt>Superseded by</dt><dd>—</dd>
+</dl>
+</article>
+
+<article class="card" id="D-2">
+<h3>D-2 · accepted · 2026-10-14 · from Q-2 (Round 1)</h3>
+<dl>
+  <dt>Context</dt><dd>Both buttons must produce the same text and the same file name for a note. See <a href="options.html#decision-2">options, decision 2</a>.</dd>
+  <dt>Decision</dt><dd>We will build the Markdown on the server, in one serializer behind two read-only routes.</dd>
+  <dt>Consequences</dt><dd>One code path to test (P-1); the browser only triggers downloads (P-2); no new browser dependency.</dd>
+  <dt>Supersedes</dt><dd>—</dd>
+  <dt>Superseded by</dt><dd>—</dd>
+</dl>
+</article>
+
+<article class="card" id="D-3">
+<h3>D-3 · accepted · 2026-10-14 · from Q-3 (Round 2)</h3>
+<dl>
+  <dt>Context</dt><dd>The plan touches no schema, no security boundary and no shared contract, so the planner proposed no checkpoint review.</dd>
+  <dt>Decision</dt><dd>We will build the <a href="cover-sheet.html">cover sheet</a> as approved at revision 1, with control flow revision 1 and only the end review.</dd>
+  <dt>Consequences</dt><dd>The implementer runs to the pull request without pausing; one reviewer reads everything at the end.</dd>
+  <dt>Supersedes</dt><dd>—</dd>
+  <dt>Superseded by</dt><dd>—</dd>
+</dl>
+</article>
+</section>
+
+<section id="deferred">
+<h2>Deferred</h2>
+<table>
+  <thead><tr><th>Item</th><th>Reason</th><th>What brings it back</th></tr></thead>
+  <tbody>
+    <tr><td>Import Markdown into Jotter</td><td>A separate problem with its own parsing risks</td><td>Users asking to move notes in, not out</td></tr>
+    <tr><td>JSON backup format</td><td>No one asked for a machine format</td><td>A request for restore-from-backup</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="change-log">
+<h2>Change log</h2>
+<ul>
+  <li>2026-10-14 · revision 3 · D-3 added from the plan approval.</li>
+  <li>2026-10-14 · revision 2 · D-1 and D-2 added from Round 1.</li>
+  <li>2026-10-14 · revision 1 · created.</li>
+</ul>
+</section>
+</main>
+</body>
+</html>

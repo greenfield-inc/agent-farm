@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "revision": 1,
+  "approved_by": "D-3",
+  "qa": {
+    "max_rounds": 3,
+    "mockups": ["mockups/settings-v2-b.html"],
+    "jank_checklist": true,
+    "viewports": ["desktop", "phone"],
+    "themes": ["light", "dark"]
+  },
+  "flows": {
+    "J-1": {
+      "covers": ["SC-1", "P-2"],
+      "given": "Settings is open and the theme is Light",
+      "when": "the person picks Dark in the Appearance control",
+      "then": "the whole app turns dark at once, with no reload, and Dark shows as selected",
+      "continues": ["the other Settings rows keep their values and layout"],
+      "check": { "method": "app", "evidence": "screenshots of Settings before and after, desktop and phone, light and dark" }
+    },
+    "J-2": {
+      "covers": ["SC-2", "SC-3", "P-1"],
+      "given": "the person picked Dark earlier",
+      "when": "they reload any page",
+      "then": "the page paints dark from the first frame and Settings still shows Dark",
+      "check": { "method": "app", "evidence": "screenshot of the first painted frame after reload, plus Settings after reload" }
+    },
+    "S-1": {
+      "covers": ["SC-2", "P-1"],
+      "run": "npm test -- theme",
+      "expect": "the theme store and boot script tests pass, including the storage-blocked case"
+    }
+  },
+  "steps": [
+    { "id": "build-p1", "actor": "implementer", "do": "build", "package": "P-1" },
+    { "id": "verify-p1", "actor": "implementer", "do": "verify", "flows": ["S-1"] },
+    { "id": "open-pr", "actor": "implementer", "do": "pr" },
+    { "id": "review-p1", "actor": "orchestrator", "do": "review", "scope": ["P-1"], "reason_kind": "shared-contract", "reason": "every page reads the stored theme key and the data-theme attribute, so their shape must be right before the UI builds on them", "profile": "bigbrain/reviewer" },
+    { "id": "build-p2", "actor": "implementer", "do": "build", "package": "P-2" },
+    { "id": "verify-all", "actor": "implementer", "do": "verify", "flows": ["J-1", "J-2", "S-1"] },
+    { "id": "qa", "actor": "implementer", "do": "qa", "spawn": "verifier", "flows": ["J-1", "J-2"], "max_rounds": 3, "skills": ["pr-test-automation"] },
+    { "id": "review-end", "actor": "orchestrator", "do": "review", "scope": "all", "profile": "bigbrain/reviewer" }
+  ]
+}

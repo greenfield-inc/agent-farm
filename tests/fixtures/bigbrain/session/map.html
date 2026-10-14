@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workstream map</title>
+<style>
+:root {
+  --bg: #fbfaf6; --panel: #ffffff; --ink: #1d2420; --muted: #5d6861; --line: #dcdfd6;
+  --accent: #2f7d4f; --accent-soft: #e4f1e7;
+  --warn: #9a5b00; --warn-soft: #fbefd9;
+  --bad: #a23a2f; --bad-soft: #f9e4e1;
+  --code: #f0f1eb;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141815; --panel: #1b211d; --ink: #e7ebe6; --muted: #9aa69e; --line: #2e3731;
+    --accent: #6fc38d; --accent-soft: #1e3327;
+    --warn: #e5b566; --warn-soft: #352a15;
+    --bad: #ef9388; --bad-soft: #3a1f1c;
+    --code: #232a25;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 46rem; margin: 0 auto; padding: 24px 16px 64px; }
+h1 { font-size: 1.75rem; line-height: 1.25; margin: 0 0 .25rem; }
+h2 { font-size: 1.25rem; margin: 2rem 0 .5rem; padding-top: .75rem; border-top: 1px solid var(--line); }
+h3 { font-size: 1.05rem; margin: 1.25rem 0 .25rem; }
+a { color: var(--accent); }
+.summary { color: var(--muted); margin: .25rem 0 1rem; }
+.meta-line { color: var(--muted); font-size: .85rem; margin: 0; }
+.chip { display: inline-block; font-size: .78rem; font-weight: 600; padding: 1px 10px; border-radius: 999px; border: 1px solid var(--accent); background: var(--accent-soft); color: var(--accent); vertical-align: middle; }
+.chip.warn { border-color: var(--warn); background: var(--warn-soft); color: var(--warn); }
+.chip.bad { border-color: var(--bad); background: var(--bad-soft); color: var(--bad); }
+.chip.muted { border-color: var(--line); background: var(--code); color: var(--muted); }
+.panel, .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin: 12px 0; }
+.callout { background: var(--panel); border-left: 4px solid var(--accent); padding: 8px 14px; margin: 12px 0; }
+.callout.warn { border-left-color: var(--warn); background: var(--warn-soft); }
+.callout.bad { border-left-color: var(--bad); background: var(--bad-soft); }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; margin: 8px 0; }
+th, td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+th { color: var(--muted); font-weight: 600; }
+code { background: var(--code); padding: 0 4px; border-radius: 4px; font-size: .88em; overflow-wrap: anywhere; }
+pre { background: var(--code); padding: 10px 12px; border-radius: 6px; overflow-x: auto; font-size: .85rem; }
+img { max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); }
+details { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; margin: 10px 0; }
+summary { cursor: pointer; font-weight: 600; }
+ul, ol { padding-left: 1.3rem; }
+svg.draw { display: block; width: 100%; height: auto; margin: 16px 0 8px; }
+svg.draw text { fill: var(--ink); font: 13px system-ui, -apple-system, sans-serif; }
+svg.draw text.small { fill: var(--muted); font-size: 11px; }
+svg.draw .box { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+svg.draw .hot { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+svg.draw .warnbox { fill: var(--warn-soft); stroke: var(--warn); stroke-width: 1.5; }
+svg.draw .badbox { fill: var(--bad-soft); stroke: var(--bad); stroke-width: 1.5; }
+svg.draw .line { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+svg.draw .path { stroke: var(--accent); stroke-width: 2; fill: none; }
+svg.draw .dash { stroke-dasharray: 5 4; }
+svg.draw .head { fill: var(--muted); }
+svg.draw .headhot { fill: var(--accent); }
+footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; }
+</style>
+<script type="application/json" id="doc-meta">
+{ "kind": "map", "id": "session-2026-10-14", "status": "done", "revision": 9,
+  "supersedes": null, "updated": "2026-10-14",
+  "defines": [],
+  "cites": ["D-1", "D-2", "Q-1", "Q-2"],
+  "open": { "needs_decision": 0, "assumptions": 0 } }
+</script>
+</head>
+<body>
+<main>
+<h1>Workstream map <span class="chip">run ended</span></h1>
+<p class="summary">Two work items for Pocket Notes: the dark-mode toggle and note export. Both merged; nothing needs you.</p>
+
+<svg class="draw" viewBox="0 0 640 170" role="img" aria-label="Order of work: dark mode runs plan, build, review, QA, merge. Note export runs plan and back end at once, then waits for the dark-mode review before its UI, then QA and merge after dark mode">
+  <defs><marker id="map-ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="headhot" d="M0,0 L8,4 L0,8z"/></marker>
+  <marker id="map-ah2" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="head" d="M0,0 L8,4 L0,8z"/></marker></defs>
+  <text x="20" y="22">Dark-mode toggle</text>
+  <rect class="hot" x="20" y="32" width="90" height="32" rx="6"/><text x="32" y="53">plan</text>
+  <rect class="hot" x="130" y="32" width="110" height="32" rx="6"/><text x="142" y="53">tokens + store</text>
+  <rect class="hot" x="260" y="32" width="100" height="32" rx="6"/><text x="272" y="53">checkpoint</text>
+  <rect class="hot" x="380" y="32" width="100" height="32" rx="6"/><text x="392" y="53">UI + QA</text>
+  <rect class="hot" x="500" y="32" width="120" height="32" rx="6"/><text x="512" y="53">merge first</text>
+  <path class="path" d="M110 48 H126" marker-end="url(#map-ah)"/><path class="path" d="M240 48 H256" marker-end="url(#map-ah)"/><path class="path" d="M360 48 H376" marker-end="url(#map-ah)"/><path class="path" d="M480 48 H496" marker-end="url(#map-ah)"/>
+  <text x="20" y="102">Note export</text>
+  <rect class="box" x="20" y="112" width="90" height="32" rx="6"/><text x="32" y="133">plan</text>
+  <rect class="box" x="130" y="112" width="110" height="32" rx="6"/><text x="142" y="133">back end</text>
+  <rect class="box" x="380" y="112" width="100" height="32" rx="6"/><text x="392" y="133">UI + QA</text>
+  <rect class="box" x="500" y="112" width="120" height="32" rx="6"/><text x="512" y="133">rebase, merge</text>
+  <path class="line" d="M110 128 H126" marker-end="url(#map-ah2)"/><path class="line" d="M240 128 H376" marker-end="url(#map-ah2)"/><path class="line" d="M480 128 H496" marker-end="url(#map-ah2)"/>
+  <path class="line dash" d="M310 64 V120 H376" marker-end="url(#map-ah2)"/>
+  <path class="line dash" d="M560 64 V108" marker-end="url(#map-ah2)"/>
+  <text class="small" x="318" y="96">waits (D-1)</text><text class="small" x="566" y="92">after (D-2)</text>
+</svg>
+
+<section id="header" class="panel">
+<table>
+  <tr><th>Session</th><td><code>session-2026-10-14</code></td></tr>
+  <tr><th>Updated</th><td>2026-10-14, after the export merge</td></tr>
+  <tr><th>Workers</th><td>0 running · 0 queued · 2 done</td></tr>
+  <tr><th>Cost and time</th><td>about 3 h 40 min wall clock · cost as reported by each worker's status file</td></tr>
+</table>
+</section>
+
+<section id="needs-you">
+<h2>Needs you</h2>
+<div class="callout">Nothing open. The last questions were answered: <a href="decisions.html#Q-1">Q-1</a> → <a href="decisions.html#D-1">D-1</a> and <a href="decisions.html#Q-2">Q-2</a> → <a href="decisions.html#D-2">D-2</a>.</div>
+</section>
+
+<section id="order">
+<h2>Order of work</h2>
+<p>Both items ran at once. Note export's UI waited for the dark-mode checkpoint review, because it needs the dark token values (D-1). Dark mode merged first and export rebased on it (D-2). Critical path: dark-mode plan → tokens and store → checkpoint review → export UI and QA → export merge.</p>
+</section>
+
+<section id="control-flows">
+<h2>Control flows</h2>
+<table>
+  <tr><th>Item</th><th>Current step</th><th>Next review point</th><th>QA round</th></tr>
+  <tr><td>Dark-mode toggle</td><td>done (end review passed)</td><td>none left</td><td>2 of 3</td></tr>
+  <tr><td>Note export</td><td>done (end review passed)</td><td>none left</td><td>1 of 3</td></tr>
+</table>
+</section>
+
+<section id="lanes">
+<h2>Lanes</h2>
+<table>
+  <tr><th>Item</th><th>Repo</th><th>Pane</th><th>Profile</th><th>Status</th><th>Plan</th><th>PR</th><th>Review</th><th>Verification</th><th>Learning</th><th>Trace</th><th>check-bundle</th></tr>
+  <tr><td>Dark-mode toggle</td><td>pocket-notes</td><td>dark-mode-toggle</td><td>bigbrain/implementer</td><td><span class="chip">done</span></td><td>approved, rev 1</td><td>#42 merged</td><td>checkpoint + end, 2 findings fixed</td><td>3 pass</td><td>quiz done</td><td>not captured</td><td>pass</td></tr>
+  <tr><td>Note export</td><td>pocket-notes</td><td>note-export</td><td>bigbrain/implementer</td><td><span class="chip">done</span></td><td>approved, rev 2</td><td>#43 merged</td><td>end, no findings</td><td>4 pass</td><td>quiz done</td><td>not captured</td><td>pass</td></tr>
+</table>
+<p class="meta-line">Each item's documents live in its own bundle: <code>dark-mode-toggle/</code> and <code>note-export/</code> beside this Session folder.</p>
+</section>
+
+<section id="logs">
+<h2>Logs</h2>
+<h3>Decisions</h3>
+<ul>
+  <li><a href="decisions.html#D-1">D-1</a> run both items; export UI waits for the dark-mode tokens.</li>
+  <li><a href="decisions.html#D-2">D-2</a> merge dark mode first.</li>
+</ul>
+<h3>Addenda</h3>
+<ul><li>Addendum 1 (2026-10-14): token names added by dark mode. Affects note export only; it switched its new colours to those tokens.</li></ul>
+<h3>Cleanup</h3>
+<ul><li>Both worktrees removed after merge. Status files archived with the bundles.</li></ul>
+</section>
+
+<section id="end">
+<h2>End of run</h2>
+<table>
+  <tr><th>Done</th><td>Dark-mode toggle, note export</td></tr>
+  <tr><th>Needs review</th><td>Nothing</td></tr>
+  <tr><th>Open Panes</th><td>None; both closed after merge</td></tr>
+  <tr><th>Traces</th><td>Not captured for either item</td></tr>
+</table>
+</section>
+</main>
+</body>
+</html>

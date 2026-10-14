@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dark-mode toggle: brief</title>
+<style>
+:root {
+  --bg: #fbfaf6; --panel: #ffffff; --ink: #1d2420; --muted: #5d6861; --line: #dcdfd6;
+  --accent: #2f7d4f; --accent-soft: #e4f1e7;
+  --warn: #9a5b00; --warn-soft: #fbefd9;
+  --bad: #a23a2f; --bad-soft: #f9e4e1;
+  --code: #f0f1eb;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141815; --panel: #1b211d; --ink: #e7ebe6; --muted: #9aa69e; --line: #2e3731;
+    --accent: #6fc38d; --accent-soft: #1e3327;
+    --warn: #e5b566; --warn-soft: #352a15;
+    --bad: #ef9388; --bad-soft: #3a1f1c;
+    --code: #232a25;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 46rem; margin: 0 auto; padding: 24px 16px 64px; }
+h1 { font-size: 1.75rem; line-height: 1.25; margin: 0 0 .25rem; }
+h2 { font-size: 1.25rem; margin: 2rem 0 .5rem; padding-top: .75rem; border-top: 1px solid var(--line); }
+h3 { font-size: 1.05rem; margin: 1.25rem 0 .25rem; }
+a { color: var(--accent); }
+.summary { color: var(--muted); margin: .25rem 0 1rem; }
+.meta-line { color: var(--muted); font-size: .85rem; margin: 0; }
+.chip { display: inline-block; font-size: .78rem; font-weight: 600; padding: 1px 10px; border-radius: 999px; border: 1px solid var(--accent); background: var(--accent-soft); color: var(--accent); vertical-align: middle; }
+.chip.warn { border-color: var(--warn); background: var(--warn-soft); color: var(--warn); }
+.chip.bad { border-color: var(--bad); background: var(--bad-soft); color: var(--bad); }
+.chip.muted { border-color: var(--line); background: var(--code); color: var(--muted); }
+.panel, .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin: 12px 0; }
+.callout { background: var(--panel); border-left: 4px solid var(--accent); padding: 8px 14px; margin: 12px 0; }
+.callout.warn { border-left-color: var(--warn); background: var(--warn-soft); }
+.callout.bad { border-left-color: var(--bad); background: var(--bad-soft); }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; margin: 8px 0; }
+th, td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+th { color: var(--muted); font-weight: 600; }
+code { background: var(--code); padding: 0 4px; border-radius: 4px; font-size: .88em; overflow-wrap: anywhere; }
+pre { background: var(--code); padding: 10px 12px; border-radius: 6px; overflow-x: auto; font-size: .85rem; }
+img { max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); }
+details { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; margin: 10px 0; }
+summary { cursor: pointer; font-weight: 600; }
+ul, ol { padding-left: 1.3rem; }
+svg.draw { display: block; width: 100%; height: auto; margin: 16px 0 8px; }
+svg.draw text { fill: var(--ink); font: 13px system-ui, -apple-system, sans-serif; }
+svg.draw text.small { fill: var(--muted); font-size: 11px; }
+svg.draw .box { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+svg.draw .hot { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+svg.draw .warnbox { fill: var(--warn-soft); stroke: var(--warn); stroke-width: 1.5; }
+svg.draw .badbox { fill: var(--bad-soft); stroke: var(--bad); stroke-width: 1.5; }
+svg.draw .line { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+svg.draw .path { stroke: var(--accent); stroke-width: 2; fill: none; }
+svg.draw .dash { stroke-dasharray: 5 4; }
+svg.draw .head { fill: var(--muted); }
+svg.draw .headhot { fill: var(--accent); }
+footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; }
+</style>
+<script type="application/json" id="doc-meta">
+{ "kind": "brief", "id": "dark-mode-toggle", "status": "approved", "revision": 2,
+  "supersedes": null, "updated": "2026-10-14",
+  "defines": ["SC-1", "SC-2", "SC-3"],
+  "cites": ["D-1", "D-2"],
+  "open": { "needs_decision": 0, "assumptions": 1 } }
+</script>
+</head>
+<body>
+<main>
+<h1>Dark-mode toggle in Settings <span class="chip">approved</span></h1>
+<p class="summary">People who read their notes at night want Pocket Notes in a dark theme, chosen once in Settings and kept.</p>
+
+<svg class="draw" viewBox="0 0 640 170" role="img" aria-label="Today the app is always light; wanted: a choice in Settings that the app remembers and paints from the first frame">
+  <defs><marker id="brief-ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="headhot" d="M0,0 L8,4 L0,8z"/></marker></defs>
+  <text x="20" y="22">Today</text>
+  <rect class="box" x="20" y="34" width="180" height="56" rx="8"/>
+  <text x="36" y="58">Always light</text><text class="small" x="36" y="76">bright at night, no setting</text>
+  <text x="250" y="22">Wanted</text>
+  <rect class="hot" x="250" y="34" width="160" height="56" rx="8"/>
+  <text x="266" y="58">Settings choice</text><text class="small" x="266" y="76">System · Light · Dark</text>
+  <rect class="hot" x="460" y="34" width="160" height="56" rx="8"/>
+  <text x="476" y="58">Remembered</text><text class="small" x="476" y="76">same theme after reload</text>
+  <path class="path" d="M410 62 H456" marker-end="url(#brief-ah)"/>
+  <rect class="box dash" x="250" y="112" width="370" height="40" rx="8"/>
+  <text x="266" y="137">First frame already in the right theme (no flash)</text>
+</svg>
+
+<nav id="contents" class="panel">
+  <strong>Contents</strong>
+  <p class="meta-line"><a href="#problem">Problem</a> · <a href="#who">Who</a> · <a href="#today-wanted">Today / Wanted</a> · <a href="#success">Success</a> · <a href="#appetite">Appetite</a> · <a href="#constraints">Constraints</a> · <a href="#non-goals">Non-goals</a> · <a href="#unknowns">Unknowns</a> · <a href="#open-decisions">Open decisions</a> · <a href="#evidence">Evidence</a> · <a href="#sources">Sources</a> · <a href="#related">Related</a> · <a href="#change-log">Change log</a></p>
+  <table>
+    <tr><th>File</th><th>Purpose</th></tr>
+    <tr><td><a href="decisions.html">decisions.html</a></td><td>Decision log and relay questions</td></tr>
+    <tr><td><a href="mockups/design-notes.html">mockups/design-notes.html</a></td><td>How Settings looks today: layout, type, tokens</td></tr>
+    <tr><td><a href="mockups/index.html">mockups/index.html</a></td><td>Mockup rounds and the approved design</td></tr>
+    <tr><td><a href="cover-sheet.html">cover-sheet.html</a></td><td>The plan: packages, journeys, control flow</td></tr>
+    <tr><td><a href="control-flow.json">control-flow.json</a></td><td>Machine source for the plan's control flow</td></tr>
+    <tr><td><a href="evidence/verification.html">evidence/verification.html</a></td><td>Proof each journey and suite works (from <a href="evidence/verification.json">verification.json</a>)</td></tr>
+    <tr><td><a href="findings/pr-42-review-p1.md">findings/pr-42-review-p1.md</a></td><td>Findings from the checkpoint review</td></tr>
+    <tr><td><a href="learning/learning.html">learning/learning.html</a></td><td>What the change adds and builds on, with a quiz</td></tr>
+    <tr><td><a href="post-mortem.html">post-mortem.html</a></td><td>How the build went</td></tr>
+    <tr><td><a href="trace.html">trace.html</a></td><td>Session trace (not captured for this fixture)</td></tr>
+    <tr><td><a href="bundle.json">bundle.json</a></td><td>Bundle manifest</td></tr>
+  </table>
+</nav>
+
+<section id="problem">
+<h2>The problem</h2>
+<p>A user opens Pocket Notes in bed to jot down tomorrow's list. The room is dark, the phone is dimmed, and the app fills the screen with white. They squint, type two lines, and close it.</p>
+<p>Pocket Notes has one theme, and it is light. There is no way to change it, and it ignores the device's dark setting. People who write at night find it uncomfortable, and some have stopped using it after dark.</p>
+</section>
+
+<section id="who">
+<h2>Who it affects</h2>
+<p>Everyone who uses Pocket Notes in low light, on phone or desktop. Most use their phone. Many already run their device in dark mode and expect apps to follow it.</p>
+</section>
+
+<section id="today-wanted">
+<h2>Today / Wanted</h2>
+<div class="cols">
+  <div class="panel"><strong>Today</strong>
+    <img src="mockups/settings-current.svg" alt="Settings today: display name and notes per page, no appearance setting">
+    <p>Settings has no appearance row. Every page is light.</p></div>
+  <div class="panel"><strong>Wanted</strong>
+    <p>A person can pick how the app looks in Settings. The app changes at once, keeps the choice, and opens in that theme next time without a flash of white.</p></div>
+</div>
+</section>
+
+<section id="success">
+<h2>Success</h2>
+<ol>
+  <li id="SC-1"><strong>SC-1</strong> A person can choose System, Light or Dark in Settings, and the app changes at once.</li>
+  <li id="SC-2"><strong>SC-2</strong> The choice is still in effect after a reload or a new visit on the same device.</li>
+  <li id="SC-3"><strong>SC-3</strong> Pages open in the chosen theme from the first frame, with no flash of the other one.</li>
+</ol>
+</section>
+
+<section id="appetite">
+<h2>Appetite</h2>
+<p>One pull request, about a day of work, including QA in both themes.</p>
+</section>
+
+<section id="constraints">
+<h2>Constraints</h2>
+<ul>
+  <li>Colours come from the existing tokens in <code>src/styles/tokens.css</code>; dark gets its own values for the same semantic names.</li>
+  <li>No new dependencies.</li>
+  <li>Text keeps at least 4.5:1 contrast in both themes.</li>
+</ul>
+</section>
+
+<section id="non-goals">
+<h2>Non-goals</h2>
+<ul>
+  <li>Syncing the choice across devices or to the account.</li>
+  <li>Custom accent colours or more themes.</li>
+  <li>Restyling any screen beyond giving it dark values.</li>
+</ul>
+</section>
+
+<section id="unknowns">
+<h2>Unknowns</h2>
+<p>None open. [ASSUMPTION: storing the choice per device is enough for now, since nobody asked for sync.] The storage question was settled as D-2.</p>
+</section>
+
+<section id="open-decisions">
+<h2>Open decisions</h2>
+<p>Both decisions this brief named are settled:</p>
+<ul>
+  <li>The shape of the control in Settings: settled as <a href="decisions.html#D-1">D-1</a> (three-way segmented control).</li>
+  <li>Where the choice is stored: settled as <a href="decisions.html#D-2">D-2</a> (browser storage on the device).</li>
+</ul>
+</section>
+
+<section id="evidence">
+<h2>Evidence</h2>
+<ul>
+  <li>Known: Settings has no appearance option (<a href="mockups/settings-current.svg">screenshot</a>).</li>
+  <li>Known: the stylesheet already uses semantic colour tokens, so dark values can be added in one place.</li>
+  <li>Suspected: most night-time sessions are on phones. Not measured.</li>
+</ul>
+</section>
+
+<section id="sources">
+<h2>Sources</h2>
+<ul><li>The app's Settings screen and stylesheet at the starting commit.</li><li>The product feedback request for a dark theme.</li></ul>
+</section>
+
+<section id="related">
+<h2>Related</h2>
+<p><a href="cover-sheet.html">Cover sheet</a> · <a href="mockups/index.html">Mockups</a> · <a href="decisions.html">Decisions</a></p>
+</section>
+
+<section id="change-log">
+<h2>Change log</h2>
+<ul>
+  <li>2026-10-14 rev 2: open decisions point at their D-n entries; approved.</li>
+  <li>2026-10-14 rev 1: first draft.</li>
+</ul>
+</section>
+
+<footer>Origin: product feedback request for a dark theme. Fixture bundle for bigbrain's document checker.</footer>
+</main>
+</body>
+</html>

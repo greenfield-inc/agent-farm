@@ -1,0 +1,8 @@
+$ pnpm test src/search
+ PASS  src/search/useSearch.test.ts (16 tests)
+ PASS  src/search/SearchPage.test.tsx (4 tests)
+   ok clears loading when the query is emptied
+   ok ignores a response that lands after the box is cleared
+Test Files  2 passed (2)
+     Tests  20 passed (20)
+  observed at e7d2b10

@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design notes: Settings</title>
+<style>
+:root {
+  --bg: #fbfaf6; --panel: #ffffff; --ink: #1d2420; --muted: #5d6861; --line: #dcdfd6;
+  --accent: #2f7d4f; --accent-soft: #e4f1e7;
+  --warn: #9a5b00; --warn-soft: #fbefd9;
+  --bad: #a23a2f; --bad-soft: #f9e4e1;
+  --code: #f0f1eb;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141815; --panel: #1b211d; --ink: #e7ebe6; --muted: #9aa69e; --line: #2e3731;
+    --accent: #6fc38d; --accent-soft: #1e3327;
+    --warn: #e5b566; --warn-soft: #352a15;
+    --bad: #ef9388; --bad-soft: #3a1f1c;
+    --code: #232a25;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 46rem; margin: 0 auto; padding: 24px 16px 64px; }
+h1 { font-size: 1.75rem; line-height: 1.25; margin: 0 0 .25rem; }
+h2 { font-size: 1.25rem; margin: 2rem 0 .5rem; padding-top: .75rem; border-top: 1px solid var(--line); }
+h3 { font-size: 1.05rem; margin: 1.25rem 0 .25rem; }
+a { color: var(--accent); }
+.summary { color: var(--muted); margin: .25rem 0 1rem; }
+.meta-line { color: var(--muted); font-size: .85rem; margin: 0; }
+.chip { display: inline-block; font-size: .78rem; font-weight: 600; padding: 1px 10px; border-radius: 999px; border: 1px solid var(--accent); background: var(--accent-soft); color: var(--accent); vertical-align: middle; }
+.chip.warn { border-color: var(--warn); background: var(--warn-soft); color: var(--warn); }
+.chip.bad { border-color: var(--bad); background: var(--bad-soft); color: var(--bad); }
+.chip.muted { border-color: var(--line); background: var(--code); color: var(--muted); }
+.panel, .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin: 12px 0; }
+.callout { background: var(--panel); border-left: 4px solid var(--accent); padding: 8px 14px; margin: 12px 0; }
+.callout.warn { border-left-color: var(--warn); background: var(--warn-soft); }
+.callout.bad { border-left-color: var(--bad); background: var(--bad-soft); }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; margin: 8px 0; }
+th, td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+th { color: var(--muted); font-weight: 600; }
+code { background: var(--code); padding: 0 4px; border-radius: 4px; font-size: .88em; overflow-wrap: anywhere; }
+pre { background: var(--code); padding: 10px 12px; border-radius: 6px; overflow-x: auto; font-size: .85rem; }
+img { max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); }
+details { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; margin: 10px 0; }
+summary { cursor: pointer; font-weight: 600; }
+ul, ol { padding-left: 1.3rem; }
+svg.draw { display: block; width: 100%; height: auto; margin: 16px 0 8px; }
+svg.draw text { fill: var(--ink); font: 13px system-ui, -apple-system, sans-serif; }
+svg.draw text.small { fill: var(--muted); font-size: 11px; }
+svg.draw .box { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+svg.draw .hot { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+svg.draw .warnbox { fill: var(--warn-soft); stroke: var(--warn); stroke-width: 1.5; }
+svg.draw .badbox { fill: var(--bad-soft); stroke: var(--bad); stroke-width: 1.5; }
+svg.draw .line { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+svg.draw .path { stroke: var(--accent); stroke-width: 2; fill: none; }
+svg.draw .dash { stroke-dasharray: 5 4; }
+svg.draw .head { fill: var(--muted); }
+svg.draw .headhot { fill: var(--accent); }
+footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; }
+</style>
+<script type="application/json" id="doc-meta">
+{ "kind": "design-notes", "id": "settings-design-notes", "status": "approved", "revision": 1,
+  "supersedes": null, "updated": "2026-10-14",
+  "defines": [],
+  "cites": ["P-1"],
+  "open": { "needs_decision": 0, "assumptions": 1 } }
+</script>
+</head>
+<body>
+<main>
+<h1>Design notes: Settings <span class="chip">approved</span></h1>
+<p class="summary">How Pocket Notes' Settings screen looks and is built today, so new rows match it and the verifier can check them.</p>
+<p class="meta-line">Captured 2026-10-14 at commit a1c09e4 · Product area: Settings · <a href="../index.html">Back to the brief</a></p>
+
+<svg class="draw" viewBox="0 0 640 200" role="img" aria-label="Settings anatomy: top bar, page title, one card of rows; each row is a label on the left and a value or control on the right">
+  <rect class="box" x="20" y="10" width="600" height="30" rx="4"/><text x="34" y="30">Top bar · 56px · card colour</text>
+  <text x="40" y="66">Page title · 26px bold</text>
+  <rect class="box" x="40" y="80" width="560" height="110" rx="10"/>
+  <rect class="hot" x="56" y="92" width="200" height="26" rx="4"/><text x="66" y="110">Label · 16px</text>
+  <rect class="box dash" x="380" y="92" width="200" height="26" rx="4"/><text x="390" y="110">Value or control, right</text>
+  <path class="line" d="M56 128 H584"/><text class="small" x="56" y="146">row: 12px × 16px padding, 1px line between rows</text>
+  <rect class="hot" x="56" y="156" width="200" height="26" rx="4"/><text x="66" y="174">Label · 16px</text>
+  <rect class="box dash" x="380" y="156" width="200" height="26" rx="4"/><text x="390" y="174">Value or control, right</text>
+</svg>
+
+<section id="screens">
+<h2>Screens captured</h2>
+<table>
+  <tr><th>Screen</th><th>State</th><th>Viewport</th><th>Theme</th><th>Screenshot</th></tr>
+  <tr><td>Settings</td><td>Signed in, defaults</td><td>desktop 1280×800</td><td>light</td><td><a href="settings-current.svg">settings-current.svg</a></td></tr>
+  <tr><td>Settings</td><td>Signed in, defaults</td><td>phone 390×844</td><td>light</td><td><a href="settings-current-phone.svg">settings-current-phone.svg</a></td></tr>
+</table>
+<p>There is no dark screenshot because the product has no dark theme yet.</p>
+</section>
+
+<section id="layout">
+<h2>Layout</h2>
+<ul>
+  <li>One centred column, max width 720px, 16px gutters on phones.</li>
+  <li>One breakpoint at 480px: below it, a row's control drops under its label and takes the full width.</li>
+  <li>Cards have a 10px radius and a 1px border; rows inside a card are split by 1px lines.</li>
+</ul>
+</section>
+
+<section id="type">
+<h2>Type</h2>
+<table>
+  <tr><th>Use</th><th>Size</th><th>Weight</th><th>Line height</th></tr>
+  <tr><td>App name in the top bar</td><td>20px</td><td>700</td><td>1.2</td></tr>
+  <tr><td>Page title</td><td>26px</td><td>700</td><td>1.25</td></tr>
+  <tr><td>Row label, row value, buttons</td><td>16px (buttons 15px)</td><td>400; selected 600</td><td>1.5</td></tr>
+  <tr><td>Hints under a row</td><td>13px</td><td>400</td><td>1.4</td></tr>
+</table>
+</section>
+
+<section id="tokens">
+<h2>Tokens</h2>
+<p>From <code>src/styles/tokens.css</code>. Semantic tokens point only at primitives.</p>
+<table>
+  <tr><th>Semantic</th><th>Light primitive</th><th>Used for</th></tr>
+  <tr><td><code>--surface-page</code></td><td><code>--gray-50</code> #f6f7f9</td><td>Page background</td></tr>
+  <tr><td><code>--surface-card</code></td><td><code>--white</code> #ffffff</td><td>Cards, top bar</td></tr>
+  <tr><td><code>--text</code></td><td><code>--gray-900</code> #1b1f24</td><td>Labels, titles</td></tr>
+  <tr><td><code>--text-muted</code></td><td><code>--gray-600</code> #5f6873</td><td>Values, hints</td></tr>
+  <tr><td><code>--border</code></td><td><code>--gray-200</code> #dde1e6</td><td>Card border, row lines</td></tr>
+  <tr><td><code>--accent</code></td><td><code>--blue-600</code> #2f6fdf</td><td>Selected state, links</td></tr>
+  <tr><td><code>--focus</code></td><td><code>--gray-900</code> #1b1f24</td><td>Focus outline</td></tr>
+</table>
+</section>
+
+<section id="colour">
+<h2>Colour</h2>
+<p>Light only today. The dark pairs below come from the approved mockup and are the values P-1 adds.</p>
+<table>
+  <tr><th>Semantic</th><th>Light</th><th>Dark</th><th>Text contrast</th></tr>
+  <tr><td><code>--surface-page</code></td><td>#f6f7f9</td><td>#15181d</td><td>text 15.6:1 / 15.1:1</td></tr>
+  <tr><td><code>--surface-card</code></td><td>#ffffff</td><td>#1f242b</td><td>text 16.4:1 / 13.4:1</td></tr>
+  <tr><td><code>--text-muted</code></td><td>#5f6873</td><td>#9aa3ad</td><td>on card 5.6:1 / 6.2:1</td></tr>
+  <tr><td><code>--accent</code></td><td>#2f6fdf</td><td>#7fb2ff</td><td>label on accent 4.8:1 / 8.6:1</td></tr>
+  <tr><td><code>--focus</code></td><td>#1b1f24</td><td>#ffd166</td><td>differs from accent in both themes</td></tr>
+</table>
+<p>[ASSUMPTION: contrast was measured on the mockup colours, not yet on the built page.]</p>
+</section>
+
+<section id="components">
+<h2>Components</h2>
+<ul>
+  <li>Settings row: <code>src/settings/SettingsRow.tsx</code>. Label, value or control, optional hint.</li>
+  <li>Button group: <code>src/ui/ButtonGroup.tsx</code>. Reuse it for a segmented control; it already handles arrow keys.</li>
+  <li>Card: <code>src/ui/Card.tsx</code>.</li>
+</ul>
+</section>
+
+<section id="density">
+<h2>Density and tone</h2>
+<p>Calm and sparse: one card, a handful of rows, lots of space. Copy is short and plain: labels are nouns ("Appearance"), hints are one sentence in the second person.</p>
+</section>
+
+<section id="do-dont">
+<h2>Do / don't</h2>
+<table>
+  <tr><th>Do</th><th>Don't</th><th>Seen in</th></tr>
+  <tr><td>Put the control on the right of its label on wide screens</td><td>Stack label and control on desktop</td><td><a href="settings-current.svg">desktop</a></td></tr>
+  <tr><td>Show selection with weight or a mark as well as colour</td><td>Rely on colour alone</td><td>Notes-per-page picker</td></tr>
+  <tr><td>Keep one card per screen section</td><td>Nest cards</td><td><a href="settings-current-phone.svg">phone</a></td></tr>
+</table>
+</section>
+</main>
+</body>
+</html>

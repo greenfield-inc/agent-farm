@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Learning: dark-mode toggle</title>
+<style>
+:root {
+  --bg: #fbfaf6; --panel: #ffffff; --ink: #1d2420; --muted: #5d6861; --line: #dcdfd6;
+  --accent: #2f7d4f; --accent-soft: #e4f1e7;
+  --warn: #9a5b00; --warn-soft: #fbefd9;
+  --bad: #a23a2f; --bad-soft: #f9e4e1;
+  --code: #f0f1eb;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141815; --panel: #1b211d; --ink: #e7ebe6; --muted: #9aa69e; --line: #2e3731;
+    --accent: #6fc38d; --accent-soft: #1e3327;
+    --warn: #e5b566; --warn-soft: #352a15;
+    --bad: #ef9388; --bad-soft: #3a1f1c;
+    --code: #232a25;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 46rem; margin: 0 auto; padding: 24px 16px 64px; }
+h1 { font-size: 1.75rem; line-height: 1.25; margin: 0 0 .25rem; }
+h2 { font-size: 1.25rem; margin: 2rem 0 .5rem; padding-top: .75rem; border-top: 1px solid var(--line); }
+h3 { font-size: 1.05rem; margin: 1.25rem 0 .25rem; }
+a { color: var(--accent); }
+.summary { color: var(--muted); margin: .25rem 0 1rem; }
+.meta-line { color: var(--muted); font-size: .85rem; margin: 0; }
+.chip { display: inline-block; font-size: .78rem; font-weight: 600; padding: 1px 10px; border-radius: 999px; border: 1px solid var(--accent); background: var(--accent-soft); color: var(--accent); vertical-align: middle; }
+.chip.warn { border-color: var(--warn); background: var(--warn-soft); color: var(--warn); }
+.chip.bad { border-color: var(--bad); background: var(--bad-soft); color: var(--bad); }
+.chip.muted { border-color: var(--line); background: var(--code); color: var(--muted); }
+.panel, .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin: 12px 0; }
+.callout { background: var(--panel); border-left: 4px solid var(--accent); padding: 8px 14px; margin: 12px 0; }
+.callout.warn { border-left-color: var(--warn); background: var(--warn-soft); }
+.callout.bad { border-left-color: var(--bad); background: var(--bad-soft); }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; margin: 8px 0; }
+th, td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+th { color: var(--muted); font-weight: 600; }
+code { background: var(--code); padding: 0 4px; border-radius: 4px; font-size: .88em; overflow-wrap: anywhere; }
+pre { background: var(--code); padding: 10px 12px; border-radius: 6px; overflow-x: auto; font-size: .85rem; }
+img { max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); }
+details { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; margin: 10px 0; }
+summary { cursor: pointer; font-weight: 600; }
+ul, ol { padding-left: 1.3rem; }
+svg.draw { display: block; width: 100%; height: auto; margin: 16px 0 8px; }
+svg.draw text { fill: var(--ink); font: 13px system-ui, -apple-system, sans-serif; }
+svg.draw text.small { fill: var(--muted); font-size: 11px; }
+svg.draw .box { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+svg.draw .hot { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+svg.draw .warnbox { fill: var(--warn-soft); stroke: var(--warn); stroke-width: 1.5; }
+svg.draw .badbox { fill: var(--bad-soft); stroke: var(--bad); stroke-width: 1.5; }
+svg.draw .line { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+svg.draw .path { stroke: var(--accent); stroke-width: 2; fill: none; }
+svg.draw .dash { stroke-dasharray: 5 4; }
+svg.draw .head { fill: var(--muted); }
+svg.draw .headhot { fill: var(--accent); }
+footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; }
+.legend span { display: inline-block; margin-right: 12px; font-size: .85rem; }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: middle; border: 1px solid var(--line); }
+.g { background: var(--accent); } .y { background: var(--warn); } .r { background: var(--bad); } .n { background: var(--code); }
+</style>
+<script type="application/json" id="doc-meta">
+{ "kind": "learning", "id": "dark-mode-toggle", "status": "done", "revision": 1,
+  "supersedes": null, "updated": "2026-10-14",
+  "defines": [],
+  "cites": ["P-1", "P-2", "D-1", "D-2", "F-1", "F-2", "Q-4", "Q-5", "Q-6"],
+  "open": { "needs_decision": 0, "assumptions": 0 } }
+</script>
+</head>
+<body>
+<main>
+<h1>Learning: dark-mode toggle <span class="chip">done</span></h1>
+<p class="summary">What PR #42 adds, what it stands on, and how well each piece came across in the quiz.</p>
+<p class="meta-line">PR #42 · head 8b41d07 · 2026-10-14 · for you, the reviewer and owner · <a href="../index.html">Back to the brief</a></p>
+
+<section id="summary">
+<h2>Summary</h2>
+<p>The browser's dark preference and the existing colour tokens were already there; PR #42 adds a stored choice, a tiny script that applies it before paint, dark token values, and a Settings control that writes the choice.</p>
+</section>
+
+<section id="iceberg">
+<h2>Iceberg</h2>
+<svg class="draw" viewBox="0 0 640 320" role="img" aria-label="Above water: the Settings control, the theme store, the boot script and dark token values. Below: browser storage, the device colour preference, CSS custom properties and the button group">
+  <path class="line" d="M0 120 H640"/><text class="small" x="560" y="114">water line</text>
+  <text x="20" y="22">New in this PR</text>
+  <rect class="hot" x="40" y="34" width="160" height="34" rx="6"/><text x="52" y="56">Appearance control</text>
+  <rect class="hot" x="220" y="34" width="120" height="34" rx="6"/><text x="232" y="56">Theme store</text>
+  <rect class="warnbox" x="360" y="34" width="120" height="34" rx="6"/><text x="372" y="56">Boot script</text>
+  <rect class="hot" x="160" y="78" width="160" height="34" rx="6"/><text x="172" y="100">Dark token values</text>
+  <text x="20" y="146">Already there</text>
+  <rect class="hot" x="40" y="160" width="160" height="34" rx="6"/><text x="52" y="182">Browser storage</text>
+  <rect class="warnbox" x="220" y="160" width="220" height="34" rx="6"/><text x="232" y="182">Device colour preference</text>
+  <rect class="hot" x="40" y="210" width="200" height="34" rx="6"/><text x="52" y="232">CSS custom properties</text>
+  <rect class="hot" x="260" y="210" width="160" height="34" rx="6"/><text x="272" y="232">Button group</text>
+  <rect class="box dash" x="40" y="262" width="220" height="34" rx="6"/><text x="52" y="284">Account settings API</text>
+  <text class="small" x="272" y="284">not touched</text>
+  <rect class="badbox" x="500" y="34" width="120" height="34" rx="6"/><text x="512" y="56">hotspot: F-1</text>
+  <path class="line dash" d="M480 51 H500"/>
+</svg>
+<p class="legend"><span><i class="dot g"></i>understood</span><span><i class="dot y"></i>partly</span><span><i class="dot r"></i>missed or hotspot</span><span><i class="dot n"></i>not touched</span></p>
+<p>Decisions behind it: <a href="../decisions.html#D-1">D-1</a> (segmented control) and <a href="../decisions.html#D-2">D-2</a> (device storage). Hotspot: the boot script, where review found F-1.</p>
+</section>
+
+<section id="deep-dive">
+<h2>Deep dive</h2>
+<details>
+  <summary>Boot script (P-1) <span class="chip warn">partly</span></summary>
+  <p><strong>Plain words</strong> A few lines in the page head read the saved theme and set <code>data-theme</code> on the root element before the browser paints anything.</p>
+  <p><strong>How it connects</strong> <code>index.html:12-24</code> sets the attribute; <code>src/styles/tokens.css:40</code> swaps token values on <code>[data-theme="dark"]</code>.</p>
+  <p><strong>Trade-offs</strong> It must stay tiny and dependency-free, so it duplicates the store's parsing in a few lines.</p>
+  <p><strong>What to watch</strong> Any storage call can throw (F-1). Keep the try/catch when editing it.</p>
+</details>
+<details>
+  <summary>Theme store (P-1) <span class="chip">understood</span></summary>
+  <p><strong>Plain words</strong> One module owns the saved choice: read it, write it, and tell listeners when it changes.</p>
+  <p><strong>How it connects</strong> <code>src/theme/store.ts</code>; the Settings control calls <code>setTheme</code>.</p>
+  <p><strong>What to watch</strong> The device-preference listener only runs while System is chosen (F-2).</p>
+</details>
+<details>
+  <summary>Appearance control (P-2) <span class="chip">understood</span></summary>
+  <p><strong>Plain words</strong> Three buttons in a group; the selected one gets the accent fill and a check mark.</p>
+  <p><strong>In this codebase</strong> It reuses <code>src/ui/ButtonGroup.tsx</code>, which already handles arrow keys.</p>
+</details>
+<details>
+  <summary>Device colour preference <span class="chip warn">partly</span></summary>
+  <p><strong>Plain words</strong> The browser reports whether the device is in dark mode, and tells the page when that changes.</p>
+  <p><strong>Where it lives</strong> The <code>prefers-color-scheme</code> media query, read through <code>matchMedia</code>.</p>
+</details>
+</section>
+
+<section id="quiz">
+<h2>Quiz</h2>
+<article class="card">
+  <h3><a href="../decisions.html#Q-4">Q-4</a> Why does the theme script sit inline in the page head instead of in the app bundle? <span class="chip">right</span></h3>
+  <p><strong>Why it matters</strong> Moving it into the bundle brings back the white flash.</p>
+  <p><strong>Your answer</strong> "So it runs before the page draws anything." <strong>Verdict</strong> right.</p>
+</article>
+<article class="card">
+  <h3><a href="../decisions.html#Q-5">Q-5</a> With System chosen, what happens when the device switches to dark while the page is open? <span class="chip warn">partly</span></h3>
+  <p><strong>Your answer</strong> "It changes on the next reload." <strong>Verdict</strong> partly.</p>
+  <p><strong>Correction</strong> It changes at once: the store listens for the device change while System is chosen. <strong>Explain-back</strong> "The listener runs only for System, and switches live." Accepted.</p>
+</article>
+<article class="card">
+  <h3><a href="../decisions.html#Q-6">Q-6</a> Why does reading the stored theme sit inside a try/catch? <span class="chip">right</span></h3>
+  <p><strong>Your answer</strong> "Some private windows throw on storage, and a crash there leaves a blank page." <strong>Verdict</strong> right. This was F-1.</p>
+</article>
+</section>
+
+<section id="simplify">
+<h2>Simplify</h2>
+<p>The store and the boot script both parse the stored value. Sharing one parser is not worth it: the boot script must stay inline and tiny.</p>
+</section>
+
+<section id="before-merge">
+<h2>Before you merge</h2>
+<table>
+  <tr><th>Item</th><th>Choice</th><th>Why</th></tr>
+  <tr><td>F-1 storage crash</td><td>fold in (done)</td><td>Fixed in 5d27e80 with a test</td></tr>
+  <tr><td>F-2 System listener</td><td>fold in (done)</td><td>Fixed in 5d27e80 with a test</td></tr>
+  <tr><td>Only Chromium was driven in QA</td><td>accept</td><td>Standard calls only; noted on the verification page</td></tr>
+</table>
+</section>
+</main>
+</body>
+</html>

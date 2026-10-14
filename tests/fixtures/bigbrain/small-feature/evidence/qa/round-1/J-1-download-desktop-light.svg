@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" font-family="sans-serif">
+  <rect width="640" height="360" fill="#fbfaf6"/>
+  <rect x="20" y="20" width="600" height="36" rx="6" fill="none" stroke="#5d6861"/>
+  <text x="36" y="44" font-size="15" fill="#1d2420">Jotter (fixture placeholder screenshot)</text>
+  <text x="36" y="110" font-size="16" fill="#1d2420">Note menu: Download as Markdown → trip-plan-n42.md</text>
+  <text x="36" y="140" font-size="14" fill="#1d2420">File opened: "# Trip plan", checklist "- [x] Book train", link kept</text>
+  <text x="36" y="330" font-size="12" fill="#5d6861">desktop 1280x800 · stand-in for a real capture</text>
+</svg>

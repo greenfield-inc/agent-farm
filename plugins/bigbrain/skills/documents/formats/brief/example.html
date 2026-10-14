@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Markdown export brief</title>
+<style>
+:root {
+  --bg: #fbfaf6; --panel: #ffffff; --ink: #1d2420; --muted: #5d6861; --line: #dcdfd6;
+  --accent: #2f7d4f; --accent-soft: #e4f1e7;
+  --warn: #9a5b00; --warn-soft: #fbefd9;
+  --bad: #a23a2f; --bad-soft: #f9e4e1;
+  --code: #f0f1eb;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141815; --panel: #1b211d; --ink: #e7ebe6; --muted: #9aa69e; --line: #2e3731;
+    --accent: #6fc38d; --accent-soft: #1e3327;
+    --warn: #e5b566; --warn-soft: #352a15;
+    --bad: #ef9388; --bad-soft: #3a1f1c;
+    --code: #232a25;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+main { max-width: 46rem; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 1.85rem; line-height: 1.25; margin: 0 0 .3rem; }
+h2 { font-size: 1.3rem; line-height: 1.3; margin: 2.2rem 0 .6rem; padding-top: .8rem; border-top: 1px solid var(--line); }
+h3 { font-size: 1.05rem; margin: 1.4rem 0 .4rem; }
+a { color: var(--accent); }
+.lede { color: var(--muted); margin: 0 0 .8rem; }
+.meta { color: var(--muted); font-size: .88rem; }
+.chip { display: inline-block; font-size: .78rem; font-weight: 600; line-height: 1.5; padding: .05rem .6rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent); vertical-align: middle; }
+.chip.warn { background: var(--warn-soft); color: var(--warn); }
+.chip.bad { background: var(--bad-soft); color: var(--bad); }
+.panel, .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: .8rem 1rem; margin: .8rem 0; }
+.card h3 { margin-top: 0; }
+.callout { border-left: 4px solid var(--accent); background: var(--accent-soft); padding: .6rem 1rem; margin: 1rem 0; border-radius: 0 6px 6px 0; }
+.callout.warn { border-color: var(--warn); background: var(--warn-soft); }
+.callout.bad { border-color: var(--bad); background: var(--bad-soft); }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 640px) { .pair { grid-template-columns: 1fr; } }
+table { width: 100%; border-collapse: collapse; font-size: .92rem; margin: .6rem 0; }
+th, td { text-align: left; vertical-align: top; padding: .4rem .5rem; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+th { color: var(--muted); font-weight: 600; }
+code { background: var(--code); padding: .05rem .3rem; border-radius: 4px; font-size: .9em; overflow-wrap: anywhere; }
+pre { background: var(--code); padding: .8rem; overflow-x: auto; border-radius: 6px; font-size: .88rem; }
+pre code { padding: 0; background: none; }
+dl { margin: .4rem 0; }
+dt { font-weight: 600; }
+dd { margin: 0 0 .5rem 1rem; }
+details { border: 1px solid var(--line); border-radius: 6px; padding: .4rem .8rem; margin: .6rem 0; background: var(--panel); }
+summary { cursor: pointer; font-weight: 600; }
+nav.contents ul { columns: 2; padding-left: 1.2rem; margin: .4rem 0; }
+@media (max-width: 640px) { nav.contents ul { columns: 1; } }
+figure { margin: 1rem 0; }
+figcaption { color: var(--muted); font-size: .85rem; }
+svg { width: 100%; height: auto; display: block; }
+svg text { fill: var(--ink); font: 13px -apple-system, "Segoe UI", sans-serif; }
+svg .small { font-size: 11px; fill: var(--muted); }
+svg .box { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+svg .hot { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+svg .warnbox { fill: var(--warn-soft); stroke: var(--warn); stroke-width: 1.5; }
+svg .line { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+svg .path { stroke: var(--accent); stroke-width: 2; fill: none; }
+svg .dash { stroke-dasharray: 5 4; }
+svg .head { fill: var(--muted); }
+svg .headhot { fill: var(--accent); }
+footer { color: var(--muted); font-size: .85rem; margin-top: 3rem; border-top: 1px solid var(--line); padding-top: .8rem; }
+</style>
+<script type="application/json" id="doc-meta">
+{ "kind": "brief", "id": "markdown-export",
+  "status": "approved", "revision": 2,
+  "supersedes": null, "updated": "2026-10-14",
+  "defines": ["SC-1", "SC-2", "SC-3"],
+  "cites": ["D-1", "D-2"],
+  "open": { "needs_decision": 0, "assumptions": 1 } }
+</script>
+</head>
+<body>
+<main>
+<h1>Brief: take your notes out of Jotter <span class="chip">approved</span></h1>
+<p class="lede">People who write in Jotter cannot get their notes out in a form other tools read. This brief states the problem, who has it, and what "fixed" looks like.</p>
+
+<figure>
+<svg viewBox="0 0 640 170" role="img" aria-labelledby="draw-title">
+  <title id="draw-title">Today notes are locked inside Jotter; wanted is a plain file that any editor opens</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="head"/></marker>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="headhot"/></marker>
+  </defs>
+  <text x="20" y="22" class="small">TODAY</text>
+  <rect x="20" y="32" width="170" height="54" rx="8" class="box"/>
+  <text x="38" y="56">Notes in Jotter</text>
+  <text x="38" y="74" class="small">checklists, links, headings</text>
+  <path d="M190,59 L300,59" class="line dash" marker-end="url(#a)"/>
+  <text x="206" y="50" class="small">copy and paste,</text>
+  <text x="206" y="80" class="small">one note at a time</text>
+  <rect x="300" y="32" width="170" height="54" rx="8" class="warnbox"/>
+  <text x="318" y="56">Other editor</text>
+  <text x="318" y="74" class="small">formatting lost</text>
+  <text x="20" y="112" class="small">WANTED</text>
+  <rect x="20" y="120" width="170" height="40" rx="8" class="box"/>
+  <text x="38" y="145">Notes in Jotter</text>
+  <path d="M190,140 L300,140" class="path" marker-end="url(#ah)"/>
+  <text x="208" y="132" class="small">one action</text>
+  <rect x="300" y="120" width="170" height="40" rx="8" class="hot"/>
+  <text x="318" y="145">Plain files, intact</text>
+  <path d="M470,140 L540,140" class="path" marker-end="url(#ah)"/>
+  <text x="548" y="145">any editor</text>
+</svg>
+<figcaption>The gap is the dashed arrow: today the only way out is copy and paste.</figcaption>
+</figure>
+
+<nav class="contents" id="contents" aria-label="Contents">
+<h2>Contents</h2>
+<ul>
+  <li><a href="#problem">The problem</a></li>
+  <li><a href="#who">Who it affects</a></li>
+  <li><a href="#today-wanted">Today and wanted</a></li>
+  <li><a href="#success">Success</a></li>
+  <li><a href="#appetite">Appetite</a></li>
+  <li><a href="#constraints">Constraints</a></li>
+  <li><a href="#non-goals">Non-goals</a></li>
+  <li><a href="#unknowns">Unknowns</a></li>
+  <li><a href="#open-decisions">Open decisions</a></li>
+  <li><a href="#evidence">Evidence</a></li>
+  <li><a href="#sources">Sources</a></li>
+  <li><a href="#related">Related</a></li>
+</ul>
+<p class="meta">Bundle: <a href="explainers/note-body.html">explainer</a> · <a href="options.html">options</a> · <a href="decisions.html">decisions</a> · <a href="cover-sheet.html">cover sheet</a> · <a href="evidence/verification.html">verification</a> · <a href="post-mortem.html">post-mortem</a> · <a href="trace.html">trace</a></p>
+</nav>
+
+<section id="problem">
+<h2>The problem</h2>
+<p>A user kept a year of trip plans in Jotter. She moved to a new laptop and wanted the plans in the text editor she uses for everything else. She opened each note, selected all, and pasted it. Forty notes later, every checklist had become plain lines, and two links had lost their addresses.</p>
+<p>Jotter has no way to take notes out. Copy and paste works for one note, drops structure, and does not scale to a whole account. People who want a copy of their own writing, as a backup or to move tools, have no good path.</p>
+</section>
+
+<section id="who">
+<h2>Who it affects</h2>
+<ul>
+  <li><strong>Long-time writers</strong> with dozens of notes who want a backup they control.</li>
+  <li><strong>People moving tools</strong> who need their notes in a format other editors open.</li>
+  <li><strong>People sharing one note</strong> with someone who does not use Jotter.</li>
+</ul>
+</section>
+
+<section id="today-wanted">
+<h2>Today and wanted</h2>
+<div class="pair">
+  <div class="panel">
+    <h3>Today</h3>
+    <p>Open a note, select all, copy, paste somewhere else. Repeat per note. Checklists become plain text. Links keep their words but can lose their address.</p>
+  </div>
+  <div class="panel">
+    <h3>Wanted</h3>
+    <p>One action saves a note as a plain file. One action saves every note. The files open in any text editor and read the same as they do in Jotter.</p>
+  </div>
+</div>
+</section>
+
+<section id="success">
+<h2>Success</h2>
+<p>Each criterion is something a user can do afterwards.</p>
+<div class="card" id="SC-1"><strong>SC-1</strong> A user can save any single note as a file that opens in a plain text editor, with its title, headings, checklists (and their ticked state) and links intact.</div>
+<div class="card" id="SC-2"><strong>SC-2</strong> A user can save every note in their account in one action, and gets one file per note.</div>
+<div class="card" id="SC-3"><strong>SC-3</strong> Saved file names are safe on every common desktop system and never collide, even when two notes share a title or a title has characters such as "/" or "?".</div>
+</section>
+
+<section id="appetite">
+<h2>Appetite</h2>
+<p>One pull request, about a day of work. If it needs more than that, we cut to single-note export first.</p>
+</section>
+
+<section id="constraints">
+<h2>Constraints</h2>
+<ul>
+  <li>No new third-party service. Files come straight from Jotter.</li>
+  <li>Nothing about how notes are stored changes. See the <a href="explainers/note-body.html">note body explainer</a>.</li>
+  <li>Only the signed-in owner can export their notes.</li>
+</ul>
+</section>
+
+<section id="non-goals">
+<h2>Non-goals</h2>
+<ul>
+  <li>Importing Markdown back into Jotter.</li>
+  <li>Other formats such as PDF or HTML.</li>
+  <li>Exporting attachments or images. Jotter notes have none today.</li>
+  <li>Scheduled or automatic backups.</li>
+</ul>
+</section>
+
+<section id="unknowns">
+<h2>Unknowns</h2>
+<p>No open questions remain. One assumption stands:</p>
+<p class="callout warn">[ASSUMPTION: notes stay under the 100 KB cap the editor already enforces, so a whole account fits in one download.]</p>
+</section>
+
+<section id="open-decisions">
+<h2>Open decisions</h2>
+<p>Both were open when this brief was written. Both are now settled.</p>
+<table>
+  <thead><tr><th>Decision</th><th>Options</th><th>Settled by</th></tr></thead>
+  <tbody>
+    <tr><td>One file per note, or one file for everything</td><td><a href="options.html#decision-1">options, decision 1</a></td><td><a href="decisions.html#D-1">D-1</a></td></tr>
+    <tr><td>Where the file is built: server or browser</td><td><a href="options.html#decision-2">options, decision 2</a></td><td><a href="decisions.html#D-2">D-2</a></td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="evidence">
+<h2>Evidence</h2>
+<table>
+  <thead><tr><th>What</th><th>Known or suspected</th></tr></thead>
+  <tbody>
+    <tr><td>Six support messages in the last quarter ask how to "get notes out" or "back up notes".</td><td>Known</td></tr>
+    <tr><td>Checklists lose their ticked state on paste, because the app stores the tick as a flag, not as text (<a href="explainers/note-body.html#how-it-works">explainer</a>).</td><td>Known</td></tr>
+    <tr><td>Some users would stay longer if they knew they could leave easily.</td><td>Suspected, not measured</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="sources">
+<h2>Sources</h2>
+<ul>
+  <li>Support inbox, tag "export", July to September 2026.</li>
+  <li>The note storage code, summarised in the <a href="explainers/note-body.html">explainer</a>.</li>
+</ul>
+</section>
+
+<section id="related">
+<h2>Related</h2>
+<ul>
+  <li><a href="options.html">Options</a> and <a href="decisions.html">decision log</a></li>
+  <li><a href="cover-sheet.html">Plan cover sheet</a></li>
+  <li><a href="evidence/verification.html">Verification</a> and <a href="post-mortem.html">post-mortem</a></li>
+</ul>
+</section>
+
+<section id="change-log">
+<h2>Change log</h2>
+<ul>
+  <li>2026-10-14 · revision 2 · open decisions marked settled; status approved.</li>
+  <li>2026-10-14 · revision 1 · first draft from the planning interview.</li>
+</ul>
+</section>
+
+<footer>Origin: planning interview, 2026-10-14 · Linked issue: none (fixture) · Jotter is a fictional app.</footer>
+</main>
+</body>
+</html>

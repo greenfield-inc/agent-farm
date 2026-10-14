@@ -1,0 +1,6 @@
+variants:
+  claude:
+    agent: investigator
+  codex:
+    agent: investigator-codex
+default: claude

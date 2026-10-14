@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 560" width="640" height="280" font-family="system-ui, sans-serif">
+<title>Settings today, desktop, light</title>
+<rect width="1280" height="560" fill="#f6f7f9"/>
+<rect width="1280" height="56" fill="#ffffff" stroke="#dde1e6"/><text x="32" y="35" font-size="20" font-weight="700" fill="#1b1f24">Pocket Notes</text>
+<text x="280" y="104" font-size="26" font-weight="700" fill="#1b1f24">Settings</text>
+<rect x="280" y="124" width="720" height="250" rx="10" fill="#ffffff" stroke="#dde1e6"/>
+<text x="300" y="164" font-size="16" fill="#1b1f24">Display name</text><text x="980" y="164" font-size="16" fill="#5f6873" text-anchor="end">Demo</text><line x1="296" x2="984" y1="186" y2="186" stroke="#dde1e6"/>
+<text x="300" y="220" font-size="16" fill="#1b1f24">Notes per page</text><text x="980" y="220" font-size="16" fill="#5f6873" text-anchor="end">25</text><line x1="296" x2="984" y1="242" y2="242" stroke="#dde1e6"/>
+<text x="300" y="276" font-size="16" fill="#5f6873">(no appearance setting)</text>
+<text x="280" y="536" font-size="14" fill="#5f6873">Current: no appearance setting; the app is always light</text>
+</svg>
