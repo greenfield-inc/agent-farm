@@ -174,3 +174,20 @@ test('the relay and control-flow contract keep the review-P-2 fixes (F-2, F-3, F
  assert.doesNotMatch(relay,/answer: Q-n → \(question back\)/);
  assert.match(orchestrate,/a `quiz` skips steps 1, 4 and 5 and shows no recommended answer in step 3 \(no answering from a source, no recommended answer, no D-n\)/,'F-8: quiz semantics come first');
 });
+
+test('the implementer runs the control flow alone, with the QA loop, narrow writes, the D-24 post-mortem and the D-25 quick fix (P-3)',()=>{
+ const skill=text(path.join(root,'skills','implement-plan','SKILL.md')).replace(/\s+/g,' ');
+ for(const section of ['Unexpected issues','Critical decisions','Assumptions that were wrong','Thrashing'])assert.match(skill,new RegExp(`\\*\\*${section}:\\*\\*`),`post-mortem section ${section}`);
+ assert.match(skill,/Each says "none" explicitly when there is nothing/);
+ assert.match(skill,/## Quick fix .*No planner, no cover sheet, no reviewer\..*draft PR labelled `no-plan`.*Never start a reviewer, and never merge\./);
+ assert.match(skill,/may set only `verdict`, `method`, `evidence`, `commit` and `round` on a row/);
+ assert.match(skill,/Never add, remove or reword a row/);
+ assert.match(skill,/the default is 3/);
+ assert.match(skill,/Never mark it pass\./);
+ assert.match(skill,/You never start a reviewer or a designer\./);
+ for(const agent of ['implementer-opus','implementer-codex']){const body=text(path.join(root,'agents',agent+'.md'));assert.match(body,/Quick fix/);assert.match(body,/post-mortem\.html/);}
+ const quality=text(path.join(root,'skills','design','references','design-quality.md'));
+ for(const item of ['Layout shift','Overflow and clipping','Misalignment','Spacing off-scale','Missing states','Flicker','Focus and keyboard','Touch targets','Contrast','Dark mode','Phone width','Double submit','Slow feedback'])assert.match(quality,new RegExp(`\\| ${item} \\|`),item);
+ const kinds=JSON.parse(text(path.join(root,'skills','documents','kinds.json')));
+ for(const id of ['unexpected','critical-decisions','wrong-assumptions','thrashing'])assert.ok(kinds['post-mortem'].sections.includes(id),id);
+});
