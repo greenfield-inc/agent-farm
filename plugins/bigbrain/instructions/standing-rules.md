@@ -29,7 +29,7 @@ Read a skill's `SKILL.md` when the step in front of you needs it, and its refere
 
 ## Documents are the interface
 
-Chat is scratch. Decisions, plans and reports live in documents, handed over by path, never by paraphrase. Every page for one piece of work goes in one bundle (see the `page` skill's bundle reference for folders and destinations). Every page starts from the `documents` skill's template for its kind, carries a `doc-meta` block, uses stable IDs, and passes `check-bundle` before it changes stage. Revise a document in place with a change-log line. Moving to the next stage is the person's decision, relayed by the orchestrator.
+Chat is scratch. Decisions, plans and reports live in documents, handed over by path, never by paraphrase. Every page for one piece of work goes in one bundle (see the `documents` skill for folders and destinations). Every page starts from the `documents` skill's template for its kind, carries a `doc-meta` block, uses stable IDs, and passes `check-bundle` before it changes stage. Revise a document in place with a change-log line. Moving to the next stage is the person's decision, relayed by the orchestrator.
 
 Markers: `[NEEDS DECISION: …]` marks anything open and blocks approval of its page until it becomes a relay question and a D-n. `[ASSUMPTION: …]` marks a choice made without asking; assumptions are listed in the approval message.
 

@@ -15,10 +15,8 @@ skills:
   - options
   - spike
   - plan
-  - page
   - interview
   - architecture-diagram
-  - codebase-design
   - documents
 description: "Investigate, explain, present options and write the cover sheet with its control flow. Interviews the person through the orchestrator. Only plans."
 args:

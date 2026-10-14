@@ -5,7 +5,7 @@ description: Holds bigbrain's page templates, worked examples, JSON schemas and 
 
 # Documents
 
-Every bigbrain page is built from a template here, carries a `doc-meta` block, and passes `check-bundle` before it changes stage. The `page` skill still owns form (colours, drawing first, layout); this skill owns the skeletons, the machine-readable parts and the checker.
+Every bigbrain page is built from a template here, carries a `doc-meta` block, and passes `check-bundle` before it changes stage. This skill owns the whole page: form, skeletons, the machine-readable parts, the bundle and the checker. The templates already carry the CSS; never restyle from scratch.
 
 ## Write a page
 
@@ -15,6 +15,28 @@ Every bigbrain page is built from a template here, carries a `doc-meta` block, a
 4. Add the page to `bundle.json`'s `documents`.
 
 Kinds: brief, explainer, options, decisions, cover-sheet, design-notes, mockups, verification, bug-report, post-mortem, learning, map.
+
+## Style
+
+The templates hold the tokens, layout and components; keep them. On top of that:
+
+- **Drawing first.** Open with one inline-SVG drawing right after the title, the sketch the rest of the page explains. Add more where a flow or comparison is the point. A simple subject gets a simple drawing, never none.
+- **One centred column**, about 72 characters wide, no horizontal scrolling outside a `pre`.
+- **Decision first.** What the person must decide or act on comes before background.
+- **Light and dark.** Use the template's colour tokens only; the page must read in both themes.
+- **Self-contained.** One `.html` file, inline CSS and SVG, system fonts, no external requests, no script unless the page needs interaction.
+- **Readable with every `details` closed.** Disclosures hold depth the reader opts into, never something they need.
+
+Before you share a page: someone who reads only the drawings and headings leaves oriented; it renders with JavaScript off; nothing is fetched; it reads in light and dark; every fact came from your sources.
+
+## Bundle and destination
+
+One piece of work has one bundle, a folder whose files and names come from `kinds.json`: the brief as `index.html` (the hub), `options.html`, `decisions.html`, `cover-sheet.html`, `control-flow.json`, `evidence/verification.json` and `evidence/verification.html`, `explainers/<topic>.html`, `mockups/` with `mockups/design-notes.html`, `learning/`, `post-mortem.html`, `trace.html` (built with `session-trace`, or a labelled status page when capture is not authorized), and `bundle.json` listing every document. A bug report is the `index.html` of a bundle of its own.
+
+- Link between files with relative links only, so the bundle works opened from disk, copied or published. Each page links back to `index.html`; the brief and cover sheet list every other file.
+- Settle the destination once, in this order, and record it in `bundle.json`: what the person said in this conversation, then the `docs` launch argument, then the workspace instructions or the repository's conventions, then local.
+- Local means `tmp/bigbrain/<slug>/` in the repository you were started in (the orchestrator's Session map lives in the Session folder). Check that `tmp/` is git-ignored and never commit a bundle unless the person asks.
+- Publishing elsewhere copies the local bundle there, keeping its folders and links, private by default. If `bundle.json` has a `published.id`, update that same container; never make a second one. Read back what you published, record its `kind`, `id` and `url`, and say plainly when publishing failed.
 
 ## JSON sources
 

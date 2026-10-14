@@ -10,7 +10,6 @@ instructions_files:
 skills:
   - design
   - verify-app
-  - page
   - documents
 description: "Capture the current screens, write design notes, and make three mockup options per round from real screenshots with native image generation; the approved one lands in mockups/. Never edits product source."
 args:

@@ -9,7 +9,6 @@ instructions_files:
   - ../instructions/glossary.md
 skills:
   - teach
-  - page
   - documents
 description: "Map a feature's PRs as an iceberg, quiz the person one question at a time through the orchestrator, and publish the learning page. Never blocks merging."
 args:

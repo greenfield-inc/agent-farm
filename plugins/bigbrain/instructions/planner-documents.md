@@ -15,7 +15,7 @@ Mockups and design notes come from the designer (`mockups/`); you cite them.
 
 ## One piece of work, one bundle
 
-Every page for one piece of work goes in the same bundle, with fixed file names and relative links: the brief as `index.html`, then `options.html`, `decisions.html`, `cover-sheet.html`, `control-flow.json`, `evidence/verification.json`, `explainers/`, `mockups/`, `evidence/`. The brief is the hub: it lists the others under "Related", and each links back. The `page` skill's bundle reference says how to choose a destination and publish to it. Settle the destination once, early, and report where the documents are.
+Every page for one piece of work goes in the same bundle, with fixed file names and relative links: the brief as `index.html`, then `options.html`, `decisions.html`, `cover-sheet.html`, `control-flow.json`, `evidence/verification.json`, `explainers/`, `mockups/`, `evidence/`. The brief is the hub: it lists the others under "Related", and each links back. The `documents` skill says how to choose a destination and publish to it. Settle the destination once, early, and report where the documents are.
 
 ## IDs and decisions
 

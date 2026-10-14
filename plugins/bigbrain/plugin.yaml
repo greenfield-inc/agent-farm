@@ -5,27 +5,27 @@ source:
   repository: https://github.com/greenfield-inc/agent-farm
   commit: c9660b56790830430f32e5a04975a3740bb173f4
 checksums:
-  agents/designer.md: b308c51b9d5e2ad054f041875ffa59cf3b3302f6659786d85babcfb7d66a8a77
+  agents/designer.md: 4e8ab26d8ccd575a2c0fdbaaa38ad7ed7f0dcab607d0c5c7da0e7bb817e85d1d
   agents/explorer.md: 1635f450fb53b7a435e550cdf8b91e44826512f23461836416a3da32f1dc5e6f
   agents/implementer-codex.md: cc582fbfb4789a0178891ef11d6b23a1afaa0a59978fa6a39bc3405038603eb3
   agents/implementer-opus.md: c19e5ef85b93c87ce441aba8e1d3289c171913a18f8471ee795f0f627c88288e
-  agents/investigator-codex.md: 805b1274952499b249430dd463e67066a85227f6fe400aff0889ce4eaccb54fa
-  agents/investigator.md: d2879b84f87c40922f932c68db2f18a774b558d4d2d269339d405dc88722b440
-  agents/orchestrator.md: 8c3836f5f4a1cd9ec3a77f0e809c5a5f06f9f07922da260751c8d6fc079964f9
-  agents/planner-codex.md: 523f5b5eba7199bc26fc74ea3bb70e5788156e68f97352a8f35bb85d795bdc88
-  agents/planner.md: a444f3c14a78151b3e6c6226f8e9508f7fe5070588d5763cfc6a33b206bac53e
+  agents/investigator-codex.md: 4a4191fdb1fa0796ce9209235fbc535fd06f6d63027f6a745c5a50f1520c5324
+  agents/investigator.md: 442ca8107ab01d44e614a626716dcb0b9d9a2a936ee54d91e8ce0479aedcc460
+  agents/orchestrator.md: c7f325044346f2557e6d8fcd5d8f45dd97d68cf0c4769711ccaec28002d6d3f4
+  agents/planner-codex.md: bde27ff41f34a0b34a2f0b0e9fcd9162fce5aaf9e190ac087a7c2c89d37457b4
+  agents/planner.md: 723761f6b7e1000d84b1e160509cccfbada7c90a563765f8dfae5a0864b8a402
   agents/researcher.md: 86f7bf38b996eddab4635cc9c7d0724d6ee776d4357a12d70e49a7ebf15fd032
   agents/review-worker.md: b85ba18c25ea281d22f094817428a29c82c0e17ff7e8ab990f4477df24670f75
   agents/reviewer-claude.md: 6e860c1c92dd66ce476540aee39c9320f812ee94957409787a6f1aeeae201fe9
   agents/reviewer-codex.md: 0af668d9ebe5d9aa1940ba5f6529c58ecc8bbe92e879e8450d18c3439ccad6bb
   agents/socrates.md: b893cb2283ead6cec8bb061841b25a750b007cace9f3c37ec21a13c27d9daf9c
-  agents/teacher.md: 9b310b0da3c8a1157fc48e19fa4f9495756a0e08d822d342fb740b35849c899f
+  agents/teacher.md: 10e3470733058934fc5b5c1fd714188171eca454c919722dce9ab89d8547198a
   agents/verifier.md: 9da2a3c793c811d95f13e27739ebbedcdea625f6318f511a92f0df65b14ec76c
-  instructions/contract.md: 657f0ca37dd1ced818e4cd6d6b21a3a3228807f9e82779448adff2bd0d432891
+  instructions/contract.md: cf4d70aa42c5fef961825b210db6af8fa857b49b4f3742c8d45a17724fd46f93
   instructions/glossary.md: 7b71453f005486e686456f32b57fa7bac4bbb9eeecd81fd6f2c9948373b55a52
-  instructions/planner-documents.md: 941ca2c42d53a3c76e83e7c0a95446f5c5c07bde0d62758c848bf0b1f4124a7b
+  instructions/planner-documents.md: 6ad39e2e2a649bd660de49d472b37b816d2ffd79af78a7f46956b1cb62e8fea4
   instructions/planner-identity.md: a184359f32525ff2439224e13ede4068d43903a63bb828d83115493760ed21fe
-  instructions/standing-rules.md: fb57627fadcddf692e8cabb6e45b6c1d82cd1cf404048e7bb71872cfc58f2d5f
+  instructions/standing-rules.md: 7af7ef2d16a3cf2c63cb0261a3c3b746b6984a757b9a8d1e634e11b847479509
   profiles/designer.yaml: b7c18fd49fa3cf084380f0fd0feadcca2b5bfc92612a66cab0e518443ab5c086
   profiles/implementer.yaml: 34921d2f97e5bf8d200f4ee88e30fddb759fd7eabf4f69e29e2ccd8eefa98d21
   profiles/investigator.yaml: d443c206b3bbf5d3311ed26b28664af56fba44a51b26b165d53336f51e2fda07
@@ -47,7 +47,7 @@ checksums:
   skills/codebase-design/agents/openai.yaml: edebc9e4fcfe102114012575eaa9600b9b5fd08c311664f389c36e7bc717740f
   skills/design/SKILL.md: d60f15a12836308c55e3f5507285965d9e1ec4a0e6499f3cf16fd68ab64fac6c
   skills/design/references/design-quality.md: 204442227b91f8820fa1c4907d8bd8f43c771208f8e8440246fadb39bd878e0a
-  skills/documents/SKILL.md: 9da4749faedc2996f0a2f11a62fada0d29d90fb7ae0820b322ad38fb8ffce0f1
+  skills/documents/SKILL.md: 77c2f1d5480c02af602dd21ddad1f5ae2bad61e02c28b76108c4edd14adb0750
   skills/documents/formats/brief/example.html: 5588c0a16e7bf000a0c65de5a5e9ba513d7bce34c84e02bb554157aa27570dd6
   skills/documents/formats/brief/template.html: 90841deb2612db4f6abecda81a2cfc6399d3065640e807d35fec5648859f3b7b
   skills/documents/formats/bug-report/example.html: e12a8890c78041e7f4ffd20a7834a3f843d555630355e42752e8e7905674b5e4
@@ -101,11 +101,8 @@ checksums:
   skills/orchestrate/references/host-policy.md: c86e6a045d40aada6354891aa08cf4046a6a97c044068b25b2fc18b45cd9e338
   skills/orchestrate/references/ledger.md: 3dd1fd106bb6a95ada6364b5f4cb8d4d666565fde5986dcd3fddf3aac8faab10
   skills/orchestrate/references/relay.md: 151e2ce9c4e98ba0b2be932ebea7a4bbb50c32aaff15ca995de2ec3311014300
-  skills/page/SKILL.md: 79e3b86d07b9478a742370a07e1e60c98b79a83a697a65c8d8f14ce2c37194b7
-  skills/page/references/bundle.md: fbee349a023e646f5d0e27b460f6d19c789b19212a02b727e1c688ec52ac8bb4
-  skills/page/references/post-mortem.md: 6f8f3f594d7aaa705ef44cbc013dc4ab98d7edc4cd3717e0aa5b46b7b3282ec0
   skills/plan/SKILL.md: b6aa2ec13f4860363e36835a16c185a79123a1b621f9a6d715f544569380d972
-  skills/plan/references/cover-sheet.md: d150c273791f4c551c55f504e54ce42a30ff4589a75d3c97192f5ad7d629e8ea
+  skills/plan/references/cover-sheet.md: 4b1625f2c2dc883f59ff58352a294409057a47d9753818aef33228322b50a2f4
   skills/prepare-pr/SKILL.md: f42cc79bb7fbcdee32a831189a32a33d9c9e2694c373cfbcb6772573c44a7d1d
   skills/prepare-pr/assets/pr-walkthrough.html: d3028a699a3d3db47b1fd715042ce383a133dd10ce1bbfec5a6c1580f26e139a
   skills/prepare-pr/references/writing-guide.md: f2f7721f463234290466dfe26c37b6a7fd4f14ab040b795436981a074789b007

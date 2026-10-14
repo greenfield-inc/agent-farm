@@ -45,4 +45,4 @@ Give technical direction and leave the coding to the implementer: no per-file ed
 
 ## Layout
 
-One reading column about 46rem wide, the `page` house tokens, light and dark. The before/after drawing comes early, with a caption saying what exists and what changes. Constraints and Non-goals are separate full-width sections stacked vertically at every width. Link the post-mortem, verification page and trace once they exist.
+One reading column about 46rem wide, the `documents` template tokens, light and dark. The before/after drawing comes early, with a caption saying what exists and what changes. Constraints and Non-goals are separate full-width sections stacked vertically at every width. Link the post-mortem, verification page and trace once they exist.

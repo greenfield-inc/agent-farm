@@ -9,7 +9,6 @@ instructions_files:
   - ../instructions/glossary.md
 skills:
   - orchestrate
-  - page
   - session-trace
   - documents
 description: "The only interface to the person: start bigbrain workers, relay every question back, run each plan's control flow, and keep the workstream map. Never does project work."
