@@ -1,14 +1,14 @@
 ---
 name: principled-review
-description: Spawn 15 parallel review agents, each checking one code-quality principle with project-aware discovery.
+description: Spawn parallel review agents for the code-quality principles the diff touches, each with project-aware discovery.
 argument-hint: "[branch name or PR number]"
 disable-model-invocation: true
 ---
 
 # Principled Review
 
-Review a branch or PR across 15 code-quality principles in parallel. Each
-principle is checked by a dedicated sub-agent that first discovers the
+Review a branch or PR against the code-quality principles below that its
+diff touches, in parallel. Each principle is checked by a dedicated sub-agent that first discovers the
 project's own conventions, then evaluates the diff against them.
 
 ## Step 1: Gather Context
@@ -61,9 +61,16 @@ Compose a `PROJECT_CONTEXT` block summarizing:
 - Testing patterns
 - Any project-specific review criteria
 
-## Step 3: Spawn 15 Review Agents in Parallel
+## Step 3: Spawn the Applicable Review Agents in Parallel
 
-All 15 agents MUST be spawned in parallel in a single message. Pass each
+Read the diff, then choose principles. Always run 3, 4, 5 and 12 (scope,
+correctness and spec). Run 13 when the diff crosses a trust boundary (input,
+auth, secrets, shell, network, file paths, HTML); 14 and 15 when behaviour or
+tests changed; and the rest only when relevant files changed (for example 7
+and 10 only when UI components changed). List the skipped principles in one
+line with the reason.
+
+Spawn the chosen agents in parallel in a single message. Pass each
 agent the branch name, changed file list, and the PROJECT_CONTEXT block.
 
 **Sub-agent model rules (hard requirement):**
@@ -634,7 +641,7 @@ should be deleted, production fidelity gaps, recommendations.
 
 ## Step 4: Aggregate Results
 
-After all 15 agents complete, aggregate into a final report:
+After the started agents complete, aggregate into a final report:
 
 ```markdown
 # Principled Review: {branch}
@@ -659,6 +666,8 @@ After all 15 agents complete, aggregate into a final report:
 | 14 | Test Integrity | {status} | {count} |
 | 15 | Test Strategy | {status} | {count} |
 
+Skipped: {principles and reason, or "none"}
+
 ## Critical Issues (Must Fix)
 {Aggregate critical issues from all agents}
 
@@ -674,6 +683,7 @@ After all 15 agents complete, aggregate into a final report:
 - Any agent FAIL → overall FAIL
 - Any agent WARN (none FAIL) → overall WARN
 - Principle 5 (Single Way) violations are weighted most heavily
+- Skipped principles count as N/A
 - Principles 6, 7, 11 report N/A when their domain has no changes — N/A
   does not affect the overall score
 - Principle 12 reports SKIPPED when no spec/issue is found

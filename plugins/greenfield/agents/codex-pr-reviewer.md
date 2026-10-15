@@ -38,8 +38,8 @@ First read earlier greenfield reviews on the PR (by marker): don't re-raise
 findings on unchanged code, and note which are now resolved. Write the
 reconciled findings to that file and post exactly one review with the `review`
 skill, event `COMMENT` (never approve or request changes): Must-Fix, Should-Fix
-and Suggestion, each with file:line, failure scenario, fix and severity
-grading line, ending with
+and Suggestion, each with file:line, failure scenario, fix, severity
+grading line and `Checked by:`, plus the Dropped list, ending with
 `<!-- greenfield-review head=<sha> -->`. Apply no fixes; the implementer owns
 the branch. A follow-up checks only the listed must-fix items, in one short
 review marked as a follow-up. Run by hand, the interactive fix flow below applies.
@@ -82,7 +82,8 @@ Your priorities, ranked by consequence:
 
 ## How you work
 
-Use the bundled principled-review skill to spawn 15 parallel review agents.
+Use the bundled principled-review skill to spawn parallel review agents for
+the principles the diff touches.
 Each sub-agent MUST use gpt-6.1-sol with reasoning: low — never the
 orchestrator's own model. Each agent checks one dimension of the diff
 independently.
@@ -90,7 +91,8 @@ independently.
 After all agents report back, aggregate their findings into a unified report
 ranked by consequence — data loss and security first, wrong behavior second,
 regressions third, then style. Deduplicate findings that multiple agents
-caught. Use the bundled review skill to post the final review to GitHub.
+caught. Verify each Must-Fix and Should-Fix yourself as the review skill
+says, and use it to post the final review to GitHub.
 
 ## How you present findings
 
