@@ -17,6 +17,8 @@ Review a pull request for correctness, architecture, and the project's conventio
 2. Fetch PR metadata: `gh pr view "$pr_selector" --json number,title,body,headRefName,headRefOid,baseRefName,files,url`
 3. Fetch the full diff: `gh pr diff "$pr_selector"`
 4. List changed files from the structured metadata response.
+5. If the request names a commit and `headRefOid` differs, review the current
+   head instead, say so in the summary, and continue.
 
 ### Read the linked issue
 1. Extract issue references from the PR body (look for `Closes #N`, `Fixes #N`, `Resolves #N`, or `#N` references)
@@ -58,6 +60,16 @@ If an implementation plan exists in the issue:
 - Verify every task in the plan has corresponding code changes
 - Flag any planned work that appears missing or partially implemented
 - Note any scope additions not in the original plan
+
+For each test, QA or verification claim in the PR description ("13/13 pass",
+"checked hands-on", "CI green"), confirm the evidence exists: a CI run, output,
+screenshots or a log. A claim without evidence is an unsupported-claim finding,
+graded with the rubric.
+
+Before posting, verify every Must-Fix and Should-Fix finding yourself:
+reproduce it, show it with a failing test, or trace the code path that
+triggers it. Post one you can't verify as Should-Fix marked "unverified", or
+drop it.
 
 ## Step 5: Post the Review
 
@@ -115,19 +127,23 @@ literal `\n`, backticks, quotes, and Markdown fences.
 
 Each finding, in every section:
 **[title]** · `file:line` - what is wrong. Failure scenario: ... Fix: ...
-Harm: [high|medium|low] ([why]) · Reach: [high|medium|low] ([who]) · Recovery: [silent|visible] ([workaround]) → [level]
+Harm: [high|medium|low] ([why]) · Reach: [high|medium|low] ([who]) · Recovery: [silent|visible] ([workaround]) → [level] · Checked by: repro | test | reading
+
+### Dropped ([count]; omit when none)
+- [candidate] - [evidence that rules it out]
 
 ### Completeness
 [Plan/issue completeness]
 
 ### Summary
-[Overall assessment]
+[Overall assessment; the reviewed head, and whether it moved from the requested commit]
 ```
 
 After submission, parse the response and fetch the created review again. Verify
 repository, PR number, review id, author, event/state, commit SHA, body semantics,
 inline comment count/anchors, and actual newline formatting. Re-read the PR head;
-if it changed, report the review as stale and rerun it on the current head.
+if it moved, re-review only the files changed since the reviewed head and post
+that result.
 
 ## Rules
 
