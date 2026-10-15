@@ -30,10 +30,12 @@ Sections 1 to 6 are a checklist of what to look for. Their category never sets a
 
 Then pick the level:
 
-- **Must-Fix (blocks merge):** high harm and (high reach or silent). Also, whatever the reach: any security issue, any data loss, and any broken promise in a public contract (such as CLI JSON output or exit codes that agents rely on).
-- **Should-Fix (fix in this PR unless the author explains why not):** high harm that is rare and visible, or medium harm on the normal path. A broken promise the code or docs state, even a small one.
+- **Must-Fix (blocks merge):** high harm and (high reach or silent). Also, whatever the reach: any security issue, any data loss, and any broken promise in a public contract: machine-readable output other programs parse, such as JSON fields, exit codes and error codes.
+- **Should-Fix (fix in this PR unless the author explains why not):** high harm that is rare and visible, or medium harm on the normal path. A promise stated only in human-readable text or docs, even a small one.
 - **Suggestion:** low harm, or a convention or style point that lint doesn't enforce.
 - **Don't raise:** anything lint, typecheck or CI already enforces. Report a failing gate as a gate failure instead.
+
+Otherwise: Should-Fix if any answer is high or silent, else Suggestion.
 
 Use only these level names. No P0/P1/P2, "critical", "nit" or other labels.
 
