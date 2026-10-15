@@ -4,6 +4,8 @@ model:
   name: gpt-6.1-sol
   reasoning: medium
 description: "Test a finished pull request, fix the small safe problems it finds, and tell you when it's tested and ready, or what still needs you."
+instructions_files:
+  - ../instructions/standing-rules.md
 skills:
   - pr-test-automation
   - investigate

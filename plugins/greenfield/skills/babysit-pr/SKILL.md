@@ -7,7 +7,7 @@ description: Use after a pull request is open to watch its CI and review-bot com
 
 Most repositories run AI review bots and CI on every pull request. They are helpful, even when they are not right.
 
-This runs at the `full` validation level or in the end-of-Session pass; at `deferred` it is one of the deferred tasks (see the standing rules).
+An implementer runs this at the `full` validation level or in the end-of-Session pass, and lists it as a deferred task at `deferred` (see the standing rules). Other agents run it when their own instructions say to.
 
 ## Watch
 

@@ -4,6 +4,8 @@ model:
   name: claude-sonnet-5-5
   reasoning: low
 description: "Hunt the whole codebase for confusing code with two finder swarms, rank what they find, and open small fix PRs and issues."
+instructions_files:
+  - ../instructions/standing-rules.md
 skills:
   - code-smell-fixes
   - smell-finder
