@@ -96,11 +96,12 @@ checksums:
   skills/investigate/SKILL.md: b0199e594f142eaf17a44c193de78e04463212d7b2cdc9a858796d0d51d1e5e6
   skills/options/SKILL.md: 265e16a8a542d6ba5901a1a55209e5838e7002235d1381873eda4b6feea0787e
   skills/options/references/options-template.md: cd82cdf9f56b4cdaa76c37f273beda59cecca97f46baeb046a2cc14700864579
-  skills/orchestrate/SKILL.md: 127f1a4ba28e20bcdad87e504138c638aaa560a4e5577fb90b607ce6bbf99f5f
+  skills/orchestrate/SKILL.md: d330e17f67d3705070ac3f2dc41c63a48b3ef6d0b7193fc609d5fccb980f296b
   skills/orchestrate/references/addendum-template.md: 8e06366c88f4b56a9be53587a4502b9dabc843eab68361fb82ae4ebba9525338
   skills/orchestrate/references/host-policy.md: c86e6a045d40aada6354891aa08cf4046a6a97c044068b25b2fc18b45cd9e338
-  skills/orchestrate/references/ledger.md: 3dd1fd106bb6a95ada6364b5f4cb8d4d666565fde5986dcd3fddf3aac8faab10
+  skills/orchestrate/references/ledger.md: c84ca38a54380480fbb95056bb451514ff684fd22edbe78312a016ae3b154760
   skills/orchestrate/references/relay.md: 151e2ce9c4e98ba0b2be932ebea7a4bbb50c32aaff15ca995de2ec3311014300
+  skills/orchestrate/scripts/dispatch.mjs: 755e3dfd7adf76db5bc2f1efdb5d4044acf1e9dc49d258d52e4fb206736833a2
   skills/plan/SKILL.md: b6aa2ec13f4860363e36835a16c185a79123a1b621f9a6d715f544569380d972
   skills/plan/references/cover-sheet.md: 4b1625f2c2dc883f59ff58352a294409057a47d9753818aef33228322b50a2f4
   skills/prepare-pr/SKILL.md: f42cc79bb7fbcdee32a831189a32a33d9c9e2694c373cfbcb6772573c44a7d1d

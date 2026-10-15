@@ -47,43 +47,42 @@ When the person asks for a simple fix, or approves one in words, send it straigh
 
 ## Launching workers
 
-Write the starting message to a file first, in the brief format from `contract.md` (goal, source with revision, known state, constraints, stop condition, return, status file, destination and Session folder). Name the variant every time, or the worker stops at Agent Farm's variant picker. Pass `parent` (the status file, absolute) and, for planners and investigators, `source`, `mode` and `area`, as `--arg` on the tool command.
+Dispatch every worker with [scripts/dispatch.mjs](scripts/dispatch.mjs); never hand-run `panes create`, `panels create` or `panels submit` for a worker. The script refuses a brief that lacks a starting-message field, launches the tab with `--arg parent=<status file>` and no initial input, waits until the agent's composer is on screen, submits `Read and follow <brief>`, and confirms it was taken.
 
-The feature's first worker creates its Pane:
-
-```sh
-runpane panes create --repo <repo> --name <slug> --source agent --no-focus --wait-ready --yes --json \
-  --tool-command "agent-farm run bigbrain/planner:claude --arg parent=<worktree>/.agent/status/planner.json --arg source=<source>" \
-  --initial-input-file <starting-message file> --as-file-pointer
-```
-
-Every later worker for that feature is a new tab in the same Pane. Find the Pane in the ledger first, or with `runpane panes list --repo <repo> --json`:
+Write the starting message to a file first, in the brief format from `contract.md`: one field per line, the label then a colon or two or more spaces, then the value. A full brief needs `Goal`, `Source` (with revision), `Known state`, `Constraints`, `Stop when`, `Return`, `Status file` (absolute) and `Destination` (with the Session folder); the quick-fix variant needs `Quick fix`, `Done when`, `Branch`, `Constraints` and `Status file`. The status file becomes `parent`. Name the variant in the profile every time, or the worker stops at Agent Farm's variant picker. For planners and investigators pass `source`, `mode` and `area` with `--arg`.
 
 ```sh
-runpane panels create --pane <feature Pane id> --source agent --no-focus --wait-ready --yes --json \
-  --tool-command "agent-farm run bigbrain/implementer:opus --arg parent=<worktree>/.agent/status/implementer.json" \
-  --initial-input-file <starting-message file> --as-file-pointer
+# the feature's first worker creates its Pane
+node <this skill>/scripts/dispatch.mjs --profile bigbrain/planner:claude --brief <brief file> \
+  --repo <repo> --name <slug> [--base <ref>] --arg source=<source>
+# every later worker for that feature is a new tab in the same Pane (find it in the ledger,
+# or with `runpane panes list --repo <repo> --json`)
+node <this skill>/scripts/dispatch.mjs --profile bigbrain/implementer:opus --brief <brief file> --pane <feature Pane id>
 ```
 
-Check `initialInput.delivery` (`taken` or `queued`) once, record the Pane, panel and status-file paths in the ledger, and start one writer per branch at a time. Without Pane, use one Git worktree and branch per item and the available process launcher.
+It prints JSON: `pane`, `panel`, `worktree`, `statusFile`, `brief`, `agent`, `session` and `watch`, the exact wait to arm next. Record them in the ledger and start one writer per branch at a time. Exit 1 means the brief or arguments were refused and nothing launched; fix the brief and rerun. Exit 3 means the tab opened but the brief was not sent: it escapes Codex's "Update available" screen itself, but on any other screen (Claude's "Allow external CLAUDE.md imports?", a trust dialog, an exited agent) it prints what it saw. Tell the person, and once the tab shows its composer submit `Read and follow <brief>` with `runpane panels submit`. Exit 4 means the submit was not confirmed taken: read the screen once before resending. Pass `--session` and `--as` when the defaults (the Pane's Session, cursor `bigbrain-orch`) are wrong. Without Pane, use one Git worktree and branch per item and the available process launcher.
 
 Before dispatching into a repository, resolve its document destination and conversation-capture grant (`agent-farm inspect bigbrain/<profile> --directory <repo>`, or its `.agent-farm/workspace.yaml`) and pass them in the starting message. A repository with no destination keeps a local bundle in the Session folder.
 
 ## Events, not polling
 
-Arm every wait so that it **ends** when an event arrives: an agent harness wakes you when a background command finishes, not when it prints. A `runpane watch --follow` never finishes, and piping it into `grep -m1` does not help, because the watch only exits on its next write. Use a non-follow watch on a named cursor, which blocks until entries arrive:
+Arm every wait so that it **ends** when an event arrives: an agent harness wakes you when a background command finishes, not when it prints. After every dispatch, and again after acting on every event, run the `watch` command the script printed as a background command:
 
 ```sh
-# once: create the cursor at "now"
-runpane watch --pane <feature Pane id> --as bigbrain-orch --kinds agent.report --timeout-ms 0 --quiet
-# each wait, as a background command; it exits on the first report
-until out=$(runpane watch --pane <feature Pane id> --as bigbrain-orch --kinds agent.report,panel.exited,pane.gone \
-  --timeout-ms 120000 --quiet 2>/dev/null | grep -v '^RESET'); [ -n "$out" ]; do sleep 2; done; printf '%s\n' "$out"
+runpane watch --session <Session> --as bigbrain-orch --until-event --quiet --json \
+  --kinds agent.report,agent.blocked,agent.ready,panel.exited,pane.gone
 ```
 
-Use `--session <Session>` instead of `--pane` when the work spans Panes in one Session. Give each cursor its own `--as` name: watches without one share a default cursor and supersede each other. After acting on the event, arm the next wait. Run one wait at a time.
+It exits on the first event and its named cursor means nothing is missed between runs and nothing repeats. Never pipe `runpane watch --follow` into `grep -m1` or `head`: a follow watch only exits on its next write. Run one wait at a time on one cursor name.
 
-On each report, read the worker's status file (its absolute path is the report's summary path) and act on its `state`. The status file is the truth; the Pane report state is only a signal (`contract.md` has the mapping). Deduplicate repeated events by worker and event. No timed status checks, transcript tails or repeated screen reads. A quiet worker is normal; inspect once only on a reported failure, a timeout or a concrete error.
+On each event:
+
+- `agent.report`: read the worker's status file (its absolute path is the report's summary path) and act on its `state`. The status file is the truth; the Pane report state is only a signal (`contract.md` has the mapping).
+- `agent.blocked`: the worker is stopped on an on-screen question. Read its screen once and tell the person what it asks.
+- `agent.ready` with no report from that worker: read its status file and its screen once (`runpane panels screen --panel <panel> --json`), then tell the person what you see: a worker that went idle without reporting may be done, stuck, or waiting on a picker. Do not nudge it on your own.
+- `panel.exited` or `pane.gone`: read the status file once and tell the person.
+
+Then arm the next wait. Deduplicate repeated events by worker and event. No timed status checks, transcript tails or repeated screen reads. A quiet worker is normal.
 
 ## The relay
 

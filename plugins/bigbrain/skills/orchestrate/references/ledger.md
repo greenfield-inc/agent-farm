@@ -5,7 +5,7 @@ Use host durable state when available; otherwise `.agent/ledger.json`. Keep one 
 ```json
 {
   "caps": { "concurrent": 3, "spend_usd": null },
-  "session": { "name": "<host Session name>", "id": null, "canonical_destination": null, "map": null, "stubs": [] },
+  "session": { "name": "<host Session name>", "id": null, "watch": "the watch command dispatch.mjs printed", "canonical_destination": null, "map": null, "stubs": [] },
   "review_policy": { "mode": "per control flow", "set_by": "plan", "time": null },
   "items": [
     {
@@ -38,6 +38,8 @@ Use host durable state when available; otherwise `.agent/ledger.json`. Keep one 
         {
           "role": "planner | designer | implementer | reviewer | investigator | teacher",
           "panel_id": null,
+          "worktree": "/abs/worktrees/invoice-pdf",
+          "brief": "/abs/session/briefs/invoice-pdf-implementer.md",
           "host_worker_id": null,
           "profile": "bigbrain/implementer:opus",
           "status_file": "/abs/worktrees/invoice-pdf/.agent/status/implementer.json",
@@ -66,5 +68,7 @@ Use host durable state when available; otherwise `.agent/ledger.json`. Keep one 
   ]
 }
 ```
+
+Record what `scripts/dispatch.mjs` prints at each dispatch: `pane` in the item's `pane_id` (and its `worktree`), and `panel`, `worktree`, `statusFile` and `brief` in the worker's `panel_id`, `worktree`, `status_file` and `brief`. Keep the printed `session` and `watch` once in `session` (`id`, and `watch` for the command to re-arm after each event).
 
 Bigbrain adds `control_flow` and `control_flow_step` (the step the implementer last reported) per item, `open_questions` (unanswered Q-n) per worker, and the Q-n and D-n of every relayed decision. Update `control_flow_step` and `open_questions` on every report.
