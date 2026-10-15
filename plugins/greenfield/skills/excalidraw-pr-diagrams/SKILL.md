@@ -22,8 +22,8 @@ A diagram argues; it doesn't display. Its shape should carry the meaning, so a r
    | fans out, converges, or transforms | radial arrows, a funnel, or input → process → output |
 
    Give each major concept its own pattern. Two PRs that fix different kinds of problems get different layouts.
-2. **Gather the real details.** Use the actual endpoint paths, event names, fields and example payloads from the code or spec. Concrete artifacts teach: a dark code box with a real request beats a box labelled "API".
-3. **Write the file** in a working folder outside the repository, such as `/tmp/pr-diagrams/<repo>-<pr>/overview.excalidraw`, using the format below. Build a large diagram one region per edit.
+2. **Gather the real details.** Use the actual endpoint paths, event names, fields and example payloads from the code or spec. Concrete artifacts teach: a dark code box with the real query or command, a mock of the real menu or dialog built from nested rectangles, or bars on a time axis for states over time. Tag the pieces the PR adds or changes with small `NEW`, `CHANGED` or `REUSED` badges.
+3. **Write the file** in a working folder outside the repository, such as `/tmp/pr-diagrams/<repo>-<pr>/overview.excalidraw`, using the format below. Build a large diagram one region per edit, or generate repeated pieces (timeline rows, badges) with a short script. For a PR whose diff is mostly generated files, list it with `gh pr diff --name-only` and read only the files that matter.
 4. **Render and look** (below), fix what you see, and repeat until the checks at the end pass, usually 2–4 rounds.
 
 A PR visual overview always has:
@@ -52,9 +52,13 @@ Write short element skeletons. The renderer fills in ids, seeds, bindings and te
 ]}
 ```
 
-- Types: `rectangle` (an action or component), `ellipse` (a start, an end, or a 10–20 px timeline dot), `diamond` (a decision), `arrow` (a relationship; bind it with `start`/`end` ids), `line` (timelines, trees, dividers), `text`.
-- The defaults are clean edges (`roughness: 0`), a monospace font (`fontFamily: 3`) and `strokeWidth: 2`. Set `roughness: 1` only for a sketchy look.
-- Add `"strokeStyle": "dashed"` for an inactive or removed path. Use `"roundness": {"type": 3}` for rounded corners.
+- Types: `rectangle` (an action or component), `ellipse` (a start, an end, or a 10–20 px timeline dot), `diamond` (a decision), `arrow` (a relationship), `line` (timelines, trees, dividers), `text`.
+- Bind an arrow to rectangles and ellipses with `start`/`end` ids. For a diamond, leave the arrow unbound and give its `points`, so it leaves from the edge you choose.
+- With `start`/`end` set, the arrow's ends snap to the shapes; still give `x`, `y` and `points` as a starting route.
+- Size text with monospace at about 0.6 × font size per character, plus 24 px of padding inside a box. A badge is a small rectangle with a 12 px label, for example `NEW` at 56 × 24.
+- A label inside a shape takes the shape's stroke colour; set `label.strokeColor` to change it. Where an arrow label would cross another line, use free-floating text beside the arrow instead.
+- The defaults are clean edges (`roughness: 0`), rounded rectangles, a monospace font (`fontFamily: 3`) and `strokeWidth: 2`. Set `roughness: 1` only for a sketchy look.
+- Add `"strokeStyle": "dashed"` for an inactive or removed path, and `"roundness": null` for square corners.
 
 **Colours** (fill / stroke; keep a darker stroke on a lighter fill):
 
@@ -85,9 +89,9 @@ Render from your working folder:
 node <skill-directory>/references/render.mjs /tmp/pr-diagrams/<repo>-<pr>/overview.excalidraw
 ```
 
-`<skill-directory>` is this skill's folder, as Agent Farm provides it. The PNG lands next to the file. The renderer needs Playwright installed globally once (`npm install -g playwright`); it uses Google Chrome when present, otherwise run `npx playwright install chromium` once. It loads Excalidraw from esm.sh, so it needs network access.
+`<skill-directory>` is this skill's folder. The PNG lands next to the file, sized to the diagram. The renderer needs only Node and a browser already on the machine (Chrome, Edge or Chromium; set `BROWSER_PATH` for another location), and loads Excalidraw from esm.sh, so it needs network access. If it can't run, put a Mermaid flowchart with the same before and after paths in the Visual Overview, and say the image wasn't rendered.
 
-Open the PNG with your image viewer, then check:
+Look at the PNG with your image-reading tool (for example the Read tool), then check:
 - **The argument:** without the prose, the image still shows the before/after difference through structure, and isn't just the PR text in red and green boxes.
 - **The fit:** no text is clipped or overlapping, arrows land on the right element without crossing others, spacing is even, and the title doesn't dominate.
 - **The size:** it reads at the width GitHub shows in a PR. If it's too wide or wordy, stack regions vertically and cut prose.
