@@ -4,7 +4,8 @@ One HTML page per Session for the person, published as the Session's hub and upd
 
 ```
 Header            Session name, started, last updated, review policy (default: once at
-                  the end of the workstream; any override, who gave it and when),
+                  the end of the workstream; any override, who gave it and when), validation
+                  default (deferred unless the person switched it to full),
                   workers running / queued / done, total cost and elapsed time
 
 Needs you         first and impossible to miss: plans waiting for approval, failed
@@ -26,7 +27,8 @@ Shared ledgers    one row per shared resource only one worker may change at a ti
 Addenda           N | date | decision | work items it was sent to
 
 Lanes             one row per work item:
-                  item | repo | Pane | profile | stage | plan | PR | review | trace |
+                  item | repo | Pane | profile | stage | plan | PR | validation (deferred,
+                  validating or validated, and what is pending) | review | trace |
                   destination ("no destination" when the repo names none)
 
 Other hubs        for a Session that spans destinations: a link to each stub hub,
