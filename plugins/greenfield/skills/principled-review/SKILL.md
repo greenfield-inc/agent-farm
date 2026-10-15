@@ -68,7 +68,8 @@ correctness and spec). Run 13 when the diff crosses a trust boundary (input,
 auth, secrets, shell, network, file paths, HTML); 14 and 15 when behaviour or
 tests changed; and the rest only when relevant files changed (for example 7
 and 10 only when UI components changed). List the skipped principles in one
-line with the reason.
+line with the reason; the `review` skill copies the Ran/Skipped line into
+its Principles section.
 
 Spawn the chosen agents in parallel in a single message. Pass each
 agent the branch name, changed file list, and the PROJECT_CONTEXT block.
@@ -666,7 +667,7 @@ After the started agents complete, aggregate into a final report:
 | 14 | Test Integrity | {status} | {count} |
 | 15 | Test Strategy | {status} | {count} |
 
-Skipped: {principles and reason, or "none"}
+Ran: {n, names} · Skipped: {names - reason each, or "none"}
 
 ## Critical Issues (Must Fix)
 {Aggregate critical issues from all agents}
