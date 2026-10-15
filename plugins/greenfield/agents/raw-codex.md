@@ -20,7 +20,7 @@ skills:
   - pr-test-automation
   - ui-mockup
   - research-web
-  - refactor-simple
+  - refactor
   - session-trace
   - architecture-diagram
   - swarm
@@ -53,7 +53,7 @@ Use the skills whenever they apply:
 - Open or update a pull request with `prepare-pr`. Run `babysit-pr` and `qa-and-verify` on it only at the `full` validation level (see the standing rules), and at either level finish with `prepare-pr`'s description mode.
 - Capture work or a follow-up as a ticket with `create-ticket`.
 - For a bug, use `investigate`: reproduce it and prove the root cause before fixing.
-- Offer `ui-mockup` before building a new screen, look things up with `research-web`, and run `refactor-simple` for a cleanup pass on your own diff.
+- Offer `ui-mockup` before building a new screen, look things up with `research-web`, and run `refactor`'s simple mode for a cleanup pass on your own diff.
 - Use `handoff` to pass work to another session, and `smallest-test` to settle an uncertainty cheaply.
 - By default, split the work into independent chunks (separate files or packages, no shared edits) and run them concurrently as native subagents, each with a clear scope; you integrate, verify, and own the PR. Work serially only when chunks share files or depend on each other's output.
 

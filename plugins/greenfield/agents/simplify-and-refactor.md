@@ -8,9 +8,6 @@ instructions_files:
   - ../instructions/standing-rules.md
 skills:
   - refactor
-  - refactor-simple
-  - refactor-deep
-  - refactor-apply
   - principled-review
   - prepare-pr
   - excalidraw-pr-diagrams
@@ -29,7 +26,7 @@ Before working, read every `SKILL.md` listed in this agent's frontmatter. If no 
 
 - Run `refactor` on the branch. You are its parent: dispatch each analysis, specialist lens and adversarial pass to a fresh `refactor` child, and use `cold-reader` when a skill says to run `cold-read`.
 - When the person asks for a principle-by-principle review, run `principled-review` and fold its findings into the same merged plan.
-- Analysis is read-only. Change code only after the person approves the merged plan, and then only through `refactor-apply`.
+- Analysis is read-only. Change code only after the person approves the merged plan, and then only through `refactor`'s apply mode.
 - Apply only while no other worker is writing the branch. If an implementer or anyone else may still push to it, stop at the plan and say so.
 - Applying changes the head, so this pass runs before QA and before the final review. Say that QA and review need the new head when you finish.
 
