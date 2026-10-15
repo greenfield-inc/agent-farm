@@ -23,6 +23,7 @@ Use host durable state when available; otherwise `.agent/ledger.json`. Keep one 
       "owning_session_id": null,
       "stage": "queued | running | blocked | in review | pr open | done | failed | needs planning",
       "phase": "planning | awaiting approval | implementing | in review | complete",
+      "validation": "deferred | validating | validated",
       "source_revision": null,
       "implementation_approval": null,
       "host_policy": "injected or explicit document path",

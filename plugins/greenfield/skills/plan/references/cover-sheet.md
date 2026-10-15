@@ -47,7 +47,7 @@ Every cover sheet has a visible **Contents & related files** navigation near the
 
 ## Verification: How we will know it works
 
-**How we will know it works** is the finish line for implementation. It holds numbered journeys and whole-feature commands or suites, and implementers and verifiers refer to them by journey number or check name. Keep this format when updating an existing cover sheet.
+**How we will know it works** is the finish line for the feature: the implementer runs it at `full`, or it runs in the deferred validation pass (see the standing rules). It holds numbered journeys and whole-feature commands or suites, and implementers and verifiers refer to them by journey number or check name. Keep this format when updating an existing cover sheet.
 
 Give each journey and check an observable outcome for the requested backend or frontend behavior and approved visual states. Add prerequisites or known blockers in plain language. The implementer and frontend verifier record observed results and evidence in the work's status files and finish the required checks before marking the feature done. A check that has not run stays undetermined.
 

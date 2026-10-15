@@ -34,7 +34,7 @@ what each part does and why it is there. Before and after examples where they he
 Decisions that were locked in the plan, with the link.
 
 ## How it was verified
-Each check: command, journey, or visual, with its result and the evidence.
+The validation level (see the standing rules). Each check: command, journey, or visual, with its result and the evidence.
 Link qa's screenshots and videos. Say plainly what is undetermined or left to a person.
 
 ## Assumptions and limits
