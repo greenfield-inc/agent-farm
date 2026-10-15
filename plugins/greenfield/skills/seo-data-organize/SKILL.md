@@ -9,7 +9,7 @@ Archive and organize `.seo/` working data into a dated, browsable wiki
 structure. Runs at the end of any SEO workflow so data accumulates into a
 searchable history instead of getting overwritten.
 
-This is a support skill. Other skills call it as their final step.
+This is a support skill: run it as the last step of each SEO workflow.
 
 ## Goal
 

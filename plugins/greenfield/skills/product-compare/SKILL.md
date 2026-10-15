@@ -365,7 +365,7 @@ Run these before every push:
 ### 8. Cold read
 
 After the first complete version, **always** run a cold-read review.
-Launch a general-purpose agent with instructions to read the full
+Launch your `cold-reader` subagent with instructions to read the full
 HTML file as a newcomer to the product category. Ask it to flag:
 - Price contradictions between sections
 - Matrix dot overlaps
@@ -392,7 +392,7 @@ conversation:
 - User decides -> update the page to reflect the decision and note
   what tipped it, for the team's reference
 
-Each iteration: edit the checkout, push, one-line chat summary of
+Each iteration: update the page, then give a one-line chat summary of
 what changed.
 
 ### 10. Adapt features to the product category

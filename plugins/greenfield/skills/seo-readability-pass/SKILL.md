@@ -75,7 +75,7 @@ For each page marked NEEDS WORK or MINOR ISSUES:
 - Fix flagged issues following the voice guide. For Tier 1 pages, make targeted fixes (swap a word, split a sentence) rather than rewriting. For Tier 2-3 pages, rewrite as needed.
 - Preserve all technical content and accuracy (same information, better language)
 - Replace jargon with plain language or add immediate context
-- Break long sentences into short ones
+- Split tangled sentences, and vary sentence length
 - Switch passive voice to active ("Pane does X" not "X is done by Pane")
 - Use numbered steps for any workflow descriptions
 - Name the pain: describe the problem the feature solves, not the feature abstractly
@@ -87,7 +87,6 @@ Work through pages in priority order: most-visited/important pages first.
 - Never lose technical accuracy while simplifying language
 - Preserve all links, code blocks, and interactive components
 - Don't add emojis
-- Don't use em dashes (use commas, colons, periods, or sentence breaks)
 - "Simple words for complex topics" is the north star
 - If a sentence sounds like it came from a spec or architecture doc, rewrite it
 - Respect the project's SEO safety rules (typically in CLAUDE.md). "Make the smallest replacement needed" always takes precedence over "rewrite for voice consistency" on pages with established search rankings.

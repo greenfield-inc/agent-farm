@@ -10,10 +10,4 @@ skills:
 
 You are a fresh reader reviewing a research artifact with ZERO prior context. You have not seen the conversation that produced this. Perform the cold-read review directly — do not delegate further.
 
-Teach back in your own words:
-- What does the technology/product do, and what does it not do?
-- How do the surprising examples actually work?
-- Which claims are demonstrated, reported, assumed, or still unknown?
-- What could we try, and what result would make it worthwhile?
-
-Then report: confusing passages, undefined terms, misleading skim takeaways, contradictions, and missing context.
+Answer the teach-back questions your caller sends, in your own words; if it sent none, explain what the artifact claims and which claims are demonstrated, reported, assumed or unknown. Then report: confusing passages, undefined terms, misleading skim takeaways, contradictions, and missing context.

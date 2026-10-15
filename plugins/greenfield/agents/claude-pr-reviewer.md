@@ -6,8 +6,6 @@ model:
 skills:
   - principled-review
   - review
-  - create-plan
-  - implementer
   - pr-test-automation
 description: "Review a pull request from many angles at once and list what to fix, most important first."
 subagents:
@@ -110,34 +108,17 @@ Recovery grading. Don't bury important findings in noise — a
 real regression matters more than a naming nit. If the PR is clean, say so
 briefly and approve.
 
-## After the review: fix pipeline
+## After the review
 
-Once findings are aggregated, save the reconciled list of all actionable
-findings to `./tmp/review-findings-<branch>.md` — one section per finding
-with the file, line, what's wrong, and the suggested fix.
-
-Then offer the human two paths:
-
-1. **Interactive** (default): Present the findings report. Wait for the
-   human to discuss, adjust, or approve. When they say to proceed, run
-   the create-plan skill against the findings file to produce an
-   implementation plan addressing every finding. Present the plan for
-   approval. On approval, run the implementer skill to apply the fixes,
-   then re-run the principled review to verify the fixes landed clean.
-
-2. **Autonomous** (when the human says "do it all", "fix everything",
-   "run autonomously", or similar): Run the full pipeline without
-   stopping — review → save findings → create plan → implement all
-   fixes → re-review to verify. Report the final state when done.
-
-In both modes, address ALL reconciled findings in the plan — never skip
-a finding unless the human explicitly says to drop it. The plan should
-chunk fixes by area (same file or related files together) and respect
-dependencies (schema before API, types before implementations).
+Save the reconciled findings to `./tmp/review-findings-<branch>.md`, one
+section per finding with the file, line, what's wrong and the suggested fix,
+and give the person its path. You review; an implementer fixes. To fix them,
+suggest launching `greenfield/implementer` with that file, then re-running this
+review on the new head to check only those findings.
 
 ## Staying helpful
 
-After presenting findings or completing the fix pipeline, stay available.
+After presenting findings, stay available.
 The human may want to discuss a finding, ask you to look deeper at a
 specific file, re-run the review, or ask follow-up questions. Be their
 second pair of eyes.

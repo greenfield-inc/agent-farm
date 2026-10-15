@@ -209,11 +209,11 @@ test('simplify-and-refactor runs the refactor and principled-review skills on So
  }
 });
 
-test('reviewers share principled-review with simplify-and-refactor, and both raw implementers can draw PR diagrams',()=>{
+test('reviewers share principled-review with simplify-and-refactor and leave fixes to an implementer, and both raw implementers can draw PR diagrams',()=>{
  for(const profile of ['reviewer:claude','reviewer:codex']){
   const main=resolveProfile(root,profile).nodes.main;
-  for(const skill of ['principled-review','review','implementer','create-plan'])assert.ok(main.skills.includes(skill),`${profile}: ${skill}`);
-  assert.doesNotMatch(fs.readFileSync(main.source_file,'utf8'),/implement skill/i,profile);
+  assert.deepEqual(main.skills.sort(),['pr-test-automation','principled-review','review'],profile);
+  assert.match(fs.readFileSync(main.source_file,'utf8').replace(/\s+/g,' '),/You review; an implementer fixes\. To fix them, suggest launching `greenfield\/implementer` with that file/,profile);
  }
  for(const profile of ['implementer:opus','implementer:astra','implementer:sol'])assert.ok(resolveProfile(root,profile).nodes.main.skills.includes('excalidraw-pr-diagrams'),profile);
 });
@@ -231,7 +231,6 @@ const unbundledMentions={
  'pr-test-automation -> cold-read':"orders the implementer's PR-body cold-read before QA; QA agents do not run it",
  'session-trace -> handoff':'names the page a handoff publishes, as an example of where a trace attaches',
  'session-trace -> prepare-pr':'names the page prepare-pr publishes, as an example of where a trace attaches',
- 'orchestrate-sessions -> implementer':'names the greenfield/implementer profile, not the skill',
  'seo-data-pull -> plan':'names a person-level data property',
  'create-ticket -> ui-mockup':'offers a mockup only where the agent has ui-mockup',
  'create-ticket -> explain-visually':'offers a visual only where the agent has explain-visually',

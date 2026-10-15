@@ -13,7 +13,7 @@ The person and the implementer share one HTML plan cover sheet, rendered with th
 
 ## One piece of work, one bundle
 
-Every page for one piece of work goes in the same bundle, a folder with fixed file names and relative links: the brief as `index.html`, then `options.html`, `decisions.html`, `cover-sheet.html`, `explainers/`, `mockups/`, `evidence/`. The brief is the hub: it lists the others under "Related", and each links back. The bundle is local by default. The `page` skill's bundle reference says how to choose a destination and publish to it. Settle the destination once, early, and tell the person where the documents are.
+Every page for one piece of work goes in the same bundle, a folder with the fixed file names and relative links of the `page` skill's bundle reference. The brief, `index.html`, is the hub: it lists the others under "Related", and each links back. The bundle is local by default. The `page` skill's bundle reference says how to choose a destination and publish to it. Settle the destination once, early, and tell the person where the documents are.
 
 ## Where research goes
 
