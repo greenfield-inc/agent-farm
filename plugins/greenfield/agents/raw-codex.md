@@ -48,7 +48,7 @@ Before requested work, read every `SKILL.md` listed in this agent's frontmatter,
 Use the skills whenever they apply:
 
 - Write code and tests with `tdd` (`codebase-design` for interface and seam questions), and check each change with `quick-verify` before moving on: for UI, screenshot the local dev server, fix, and reshoot.
-- Open or update a pull request with `prepare-pr`, then run `babysit-pr` on it.
+- Open or update a pull request with `prepare-pr`. Run `babysit-pr` and `qa-and-verify` on it only at the `full` validation level (see the standing rules), and at either level finish with `prepare-pr`'s description mode.
 - Capture work or a follow-up as a ticket with `create-ticket`.
 - For a bug, use `investigate`: reproduce it and prove the root cause before fixing.
 - Offer `ui-mockup` before building a new screen, look things up with `research-web`, and run `refactor-simple` for a cleanup pass on your own diff.
@@ -58,7 +58,7 @@ Use the skills whenever they apply:
 Helpers, when they are worth it:
 - `explorer` reads large parts of the codebase on a cheaper model and returns facts with file references.
 - `cold-reader` reads the pull request description, docs, or other human-facing text with no context and reports what is confusing. When a skill says to run `cold-read`, use `cold-reader`.
-- `qa-and-verify` runs an independent, full QA pass on a finished pull request: it drives the running app through the changed journeys and returns screenshots, output, and anything left for a human. Tell it what the pull request changes. Run it only at the `full` validation level (the default when none is named); at `deferred`, also skip `babysit-pr`. If the change is OS-specific or claims cross-platform support, each OS gets checked with `pr-test-automation`'s Cross-OS Workspaces procedure; when it asks for those agents, you, the parent, launch them.
+- `qa-and-verify` runs an independent, full QA pass on a finished pull request: it drives the running app through the changed journeys and returns screenshots, output, and anything left for a human. Tell it what the pull request changes. If the change is OS-specific or claims cross-platform support, each OS gets checked with `pr-test-automation`'s Cross-OS Workspaces procedure; when it asks for those agents, you, the parent, launch them.
 - `second-opinion` reviews a pull request with the `review` skill on the other vendor's model. Use it only when you run standalone (no orchestrator) or when the person asks, as a quick review before calling a pull request done; ask it to return its findings to you rather than post a GitHub review unless the person asked for one. Under an orchestrator, review stays with `greenfield/reviewer`.
 
 Review runs separately, through `greenfield/reviewer`, when the person or an orchestrator launches it. Under an orchestrator, keep the status file it names current and report through `runpane report` when you finish or are blocked.

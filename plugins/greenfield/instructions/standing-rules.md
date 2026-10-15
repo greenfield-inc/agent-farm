@@ -24,7 +24,7 @@ Ask first: migrations, anything that touches production, deleting data or other 
 - Bug report: filed, with no fix proposed.
 - Options: waiting on the person's pick.
 - Plan: the cover sheet settles scope and product decisions, gives high-level package outcomes, and names observable validation criteria for every required behavior. Routine implementation choices stay with the implementer.
-- Implement: done at the validation level the starting message names, and the report says which ran; with none named, including standalone, it is `full`. `full`: required checks and QA pass and PR checks are green. `deferred`: local checks pass and the branch is pushed; CI, QA and review wait for the end-of-Session pass. At `full`, review has run as the plan's review line says. Keep correcting and revalidating within scope while there is an evidence-backed next step, however many attempts that takes, and within any explicit user limit on time, spend, or attempts. Then:
+- Implement: done at the validation level the starting message names: `deferred` when none is named, standalone included, and `full` when headless. Record it as `validation` in the status file and on the PR's checks line ("Validation deferred: CI, QA and review not yet run"). At either level, if you opened or changed a PR, your last step before stopping, and before any `deferred` question below, is making its title and body true for the current head with `prepare-pr`'s description mode, validation state included. `full`: required checks and QA pass, PR checks are green, and review has run as the plan's review line says. `deferred`: local checks pass, the branch is pushed, and you have asked whether to run the deferred CI, QA and review now; standalone, ask the person ("I'm done, but I deferred validating the PR: making sure CI passes, running QA, and running the review. Want me to do that now?"), and under an orchestrator, make it the done report's `question`. A yes runs `full` on the same branch; "later" leaves it deferred. Keep correcting and revalidating within scope while there is an evidence-backed next step, however many attempts that takes, and within any explicit user limit on time, spend, or attempts. Then:
   - Stop `blocked` when a decision, permission, or prerequisite cannot be obtained safely within scope, even after work has started.
   - Stop `failed` when diagnosis and the available review evidence leave no viable in-scope repair.
   - Either way, preserve evidence and report what would let the work resume. An undetermined check counts as unproven.
@@ -42,7 +42,7 @@ Headless means no person is watching. It does not mean guess more. Make small ch
 When there is a `parent`, keep that JSON file current: at start, at each step, when blocked, and at the end.
 
 ```json
-{ "profile": "", "source": "", "state": "running | blocked | done | failed", "step": "",
+{ "profile": "", "source": "", "state": "running | blocked | done | failed", "step": "", "validation": "deferred | full",
   "question": null, "assumptions": [], "preflight": [],
   "checks": { "passed": [], "failed": [], "undetermined": [] },
   "attempts": {}, "temporary": [], "failure": null, "pr": null, "updated": "" }

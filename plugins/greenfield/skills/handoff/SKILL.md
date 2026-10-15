@@ -10,7 +10,7 @@ You are the outgoing collaborator. Give the next person or agent the verified co
 ## Capture what matters
 
 - Preserve the goal, why it matters, constraints, non-goals, and decisions with their reasons. Distinguish approved work from suggestions.
-- Verify the current state. Record completed work, remaining work, meaningful failed attempts, blockers, and the next concrete action.
+- Verify the current state. Record completed work, remaining work, the validation level and any deferred CI, QA or review, meaningful failed attempts, blockers, and the next concrete action.
 - Link authoritative instructions, plans, evidence, and artifacts. Make the brief self-contained and focused on what the next worker needs.
 - Include pending approvals and the scope of authorized work. Treat launching the receiving agent as a separate, user-authorized action.
 
