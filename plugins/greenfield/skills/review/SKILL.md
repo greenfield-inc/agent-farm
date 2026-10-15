@@ -61,15 +61,13 @@ If an implementation plan exists in the issue:
 - Flag any planned work that appears missing or partially implemented
 - Note any scope additions not in the original plan
 
-For each test, QA or verification claim in the PR description ("13/13 pass",
-"checked hands-on", "CI green"), confirm the evidence exists: a CI run, output,
-screenshots or a log. A claim without evidence is an unsupported-claim finding,
-graded with the rubric.
+Check every test, QA, verification or CI claim in the PR description
+("13/13 pass", "checked hands-on", "CI green") and record each under Claims.
 
 Before posting, verify every Must-Fix and Should-Fix finding yourself:
 reproduce it, show it with a failing test, or trace the code path that
 triggers it. Post one you can't verify as Should-Fix marked "unverified", or
-drop it.
+drop it (under Dropped).
 
 ## Step 5: Post the Review
 
@@ -108,6 +106,8 @@ literal `\n`, backticks, quotes, and Markdown fences.
 
 ### Review body format
 
+Every section below is always present; write `none` when it is empty.
+
 ```markdown
 ## PR Review
 
@@ -129,8 +129,18 @@ Each finding, in every section:
 **[title]** · `file:line` - what is wrong. Failure scenario: ... Fix: ...
 Harm: [high|medium|low] ([why]) · Reach: [high|medium|low] ([who]) · Recovery: [silent|visible] ([workaround]) → [level] · Checked by: repro | test | reading
 
-### Dropped ([count]; omit when none)
-- [candidate] - [evidence that rules it out]
+### Principles
+Ran: [n, names] · Skipped: [names - reason each] (copied from principled-review)
+
+### Earlier findings
+- [finding from an earlier greenfield review, by marker] - resolved ([commit]) | still open | no longer applies
+
+### Dropped
+- [new candidate from this review that you rejected; never an earlier finding] - [evidence that rules it out]
+
+### Claims
+- [test, QA, verification or CI claim from the PR description] - checked ([evidence]) | unsupported | not checkable here ([why])
+An unsupported claim is also a finding above, graded with the rubric.
 
 ### Completeness
 [Plan/issue completeness]
