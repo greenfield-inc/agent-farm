@@ -1,15 +1,11 @@
 ---
 name: design
-description: Settles what an interface should look like before it is built - captures the current screens, writes design notes, makes three options per round by editing real screenshots with the image tool, critiques each against design-quality.md, relays them for a pick, and records the approved design in mockups/. Never edits product source. Used by the bigbrain designer; the verifier reads its design-quality reference.
+description: Settles what an interface should look like before it is built - captures the current screens, writes design notes, makes three options per round (images on the real screenshots when an image tool exists, otherwise HTML/CSS rebuilt from the product's real components, styles, icons and fonts), critiques each against design-quality.md and the current screens, relays them for a pick, and records the approved design in mockups/. Never edits product source. Used by the bigbrain designer; the verifier reads its design-quality reference.
 ---
 
 # Design
 
 The approved design is the reference the build is checked against: the verifier compares built screens with it, screen by screen. Your starting message names the bundle, the screens and states, what must change, what must stay, and your status file. You reach the person only through `needs_you` (`contract.md`).
-
-## 0. Check the image tool
-
-Before anything else, confirm you have an image generation or editing tool in this session. If not, set `state: blocked` with "The designer has no image tool in this Codex session. Enable it in the person's Codex configuration (see the bigbrain README), or answer 'HTML only' to continue with HTML/CSS mockups," and report. Continue with HTML/CSS only if the answer says so.
 
 ## 1. Capture
 
@@ -21,14 +17,22 @@ Write `mockups/design-notes.html` from the `documents` skill's `design-notes` te
 
 ## 3. Options, three per round
 
-For round N, make three genuinely different options (not three shades of one idea) by editing the real screenshots with the image tool, or by rebuilding the screen in HTML/CSS when exact text, layout or responsive behaviour matters. Save them as `mockups/<screen>-v<N>-<option>.png|html`.
+This is greenfield's `mockup` method. Pick the method that fits, and say which one you used on the gallery:
+
+- **Images**, for exploring looks quickly or changing an existing screen, when you have an image generation or editing tool: edit the real screenshots from step 1.
+- **HTML and CSS**, when exact text, real data, responsive behaviour or a later pixel comparison matters, and whenever you have no image tool. A missing image tool is not a blocker. Rebuild the screen from the product's own source, not from memory or by eye: its real components and markup, its styles (CSS, SCSS, tokens), its icon assets (inline the real SVGs) and its fonts, so layout, type, spacing, colours and density match the current screenshots. Write it by hand or copy from source; do not generate approximate chrome with a script.
+
+For round N, make three genuinely different options (not three shades of one idea), labelled 1 to 3. Save them as `mockups/<screen>-v<N>-<option>.png|html`.
 
 - Change only what is in scope. Keep layout, type, density, icons and unaffected regions as they are.
 - Use the product's own tokens and components from the design notes.
-- Look at every result. Critique each option against [references/design-quality.md](references/design-quality.md): the principles, and the jank items that apply to a still image (overflow, alignment, spacing, contrast, touch targets, dark mode, phone width, missing states). Fix what you can before showing it.
+- Look at every result. Check its text and look for unintended changes.
+- **Fidelity.** Put each option beside the current screenshot of the same screen and state, and compare every region the work does not change (app chrome, logo, navigation and sidebar, header, icons, fonts) region by region. A placeholder logo, an approximated or "simplified" icon, a substitute font, or chrome that differs from the screenshot is a defect: fix it from the real asset before showing the option.
+- Critique each option against [references/design-quality.md](references/design-quality.md): the principles, and the jank items that apply to a still image (overflow, alignment, spacing, contrast, touch targets, dark mode, phone width, missing states). Fix what you can before showing it.
 - List each option's invented details (text, data, icons nobody asked for); they are illustrative, not requirements.
+- Ask, through `needs_you`, before using any paid fallback.
 
-Write or update `mockups/index.html` from the `mockups` template: the brief, the current screenshots, this round's options with a one-line approach, the self-critique and the invented details for each.
+Write or update `mockups/index.html` from the `mockups` template: the brief, the method used (images or HTML/CSS rebuilt from which components and styles), the current screenshots, this round's options with a one-line approach, the self-critique (fidelity and design quality) and the invented details for each.
 
 ## 4. Relay the pick
 
@@ -36,7 +40,7 @@ Write a `needs_you` of kind `choice`: one question "Which option for <screen>?",
 
 ## 5. Record the approved design
 
-- When exact text, data or layout matters, rebuild the approved option in self-contained HTML/CSS (`mockups/<screen>-v<N>-<option>.html`) so it can be opened, resized and compared; say which details stay illustrative.
+- The approved design is what the build is checked against, so make it exact. If it is an image with invented details, either rebuild it in self-contained HTML/CSS from the real components and styles (`mockups/<screen>-v<N>-<option>.html`) so it can be opened, resized and compared, or list which details stay illustrative.
 - On the gallery: the approved version, "approved via Q-n → D-n", the **must-match** list (screens and states the build is checked against, each naming the J-n that will check it), annotations only where tokens and components do not already say it, the illustrative details, and the rejected options marked rejected. Status `ready-for-build`.
 - Run `check-bundle`, set your status to `done` with the approved paths, and report. The planner cites them in the cover sheet and in `control-flow.json`'s `qa.mockups`; mid-build, the orchestrator passes them to the implementer.
 
@@ -44,4 +48,5 @@ Write a `needs_you` of kind `choice`: one question "Which option for <screen>?",
 
 - Edit product source to make a mockup.
 - Present a favourite as approved.
+- Show an option with a placeholder logo, approximated icons or chrome that does not match the current screenshot.
 - Put a question to the person in your own tab; every question is a `needs_you`.
