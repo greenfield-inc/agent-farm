@@ -5,7 +5,7 @@ One HTML page per Session for the person, published as the Session's hub and upd
 ```
 Header            Session name, started, last updated, review policy (default: once at
                   the end of the workstream; any override, who gave it and when), validation
-                  choice (as we go, or batched at the end of the Session),
+                  default (deferred unless the person switched it to full),
                   workers running / queued / done, total cost and elapsed time
 
 Needs you         first and impossible to miss: plans waiting for approval, failed
