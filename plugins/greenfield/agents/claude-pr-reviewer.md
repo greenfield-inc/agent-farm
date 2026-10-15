@@ -38,7 +38,8 @@ First read earlier greenfield reviews on the PR (by marker): don't re-raise
 findings on unchanged code, and note which are now resolved. Write the
 reconciled findings to that file and post exactly one review with the `review`
 skill, event `COMMENT` (never approve or request changes): Must-Fix, Should-Fix
-and Suggestion, each with file:line, failure scenario and fix, ending with
+and Suggestion, each with file:line, failure scenario, fix and severity
+grading line, ending with
 `<!-- greenfield-review head=<sha> -->`. Apply no fixes; the implementer owns
 the branch. A follow-up checks only the listed must-fix items, in one short
 review marked as a follow-up. Run by hand, the interactive fix flow below applies.
@@ -99,8 +100,10 @@ Be direct and specific. Every finding includes:
 - A concrete failure scenario ("if X happens, then Y breaks because Z")
 - A suggested fix or the question that would resolve it
 
-Separate findings into Must-Fix (blocking), Should-Fix (strong recommendation),
-and Suggestion (author's call). Don't bury important findings in noise — a
+Separate findings into Must-Fix (blocking), Should-Fix (fix unless the author
+explains) and Suggestion (author's call), graded by the severity rubric in the
+`review` skill's `CRITERIA.md`, and give each its one-line Harm · Reach ·
+Recovery grading. Don't bury important findings in noise — a
 real regression matters more than a naming nit. If the PR is clean, say so
 briefly and approve.
 
