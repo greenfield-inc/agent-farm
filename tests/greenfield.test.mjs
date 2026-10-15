@@ -108,7 +108,7 @@ test('orchestrator accepts host guidance and planners accept coordinated handoff
 test('planners retain small-fix skills and the removed one-shot route cannot resolve',()=>{
  for(const profile of ['planner','planner:codex']){
   const main=resolveProfile(root,profile).nodes.main;
-  for(const skill of ['tdd','codebase-design','verify-app','open-pr','session-trace'])assert.ok(main.skills.includes(skill),`${profile}: ${skill}`);
+  for(const skill of ['tdd','codebase-design','verify-app','prepare-pr','session-trace'])assert.ok(main.skills.includes(skill),`${profile}: ${skill}`);
  }
  assert.equal(fs.existsSync(path.join(root,'profiles/one-shot.yaml')),false);
  assert.equal(fs.existsSync(path.join(root,'agents/one-shot.md')),false);
@@ -190,7 +190,7 @@ test('simplify-and-refactor runs the refactor and principled-review skills on So
  for(const [profile,agent,harness,model,effort] of [['simplify-and-refactor:sol','simplify-and-refactor','codex','gpt-6.1-sol','low'],['simplify-and-refactor:opus','simplify-and-refactor-claude','claude','claude-opus-5-5','medium']]){
   const resolved=resolveProfile(root,profile),main=resolved.nodes.main;
   assert.deepEqual([main.name,main.harness,main.model,main.reasoning_effort],[agent,harness,model,effort],profile);
-  assert.deepEqual([...main.skills].sort(),['principled-review','refactor','refactor-apply','refactor-deep','refactor-simple'],profile);
+  assert.deepEqual([...main.skills].sort(),['excalidraw-pr-diagrams','prepare-pr','principled-review','refactor','refactor-apply','refactor-deep','refactor-simple'],profile);
   assert.deepEqual(Object.keys(main.children).sort(),['cold-reader','refactor'],profile);
   const child=resolved.nodes[main.children.refactor];
   assert.deepEqual([child.name,child.mode,child.harness,child.model,child.reasoning_effort],['refactor','native',harness,model,effort],profile);
@@ -230,7 +230,7 @@ test('the unused dcouple copies are gone and nothing in the plugin names them',(
 const unbundledMentions={
  'pr-test-automation -> cold-read':"orders the implementer's PR-body cold-read before QA; QA agents do not run it",
  'session-trace -> handoff':'names the page a handoff publishes, as an example of where a trace attaches',
- 'session-trace -> prepare-pr':'names the page prepare-pr publishes, as an example of where a trace attaches',
+ 'prepare-pr -> session-trace':'attaches a trace only when session-trace is installed',
  'seo-data-pull -> plan':'names a person-level data property',
  'create-ticket -> ui-mockup':'offers a mockup only where the agent has ui-mockup',
  'create-ticket -> explain-visually':'offers a visual only where the agent has explain-visually',

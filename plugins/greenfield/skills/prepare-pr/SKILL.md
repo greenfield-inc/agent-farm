@@ -20,15 +20,10 @@ Workflow:
 4. Resolve obvious conflicts directly. Ask the user about semantic conflicts.
 5. Run the relevant build steps and fix straightforward failures.
 6. Create a visual PR diagram before opening/updating the PR:
-   - Use the `excalidraw-pr-diagrams` skill.
-   - Keep all generated diagram working files under `/tmp`, usually `/tmp/codex-pr-diagrams/<branch-or-pr>/`.
-   - Add a `## Visual Overview` section to the PR body.
-   - Include explicit `Before` and `After` diagrams in the visual overview.
-   - Use the rendered Excalidraw image as the primary visual. Add Mermaid only when the user requests a text-rendered fallback.
-   - Reuse a repository-owned long-lived release such as `pr-assets`, and follow the diagram skill's unique naming, collision, manifest, and metadata/direct-content verification rules. Creating that release is a separate hard stop requiring an exact grant such as `{"action":"create_release","repo":"owner/name","tag":"pr-assets"}`; generic GitHub, PR, comment, or asset-upload authorization does not grant it. Otherwise prepare the exact commands and marked Markdown and report the blocker.
+   - Draw and publish it with the `excalidraw-pr-diagrams` skill: explicit `Before` and `After` paths in a `## Visual Overview` section.
 7. Audit existing PR body/comment image references. Replace dead, expiring, temporary, or local-only URLs with verified durable assets. Update agent-owned marked sections in place, preserve author text outside them, and change only a broken URL when it sits in author-owned prose.
 8. Push the branch. Use `--force-with-lease` only when the rebase made it necessary.
-9. Create or update the PR with a summary built from the plans, current diff, and a visual overview bounded by `<!-- pr-visual-overview:start -->` / `<!-- pr-visual-overview:end -->` that embeds the verified image inline. Read the PR back and confirm it is non-draft when the requested outcome is a ready PR.
+9. Create or update the PR with a summary built from the plans, current diff, links to the brief, plan cover sheet and issue when they exist, and a visual overview bounded by `<!-- pr-visual-overview:start -->` / `<!-- pr-visual-overview:end -->` that embeds the verified image inline. Read the PR back and confirm it is non-draft when the requested outcome is a ready PR.
 10. Run the `cold-read` skill on the PR title and body and apply its improvements before reporting done. Human review has not been requested yet, so its creative freedom applies in full.
 11. Size the PR with `git diff origin/main...HEAD --numstat`, counting hand-written files and lines only (exclude lockfiles, generated and vendored files). If it exceeds 10 files or 300 lines, end the report with one line offering a `greenfield/simplify-and-refactor` pass (blind simple and deep analyses, merged once, applied only on the person's approval, and run before QA because it changes the head). Under that size say nothing. Offer, never run.
 
