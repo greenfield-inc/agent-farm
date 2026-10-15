@@ -26,7 +26,7 @@ Fast, focused code quality analysis that:
 - **Bug fixes** and **enhancements**
 - Quick pre-PR quality check
 
-For large features (>10 files, >500 lines), use `refactor-deep` instead. Simple and
+For large features (more than 10 files or 300 hand-written lines), use `refactor-deep` instead. Simple and
 deep are the whole set: simple is the cheap pass with the cleanest
 signal-to-noise, deep is the one that finds real defects in big diffs. Run
 both on a large PR when you want coverage; their findings overlap by about

@@ -279,7 +279,6 @@ transformation visible in one sentence.
 | Failure | What it looks like | Fix |
 |---------|-------------------|-----|
 | Filler phrases | "It's worth noting that" | Delete. Just say the thing. |
-| Hedging | "It might be worth considering" | Either say it or don't. |
 | Generic enthusiasm | "We're thrilled to announce" | Say what changed and why it matters. |
 | Feature listing | "Includes X, Y, and Z" | Run the So What Chain. What problem do they solve? |
 | Passive voice | "The update was deployed" | "We deployed the update." |

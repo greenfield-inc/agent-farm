@@ -41,7 +41,7 @@ skip the pull and use the cached data.
 
 ### 2. Check for active experiments
 
-Read `.seo/experiments.md` if it exists. For any experiment past its review date:
+Read the experiment files in `.seo/experiments/` if any exist. For any experiment past its review date:
 - Pull the current metrics for the same pages/queries from the fresh data
 - Compare current vs baseline metrics recorded in the experiment
 - Report the result: improved, no change, or regressed
@@ -89,7 +89,7 @@ New/lost, referring domains, domain rating
 Keywords competitors rank for that we don't
 
 ## Running Experiments
-Active experiments from `.seo/experiments.md` not yet past review date.
+Active experiments from `.seo/experiments/` not yet past review date.
 
 ## Experiment Results
 Experiments past their review date with measured before/after metrics.

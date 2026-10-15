@@ -183,4 +183,4 @@ Write `.seo/foundations.md`:
 ```
 
 **Success criteria**: Foundations document is complete. Any agent running `seo-briefing` or `seo-content-strategy` after this has the context it needs.
-**Artifacts**: `.seo/foundations.md` is referenced by all other SEO skills as baseline context.
+**Artifacts**: `.seo/foundations.md`, the baseline context read at the start of every SEO workflow.

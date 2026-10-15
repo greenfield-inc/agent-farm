@@ -79,7 +79,6 @@ For landing pages:
 - Titles under 60 characters including brand suffix
 - Descriptions include platform/differentiator keywords
 - Dates in human-readable format (Month Day, Year)
-- No em dashes. Use commas, colons, periods, or sentence breaks.
 
 ### 4. Internal linking pass
 
@@ -124,7 +123,7 @@ Report which channel was used and the response status.
 
 ### 7. Record experiments
 
-Record all changes as experiments in `.seo/experiments.md` with:
+Record each change as an experiment file in `.seo/experiments/`, in the format `seo-data-organize` defines, with:
 - What was changed (title, meta description, content, canonical, etc.)
 - The baseline metrics from `.seo/data/` at time of change
 - Expected impact

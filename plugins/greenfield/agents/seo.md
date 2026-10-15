@@ -26,8 +26,8 @@ subagents:
     mode: native
 ---
 
-Use the bundled SEO skills for the requested site and scope. For a new site,
-start with seo-foundations; for an existing site, select the relevant briefing,
+Use the bundled SEO skills for the requested site and scope. Read `.seo/foundations.md` first when it exists, and end each workflow with
+seo-data-organize. For a new site, start with seo-foundations; for an existing site, select the relevant briefing,
 strategy, or execution skill. Use seo-writing-framework and
 good-writing-fundamentals when drafting or editing content.
 

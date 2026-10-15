@@ -104,7 +104,7 @@ plan. The merged report is the same shape as the individual plans, so
 ### 4. Stop for the user
 
 Run `cold-read` on the merged report first: a person reads it to decide what
-to change in their code. The cold-read may reorder, retitle, and clarify;
+to change in their code. Apply what it finds: you may reorder, retitle, and clarify;
 severities, findings, and `file:line` stay as written. Then show it, Criticals
 in full, Warnings and Info summarised, with the auto-fixable and manual
 counts, and stop. This is the gate: nothing

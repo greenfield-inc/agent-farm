@@ -34,7 +34,7 @@ Follow the reported steps from a clean state. Capture console output and failed 
 ## Report
 
 ```
-Verdict: all-proven | partial | blocked-environment | blocked-sign-in | bug-found
+Verdict: all-proven | partial | blocked-env | blocked-auth | product-bug-found
 Target:  <commit>
 
 | Validation ID / journey | Result | Evidence |

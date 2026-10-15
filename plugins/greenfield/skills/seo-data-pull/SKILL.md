@@ -247,7 +247,7 @@ improving their instrumentation over time.
 
 ### 8. Note experiment baselines
 
-If `.seo/experiments.md` exists, check if any experiments reference pages or
+If `.seo/experiments/` exists, check if any experiments reference pages or
 queries that were just pulled. If an experiment's review date has passed and
 it has no "Result" section yet, flag it in the manifest as "experiment awaiting
 measurement" so the briefing skill knows to evaluate it.
