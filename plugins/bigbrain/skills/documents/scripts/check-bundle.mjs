@@ -97,7 +97,11 @@ export function checkBundle(dir,{stage='draft'}={}){
 
  for(const page of pages){
   const {doc,html,meta,ids,text}=page,spec=kinds[meta.kind];
-  for(const section of spec.sections)if(!ids.has(section))fail('sections',doc,`missing the ${meta.kind} section #${section}`);
+  // A page approved before its kind gained a section keeps the shape it was approved in.
+  const settled=SETTLED.has(meta.status);
+  for(const section of spec.sections)if(!ids.has(section)&&!(settled&&spec.settled_may_omit?.includes(section)))fail('sections',doc,`missing the ${meta.kind} section #${section}`);
+  if(spec.ordered&&!settled)checkOrder(doc,html,spec.sections,fail);
+  if(meta.kind==='cover-sheet'&&!settled)checkSchemaChanges(doc,html,fail);
   for(const id of meta.defines){
    if(!ids.has(id))fail('id-anchors',doc,`defines ${id} but has no element with id="${id}"`);
    const prefix=id.split('-')[0];if(!spec.defines.includes(prefix))fail('id-anchors',doc,`a ${meta.kind} page cannot define ${prefix}-n IDs (${id})`);
@@ -134,6 +138,30 @@ export function checkBundle(dir,{stage='draft'}={}){
   if(parsed&&!problems.length&&flow)checkVerification(dir,record,flow,stage,fail);
  }else if(flow&&stage!=='draft')fail('verification-rows','evidence/verification.json',`missing; the planner creates one row per J/S before ${stage}`);
  return finish(errors);
+}
+
+const sectionHtml=(html,id)=>new RegExp(`<[^>]+\\bid\\s*=\\s*["']${id}["'][^>]*>([\\s\\S]*?)<\\/section>`,'i').exec(stripCode(html))?.[1];
+
+// Sections must appear in the kind's order, so every plan reads the same way top to bottom.
+function checkOrder(doc,html,sections,fail){
+ const at=id=>stripCode(html).search(new RegExp(`\\sid\\s*=\\s*["']${id}["']`,'i'));
+ const present=sections.filter(id=>at(id)>=0);
+ for(let i=1;i<present.length;i++)if(at(present[i])<at(present[i-1])){fail('section-order',doc,`#${present[i]} comes before #${present[i-1]}; the order is ${present.join(', ')}`);return;}
+}
+
+// Each schema group shows its exact DDL in a visible block above its Object / What it is for / Why table.
+function checkSchemaChanges(doc,html,fail){
+ const section=sectionHtml(html,'schema-changes');
+ if(section===undefined)return;
+ const groups=[...section.matchAll(/<article\b[^>]*\bclass\s*=\s*["'][^"']*\bschema-group\b[^"']*["'][^>]*>([\s\S]*?)<\/article>/gi)];
+ if(!groups.length&&!/n\/a because/i.test(visibleText(section))){fail('schema-changes',doc,'#schema-changes has no schema-group and does not say "n/a because …"');return;}
+ for(const [whole,body] of groups){
+  const id=/\bid\s*=\s*["']([^"']+)["']/.exec(whole)?.[1]??'a schema group';
+  const pre=body.search(/<pre\b/i),table=body.search(/<table\b/i),details=body.search(/<details\b/i);
+  if(pre<0||table<0)fail('schema-changes',doc,`${id} needs its DDL in a <pre> block and an Object / What it is for / Why it's needed table`);
+  else if(pre>table)fail('schema-changes',doc,`${id} shows its table before its DDL; the DDL goes above the table`);
+  else if(details>=0&&details<pre)fail('schema-changes',doc,`${id} hides its DDL in a <details>; keep it visible`);
+ }
 }
 
 function checkLinks(dir,doc,html,fail){
@@ -179,6 +207,7 @@ function checkFlow(dir,flow,coverSheet,defined,fail){
   const match=/<[^>]+\bid\s*=\s*["']control-flow["'][^>]*>([\s\S]*?)<\/section>/i.exec(coverSheet.html)??/<[^>]+\bid\s*=\s*["']control-flow["'][^>]*>([\s\S]*)/i.exec(coverSheet.html);
   const opening=/<[^>]+\bid\s*=\s*["']control-flow["'][^>]*>/i.exec(coverSheet.html)?.[0]??'';
   const section=match?.[1]??'';
+  if(match&&!SETTLED.has(coverSheet.meta.status)&&!/<svg\b/i.test(section))fail('control-flow-render',coverSheet.doc,'the Control flow section has no inline-SVG diagram of the phases, actors, review points, QA loop and gates; render one from control-flow.json');
   const revision=/data-control-flow-revision\s*=\s*["'](\d+)["']/.exec(opening+section)?.[1];
   if(Number(revision)!==flow.revision)fail('control-flow-render',coverSheet.doc,`the Control flow section shows revision ${revision??'none'}, control-flow.json is revision ${flow.revision}; re-render it from the JSON`);
   const rendered=[...section.matchAll(/data-step\s*=\s*["']([^"']+)["']/g)].map(m=>m[1]);

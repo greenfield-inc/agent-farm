@@ -73,6 +73,11 @@
       "contents",
       "three-sentences",
       "before-after",
+      "what-we-build",
+      "schema-changes",
+      "packages",
+      "how-we-know",
+      "control-flow",
       "decisions-locked",
       "deferred",
       "scope",
@@ -80,12 +85,14 @@
       "non-goals",
       "ask-first",
       "cross-cutting",
-      "how-we-know",
-      "packages",
-      "control-flow",
       "open-markers",
       "look-first",
       "change-log"
+    ],
+    "ordered": true,
+    "settled_may_omit": [
+      "what-we-build",
+      "schema-changes"
     ]
   },
   "design-notes": {

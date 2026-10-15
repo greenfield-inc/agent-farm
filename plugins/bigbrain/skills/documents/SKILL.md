@@ -10,7 +10,7 @@ Every bigbrain page is built from a template here, carries a `doc-meta` block, a
 ## Write a page
 
 1. Copy `formats/<kind>/template.html` into the bundle at the kind's file name (in `kinds.json`). Read `formats/<kind>/example.html` once for a filled-in page of the same kind.
-2. Fill every section. A section that does not apply says "n/a because …"; never delete one. The required section ids are in `kinds.json`.
+2. Fill every section, in the template's order. A section that does not apply says "n/a because …"; never delete one. The required section ids are in `kinds.json`; a kind marked `ordered` (the cover sheet) must keep them in that order.
 3. Fill `doc-meta`: `kind`, a kebab-case `id`, `status`, `revision`, `supersedes`, `updated`, the IDs this page `defines` (each also an element `id` on the page, so `decisions.html#D-4` links), the IDs it `cites`, and the counts of open `[NEEDS DECISION` and `[ASSUMPTION` markers.
 4. Add the page to `bundle.json`'s `documents`.
 
@@ -42,7 +42,7 @@ One piece of work has one bundle, a folder whose files and names come from `kind
 
 | File | Schema | Written by | Rule |
 | --- | --- | --- | --- |
-| `control-flow.json` | `schemas/control-flow.schema.json` | planner | The cover sheet's Control flow section is rendered from it: `<section id="control-flow" data-control-flow-revision="N">` with one `data-step="<id>"` element per step, in order. Never hand-edit the section. |
+| `control-flow.json` | `schemas/control-flow.schema.json` | planner | The cover sheet's Control flow section is rendered from it: `<section id="control-flow" data-control-flow-revision="N">` with a diagram and one `data-step="<id>"` element per step, in order. Never hand-edit the section. |
 | `evidence/verification.json` | `schemas/verification.schema.json` | planner (rows), implementer and verifier (results) | One row per J/S with `flow` copied exactly from `control-flow.json`. Results set only verdict, method, evidence, commit and round, and append to the logs. |
 | `.agent/status/<role>.json` | `schemas/status.schema.json` | each worker | See `contract.md`. |
 | every page | `schemas/doc-meta.schema.json` | the page's writer | The `doc-meta` block. |
@@ -62,13 +62,15 @@ It needs only Node. Exit 0 is pass; each failure names its rule:
 | --- | --- |
 | `bundle-json` | `bundle.json` is missing, or lists a file that does not exist |
 | `doc-meta` | a listed page (other than `trace.html`) has no valid `doc-meta` |
-| `sections` | a page lacks a required section of its kind |
+| `sections` | a page lacks a required section of its kind (a page approved before its kind gained a section, listed in `settled_may_omit`, keeps the shape it was approved in) |
+| `section-order` | a draft or ready-for-review page of an `ordered` kind has its sections out of order |
+| `schema-changes` | a draft or ready-for-review cover sheet's schema group lacks its visible DDL block above its Object / What it is for / Why table, or the section has no group and no "n/a because" |
 | `id-anchors` | a defined ID has no element with that id, or the kind may not define that prefix |
 | `ids-unique`, `ids-defined` | an ID is defined twice, or a cited or mentioned ID is defined nowhere (the Session map may mention IDs from the bundles it lists) |
 | `open-counts` | `doc-meta.open` disagrees with the markers on the page |
 | `needs-decision` | a `[NEEDS DECISION` sits on an approved, in-build or done page, or anywhere at `--stage approve` or `done` |
 | `links` | a relative link or anchor does not resolve inside the bundle |
-| `schema:control-flow`, `control-flow-refs`, `review-points`, `control-flow-render` | the flow is invalid (including a bare `null`, `false`, `0` or `""`), cites unknown IDs, lacks a checkpoint reason, does not end with the end review or its waiver, or the cover sheet's section no longer shows the same steps and facts |
+| `schema:control-flow`, `control-flow-refs`, `review-points`, `control-flow-render` | the flow is invalid (including a bare `null`, `false`, `0` or `""`), cites unknown IDs, lacks a checkpoint reason, does not end with the end review or its waiver, or the cover sheet's section no longer shows the same steps and facts, or (before approval) has no diagram |
 | `schema:verification`, `verification-rows`, `verification-reworded`, `verification-verdicts` | rows are added, removed, reworded, or still pending at `--stage done` |
 | `schema:status`, `status-state` | a status file is invalid or its state and blocks disagree |
 

@@ -65,27 +65,49 @@ Every bigbrain cover sheet ships `control-flow.json` in its bundle. It is the pr
 
 ## Rendering on the cover sheet
 
-The cover sheet's Control flow section is generated from the JSON; never hand-edit it. It is a `<section>` with no nested `<section>`, and one element per step carrying `data-step`, in order:
+The cover sheet's Control flow section is generated from the JSON; never hand-edit it. It is a `<section>` with no nested `<section>`, holding three parts in this order: a meta line, a diagram, and the step-by-step detail.
 
 ```html
 <section id="control-flow" data-control-flow-revision="2">
   <h2>Control flow</h2>
-  <p>Generated from <a href="control-flow.json">control-flow.json</a>, revision 2. QA: up to 3 rounds, desktop and phone, light and dark.</p>
-  <ol class="flow">
-    <li data-step="build-P-1">build P-1 <span>implementer</span></li>
-    <li data-step="verify-P-1">verify S-1</li>
-    <li data-step="review-P-1">review P-1 <span>planned · shared-contract: the theme tokens every later screen uses</span></li>
-    …
-    <li data-step="review-final">review all <span>planned · end</span></li>
-    <!-- a waived end review renders as: review all · no review (waived), D-n -->
-  </ol>
+  <p class="meta">Rendered from <a href="control-flow.json">control-flow.json</a>, revision 2, approved by D-6. Do not hand-edit. Two review points: a checkpoint after P-1, and the end review. QA: up to 3 rounds, desktop and phone, light and dark, jank checklist on.</p>
+  <figure class="cf-diagram">
+    <svg viewBox="0 0 640 380" role="img" aria-labelledby="cf-title cf-desc">
+      <title id="cf-title">Control flow: …</title>
+      <desc id="cf-desc">every phase, step, actor, review point, the QA loop and each gate, in reading order</desc>
+      …
+    </svg>
+  </figure>
+  <details id="control-flow-steps">
+    <summary>Step-by-step detail (7 steps)</summary>
+    <h4>1 · Theme tokens</h4>
+    <ol class="flow" start="1">
+      <li data-step="build-P-1"><strong>Build P-1</strong> · theme tokens <span class="meta">(implementer · <code>build-P-1</code> · build)</span></li>
+      <li data-step="verify-P-1"><strong>Verify</strong> · checks S-1 <span class="meta">(implementer · <code>verify-P-1</code> · verify)</span></li>
+      <li data-step="review-P-1"><strong>Checkpoint review</strong> · scope P-1 · shared-contract: the theme tokens every later screen uses <span class="meta">(orchestrator · <code>review-P-1</code> · review)</span></li>
+    </ol>
+    <h4>2 · Settings screen</h4>
+    <ol class="flow" start="4">
+      …
+      <li data-step="review-final"><strong>End review</strong> · scope all <span class="meta">(orchestrator · <code>review-final</code> · review)</span></li>
+      <!-- a waived end review renders as: End review · scope all · no review (waived), D-n -->
+    </ol>
+  </details>
   <p>Anything else: the orchestrator asks you first.</p>
 </section>
 ```
 
-Each step's line shows what it will make workers do: its `do`, package, flows, scope, `reason_kind`, "up to N rounds" for a `qa` step, "no review (waived)" and the D-n for a waiver, and the section shows the QA viewports and themes. `check-bundle` checks those facts against the JSON.
+**The diagram** is an inline SVG drawn from the steps, readable at the page's normal width and in light and dark (template classes only):
 
-Put a one-line summary near the top of the page too (`#control-flow-summary`): the review points and the QA settings. A small inline-SVG strip of the steps is welcome beside the list.
+- **Phases:** group the steps into phases, one row or lane each, labelled (`1 · Backend pull request`, `2 · Web pull request`). A phase usually ends at a `pr` step or a review point; a single-PR flow is one phase.
+- **Actors by colour and shape:** implementer steps (`build` with its `verify`, `qa`, `pr`) are `.box` rectangles; review and design steps, which the orchestrator runs, are `.hot` rectangles labelled with their scope and `reason_kind`. A build and its verify may share one node ("Build + check P-1").
+- **The QA loop** is one node with an arrow looping back to itself, labelled with its round cap, viewports and themes.
+- **Human gates** are `.warnbox` hexagons joined by a dashed line to the step they belong to: approvals and actions the plan gives a person (staging migration, a backfill, production DDL a human applies). They are not steps; take them from the steps' `note`s and the cover sheet's Ask-first actions.
+- Arrows (`.path`) show the order, including `continue:` from a review point to the next phase. A legend explains the three shapes. The `<title>` and `<desc>` say the whole flow in words.
+
+**The step detail** sits in `<details id="control-flow-steps">`, closed by default, grouped under one `h4` per phase, one `<li data-step="<id>">` per step in order (continue the numbering with `start`). Only these items carry `data-step`; the diagram never does. Each line shows what the step will make workers do: its `do`, package and its title, flows, scope, `reason_kind` and reason, "up to N rounds" for a `qa` step, "no review (waived)" and the D-n for a waiver, and the step's `note` on a second line. The section shows the QA viewports and themes. `check-bundle` checks those facts against the JSON, and fails a cover sheet still in draft or review whose section has no diagram.
+
+Put a one-line summary near the top of the page too (`#control-flow-summary`): the review points and the QA settings.
 
 ## Who runs what
 
