@@ -15,7 +15,7 @@ checksums:
   agents/planner-codex.md: bde27ff41f34a0b34a2f0b0e9fcd9162fce5aaf9e190ac087a7c2c89d37457b4
   agents/planner.md: 723761f6b7e1000d84b1e160509cccfbada7c90a563765f8dfae5a0864b8a402
   agents/researcher.md: 86f7bf38b996eddab4635cc9c7d0724d6ee776d4357a12d70e49a7ebf15fd032
-  agents/review-worker.md: b85ba18c25ea281d22f094817428a29c82c0e17ff7e8ab990f4477df24670f75
+  agents/review-worker.md: ee360aa62889dabc73bc1496f876d0bcf92e5f96285a00b2c602cf3e51a792d5
   agents/reviewer-claude.md: 6e860c1c92dd66ce476540aee39c9320f812ee94957409787a6f1aeeae201fe9
   agents/reviewer-codex.md: 0af668d9ebe5d9aa1940ba5f6529c58ecc8bbe92e879e8450d18c3439ccad6bb
   agents/socrates.md: b893cb2283ead6cec8bb061841b25a750b007cace9f3c37ec21a13c27d9daf9c
@@ -110,10 +110,11 @@ checksums:
   skills/quick-verify/SKILL.md: f1a6912e6188654d456f50018a5b99ce0afbd8000bcbec895621ff62696b645a
   skills/quick-verify/metadata/codex.yaml: f6786d928d9220b0b05c85352c44daa631b1c72b1709438251b3c3d23d4a37e8
   skills/research-web/SKILL.md: e4d7741a699f69bf350485695fcce75e526aa4d9d6bbfd8e4e755c969bbab163
-  skills/review/CRITERIA.md: 0b35d5052d2a03a5842bd174815aad530c7d2537722bc7d149a4468ff687dd4d
-  skills/review/SKILL.md: 66e978a26652a5a3cf14439d0e0083499e66d729446a50d21e8144baf3fdba78
-  skills/review/references/findings.md: 709b93b7b62f0d7c79df0b45e785e45dfa9eb8ca4e4a01defee20f356153ec6e
-  skills/review/references/worker-briefs.md: e701cdd9740a7cabe16c38afb43200ef0a448156c6be948eedc9a3b6718268ca
+  skills/review/CRITERIA.md: a944b16a14b3610d261c1d0564a1fbc0235050b69a384ec75a4aa6115cc60b74
+  skills/review/SKILL.md: 4e8e035da625fb11685732ef571fe2293a9b6855a3f0c55060dc846a6991ecb9
+  skills/review/references/findings.md: b2a0002e23ac8e1bfdb5e7a79859380d935c55dbcbc0e0b0b8719f065511bdc3
+  skills/review/references/worker-briefs.md: 320f6caa3f8a9d9c64954288335f3e3a5668b66d77c55850911c3da17c19b35e
+  skills/review/severity-examples.md: 437c5a69c0a1cb3eba87b39f499b47b721d7036cb2a246dd08e7493b91943331
   skills/session-trace/SKILL.md: 41856b20114f871cedbbd64cd2349d5947c29f45f1a960aa69c6eef4cb74f26b
   skills/session-trace/references/page-guide.md: 2e6074da875c317c21b062ff3d1bc28231cf1c7fc95a24cab6fcde0d12633797
   skills/session-trace/scripts/build-trace.mjs: f2bf29b7b92ea303f9677746bc9ffdc9451c61702b6306e5b196c63ad021e4a6

@@ -28,9 +28,9 @@ Finders get the spec and the diff, never your reasoning or each other's results.
 
 ## 3. Check
 
-Merge duplicate candidates (same cause, same place); keep the clearest statement and note who found it. For each candidate proposed as Must-Fix or Should-Fix, brief one checker (the checker brief) on the **other vendor** from the finder that raised it: `checker-claude` for a candidate from a Codex worker, `checker-codex` for one from a Claude worker. A checker gets the spec, the diff and that one finding, never the finder's reasoning. Run checkers in parallel.
+Merge duplicate candidates (same cause, same place); keep the clearest statement and note who found it. For each candidate proposed as Must-Fix or Should-Fix, brief one checker (the checker brief) on the **other vendor** from the finder that raised it: `checker-claude` for a candidate from a Codex worker, `checker-codex` for one from a Claude worker. A checker gets the spec, the diff, that one finding and its proposed severity line, never the finder's reasoning. It checks both whether the bug is real and whether the Harm · Reach · Recovery answers and the level hold. Run checkers in parallel.
 
-- `confirmed` keeps the finding, with how it was checked (repro, test or reading).
+- `confirmed` keeps the finding, with how it was checked (repro, test or reading). If the checker disputes the severity line, take the level its answers support under the rubric and note the change.
 - `refuted` drops it only with concrete evidence (the code path that prevents it, a passing reproduction). Record dropped candidates with the refutation.
 - A checker that cannot decide keeps the finding at Should-Fix, marked unverified.
 
@@ -38,7 +38,7 @@ Suggestions are not checked; keep the best five at most.
 
 ## 4. Rank and gate
 
-- **Must-Fix** only if a checker confirmed it and it breaks a J/S, loses data, or is a security hole (`CRITERIA.md` section 7). **Should-Fix** for confirmed likely bugs and drift. **Suggestion** at most five.
+- Grade every finding with the Severity rubric in `CRITERIA.md` (harm, reach, recovery, and section 7 for the cover sheet), calibrated against [severity-examples.md](severity-examples.md). **Must-Fix** only if a checker confirmed it. **Suggestion** at most five. Use only these three level names.
 - **Verification claims:** for each J/S in scope that `verification.json` marks `pass`, open the evidence it names and confirm it shows the outcome. Count ok and unsupported; an unsupported claim is a Should-Fix (Must-Fix if the behaviour is in fact broken).
 - **Quality gates:** run the repository's required checks for the scoped packages (from AGENTS.md or CLAUDE.md, CI, manifests) and `node <documents skill>/scripts/check-bundle.mjs <bundle>`; each is PASS, FAIL, BLOCKED or N/A with evidence. A failing required check is Must-Fix.
 - Number findings F-n, continuing after the highest F-n already in the bundle's `findings/` files; never reuse one. Each cites the P-n or J-n it concerns.
@@ -50,7 +50,7 @@ Write the findings file first, at the path your message names (normally `finding
 ```markdown
 ## PR Review · <step id> · scope <P-n…|all>
 
-**Severity:** Must-Fix breaks a J/S or loses data/security · Should-Fix likely bug or drift · Suggestion author's call (≤5)
+**Severity:** graded by harm, reach and recovery (`CRITERIA.md`) · Must-Fix blocks merge · Should-Fix fix unless the author explains · Suggestion author's call (≤5)
 
 ### Quality gates
 - <command>: PASS | FAIL | BLOCKED | N/A (<evidence>)
@@ -61,8 +61,11 @@ Verification claims checked: <N> ok, <N> unsupported
 
 ### Must-Fix (<n>)
 **F-n** · P-n/J-n · `file:line` — what is wrong. Failure scenario: … Fix: … (checked by <repro|test|reading> on <vendor>)
+Harm: <high|medium|low> (<why>) · Reach: <high|medium|low> (<who>) · Recovery: <silent|visible> (<workaround>) → Must-Fix
 
 ### Should-Fix (<n>)
+Same layout, with the severity line ending in its level.
+
 ### Suggestions (<n ≤ 5>)
 ### Completeness
 Each package in scope: delivered | partial (what is missing) | not started.

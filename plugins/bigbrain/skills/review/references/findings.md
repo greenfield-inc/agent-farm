@@ -9,10 +9,11 @@ Must-Fix: <n> · Should-Fix: <n> · Suggestion: <n>
 
 ## F-<n> <title>
 P-n/J-n · `file:line` · Must-Fix | Should-Fix | Suggestion
+Severity: Harm: <high|medium|low> (<why>) · Reach: <high|medium|low> (<who>) · Recovery: <silent|visible> (<workaround>) → <level>
 What: …
 Failure scenario: …
 Fix: …
-Checked by: <repro | test | reading> on <vendor>; found by <finder>
+Checked by: <repro | test | reading> on <vendor>; found by <finder>; severity <agreed | changed from <level>: why>
 
 ## Dropped
 - <candidate> · refuted because <evidence>

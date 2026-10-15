@@ -10,7 +10,7 @@ PR           <owner/repo>#<n> at <head sha>
 Scope        step <id>, packages <P-n…|all>
 Files        <the scoped file list>; read the diff with git diff <base>...<head> -- <files>
 Spec         <bundle>/cover-sheet.html#<P-n> cards and J/S in scope; control-flow.json; decisions cited
-Criteria     CRITERIA.md beside the review skill: section 0, the sections for your area, section 7
+Criteria     CRITERIA.md beside the review skill: section 0, Severity, the sections for your area, section 7; severity-examples.md
 Return       one entry per candidate, most severe first
 ```
 
@@ -29,7 +29,7 @@ title          one line, the problem not the fix
 where          file:line (and P-n / J-n it concerns)
 what           one sentence
 failure        a concrete scenario: if X, then Y breaks because Z
-proposed       Must-Fix | Should-Fix | Suggestion, and why
+severity       Harm: <high|medium|low> (why) · Reach: <high|medium|low> (who) · Recovery: <silent|visible> → Must-Fix | Should-Fix | Suggestion
 evidence       the code read, or the command run and its output
 ```
 
@@ -41,8 +41,12 @@ Report "no candidates" when there are none, with what you searched.
 Job          checker · try to refute one finding
 PR           <owner/repo>#<n> at <head sha>
 Spec         the same cover-sheet cards and J/S
-Finding      title, where, what, failure scenario (not the finder's reasoning)
-Return       confirmed | refuted, how you checked (repro | test | reading), evidence
+Finding      title, where, what, failure scenario, severity line (not the finder's reasoning)
+Criteria     the Severity section of CRITERIA.md and severity-examples.md
+Return       confirmed | refuted, how you checked (repro | test | reading), evidence;
+             severity agreed, or your own severity line and why
 ```
 
 Start from the claim that the finding is wrong. Read the code path; run the failing scenario or a focused test when you can. Return `refuted` only with concrete evidence that it cannot happen (the guard that prevents it, a passing reproduction of the scenario). If you cannot tell, say `confirmed` with "unverified" and why.
+
+Then check the severity line on its own: is each answer right for this code (who actually reaches it, whether the failure shows), and does the level follow from the answers under the rubric? Give your own line when it doesn't.

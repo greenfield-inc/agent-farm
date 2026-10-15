@@ -20,7 +20,36 @@ UI panels, and JavaScript conventions are not requirements for other projects.
 
 ---
 
-## 1. Bugs and Correctness (Must-Fix)
+## Severity (how bad a finding is)
+
+Sections 1 to 6 are a checklist of what to look for. Their category never sets a finding's severity: a race condition can be a Suggestion and a TypeScript gap can be Must-Fix. Grade every finding by its consequence, answering three questions:
+
+- **Harm:** what goes wrong when it happens. High: a wrong answer, data lost or damaged, a security hole, or something silently stuck. Medium: stale or misleading output, or an action blocked that should work. Low: cosmetic, a confusing message, or a clear error.
+- **Reach:** who hits it. High: the normal path, every user or every orchestrator. Medium: a common but not default path. Low: needs a rare timing, platform or setup.
+- **Recovery:** what happens next. Silent: nobody notices, or there is no workaround. Visible: the failure shows and an obvious workaround exists.
+
+Then pick the level:
+
+- **Must-Fix (blocks merge):** high harm and (high reach or silent). Also, whatever the reach: any security issue, any data loss, and any broken promise in a public contract: machine-readable output other programs parse, such as JSON fields, exit codes and error codes.
+- **Should-Fix (fix in this PR unless the author explains why not):** high harm that is rare and visible, or medium harm on the normal path. A promise stated only in human-readable text or docs, even a small one.
+- **Suggestion:** low harm, or a convention or style point that lint doesn't enforce.
+- **Don't raise:** anything lint, typecheck or CI already enforces. Report a failing gate as a gate failure instead.
+
+Otherwise: Should-Fix if any answer is high or silent, else Suggestion.
+
+Use only these level names. No P0/P1/P2, "critical", "nit" or other labels.
+
+Every finding states its grading in one line, so a reader can disagree with a specific answer:
+
+```text
+Harm: high (orchestrator trusts a dead worker) · Reach: high (any agent that exits) · Recovery: silent → Must-Fix
+```
+
+Calibrate against the worked examples in [severity-examples.md](severity-examples.md).
+
+---
+
+## 1. Bugs and Correctness
 
 - Logic errors: incorrect conditionals, off-by-one, wrong comparison operators
 - Null/undefined risks: missing optional chaining, unhandled nullable paths
@@ -28,7 +57,7 @@ UI panels, and JavaScript conventions are not requirements for other projects.
 - Error handling: missing `try/catch` on calls that can throw, unhandled error states
 - State bugs: stale closures in hooks, missing dependency array entries
 
-## 2. Security (Must-Fix)
+## 2. Security
 
 - `dangerouslySetInnerHTML` without DOMPurify sanitization
 - API keys, tokens, or credentials in frontend code
@@ -36,7 +65,7 @@ UI panels, and JavaScript conventions are not requirements for other projects.
 - Command injection or XSS vectors
 - Auth/permission checks missing on new endpoints or IPC channels
 
-## 3. React and Component Design (Should-Fix)
+## 3. React and Component Design
 
 - Components under 200-300 lines; JSX under ~50 lines per component
 - Single responsibility -- business logic separated from presentational rendering
@@ -52,7 +81,7 @@ UI panels, and JavaScript conventions are not requirements for other projects.
 - List rendering uses stable unique keys (never array index for dynamic lists)
 - `React.lazy` + `Suspense` for code-split routes and heavy components
 
-## 4. TypeScript (Should-Fix)
+## 4. TypeScript
 
 - No explicit `any` -- use a specific type or `unknown` with narrowing
 - No `{}` as a type -- use `Record<string, unknown>` or a named interface
@@ -62,7 +91,7 @@ UI panels, and JavaScript conventions are not requirements for other projects.
 - Interfaces preferred over type aliases for object shapes
 - No `I` prefix on interface names
 
-## 5. UX Fit and Placement (Should-Fix)
+## 5. UX Fit and Placement
 
 Applies to any change that adds or moves user-facing surface: a control, a
 panel, a tab, a widget, a toggle, a setting. Ask these before the code
@@ -87,7 +116,7 @@ questions, since a correct widget in the wrong place still costs every user.
 Recommend the placement, name why, and give the path to it. The plumbing
 under a misplaced surface is usually right and reusable; say so.
 
-## 6. Conventions (Suggestion)
+## 6. Conventions
 
 - File names match their default export
 - `const` by default, `let` only when reassignment required, never `var`
@@ -99,11 +128,11 @@ under a misplaced surface is usually right and reusable; say so.
 
 ## 7. Plan fidelity (bigbrain)
 
-Severity in bigbrain follows consequence, whatever the section above says:
+Severity follows the rubric above. In bigbrain the cover sheet is the contract:
 
-- **Must-Fix:** breaks a J-n or S-n on the cover sheet, loses or corrupts data, or opens a security hole. Every must-fix is checked by a checker on the other vendor before it is posted.
-- **Should-Fix:** a likely bug, or drift from the cover sheet, a locked D-n, the design notes or the repository's conventions.
-- **Suggestion:** the author's call; at most five per review.
+- A J-n or S-n the change breaks is a broken promise in a public contract: Must-Fix.
+- Drift from the cover sheet, a locked D-n or the design notes that breaks no J/S is Should-Fix, unless its harm and reach make it Must-Fix.
+- Every Must-Fix and Should-Fix is checked by a checker on the other vendor before it is posted. Suggestions are the author's call; at most five per review.
 
 Plan checks, in scope only for the step's packages:
 
