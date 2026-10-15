@@ -1,5 +1,5 @@
 // Turn-end safety net for agents that declare `auto_report`. Copied into launch bundles as
-// report-hook.mjs, so it imports only node: builtins. It must never fail the harness: every
+// report-hook.mjs, next to runtime.mjs, so it imports only node: builtins and the runtime. It must never fail the harness: every
 // error ends in a silent exit 0.
 //   Claude Stop hook:  node report-hook.mjs claude <status file>        (hook JSON on stdin)
 //   Codex notify:      node report-hook.mjs codex <status file> <chained notify JSON> <payload>
@@ -8,6 +8,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {spawn,spawnSync} from 'node:child_process';
+import {nativeCommand} from './runtime.js';
 
 type Entry=Record<string,any>;
 interface Report {state:'ready'|'blocked'|'failed'|'done';question?:string;pr?:string;head?:string;summary:string}
@@ -77,7 +78,9 @@ function send(report:Report,marker:string){
   const signature=JSON.stringify([report.state,report.question,report.pr,report.head]);
   try{if(fs.readFileSync(marker,'utf8')===signature)return;}catch{}
   const args=['report','--state',report.state,...(report.pr&&/^\d+$/.test(report.pr)?['--pr',report.pr]:[]),...(report.head&&/^[0-9a-f]{7,40}$/i.test(report.head)?['--head',report.head]:[]),...(report.question?['--question',report.question]:[]),'--summary-file','-'];
-  const result=spawnSync(process.env.PANE_RUNPANE_BIN||'runpane',args,{input:report.summary.slice(0,16000),stdio:['pipe','ignore','ignore'],timeout:20000});
+  // Windows installs runpane as a .cmd shim, which only the runtime's PATH lookup can start without a shell.
+  let argv=[process.env.PANE_RUNPANE_BIN||'runpane',...args];try{argv=nativeCommand(argv,process.env);}catch{}
+  const result=spawnSync(argv[0]!,argv.slice(1),{input:report.summary.slice(0,16000),stdio:['pipe','ignore','ignore'],timeout:20000});
   if(result.status===0){fs.mkdirSync(path.dirname(marker),{recursive:true,mode:0o700});fs.writeFileSync(marker,signature);}
 }
 

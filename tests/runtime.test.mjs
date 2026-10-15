@@ -665,12 +665,13 @@ test('auto_report resolves the status file and adds a turn-end report hook only 
   const f=fixture(t,harness);fs.writeFileSync(path.join(f.root,'agents/planner.yaml'),`harness: ${harness}\nmodel: test\nauto_report: parent\nargs:\n  parent: {type: path, default: .agent/status/planner.json}\n`);
   fs.writeFileSync(path.join(f.home,'.codex/config.toml'),'notify = ["own-notify", "turn-ended"]\n[tui]\nnotify = ["not-top-level"]\n');
   const bundle=build(f.root,'planner',f.target),status=path.join(f.target,'.agent/status/planner.json');
-  const hook=launch=>harness==='claude'?(launch.argv.includes('--settings')?launch.argv[launch.argv.indexOf('--settings')+1]:undefined):launch.argv.find(arg=>arg.startsWith('notify='));
+  // Decode the settings JSON or the TOML array, so Windows paths compare unescaped.
+  const hook=launch=>{if(harness==='claude')return launch.argv.includes('--settings')?JSON.parse(launch.argv[launch.argv.indexOf('--settings')+1]).hooks.Stop[0].hooks[0].command:undefined;const notify=launch.argv.find(arg=>arg.startsWith('notify='));return notify&&JSON.parse(notify.slice('notify='.length)).join('\n');};
   const {PANE_PANEL_ID:unused,...outside}=f.env;
   const inside=command(bundle,'main',{home:f.home,env:{...f.env,PANE_PANEL_ID:'panel'}});
   assert.ok(launchIdentity(inside,harness).endsWith(`LAUNCH CONTEXT\nheadless: false\nparent: ${status}`));
   assert.ok(hook(inside).includes(path.join(bundle,'report-hook.mjs'))&&hook(inside).includes(status));
-  if(harness==='codex')assert.ok(hook(inside).includes(JSON.stringify(JSON.stringify(['own-notify','turn-ended']))));
+  if(harness==='codex')assert.ok(hook(inside).includes(JSON.stringify(['own-notify','turn-ended'])));
   for(const options of [{env:outside},{env:{...outside,PANE_PANEL_ID:'panel'},headless:true}])assert.equal(hook(command(bundle,'main',{home:f.home,...options})),undefined);
  }
  const f=fixture(t);fs.writeFileSync(path.join(f.root,'agents/planner.yaml'),'harness: codex\nmodel: test\nauto_report: parent\n');assert.throws(()=>build(f.root,'planner',f.target),/auto_report must name/);
@@ -678,11 +679,11 @@ test('auto_report resolves the status file and adds a turn-end report hook only 
 
 test('the report hook maps the status file, and skips turns that already reported',t=>{
  const f=fixture(t,'claude');fs.writeFileSync(path.join(f.root,'agents/planner.yaml'),'harness: claude\nmodel: test\nauto_report: parent\nargs:\n  parent: {type: path}\n');
- const hook=path.join(build(f.root,'planner',f.target),'report-hook.mjs'),calls=path.join(f.base,'calls.jsonl'),runpane=path.join(f.bin,'fake-runpane');
- fs.writeFileSync(runpane,`#!${process.execPath}\nlet input='';process.stdin.on('data',d=>input+=d).on('end',()=>require('node:fs').appendFileSync(${JSON.stringify(calls)},JSON.stringify({args:process.argv.slice(2),input})+'\\n'));\n`,{mode:0o755});
+ const hook=path.join(build(f.root,'planner',f.target),'report-hook.mjs'),calls=path.join(f.base,'calls.jsonl');
+ writeHarness(f.bin,'runpane',`let input='';process.stdin.on('data',d=>input+=d).on('end',()=>require('node:fs').appendFileSync(${JSON.stringify(calls)},JSON.stringify({args:process.argv.slice(2),input})+'\\n'));\n`);
  const status=path.join(f.base,'status.json'),transcript=path.join(f.base,'transcript.jsonl');
  const turn=(...tools)=>fs.writeFileSync(transcript,[{type:'user',uuid:'u1',origin:{kind:'human'},message:{content:'Go'}},...tools.map(command=>({type:'assistant',message:{content:[{type:'tool_use',name:'Bash',input:{command}}]}})),{type:'assistant',message:{content:[{type:'text',text:'All done.'}]}}].map(e=>JSON.stringify(e)).join('\n'));
- const run=()=>{const result=spawnSync(process.execPath,[hook,'claude',status],{input:JSON.stringify({session_id:'s-'+Math.random(),transcript_path:transcript}),env:{...process.env,PANE_PANEL_ID:'panel',PANE_RUNPANE_BIN:runpane}});assert.equal(result.status,0);};
+ const run=()=>{const result=spawnSync(process.execPath,[hook,'claude',status],{input:JSON.stringify({session_id:'s-'+Math.random(),transcript_path:transcript}),env:{...f.env,PANE_PANEL_ID:'panel',PANE_RUNPANE_BIN:'runpane'}});assert.equal(result.status,0);};
  const reports=()=>fs.existsSync(calls)?fs.readFileSync(calls,'utf8').trim().split('\n').map(line=>JSON.parse(line)):[];
  turn('ls');run();assert.deepEqual(reports().at(-1).args,['report','--state','done','--summary-file','-']);assert.match(reports().at(-1).input,/All done\./);
  turn('runpane report --state done --summary ok');run();assert.equal(reports().length,1);
