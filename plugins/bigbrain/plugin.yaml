@@ -5,7 +5,7 @@ source:
   repository: https://github.com/greenfield-inc/agent-farm
   commit: 5ae9b63d09495907b098aebced8a0702b38da290
 checksums:
-  agents/designer.md: 4e8ab26d8ccd575a2c0fdbaaa38ad7ed7f0dcab607d0c5c7da0e7bb817e85d1d
+  agents/designer.md: 136934e54918120391232d4837f0d988cad2907a6a4ca9c3adc3412b442a478b
   agents/explorer.md: 1635f450fb53b7a435e550cdf8b91e44826512f23461836416a3da32f1dc5e6f
   agents/implementer-codex.md: cc582fbfb4789a0178891ef11d6b23a1afaa0a59978fa6a39bc3405038603eb3
   agents/implementer-opus.md: c19e5ef85b93c87ce441aba8e1d3289c171913a18f8471ee795f0f627c88288e
@@ -45,7 +45,7 @@ checksums:
   skills/codebase-design/DESIGN-IT-TWICE.md: 8e740bf98446dbd4dfdc132ac4346d9a7eedaf93de6a495889171cf7f99f16bd
   skills/codebase-design/SKILL.md: 2c20617f87ec8af6a434859f381b2f061a69b530444e74eb39e78bb016a6d1e2
   skills/codebase-design/agents/openai.yaml: edebc9e4fcfe102114012575eaa9600b9b5fd08c311664f389c36e7bc717740f
-  skills/design/SKILL.md: d60f15a12836308c55e3f5507285965d9e1ec4a0e6499f3cf16fd68ab64fac6c
+  skills/design/SKILL.md: d9975f2471e9dc86793e496d6fa518751f59067b9ab4653439de98187d623928
   skills/design/references/design-quality.md: 204442227b91f8820fa1c4907d8bd8f43c771208f8e8440246fadb39bd878e0a
   skills/documents/SKILL.md: 77c2f1d5480c02af602dd21ddad1f5ae2bad61e02c28b76108c4edd14adb0750
   skills/documents/formats/brief/example.html: 5588c0a16e7bf000a0c65de5a5e9ba513d7bce34c84e02bb554157aa27570dd6
@@ -65,7 +65,7 @@ checksums:
   skills/documents/formats/map/example.html: 0d272b30d09201c3c2b26fe3ce3ea53b6fa170dd845214bc5ff230339d0ee774
   skills/documents/formats/map/template.html: 590f4726c99431783008e2aa09ff42af1615d38f12e42ddb2a83802d11e9de18
   skills/documents/formats/mockups/example.html: 1c03c291f6b93d2a0d8f8f924170365abdea7cedc1e83eedad9e3709f55d6f8c
-  skills/documents/formats/mockups/template.html: 7fac614e26ab7772c12a459aeb99d95c1435a710e07e1e79e9dfd6f78b47d508
+  skills/documents/formats/mockups/template.html: be7c84282c331ae3c56f711f68f0db93b3bb9f404acf33075cd199c24b4585dc
   skills/documents/formats/options/example.html: 20047916a69064ec1ce89a1a5c8705b02e6edea6c614e8962df03a0733649089
   skills/documents/formats/options/template.html: 62b48dc52da60f481b6f5debbf1afd142c1d67f5a44511f29afd3e7d1e52bee4
   skills/documents/formats/post-mortem/example.html: 463d8915e62c3328b0b3ecb2895aba56741495d810859207005dcb89afded7e9

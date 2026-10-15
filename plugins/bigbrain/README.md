@@ -32,7 +32,7 @@ The first variant is the default. Every worker takes `parent` (its status file) 
 | --- | --- | --- | --- |
 | `orchestrator` | Opus 5.5 medium | none | Talks to you, starts workers, relays every question, runs review and design steps, keeps the workstream map |
 | `planner` (`:claude`) / `:codex` | Opus 5.5 high / Astra high | explorer, researcher, socrates | Interview (relayed), explain, brief, options, spike, then the cover sheet and `control-flow.json`. Only plans |
-| `designer` | Sol medium (Codex) | none | Captures screens, writes design notes, three mockup options per round with Codex's image tool, records the approved design |
+| `designer` | Opus 5.5 high | none | Captures screens, writes design notes, three mockup options per round (images when an image tool exists, otherwise HTML/CSS rebuilt from the product's real components and styles), records the approved design |
 | `implementer` (`:opus`) / `:astra` / `:sol` | Opus 5.5 / Astra / Sol, medium | explorer, verifier | Runs the control flow: build, verify, QA loop, PR, post-mortem. The only writer on the branch |
 | `reviewer` (`:codex`) / `:claude` | Sol high / Opus 5.5 high | review-worker | At a planned step: two-vendor finders, an other-vendor checker per finding, one `COMMENT` review. No fixes |
 | `investigator` (`:claude`) / `:codex` | Opus 5.5 high / Sol high | verifier, explorer | `--arg mode=report` reproduces a bug and writes a report; `mode=sweep` hunts an `area` for issues. Never fixes |
@@ -79,9 +79,9 @@ node <plugin>/skills/documents/scripts/check-bundle.mjs --status .agent/status/i
 
 It checks required sections, `doc-meta`, ID definitions and citations, both JSON sources against their schemas, that the cover sheet still shows what `control-flow.json` will run, that nobody added, removed or reworded a verification check, that every J/S has a verdict before done, and that relative links resolve. Templates and worked examples for each page kind are in `skills/documents/formats/`.
 
-## Designer image generation
+## Designer mockup method
 
-The designer runs on Codex and uses Codex's own image generation tool; Agent Farm has no setting for it. Check it with `codex features list` (look for `image_generation`) and turn it on with `codex features enable image_generation`. Without it, the designer stops and asks whether to continue with HTML/CSS mockups only.
+The designer follows greenfield's `mockup` method. With an image generation tool in its session it edits the real screenshots; without one it rebuilds each screen in HTML/CSS from the product's own components, styles, icon assets and fonts, and says on the gallery which method it used. Before showing options it compares the unchanged regions (app chrome, sidebar, header, icons) with the current screenshot; a placeholder logo or an approximated icon is a defect it fixes first.
 
 ## Documents and destinations
 
