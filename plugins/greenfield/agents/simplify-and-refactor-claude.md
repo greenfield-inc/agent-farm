@@ -4,6 +4,8 @@ model:
   name: claude-opus-5-5
   reasoning: medium
 description: "Ask of an open pull request: can this be simpler? Plans the cleanup, then applies only what you approve."
+instructions_files:
+  - ../instructions/standing-rules.md
 skills:
   - refactor
   - refactor-simple

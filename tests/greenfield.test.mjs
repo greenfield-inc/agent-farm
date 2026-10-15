@@ -274,6 +274,20 @@ test('every Greenfield skill and agent is bundled by a profile, and every skill 
  assert.match(skillText['refactor-simple'],/greenfield\/simplify-and-refactor/);
 });
 
+test('every agent whose own text or skills point to the standing rules loads them',()=>{
+ const walk=dir=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(entry=>{const file=path.join(dir,entry.name);return entry.isDirectory()?walk(file):[file];});
+ const skillText=skill=>walk(path.join(root,'skills',skill)).map(file=>fs.readFileSync(file,'utf8')).join('\n');
+ const missing=new Set();
+ for(const file of fs.readdirSync(path.join(root,'profiles'))){
+  const name=file.replace(/\.yaml$/,''),variants=Object.keys(parse(fs.readFileSync(path.join(root,'profiles',file),'utf8')).variants??{});
+  for(const profile of [name,...variants.map(variant=>name+':'+variant)])for(const node of Object.values(resolveProfile(root,profile).nodes)){
+   const text=[fs.readFileSync(node.source_file,'utf8'),...node.skills.map(skillText)].join('\n');
+   if(/standing rules/i.test(text)&&!node.instructions?.includes('# Standing rules'))missing.add(node.name);
+  }
+ }
+ assert.deepEqual([...missing],[]);
+});
+
 test('code-smell-fixes runs on Sonnet 5.5 low with a native Claude finder and a Sol process finder sharing its lenses',t=>{
  const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-smell-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));

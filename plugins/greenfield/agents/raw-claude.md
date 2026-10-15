@@ -4,6 +4,8 @@ model:
   name: claude-opus-5-5
   reasoning: medium
 description: "The AI model on its own, plus a few good habits for pull requests, tickets, testing, and checking its work. Best for small, clear tasks."
+instructions_files:
+  - ../instructions/standing-rules.md
 skills:
   - prepare-pr
   - excalidraw-pr-diagrams

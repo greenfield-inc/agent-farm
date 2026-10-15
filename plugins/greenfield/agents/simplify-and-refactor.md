@@ -4,6 +4,8 @@ model:
   name: gpt-6.1-sol
   reasoning: low
 description: "Ask of an open pull request: can this be simpler? Plans the cleanup, then applies only what you approve."
+instructions_files:
+  - ../instructions/standing-rules.md
 skills:
   - refactor
   - refactor-simple
