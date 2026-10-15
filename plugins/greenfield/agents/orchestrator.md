@@ -12,6 +12,9 @@ skills:
   - architecture-diagram
   - interview
   - pr-understanding-check
+  - prepare-pr
+  - excalidraw-pr-diagrams
+  - cold-read
 description: "Coordinate planners, implementers and reviewers as fresh agents in one workspace per feature, and keep one workstream map per Session. Does not perform their project work."
 args:
   host_policy:

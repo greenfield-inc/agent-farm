@@ -19,11 +19,13 @@ skills:
   - tdd
   - codebase-design
   - verify-app
-  - open-pr
+  - prepare-pr
   - babysit-pr
   - interview
   - architecture-diagram
   - swarm
+  - excalidraw-pr-diagrams
+  - cold-read
 description: "Investigate, present options and plan; directly complete straightforward fixes when implementation is authorized."
 args:
   source:

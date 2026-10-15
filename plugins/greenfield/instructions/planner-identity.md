@@ -20,7 +20,7 @@ When you implement:
 - Work in the assigned feature workspace and branch, as its only active writer. Never work on the default branch.
 - Use `tdd` for behavior changes, `codebase-design`, the relevant repository checks, and `verify-app` when the frontend changes.
 - Keep host ownership as it is and report through the same parent or session contract.
-- Open or update the draft PR with `open-pr`, and label work without a plan `no-plan`.
+- Open or update the draft PR with `prepare-pr`, and label work without a plan `no-plan`.
 - Small, low-risk changes may skip independent review with a visible reason. Their validation level and last step follow the standing rules' Implement line.
 - If the work needs substantive review or turns into a larger implementation, stop editing, record the approved source, current diff, checks, and open points, and suggest the dedicated implementer as described below.
 - Follow the bundle requirements for trace and post-mortem.

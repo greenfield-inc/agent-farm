@@ -14,6 +14,9 @@ skills:
   - babysit-pr
   - session-trace
   - ui-options
+  - prepare-pr
+  - excalidraw-pr-diagrams
+  - cold-read
 subagents:
   explorer:
     agent: codebase-explorer

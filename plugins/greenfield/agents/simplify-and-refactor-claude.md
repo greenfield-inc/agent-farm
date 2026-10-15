@@ -12,6 +12,8 @@ skills:
   - refactor-deep
   - refactor-apply
   - principled-review
+  - prepare-pr
+  - excalidraw-pr-diagrams
 subagents:
   refactor:
     agent: refactor

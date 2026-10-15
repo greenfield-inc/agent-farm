@@ -102,7 +102,7 @@ An orchestrator passes the planner its source as `source` and a status JSON path
 - `agents/` and `profiles/` define models, bindings, and launch arguments.
 - `instructions/` defines shared roles, permissions, and completion rules.
 - `plan` and its cover-sheet reference define the high-level handoff and “How we will know it works” section.
-- `verify-app` and `open-pr` support the planner's small-fix route; `prepare-pr`, `babysit-pr` and `quick-verify` support the implementer.
+- `verify-app` and `prepare-pr` support the planner's small-fix route; `prepare-pr`, `babysit-pr` and `quick-verify` support the implementer.
 - `principled-review`, `review` and `pr-test-automation` support the reviewer and qa-and-fix; `principled-review` is shared with simplify-and-refactor.
 - `refactor`, `refactor-simple`, `refactor-deep` and `refactor-apply` support simplify-and-refactor; the implementer has `refactor-simple` alone.
 - The research, business, SEO and audit skills support the profiles of the same names, and `code-smell-fixes` with `smell-finder` (whose `CRITERIA.md` holds the 20 lenses) supports `code-smell-fixes`.
