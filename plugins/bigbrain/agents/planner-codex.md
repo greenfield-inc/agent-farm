@@ -19,13 +19,15 @@ skills:
   - architecture-diagram
   - documents
 description: "Investigate, explain, present options and write the cover sheet with its control flow. Interviews the person through the orchestrator. Only plans."
+auto_report: parent
 args:
   source:
     type: string
     description: the canonical document and revision to work from, named by the orchestrator
   parent:
     type: path
-    description: absolute path of your status file (contract.md)
+    default: .agent/status/planner.json
+    description: your status file (contract.md); a relative path resolves against the launch directory
   docs:
     type: string
     description: where documents are published. A path, or a named destination this session has tools for. Default is a local bundle

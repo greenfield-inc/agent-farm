@@ -39,6 +39,8 @@ export interface Agent {
   references?: {name:string;plugin?:string;version?:string;source:string};
   connections: Record<string, Connection>; children: Record<string, string>;
   argument_definitions?: Record<string, ArgumentDefinition>; launch?: LaunchMetadata;
+  /** The `type: path` argument naming this agent's status file; inside Pane, a turn that ends without `runpane report` reports from it. */
+  auto_report?: string;
 }
 export interface Manifest { profile: string; variant?: string; plugin?: string; plugin_version?: string; trace_identity:string; directory: string; workspace_source?: WorkspaceMetadata; workspace_telemetry?: TelemetrySettings; nodes: Record<string, Agent>; cross_plugin_dependencies?: Array<{plugin:string;version?:string;references:string[]}> }
 export interface WorkspaceMetadata {source:string;overlay?:string;trust:'none'|'personal'|'trusted'|'untrusted'|'declined';repository?:string;common?:string;sha256?:string}
@@ -458,6 +460,11 @@ export function command(bundle: string, route: string, options: LaunchOptions = 
   const agent=manifest.nodes[route]; if (!agent) throw new Error('Unknown bundled child');
   const launch=resolveLaunch(agent,options);
   const directory=path.join(bundle,route); const env={...(options.env ?? process.env)};
+  // Resolve the status file once so the agent's launch context and its turn-end hook name the same file.
+  const statusFile=agent.auto_report && launch.arguments[agent.auto_report]!==undefined ? path.resolve(manifest.directory,launch.arguments[agent.auto_report]!) : undefined;
+  if (statusFile) launch.arguments[agent.auto_report!]=statusFile;
+  // Only an interactive launch inside a Pane panel reports; headless children share their parent's panel.
+  const reportHook=statusFile && env.PANE_PANEL_ID && !launch.headless ? [process.execPath,path.join(bundle,'report-hook.mjs'),agent.harness,statusFile] : undefined;
   const envOverrides: Record<string,string>={};
   const configRoot=path.resolve(options.configRoot ?? env.AGENT_FARM_CONFIG_ROOT ?? path.join(options.home ?? os.homedir(),'.config/agent-farm'));
   const providerConfig=loadProvider(configRoot);
@@ -493,6 +500,7 @@ export function command(bundle: string, route: string, options: LaunchOptions = 
     if (Object.keys(native).length) argv.push('--agents',JSON.stringify(native));
     if (launch.model.reasoning) argv.push('--effort',launch.model.reasoning);
     if (instructions) argv.push('--append-system-prompt',instructions);
+    if (reportHook) argv.push('--settings',JSON.stringify({hooks:{Stop:[{hooks:[{type:'command',command:reportHook.map(shellQuote).join(' '),timeout:30}]}]}}));
     if (defaultHeadless) argv.push('--print','--output-format','json');
     if (options.resume) argv.push('--resume',options.resume);
     else if (options.sessionId) argv.push('--session-id',options.sessionId);
@@ -511,6 +519,8 @@ export function command(bundle: string, route: string, options: LaunchOptions = 
     if (launch.model.speed) argv.push('-c','service_tier='+JSON.stringify(launch.model.speed==='fast' ? 'fast' : 'default'));
     for (const [key,value] of Object.entries(agent.connections)) argv.push('-c',`mcp_servers.${connectionName(key)}=${toml(codexConnection(value))}`);
     if(access)argv.push('-c',`mcp_servers.agent_farm_telemetry=${toml(codexConnection(telemetryConnection))}`);
+    // Codex runs untrusted hooks only after an on-screen review, so the turn-ended notify program carries the hook instead.
+    if (reportHook) argv.push('-c','notify='+toml([...reportHook,JSON.stringify(nativeNotify(env.AGENT_FARM_NATIVE_CODEX_HOME ?? env.CODEX_HOME ?? path.join(options.home ?? os.homedir(),'.codex')))]));
   }
   argv.push(...nativeArgs);
   if (options.message!==undefined) argv.push('--',options.message);
@@ -528,6 +538,13 @@ export function command(bundle: string, route: string, options: LaunchOptions = 
     argv=[process.execPath,path.join(bundle,'telemetry.mjs'),JSON.stringify(descriptor),'--',...argv];
   }
   return {argv,env,envOverrides,cwd:manifest.directory,launch,telemetry,telemetry_access:access};
+}
+const shellQuote=(value:string)=>"'"+value.replaceAll("'","'\\''")+"'";
+/** The user's own top-level Codex `notify` program, which the report hook passes each turn on to. */
+function nativeNotify(home:string):string[] {
+  let text:string;try{text=fs.readFileSync(path.join(home,'config.toml'),'utf8');}catch{return [];}
+  const match=/^notify\s*=\s*(\[.*\])\s*$/m.exec(text.split(/^\s*\[/m)[0]!);
+  try{const value=match?JSON.parse(match[1]!):[];return Array.isArray(value)&&value.every(v=>typeof v==='string')?value:[];}catch{return [];}
 }
 /** Finds argv[0] on PATH. Windows has no shebangs, so an npm .cmd shim runs its script with this Node instead. */
 export function nativeCommand(argv: string[], environment: NodeJS.ProcessEnv): string[] {

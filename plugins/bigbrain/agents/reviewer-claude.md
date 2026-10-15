@@ -11,6 +11,12 @@ skills:
   - review
   - documents
 description: "Review a planned step's scope of a PR: two-vendor finders, an other-vendor checker per finding, then rank and post one COMMENT review. Applies no fixes."
+auto_report: parent
+args:
+  parent:
+    type: path
+    default: .agent/status/reviewer.json
+    description: your status file (contract.md); a relative path resolves against the launch directory
 subagents:
   bug-hunter-a:
     agent: review-worker

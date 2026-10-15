@@ -4,7 +4,7 @@ How workers and the orchestrator talk. One channel each way: a worker writes its
 
 ## Status file
 
-`parent` in the launch context names it, normally `<feature worktree>/.agent/status/<role>.json`. The worker owns it and keeps it current: at start, at each control-flow step, when it needs the person, at a checkpoint, and at the end. `updated` is an ISO 8601 time.
+`parent` in the launch context names it, normally `<feature worktree>/.agent/status/<role>.json`. A worker launched without `parent` gets `<launch directory>/.agent/status/<role>.json`, so the launch context always names one. The worker owns it and keeps it current: at start, at each control-flow step, when it needs the person, at a checkpoint, and at the end. `updated` is an ISO 8601 time.
 
 ```json
 { "profile": "bigbrain/implementer:opus", "source": "/abs/bundle/cover-sheet.html@rev3",
@@ -58,6 +58,8 @@ How workers and the orchestrator talk. One channel each way: a worker writes its
 | `failed` | `runpane report --state failed --summary-file <status file>` |
 
 A `fyi` needs no report of its own; the orchestrator batches it into the map. Each report replaces the previous one. Without Pane, report the same summary to whoever launched you.
+
+**Automatic report.** Inside Pane, if a worker ends a turn without having run `runpane report` since its last input, Agent Farm reports for it from the status file, using the table above. A `running` state sends nothing: the worker is still working, for example waiting on a background task. With no status file, it sends `done` with the worker's last message, unless (on Claude) a background task is still pending. This is a safety net that only knows what the status file says, so keep reporting explicitly.
 
 ## Answers and messages to a worker
 

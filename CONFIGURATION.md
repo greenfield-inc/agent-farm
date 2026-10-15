@@ -173,8 +173,8 @@ Each Markdown filename is the agent identifier. YAML frontmatter defines the
 harness, model/effort, description, skills, connections, and child bindings. The
 Markdown body contains its instructions. Accepted frontmatter keys are `harness`
 (`claude` or `codex`), `model`, `reasoning_effort`, `description`, `skills`,
-`references`, `connections`, `subagents`, `args`, and one of `instructions_file` or
-`instructions_files`. Child agents go under `subagents`, keyed by the name the
+`references`, `connections`, `subagents`, `args`, `auto_report`, and one of
+`instructions_file` or `instructions_files`. Child agents go under `subagents`, keyed by the name the
 parent uses. Each binding needs `agent` and `mode`, and may set `description`,
 `harness`, or `model`:
 
@@ -215,7 +215,23 @@ Each argument is either an enumeration with a nonempty `values` list or a
 free-form `type: string`/`type: path`. `default` and `description` are optional;
 an enum default must be one of its values. Argument names use the same lowercase
 configuration-name rule as agents. Paths are passed through literally and are
-not resolved or checked for existence.
+not resolved or checked for existence, except the one `auto_report` names.
+
+### Automatic reports
+
+`auto_report: parent` names a `type: path` argument that holds the agent's
+status file, in the shape bigbrain's `contract.md` defines. Its value, or its
+default, is resolved against the launch directory, and the launch context shows
+the absolute path. When an interactive launch runs inside a Pane panel
+(`PANE_PANEL_ID` is set), every turn that ends without a `runpane report` call
+since the last input sends one from the status file. Claude runs it as a
+`Stop` hook passed with `--settings`. Codex runs it as the turn-ended `notify`
+program, which then passes the turn on to the user's own top-level `notify`.
+Codex hooks are not used because Codex runs a new hook only after an on-screen
+review. A `running` status sends nothing. A missing status file sends `done`
+with the agent's last message, unless a Claude background task is still pending.
+A report that would repeat the last automatic one for the same input is
+skipped. Headless launches and launches outside Pane get no hook.
 
 ## Launch overrides and context
 

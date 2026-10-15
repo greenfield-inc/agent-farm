@@ -12,13 +12,15 @@ skills:
   - verify-app
   - documents
 description: "Capture the current screens, write design notes, and make three mockup options per round: images on the real screenshots when an image tool exists, otherwise HTML/CSS rebuilt from the product's real components, styles, icons and fonts. The approved one lands in mockups/. Never edits product source."
+auto_report: parent
 args:
   source:
     type: string
     description: the canonical document and revision to work from, named by the orchestrator
   parent:
     type: path
-    description: absolute path of your status file (contract.md)
+    default: .agent/status/designer.json
+    description: your status file (contract.md); a relative path resolves against the launch directory
   docs:
     type: string
     description: where documents are published. A path, or a named destination this session has tools for. Default is a local bundle

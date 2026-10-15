@@ -11,13 +11,15 @@ skills:
   - teach
   - documents
 description: "Map a feature's PRs as an iceberg, quiz the person one question at a time through the orchestrator, and publish the learning page. Never blocks merging."
+auto_report: parent
 args:
   source:
     type: string
     description: the canonical document and revision to work from, named by the orchestrator
   parent:
     type: path
-    description: absolute path of your status file (contract.md)
+    default: .agent/status/teacher.json
+    description: your status file (contract.md); a relative path resolves against the launch directory
   docs:
     type: string
     description: where documents are published. A path, or a named destination this session has tools for. Default is a local bundle

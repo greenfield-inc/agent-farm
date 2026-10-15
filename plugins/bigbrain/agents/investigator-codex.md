@@ -12,6 +12,7 @@ skills:
   - investigate
   - documents
 description: "Reproduce a reported bug and prove its cause, or sweep an area for issues; writes bug reports, and a sweep report of what was covered, suspected and not covered. Never fixes or plans."
+auto_report: parent
 args:
   mode:
     values: [report, sweep]
@@ -25,7 +26,8 @@ args:
     description: the canonical document and revision to work from, named by the orchestrator
   parent:
     type: path
-    description: absolute path of your status file (contract.md)
+    default: .agent/status/investigator.json
+    description: your status file (contract.md); a relative path resolves against the launch directory
   docs:
     type: string
     description: where documents are published. A path, or a named destination this session has tools for. Default is a local bundle

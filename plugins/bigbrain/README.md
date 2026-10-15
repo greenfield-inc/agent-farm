@@ -54,7 +54,7 @@ Helpers: `verifier` (drives the app, QA, mockup fidelity, jank), `explorer` (one
 
 ## The relay and status files
 
-A worker never asks you anything in its own tab. It writes a `needs_you` block to `.agent/status/<role>.json` and reports with `runpane report` (`blocked` with `--question "Q-n: …"`; a checkpoint as `ready`); the orchestrator relays it and submits `answer: Q-n → …` to that tab only. The full contract (states, message formats, the checkpoint handshake) is `instructions/contract.md`.
+A worker never asks you anything in its own tab. It writes a `needs_you` block to `.agent/status/<role>.json` and reports with `runpane report` (`blocked` with `--question "Q-n: …"`; a checkpoint as `ready`); the orchestrator relays it and submits `answer: Q-n → …` to that tab only. The full contract (states, message formats, the checkpoint handshake) is `instructions/contract.md`. A worker that ends its turn without reporting is reported automatically from its status file (a Claude `Stop` hook, or Codex's turn-ended `notify`), and a worker launched without `parent` uses `.agent/status/<role>.json` in its launch directory. Workers should still report explicitly: the automatic report is a safety net.
 
 ## Control flow
 

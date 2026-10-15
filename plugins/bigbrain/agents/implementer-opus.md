@@ -18,13 +18,15 @@ skills:
   - babysit-pr
   - documents
 description: "Build an approved cover sheet by executing its control flow step by step, run QA through the verifier, and open the PR. The only writer on the branch."
+auto_report: parent
 args:
   source:
     type: string
     description: the canonical document and revision to work from, named by the orchestrator
   parent:
     type: path
-    description: absolute path of your status file (contract.md)
+    default: .agent/status/implementer.json
+    description: your status file (contract.md); a relative path resolves against the launch directory
   docs:
     type: string
     description: where documents are published. A path, or a named destination this session has tools for. Default is a local bundle
