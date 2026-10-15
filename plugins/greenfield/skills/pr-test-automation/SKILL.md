@@ -57,7 +57,7 @@ Validate as much of a PR as possible with local services, browser automation, CL
    Open with a verdict, then the evidence. The structure:
 
    ```
-   Verdict: <all-proven | partial | blocked-env | blocked-auth | product-bug-found>
+   Verdict: <all-proven | partial | blocked-env | blocked-auth | blocked-timeout | product-bug-found>
 
    | Journey / Check | Result | Evidence |
    |-----------------|--------|----------|
@@ -72,6 +72,7 @@ Validate as much of a PR as possible with local services, browser automation, CL
    | <account, org, record> | <run marker> | <staging / analytics / billing> | deleted · registered (<why not safe>) · none created |
    ```
 
+   In a status file's `checks`, Blocked and Left to human count as `undetermined`.
    A pass without quoted evidence is not a pass. "Blocked" is a terminal
    verdict: when a check cannot be exercised (missing env, service down,
    no credentials), stop trying rather than improvising a workaround.

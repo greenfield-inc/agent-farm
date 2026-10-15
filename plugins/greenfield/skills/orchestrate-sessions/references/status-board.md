@@ -27,8 +27,8 @@ Shared ledgers    one row per shared resource only one worker may change at a ti
 Addenda           N | date | decision | work items it was sent to
 
 Lanes             one row per work item:
-                  item | repo | Pane | profile | stage | plan | PR | validation (deferred,
-                  validating or validated, and what is pending) | review | trace |
+                  item | repo | Pane | profile | stage | plan | PR | validation (the ledger's
+                  `validation`, and what is pending) | review | trace |
                   destination ("no destination" when the repo names none)
 
 Other hubs        for a Session that spans destinations: a link to each stub hub,

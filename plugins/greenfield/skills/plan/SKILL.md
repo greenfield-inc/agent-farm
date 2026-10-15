@@ -24,7 +24,7 @@ Include:
 - The **How we will know it works** section: numbered journeys and whole-feature commands or suites, each with an observable outcome and its prerequisites. Cover the backend, frontend, integration, and design behavior the feature needs, including identity, duplicate-name, and notification edge cases when they apply. Keep the checks specific to this task.
 - Known environment and fixture needs, required whole-feature checks, and anything that cannot be exercised yet. Mark planned tests as planned; only an observed result counts as a pass. A missing capability leaves its criterion open.
 - The review line at the top of the page, saying whether review runs and when:
-  - Default: `Review: once at the end of the workstream`: `greenfield/reviewer` reviews each PR once every PR in the workstream is ready to merge.
+  - Default: `Review: once at the end of the workstream`: `greenfield/reviewer` reviews each PR once every PR in the workstream is ready for review.
   - Options: none · this plan only · after named packages. Separately, the user may add a `greenfield/simplify-and-refactor` pass before QA and review.
   - Only the user changes it: record their explicit choice and when they made it. A mode you chose yourself does not count.
   - Standalone small change: a small, low-risk change may skip review without asking; say so up front and record the reason. Under an orchestrator, never skip on your own.
