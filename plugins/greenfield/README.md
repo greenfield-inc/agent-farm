@@ -25,6 +25,7 @@ For a one-page visual map of how work is routed, open [index.html](index.html). 
 | `audits` (`audits:claude`) / `audits:codex` | Opus 5.5 high / Astra low | Stale issues, pull requests and docs |
 | `code-smell-fixes` | Sonnet 5.5 low | Hunts the whole codebase for confusing code with a Claude and a Codex finder swarm, writes a ranked report, and, unattended, opens fix PRs and files issues |
 | `bug-reporter` | Opus 5.5 high | Reproduce and write a report without fixing code |
+| `planning-and-prioritization` | Opus 5.5 high | Sweeps every reachable source on a topic read-only, reconciles it against ground truth, ranks the open items by a key you choose, and ends with your decisions and a planner command per chosen item |
 | `free-range` (`free-range:claude`) / `free-range:codex` | Opus 5.5 high / Astra medium | Raw-model comparison profiles without the Greenfield workflow |
 | `orchestrator` | Opus 5.5 medium | Experimental coordination of features, one Pane each, with every role a tab in it. When a feature is ready for review, it offers an optional `pr-understanding-check` |
 
@@ -81,6 +82,7 @@ Review runs once, separately, through `greenfield/reviewer`, launched by you or 
 | `investigator`, `researcher` | planner; `investigator` also under bug-reporter | Opus 5.5 high (Sol 6.1 max under Codex planner); bounded evidence questions |
 | `mockup-artist` | Claude planner | Sol 6.1 medium, process; generated design assets when needed |
 | `qa` | bug-reporter | Opus 5.5 medium; reproduce a bug in the app |
+| `lane`, `reconciler` (agent `lane-researcher`) | planning-and-prioritization | Opus 5.5 medium and Opus 5.5 high, native; one read-only source per lane, then one pass that verifies and reconciles the lanes |
 | `advisor` | orchestrator | Astra high, process; advice about session coordination |
 
 Planners do not launch the implementer. When a cover sheet is approved, the planner gives the person the `agent-farm run greenfield/implementer` command, and Agent Farm asks which variant to run.
@@ -108,6 +110,7 @@ An orchestrator passes the planner its source as `source` and a status JSON path
 - The research, business, SEO and audit skills support the profiles of the same names, and `code-smell-fixes` with `smell-finder` (whose `CRITERIA.md` holds the 20 lenses) supports `code-smell-fixes`.
 - `explain`, `brief`, `options`, `spike`, `mockup`, and `page` support planning.
 - `interview` makes the planner lead with structured questions and keep a decision log; `architecture-diagram` draws system and flow diagrams from a shared kit; `swarm` fans research and audits out to parallel read-only agents and reconciles what they find. The planner has all three, the implementer, audits and product-researcher get `swarm` (and the implementer and researchers `architecture-diagram`), and the orchestrator uses `interview` and `architecture-diagram` for decisions and its workstream map.
+- `research-reconcile` supports planning-and-prioritization: saved lane prompts, a source registry with the account each source reads as, one shared JSON item record, a reconciler pass that checks systems of record against primary evidence before anything is ranked and proposes record fixes for the person to approve (it never writes them), and a ranked gap page. It reuses `swarm`, `interview` and `page`.
 - `bug-intake`, `gather-evidence`, `web-research`, and `orchestrate-sessions` support the other profiles.
 - `tdd` and `codebase-design` remain vendored unchanged from [mattpocock/skills](https://github.com/mattpocock/skills/tree/c55ee46073ed/skills/engineering/tdd), MIT; see `THIRD_PARTY_NOTICES.md`.
 - `session-trace` supports requested trace artifacts; follow the session's explicit permission requirements for conversation capture/export.
@@ -138,6 +141,7 @@ Pass repeatable `--arg key=value` flags before the native-CLI `--` separator. Qu
 | `planner`, `planner:codex` | `docs`, `source`, `parent` |
 | `orchestrator` | `docs`, `host_policy` |
 | `bug-reporter` | `source`, `parent` |
+| `planning-and-prioritization` | `topic`, `window`, `rank_by`, `docs`, `source`, `parent` |
 
 `parent` is the status JSON file path, not a host session ID. `host_policy` is a guidance-file path, not automatic tool configuration. Path arguments are passed through as written, so supply absolute paths for cross-workspace handoffs. `source` may be a document path, artifact URL, or contained task. Use `--message` for supplemental assignment text; unsupported profile arguments are not a substitute for host-injected context.
 
