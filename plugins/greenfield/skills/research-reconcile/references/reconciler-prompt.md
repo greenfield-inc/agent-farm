@@ -26,12 +26,18 @@ Steps         1. Dedupe across lanes into one item list. Each item cites every
                  read the default branch with git show / git grep; cite file:line,
                  PR, branch or tracker ref. Flag every tracker-versus-code
                  mismatch.
-              5. Attach the rank value from value_inputs or the system of record,
-                 with its source; otherwise unknown: true.
-              6. Hunt coverage gaps: accounts with value but no asks, meetings
+              5. Reconcile systems of record before ranking. For every CRM,
+                 tracker or billing value an item's state or rank depends on,
+                 check it against primary evidence (calls, sent quotes, code on
+                 the default branch, billing). Where the record is missing a
+                 value or contradicts the evidence, use the evidenced value and
+                 add a record_fixes entry. Never write to the record.
+              6. Attach the rank value, reconciled as in step 5, with its
+                 source; otherwise unknown: true.
+              7. Hunt coverage gaps: accounts with value but no asks, meetings
                  with no transcript, promises with a date but no owner, sources
                  that were unavailable, lanes that came back thin.
-              7. List conflicts between lanes, and between lanes and ground truth.
+              8. List conflicts between lanes, and between lanes and ground truth.
 Output        Write {bundle}/research/reconciled.json in the shape below. Return
               at most 150 words: item counts by state, how many verified,
               downgraded and dropped, and the biggest coverage gaps.
@@ -54,8 +60,14 @@ Output        Write {bundle}/research/reconciled.json in the shape below. Return
     "owner": null, "owned_by_person_decision": false,
     "rank": { "key": "<rank_by>", "value": null, "source": null, "unknown": true },
     "deadline": null, "blocks": null, "score": null } ],
+  "record_fixes": [ {
+    "id": "F-001", "items": ["G-001"],
+    "system": "<sources.json id>", "record": "url|record id", "field": "",
+    "current": null, "proposed": null, "kind": "missing|contradicted",
+    "evidence": [ { "source": "", "ref": "", "kind": "verbatim|record|code", "quote": "" } ],
+    "status": "proposed" } ],
   "conflicts": [ { "items": [], "detail": "", "resolved_by": null } ],
   "dropped": [ { "lane_item": "", "reason": "" } ] }
 ```
 
-States: `shipped` is on the default branch; `shipping` is an open pull request; `started` is a branch or partial code; `promised_not_started` is a promise with no code; `not_started` is an ask with no promise and no code; `unknown` needs a question. `mismatch` says what disagrees, for example "tracker says done, default branch has no handler", or is `null`. Dropped items stay in `dropped` with the reason, so a rerun does not bring them back silently.
+States: `shipped` is on the default branch; `shipping` is an open pull request; `started` is a branch or partial code; `promised_not_started` is a promise with no code; `not_started` is an ask with no promise and no code; `unknown` needs a question. `mismatch` says what disagrees, for example "tracker says done, default branch has no handler", or is `null`. `rank.source` names the primary evidence when a record was missing or contradicted. A `record_fixes` entry is only a proposal: its `status` stays `proposed` until the person approves or rejects it in `decisions.html`, and nothing in the sweep writes it. Evidence of kind `summary` cannot support a fix. Dropped items stay in `dropped` with the reason, so a rerun does not bring them back silently.

@@ -7,6 +7,8 @@ description: Use when the person wants a broad, read-only sweep of every reachab
 
 Read-only lanes each own one source and write one JSON file in one shared shape. A fresh reconciler tries to break their findings against ground truth. You rank what survives, render one gap page, and ask the person what the evidence cannot settle, one question at a time.
 
+**Core rule: verify and reconcile before acting.** A system of record (a CRM deal value, a tracker state, a billing line) is a claim until it has been checked against primary evidence: calls, sent quotes, code on the default branch, billing. Nothing is ranked, recommended or handed off on an unchecked value. When a record is missing a value or contradicts the primary evidence (a CRM deal with no value, a ticket marked done with no code), fill the value from the primary evidence for ranking, cite it, and propose the fix to the record. A proposed fix is never written without the person's approval, and this skill never writes it itself.
+
 This skill owns the content and the file shapes. `swarm` owns how the territory is split and checked, `page` owns how pages look, and `interview` owns how questions are asked.
 
 ## The bundle
@@ -22,7 +24,7 @@ One bundle per sweep, at the root `page` sets ([../page/references/bundle.md](..
     sources.json        every source: kind, account, probe, status, scope note, lanes, attempts
     prompts/<lane>.md   the exact prompt each lane received, saved before dispatch
     <lane>.json         one per lane, written only by that lane
-    reconciled.json     frame, coverage, items, conflicts, dropped
+    reconciled.json     frame, coverage, items, record fixes, conflicts, dropped
 ```
 
 The saved prompts are the lane registry: a lane exists when its prompt file exists. The field-by-field shapes are in [references/lane-prompt.md](references/lane-prompt.md) and [references/reconciler-prompt.md](references/reconciler-prompt.md). They are the contract every sweep shares, so do not add, rename or drop fields.
@@ -77,12 +79,13 @@ While lanes run, keep talking with the person. Relay each finished lane in two o
 
 ## 4. Reconcile
 
-When every lane has finished or been recorded as failed, launch one fresh reconciler subagent with [references/reconciler-prompt.md](references/reconciler-prompt.md), saved first to `research/prompts/reconciler.md`. It reads every lane file and `sources.json`, re-opens sources to verify, and writes `research/reconciled.json`.
+Reconciling comes before any ranking or recommendation. When every lane has finished or been recorded as failed, launch one fresh reconciler subagent with [references/reconciler-prompt.md](references/reconciler-prompt.md), saved first to `research/prompts/reconciler.md`. It reads every lane file and `sources.json`, re-opens sources to verify, and writes `research/reconciled.json`. It checks every system-of-record value an item's state or rank depends on against primary evidence, and lists each missing or contradicted value as a `record_fixes` entry: the record, the field, its current value, the proposed value, and the evidence for it.
 
 On a rerun (a lane added late, or a second sweep into the same bundle), give it the previous `reconciled.json` so matching items keep their `G-` IDs.
 
 ## 5. Rank and render
 
+- Rank only on reconciled values. A value filled from primary evidence ranks with its source shown. A value that is still contradicted, or has no primary evidence, is `unknown`.
 - Score each open item by the ranking key. Deadlines, then items that block something, break ties. A missing value is `unknown`, never guessed; unknowns sort after known values and become questions.
 - Items the person already assigned to someone are `owned_by_person_decision`: list them, do not rank them as work to plan.
 - Render `index.html` with `page`, laid out as in [references/gap-page.md](references/gap-page.md). Every item row carries `id="<G-id>"` so `index.html#G-001` resolves.
@@ -90,7 +93,7 @@ On a rerun (a lane added late, or a second sweep into the same bundle), give it 
 
 ## 6. Ask
 
-Run `interview` with **one question per round**, recommended answer first. Ask about priority conflicts, owners, items whose state is unknown, unknown ranking values, and scope cuts. Record every round in `decisions.html` and revise the gap page in place.
+Run `interview` with **one question per round**, recommended answer first. Ask about priority conflicts, owners, items whose state is unknown, unknown ranking values, proposed record fixes, and scope cuts. Ask which record fixes the person approves; record each answer in `decisions.html`. Approved fixes are listed there, with their evidence, for the person to apply or hand to someone who can. The sweep never writes them. Record every round in `decisions.html` and revise the gap page in place.
 
 When the person chooses items to take forward, end with one command per chosen item:
 
@@ -105,6 +108,8 @@ Moving on to planning is the person's call. This skill never files tickets, edit
 ## Rules
 
 - **Read-only.** Never create, update, comment on, send, react to, label, assign, close or merge anything in any external system. Write only into the bundle.
+- Verify and reconcile before acting: no ranking, recommendation or hand-off rests on a system-of-record value that has not been checked against primary evidence.
+- Never write a fix to a record. Propose it with evidence, and let the person approve and apply it.
 - An AI summary is a lead. It never verifies an item on its own: find the transcript, record or code it summarises.
 - Never guess a number, date or owner. Mark it unknown and ask.
 - Quote evidence with its source, a reference, and the account that read it.

@@ -17,7 +17,11 @@ Seeds         {items the person named; names, accounts and terms to watch for}
 Ground truth  code on the default branch > system of record for money or volume
               > verbatim source > tracker or CRM field > AI summary (a lead only)
 Rank inputs   {rank_by}: record the value for each item in value_inputs, with
-              its source, or null. Never estimate.
+              its source, or null. Never estimate. A CRM, tracker or billing
+              value is a claim: record it as found; the reconciler checks it
+              against primary evidence. When this lane reads primary evidence
+              of a value (a quote sent, a number said on a call), record that
+              too, with its own source.
 Method        {how to read: every transcript in full, not its summary; git fetch
               then git show origin/<default>:<path>; one record at a time}
 Auth          If a tool fails to authenticate, stop. Write the lane file with
