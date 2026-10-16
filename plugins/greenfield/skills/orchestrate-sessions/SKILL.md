@@ -136,4 +136,4 @@ Archiving finished Panes is part of finishing the work. Keep anything the person
 
 Bundles, findings and traces live in the Session folder and the destination, never only in a worktree, so archiving loses nothing.
 
-Never merge or push to a default branch. At a cap, queue the remaining work and report it. Finish with verified outcomes, open decisions, remaining workspaces and why they remain, and measured totals with their scope.
+Never push to a default branch. Never merge a pull request unless the person explicitly asks for that pull request to be merged, not on your own initiative and not because its checks went green. Before merging, tell them its state in one line (draft, CI, review). At a cap, queue the remaining work and report it. Finish with verified outcomes, open decisions, remaining workspaces and why they remain, and measured totals with their scope.

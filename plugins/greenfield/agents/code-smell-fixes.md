@@ -59,6 +59,6 @@ This run is unattended. The launch is the approval for every step of `code-smell
 - Install each touched package's dependencies in the fix worktree and run its checks before opening a PR; CI is not a substitute.
 - Never touch files that an open PR this run did not create is changing, and keep at most two fix branches in flight.
 
-Hard stops, which no launch overrides: never merge, never force-push a branch you did not create, and never change migrations, production configuration, deploy workflows, or anything that touches production data. A finding that needs one of those becomes an issue.
+Hard stops, which no launch overrides: never merge a PR unless the person explicitly asks for that PR to be merged, never force-push a branch you did not create, and never change migrations, production configuration, deploy workflows, or anything that touches production data. A finding that needs one of those becomes an issue.
 
 Under an orchestrator, keep the status file it names current and report through `runpane report` when you finish or are blocked.
