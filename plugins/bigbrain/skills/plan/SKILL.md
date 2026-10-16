@@ -39,13 +39,14 @@ All in the existing bundle, each from its `documents` template:
 - Checkpoints only as agreed with the person in the interview, each with a `reason_kind` and a one-line `reason`. "No review" only on the person's explicit word, as `"review": "none"` with its D-n.
 - A `design` step only when a design decision genuinely cannot be made before the build.
 
-Render the Control flow section on the cover sheet from the JSON, as the reference shows, and put the one-line summary at the top.
+Render the Control flow section on the cover sheet from the JSON (its phase diagram and the step detail), as the reference shows, and put the one-line summary at the top.
 
 ## Self-check, then approval
 
 Before relaying the plan, check it yourself against the brief and the approved design:
 
 - Scope, exclusions, constraints and locked decisions agree; every package explains approach, reuse, new systems, schema and data impact, and dependencies; assumptions are marked `[ASSUMPTION: …]`.
+- Every user-facing capability is a track in What we're building with its approved frames; every schema change is in Schema changes with its exact DDL and why it is needed, and each track links the rows it relies on.
 - Every required behaviour has a J/S with an observable outcome; every must-match screen is covered; every changed screen has a journey through its empty and long-content/overflow states (and loading/error where they exist); prerequisites are honest.
 - The page holds everything the person must review, including exact copy or contract semantics when they matter.
 - Zero `[NEEDS DECISION]` markers. Each one becomes a relay question first.

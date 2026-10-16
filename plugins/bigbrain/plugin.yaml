@@ -47,13 +47,13 @@ checksums:
   skills/codebase-design/agents/openai.yaml: edebc9e4fcfe102114012575eaa9600b9b5fd08c311664f389c36e7bc717740f
   skills/design/SKILL.md: d9975f2471e9dc86793e496d6fa518751f59067b9ab4653439de98187d623928
   skills/design/references/design-quality.md: 204442227b91f8820fa1c4907d8bd8f43c771208f8e8440246fadb39bd878e0a
-  skills/documents/SKILL.md: 77c2f1d5480c02af602dd21ddad1f5ae2bad61e02c28b76108c4edd14adb0750
+  skills/documents/SKILL.md: f5a67cba6d1c9aefffe0feda6901b9fc28e7262f730dd1b2ae6c67c6540034cb
   skills/documents/formats/brief/example.html: 5588c0a16e7bf000a0c65de5a5e9ba513d7bce34c84e02bb554157aa27570dd6
   skills/documents/formats/brief/template.html: 90841deb2612db4f6abecda81a2cfc6399d3065640e807d35fec5648859f3b7b
   skills/documents/formats/bug-report/example.html: e12a8890c78041e7f4ffd20a7834a3f843d555630355e42752e8e7905674b5e4
   skills/documents/formats/bug-report/template.html: c31586dcaf102a070f679f8f2e2e0eabdec6eb62c9bfa0f7671c2a4ac6e6a490
-  skills/documents/formats/cover-sheet/example.html: 7cda6279d121df6c0fafa18bb5adccbb2c166ab5679682537eb698d8857d4e75
-  skills/documents/formats/cover-sheet/template.html: 3f66319828987f3b48fede58b4728d218f9a2b4ccb99ff7bbe270821a2cae7cd
+  skills/documents/formats/cover-sheet/example.html: e4710fe8369b88e425857997815e8b18c59d781b376370ae45df3b166d28b569
+  skills/documents/formats/cover-sheet/template.html: fcf840f0b69bc619cb9e47b41d461370ec87f771ab01698cb3b2fd635fe047d8
   skills/documents/formats/decisions/example.html: 347f56acbdd932622ef0d48ab840373ab049adf106e486132bf1d1fad39d6f09
   skills/documents/formats/decisions/template.html: 49d5433907c854b29441f75cc6ed8f41af64352d45e011d70d5bdbb4d55ee66f
   skills/documents/formats/design-notes/example.html: a124da4be177fe6c10074b732cae4fe698a0352cfe66d59ab3e6e15f0901a07f
@@ -72,13 +72,13 @@ checksums:
   skills/documents/formats/post-mortem/template.html: 97a0f42d0e1cda9fbaa7dadb81224a405ce47670e27785788a4a3b8998ab9916
   skills/documents/formats/verification/example.html: 104e167de7da9660494962a6d2c6c7d240641d96f42501f7df758ee8868b95e0
   skills/documents/formats/verification/template.html: ad723b69b77678b72d4034f236d14f8d2422880fac91991f2a5326b6ea6ed1ba
-  skills/documents/kinds.json: 30653fa6bcaf98ca8820e4536518403accade980dd50c77e0dfff1130ca03c3d
-  skills/documents/references/control-flow.md: 01bbfbd9895f4e99d98fd54ac0b45b33e48dce63aa6a1fc5c49e5da6e1dfb2d8
+  skills/documents/kinds.json: 05078d1329860d3afdb59760accca618aaefe156594ac0bd44d503b004b537d8
+  skills/documents/references/control-flow.md: 9ac36439b1fa32b9b4c25804b94fdaa2e4fa8d7cad846e6b04c7574fadf81c13
   skills/documents/schemas/control-flow.schema.json: d63f7963c80de8487f1ca27b959a524107cbd4d5fa22532cdb87ed5b7ed49f92
   skills/documents/schemas/doc-meta.schema.json: 42c9b753180f261c990f0007f062f1d97266fb15bf4e76892a2d3232f00a2fef
   skills/documents/schemas/status.schema.json: 9938de5fc9bca7d9d72a761584523404b90ad2ae45df302267a1856ccf2a8b9c
   skills/documents/schemas/verification.schema.json: 123f9f7234d5511e8aa3fe7331b2980f1a7bb87f5051c26730cd5a411ec3e437
-  skills/documents/scripts/check-bundle.mjs: 6ca100e5d1042a1313266b9063af2524b242941b865e0140c329cf79762c430c
+  skills/documents/scripts/check-bundle.mjs: 5621388f3479eea7d72b31eb97af66aaf3df375428557a1a78256f86d25653a5
   skills/excalidraw-pr-diagrams/README.md: 7da1d4a66c311fe60ea176b5a918e28d0e62a98dc1ff5470e5ac24f3f8727ce7
   skills/excalidraw-pr-diagrams/SKILL.md: abc1cdca48c2cc0a5feda95d10e315dd2c5e7adcfe4fe88c4a64139ca8fc8147
   skills/excalidraw-pr-diagrams/references/color-palette.md: 275164ffee5b1c2c36ddeb5bbdbd73765aa8b337bd1bfe8b02a5a8d5f9581c7c
@@ -102,8 +102,8 @@ checksums:
   skills/orchestrate/references/ledger.md: c84ca38a54380480fbb95056bb451514ff684fd22edbe78312a016ae3b154760
   skills/orchestrate/references/relay.md: 151e2ce9c4e98ba0b2be932ebea7a4bbb50c32aaff15ca995de2ec3311014300
   skills/orchestrate/scripts/dispatch.mjs: 755e3dfd7adf76db5bc2f1efdb5d4044acf1e9dc49d258d52e4fb206736833a2
-  skills/plan/SKILL.md: b6aa2ec13f4860363e36835a16c185a79123a1b621f9a6d715f544569380d972
-  skills/plan/references/cover-sheet.md: 4b1625f2c2dc883f59ff58352a294409057a47d9753818aef33228322b50a2f4
+  skills/plan/SKILL.md: e61a1cbb1f5f2048ceb34ab3a90ed70e7062ddd43e3d6b71acd2b709bfaff842
+  skills/plan/references/cover-sheet.md: b6ee23c37605d319f49c007bb0a8ec9e249e855e9d6b4a7e839f44c87a5717db
   skills/prepare-pr/SKILL.md: f42cc79bb7fbcdee32a831189a32a33d9c9e2694c373cfbcb6772573c44a7d1d
   skills/prepare-pr/assets/pr-walkthrough.html: d3028a699a3d3db47b1fd715042ce383a133dd10ce1bbfec5a6c1580f26e139a
   skills/prepare-pr/references/writing-guide.md: f2f7721f463234290466dfe26c37b6a7fd4f14ab040b795436981a074789b007

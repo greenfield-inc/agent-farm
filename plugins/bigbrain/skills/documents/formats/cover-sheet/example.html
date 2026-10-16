@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Markdown export plan</title>
+<title>Note sharing plan</title>
 <style>
 :root {
   --bg: #fbfaf6; --panel: #ffffff; --ink: #1d2420; --muted: #5d6861; --line: #dcdfd6;
@@ -69,50 +69,75 @@ svg .headhot { fill: var(--accent); }
 footer { color: var(--muted); font-size: .85rem; margin-top: 3rem; border-top: 1px solid var(--line); padding-top: .8rem; }
 ol.flow { padding-left: 1.4rem; }
 ol.flow li { margin: .3rem 0; }
+.labels { color: var(--muted); font-size: .85rem; }
+.look { color: var(--warn); font-weight: 600; }
+ul.tight li, ol.tight li { margin: .2rem 0; }
+.track figure { margin: .6rem 0; }
+.track img { width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 6px; }
+.track .pair figure { margin: .3rem 0; }
+svg .phase { font-weight: 600; }
+svg .small.gate { fill: var(--ink); }
+.cf-diagram { margin: .8rem 0; }
+#control-flow-steps h4 { margin: .8rem 0 .2rem; }
+#schema-changes code { overflow-wrap: normal; word-break: normal; white-space: nowrap; }
+.schema-group { margin: 1.4rem 0 1.8rem; }
+.schema-group h4 { font-size: 1.02rem; margin: 0 0 .1rem; }
+.schema-group .ddl { position: relative; margin: .5rem 0; }
+.schema-group .ddl pre { max-height: 22rem; overflow: auto; white-space: pre; margin: 0; padding-right: 4.5rem; font-size: .8rem; line-height: 1.5; }
+#schema-changes .ddl pre code { white-space: pre; overflow-wrap: normal; word-break: normal; }
+.ddl .copy { position: absolute; top: .5rem; right: 1.1rem; font: 600 .78rem system-ui, sans-serif; padding: .2rem .6rem; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--ink); cursor: pointer; }
+.schema-table { table-layout: fixed; font-size: .86rem; }
+.schema-table th, .schema-table td { border: 1px solid var(--line); overflow-wrap: break-word; }
+.schema-table th { background: var(--code); }
+#schema-changes .schema-table code { white-space: normal; overflow-wrap: normal; word-break: normal; }
+@media (max-width: 640px) { .schema-group .ddl pre { padding-top: 2.4rem; padding-right: .8rem; } }
+.badge { display: inline-block; font-size: .72rem; font-weight: 600; line-height: 1.4; padding: 0 .45rem; border-radius: 999px; border: 1px solid; white-space: nowrap; }
+.b-all { color: var(--bad); background: var(--bad-soft); }
+.b-one { color: var(--warn); background: var(--warn-soft); }
+.b-minor { color: var(--accent); background: var(--accent-soft); }
 </style>
 <script type="application/json" id="doc-meta">
-{ "kind": "cover-sheet", "id": "markdown-export",
-  "status": "done", "revision": 1,
+{ "kind": "cover-sheet", "id": "note-sharing",
+  "status": "ready-for-review", "revision": 2,
   "supersedes": null, "updated": "2026-10-14",
-  "defines": ["P-1", "P-2", "J-1", "J-2", "J-3", "S-1"],
-  "cites": ["SC-1", "SC-2", "SC-3", "D-1", "D-2", "D-3"],
+  "defines": ["P-1", "P-2", "P-3", "J-1", "J-2", "J-3", "J-4", "J-5", "S-1", "S-2"],
+  "cites": ["SC-1", "SC-2", "SC-3", "SC-4", "D-1", "D-2", "D-3", "D-4", "D-5"],
   "open": { "needs_decision": 0, "assumptions": 1 } }
 </script>
 </head>
 <body>
 <main>
-<h1>Plan: export notes as Markdown <span class="chip">done</span></h1>
-<p class="lede">Any Jotter user can download one note, or every note, as Markdown files that open in any editor.</p>
+<h1>Plan: share a note with teammates <span class="chip warn">ready-for-review</span></h1>
+<p class="lede">A Jotter user shares a note with people in their workspace, who can view or edit it from "Shared with me"; the owner can change or remove access at any time, and every shared note shows who last edited it.</p>
 
 <figure>
-<svg viewBox="0 0 640 170" role="img" aria-labelledby="draw-title">
-  <title id="draw-title">P-2 adds two buttons that call P-1's two routes; both routes share one serializer and one file-name function</title>
-  <defs>
-    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="headhot"/></marker>
-  </defs>
-  <text x="20" y="18" class="small">BROWSER · P-2</text>
-  <rect x="20" y="26" width="190" height="40" rx="8" class="hot"/>
-  <text x="34" y="51">Note menu: Download</text>
-  <rect x="20" y="100" width="190" height="40" rx="8" class="hot"/>
-  <text x="34" y="125">Settings: Export all</text>
-  <text x="250" y="18" class="small">SERVER · P-1</text>
-  <path d="M210,46 L250,46" class="path" marker-end="url(#ah)"/>
-  <path d="M210,120 L250,120" class="path" marker-end="url(#ah)"/>
-  <rect x="250" y="26" width="170" height="40" rx="8" class="box"/>
-  <text x="262" y="51" class="small">GET /api/notes/:id/export.md</text>
-  <rect x="250" y="100" width="170" height="40" rx="8" class="box"/>
-  <text x="262" y="125" class="small">GET /api/notes/export.zip</text>
-  <path d="M420,46 L470,76" class="path" marker-end="url(#ah)"/>
-  <path d="M420,120 L470,92" class="path" marker-end="url(#ah)"/>
-  <rect x="470" y="56" width="160" height="56" rx="8" class="hot"/>
-  <text x="484" y="80">toMarkdown()</text>
-  <text x="484" y="99">fileName()</text>
-  <text x="20" y="162" class="small">Unchanged: notes table, editor, viewer.</text>
+<svg viewBox="0 0 640 190" role="img" aria-labelledby="draw-title">
+  <title id="draw-title">The web Share dialog and Shared with me list (P-3) call new share routes (P-1) and the shared-notes query (P-2); these read and write a new note_shares table and two new columns on notes, and reuse the workspace member list and the note save path that exist today</title>
+  <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="headhot"/></marker></defs>
+  <text x="20" y="18" class="small">WEB</text>
+  <rect x="20" y="26" width="180" height="44" rx="8" class="hot"/><text x="32" y="46">P-3 Share dialog</text><text x="32" y="62" class="small">add · change · remove</text>
+  <rect x="20" y="86" width="180" height="44" rx="8" class="hot"/><text x="32" y="106">P-3 Shared with me</text><text x="32" y="122" class="small">list · empty state</text>
+  <text x="240" y="18" class="small">SERVER</text>
+  <rect x="240" y="26" width="160" height="44" rx="8" class="hot"/><text x="252" y="46">P-1 share routes</text><text x="252" y="62" class="small">access check</text>
+  <rect x="240" y="86" width="160" height="44" rx="8" class="hot"/><text x="252" y="106">P-2 shared query</text><text x="252" y="122" class="small">last edited by</text>
+  <path d="M200,48 L240,48" class="path" marker-end="url(#ah)"/>
+  <path d="M200,108 L240,108" class="path" marker-end="url(#ah)"/>
+  <text x="440" y="18" class="small">DATA</text>
+  <rect x="440" y="26" width="180" height="44" rx="8" class="hot"/><text x="452" y="46">note_shares (new)</text><text x="452" y="62" class="small">who can view or edit</text>
+  <rect x="440" y="86" width="180" height="44" rx="8" class="hot"/><text x="452" y="106">notes (changed)</text><text x="452" y="122" class="small">last edited by, at</text>
+  <path d="M400,48 L440,48" class="path" marker-end="url(#ah)"/>
+  <path d="M400,108 L440,108" class="path" marker-end="url(#ah)"/>
+  <rect x="240" y="146" width="160" height="30" rx="8" class="box"/><text x="252" y="166" class="small">workspace members (today)</text>
+  <rect x="440" y="146" width="180" height="30" rx="8" class="box"/><text x="452" y="166" class="small">note save path (today)</text>
+  <path d="M320,130 L320,146" class="line dash"/>
+  <path d="M530,130 L530,146" class="line dash"/>
 </svg>
 </figure>
 
+<div class="callout"><strong>What you are approving.</strong> Three user-facing tracks, shown with the approved mockups in <a href="#what-we-build">What we're building</a>, built as three packages in two pull requests: a server one (shares, the access check, last-edited columns and the shared-notes query) and a web one (the Share dialog and Shared with me). The most consequential choice is checking shares on every note read (P-1): it is what makes revoking take effect at once (SC-3), and it adds one indexed lookup per read of someone else's note. Every schema change (one new table, two new columns on notes, one index and one backfill) is listed with its reason in <a href="#schema-changes">Schema changes</a>. One checkpoint review sits after the server pull request (D-3).</div>
+
 <section id="control-flow-summary">
-<p class="panel"><strong>Control flow:</strong> build and verify P-1, then P-2 · QA up to 2 rounds, desktop, light and dark, jank checklist on, no mockups · pull request · one end review (scope all), no checkpoints (<a href="decisions.html#D-3">D-3</a>).</p>
+<p class="panel"><strong>Control flow:</strong> build and check P-1, P-2 · server pull request · one checkpoint review (schema) · build and check P-3 · QA up to 2 rounds, desktop and phone, light and dark, jank checklist on, 5 approved frames must match · web pull request · end review (scope all).</p>
 </section>
 
 <nav class="contents" id="contents" aria-label="Contents">
@@ -120,31 +145,384 @@ ol.flow li { margin: .3rem 0; }
 <ul>
   <li><a href="#three-sentences">In three sentences</a></li>
   <li><a href="#before-after">Before and after</a></li>
+  <li><a href="#what-we-build">What we're building</a></li>
+  <li><a href="#schema-changes">Schema changes</a></li>
+  <li><a href="#packages">Packages</a></li>
+  <li><a href="#how-we-know">How we will know it works</a></li>
+  <li><a href="#control-flow">Control flow</a></li>
   <li><a href="#decisions-locked">Decisions locked</a></li>
   <li><a href="#deferred">Deferred</a></li>
   <li><a href="#scope">Scope</a></li>
+  <li><a href="#constraints">Constraints</a></li>
+  <li><a href="#non-goals">Non-goals</a></li>
+  <li><a href="#ask-first">Ask-first actions</a></li>
   <li><a href="#cross-cutting">Cross-cutting</a></li>
-  <li><a href="#how-we-know">How we will know it works</a></li>
-  <li><a href="#packages">Packages</a></li>
-  <li><a href="#control-flow">Control flow</a></li>
   <li><a href="#open-markers">Open markers</a></li>
   <li><a href="#look-first">Look at these first</a></li>
   <li><a href="#change-log">Change log</a></li>
 </ul>
-<p class="meta">Bundle: <a href="index.html">brief</a> · <a href="options.html">options</a> · <a href="decisions.html">decisions</a> · <a href="control-flow.json">control-flow.json</a> · <a href="evidence/verification.html">verification</a> · <a href="post-mortem.html">post-mortem</a></p>
+<table>
+  <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td><a href="index.html">Brief</a></td><td>The problem, success criteria SC-1 to SC-4, constraints</td></tr>
+    <tr><td><a href="decisions.html">Decision log</a></td><td>D-1 to D-5 and the relay questions they came from</td></tr>
+    <tr><td><a href="mockups/index.html">Mockups gallery</a></td><td>The approved design and current-app captures</td></tr>
+    <tr><td><a href="control-flow.json">control-flow.json</a></td><td>The steps the implementer and orchestrator run; source of the Control flow section</td></tr>
+    <tr><td><a href="evidence/verification.json">evidence/verification.json</a></td><td>One row per J and S, filled in by the implementer and verifier</td></tr>
+    <tr><td><a href="bundle.json">bundle.json</a></td><td>Every page in this bundle and where it is published</td></tr>
+  </tbody>
+</table>
 </nav>
 
 <section id="three-sentences">
 <h2>In three sentences</h2>
-<p>We add a Markdown export so a user can save one note (SC-1) or every note (SC-2) as plain files. A server serializer turns each note's blocks into Markdown, and one file-name function makes safe, unique names (SC-3). The user gets a "Download as Markdown" item in each note's menu and an "Export all notes" button in Settings.</p>
+<p>We let a note's owner share it with workspace members as a viewer or an editor (SC-1), list the notes shared with a user in a new "Shared with me" view (SC-2), and let the owner change or remove access, effective on the next read (SC-3). The server stores each share in a new table and checks it on every read and save of a note the user does not own, and each note records who last edited it (SC-4). Teammates can work on the same note without copying and pasting it.</p>
 </section>
 
 <section id="before-after">
 <h2>Before and after</h2>
 <div class="pair">
-  <div class="panel"><h3>Before</h3><p>The note menu has Rename, Duplicate, Delete. Settings has Theme and Account. No way to get a note out except copy and paste.</p></div>
-  <div class="panel"><h3>After</h3><p>The note menu adds "Download as Markdown". Settings adds a "Your data" row with "Export all notes". Screens that must match: n/a because there are no mockups; the new controls reuse the existing menu item and button.</p></div>
+  <div class="panel"><h3>Before</h3><p>Every note is private to its owner. The only way to give a teammate a note is to copy its text. Captures: <a href="mockups/index.html#current">current app</a>.</p></div>
+  <div class="panel"><h3>After</h3><p>A Share button on each note opens the approved dialog; the sidebar gains "Shared with me". Screens that must match (5 frames, desktop and phone, light and dark): <a href="mockups/share-v2-dialog.html">dialog</a>, <a href="mockups/share-v2-added.html">added</a>, <a href="mockups/share-v2-manage.html">manage</a>, <a href="mockups/shared-v2-list.html">list</a>, <a href="mockups/shared-v2-empty.html">empty</a>.</p></div>
 </div>
+</section>
+
+<section id="what-we-build">
+<h2>What we're building</h2>
+<p>Three things a user can do, each shown with its approved mockups (desktop, light; click a frame to open it). Open a track's sections for what happens step by step, the rules, and what makes it work underneath: the packages that build it and the database changes it needs, linked to their rows in <a href="#schema-changes">Schema changes</a>.</p>
+<ol class="tight">
+  <li><a href="#track-share">Share a note</a>: pick teammates, choose view or edit</li>
+  <li><a href="#track-shared">Find notes shared with you</a>: the new sidebar view and who last edited each note</li>
+  <li><a href="#track-manage">Change or remove access</a>: takes effect on the next read</li>
+</ol>
+
+<article class="card track" id="track-share">
+<h3>1 · Share a note</h3>
+<div class="pair">
+<figure><a href="mockups/share-v2-dialog.html"><img src="mockups/share-v2-dialog.png" alt="The Share dialog for the note Trip plan: a search box listing workspace members, each with a Can view or Can edit choice, and a Share button" loading="lazy"></a>
+<figcaption>Pick teammates and their access.</figcaption></figure>
+<figure><a href="mockups/share-v2-added.html"><img src="mockups/share-v2-added.png" alt="The Share dialog after sharing: two people listed under People with access, one Can edit and one Can view, and a notice reading Shared with 2 people" loading="lazy"></a>
+<figcaption>After sharing: who has access.</figcaption></figure>
+</div>
+<details>
+<summary>What happens, step by step</summary>
+<ol class="tight">
+  <li>The owner opens a note and chooses Share. The dialog lists workspace members as they type.</li>
+  <li>They pick one or more people and set each to Can view or Can edit (view is the default).</li>
+  <li>Share saves the access. The note appears in each person's Shared with me at once; nobody is emailed (D-5).</li>
+  <li>Sharing the note again with someone who already has access changes their access instead of adding them twice.</li>
+</ol>
+</details>
+<details>
+<summary>Rules</summary>
+<p class="meta">SC-1 · D-1, D-2, D-5</p>
+<p>Only the owner shares. Access is view or edit, nothing else (D-1). Only members of the same workspace can be picked; there are no public links (D-2).</p>
+</details>
+<details>
+<summary>What makes it work underneath</summary>
+<p>P-1 adds the share routes and stores each share in <a href="#schema-note-shares">note_shares</a>, one row per person per note. P-3 builds the dialog from the existing member picker and Modal.</p>
+</details>
+</article>
+
+<article class="card track" id="track-shared">
+<h3>2 · Find notes shared with you</h3>
+<div class="pair">
+<figure><a href="mockups/shared-v2-list.html"><img src="mockups/shared-v2-list.png" alt="Shared with me: a list of notes, each with its title, owner, the access you have, and Last edited by a name and time" loading="lazy"></a>
+<figcaption>Newest shares first, with who last edited each.</figcaption></figure>
+<figure><a href="mockups/shared-v2-empty.html"><img src="mockups/shared-v2-empty.png" alt="Shared with me with nothing in it: Nothing has been shared with you yet" loading="lazy"></a>
+<figcaption>The empty state.</figcaption></figure>
+</div>
+<details>
+<summary>What happens, step by step</summary>
+<ol class="tight">
+  <li>The sidebar gains Shared with me under My notes.</li>
+  <li>It lists every note shared with the user, newest share first, with the owner, the access they have, and "Last edited by … · time".</li>
+  <li>Opening a note with view access shows it read-only; with edit access, the editor works as on their own notes.</li>
+  <li>Long titles are cut with an ellipsis on one line; the empty state says nothing has been shared yet.</li>
+</ol>
+</details>
+<details>
+<summary>Rules</summary>
+<p class="meta">SC-2, SC-4 · D-1</p>
+<p>A user sees only notes shared with them. "Last edited by" shows on every shared note, for owners too.</p>
+</details>
+<details>
+<summary>What makes it work underneath</summary>
+<p>P-2 adds the shared-notes query, served by <a href="#schema-user-index">the per-user index</a>, and writes <a href="#schema-last-edited">last_edited_by and last_edited_at</a> on every save, with a <a href="#schema-backfill">backfill</a> for existing notes. P-3 builds the view from the existing note list.</p>
+</details>
+</article>
+
+<article class="card track" id="track-manage">
+<h3>3 · Change or remove access</h3>
+<figure><a href="mockups/share-v2-manage.html"><img src="mockups/share-v2-manage.png" alt="The Share dialog's People with access list with a menu open on one person: Can view, Can edit, Remove access" loading="lazy"></a>
+<figcaption>Each person's access can be changed or removed.</figcaption></figure>
+<details>
+<summary>What happens, step by step</summary>
+<ol class="tight">
+  <li>The owner opens Share; People with access lists everyone with their access.</li>
+  <li>Changing someone to Can view stops their edits from their next save; Remove access takes the note out of their Shared with me.</li>
+  <li>Someone who has the note open when access is removed sees "You no longer have access" on their next save or reload; nothing they typed after removal is saved.</li>
+</ol>
+</details>
+<details>
+<summary>Rules</summary>
+<p class="meta">SC-3 · D-4</p>
+<p>Only the owner changes or removes access. Removal is immediate on the server; there is no grace period (D-4).</p>
+</details>
+<details>
+<summary>What makes it work underneath</summary>
+<p>P-1 updates or deletes the <a href="#schema-note-shares">note_shares</a> row, and its access check runs on every read and save of a note the user does not own, so a change applies on the next request. P-3 adds the menu to the dialog.</p>
+</details>
+</article>
+</section>
+
+<section id="schema-changes">
+<h2>Schema changes</h2>
+<p>Every database change this feature makes, as one migration in <code>server/db/migrations/</code>: 4 statements in two groups, applied in order S1 then S2, plus one backfill. It all adds; nothing is dropped or renamed. Each group shows its exact DDL, then what each object is for and why it is needed. The badge says who is affected if it is missing when the new server starts: <span class="badge b-all">everyone</span>, <span class="badge b-one">one feature</span> or <span class="badge b-minor">slower / minor</span>.</p>
+
+<figure>
+<svg viewBox="0 0 640 200" role="img" aria-labelledby="schema-title">
+  <title id="schema-title">New note_shares links a note to a user with view or edit access; notes gains last_edited_by and last_edited_at; users and workspace_members are read but not changed</title>
+  <defs><marker id="sh" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="headhot"/></marker></defs>
+  <rect x="20" y="20" width="250" height="100" rx="8" class="box"/>
+  <text x="32" y="42">notes (changed)</text>
+  <text x="32" y="62" class="small">id · owner_id · title · body · updated_at …</text>
+  <rect x="28" y="72" width="234" height="40" rx="6" class="hot"/>
+  <text x="38" y="88" class="small">+ last_edited_by UUID</text>
+  <text x="38" y="104" class="small">+ last_edited_at TIMESTAMPTZ</text>
+  <rect x="370" y="20" width="250" height="100" rx="8" class="hot"/>
+  <text x="382" y="42">note_shares (new)</text>
+  <text x="382" y="62" class="small">note_id · user_id · access</text>
+  <text x="382" y="80" class="small">shared_by · created_at</text>
+  <text x="382" y="98" class="small">+ index (user_id, created_at)</text>
+  <path d="M370,60 L270,60" class="path" marker-end="url(#sh)"/>
+  <rect x="370" y="150" width="250" height="40" rx="8" class="box dash"/>
+  <text x="382" y="175" class="small">users, workspace_members: unchanged</text>
+  <path d="M495,120 L495,150" class="line dash"/>
+</svg>
+<figcaption>Green: new or changed. Dashed: existing tables the feature reads and does not change.</figcaption>
+</figure>
+
+<h3>New tables</h3>
+<article class="schema-group" id="schema-note-shares">
+<h4>S1. note_shares: who can view or edit a note <span class="meta">(2 statements)</span></h4>
+<p class="meta">P-1, P-2 · SC-1, SC-2, SC-3 · D-1, D-2</p>
+<div class="ddl"><pre><code>CREATE TABLE note_shares
+(
+    note_id    UUID        NOT NULL REFERENCES notes (id) ON DELETE CASCADE,
+    user_id    UUID        NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    access     TEXT        NOT NULL CHECK (access IN ('view', 'edit')),
+    shared_by  UUID        NOT NULL REFERENCES users (id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (note_id, user_id)
+);
+
+CREATE INDEX note_shares_user_created_idx ON note_shares (user_id, created_at DESC);</code></pre></div>
+<table class="schema-table">
+<colgroup><col style="width:27%"><col style="width:33%"><col style="width:40%"></colgroup>
+<thead><tr><th>Object</th><th>What it is for</th><th>Why it's needed</th></tr></thead>
+<tbody>
+<tr><td><code>note_<wbr>shares</code></td><td>One row per person a note is shared with: their access, who shared it and when. Shown in the dialog's People with access.</td><td><span class="badge b-all">everyone</span> Notes have a single owner column today, so there is nowhere to say who else may read or edit one. Every read of a note the user does not own checks this table, so if it is missing when the new server starts, those reads fail.</td></tr>
+<tr id="schema-user-index"><td><code>note_<wbr>shares_<wbr>user_<wbr>created_<wbr>idx</code></td><td>Every note shared with one user, newest first.</td><td><span class="badge b-minor">slower / minor</span> Serves Shared with me. Without it, the list scans every share in the database.</td></tr>
+</tbody>
+</table>
+<p>Fast: a new, empty table and its index; nothing to backfill.</p>
+</article>
+
+<h3>Changes to existing tables</h3>
+<article class="schema-group" id="schema-notes">
+<h4>S2. notes: who last edited each note <span class="meta">(2 statements)</span></h4>
+<p class="meta">P-2 · SC-4</p>
+<div class="ddl"><pre><code>ALTER TABLE notes ADD COLUMN last_edited_by UUID REFERENCES users (id);
+ALTER TABLE notes ADD COLUMN last_edited_at TIMESTAMPTZ;</code></pre></div>
+<table class="schema-table">
+<colgroup><col style="width:27%"><col style="width:33%"><col style="width:40%"></colgroup>
+<thead><tr><th>Object</th><th>What it is for</th><th>Why it's needed</th></tr></thead>
+<tbody>
+<tr id="schema-last-edited"><td><code>notes.<wbr>last_<wbr>edited_<wbr>by, last_<wbr>edited_<wbr>at</code></td><td>Who saved the note last, and when. Shown as "Last edited by" in Shared with me and on the note.</td><td><span class="badge b-all">everyone</span> Once a note has several editors, <code>updated_at</code> no longer says who changed it. Every save writes both columns, so if they are missing when the new server starts, every save fails.</td></tr>
+<tr id="schema-backfill"><td><code>Backfill (not DDL)</code></td><td>Sets both columns on existing notes from <code>owner_id</code> and <code>updated_at</code>. Re-runnable; fills only empty values.</td><td><span class="badge b-minor">slower / minor</span> Without it, existing notes show "Last edited by —" until their next save.</td></tr>
+</tbody>
+</table>
+<p>Fast: two nullable columns, nothing filled by the database. Run the backfill after the server is live, so no save falls in a gap; it needs the person's approval on staging and production.</p>
+</article>
+
+<h3>Considered and not needed</h3>
+<ul class="tight">
+  <li><strong>An access column on notes.</strong> One note has many people with different access, so it needs its own table.</li>
+  <li><strong>A share history table.</strong> Nothing asks for a history of shares yet; <code>shared_by</code> and <code>created_at</code> say who shared and when.</li>
+</ul>
+
+<h3>How it rolls out</h3>
+<ol>
+  <li><strong>Staging:</strong> the implementer raises a needs_you with the migration; the person approves, then it is applied with <code>pnpm db:migrate --env staging</code>.</li>
+  <li><strong>Production:</strong> the server pull request's Deploy notes carry the same migration. A human applies it before the server deploys. No agent runs production migrations.</li>
+  <li><strong>Backfill:</strong> after the server is live, with the person's approval on each environment.</li>
+  <li><strong>Rollback:</strong> revert the code. The additive schema stays; the new table and columns sit unused.</li>
+</ol>
+<script>
+(function () {
+  if (!navigator.clipboard) return;
+  document.querySelectorAll('#schema-changes .ddl').forEach(function (box) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'copy'; b.textContent = 'Copy';
+    b.addEventListener('click', function () {
+      navigator.clipboard.writeText(box.querySelector('code').textContent).then(function () {
+        b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy'; }, 1500);
+      });
+    });
+    box.appendChild(b);
+  });
+})();
+</script>
+</section>
+
+<section id="packages">
+<h2>Packages</h2>
+<article class="card" id="P-1">
+<h3>P-1 · Shares and the access check</h3>
+<p><strong>Outcome:</strong> an owner can share a note, change and remove access, and the server lets only the owner and people with access read a note, and only the owner and editors save it. <span class="labels">Labels: server · schema (rung 5) · new table · depends on nothing</span></p>
+<p class="look">Look at this: the access check sits on every note read and save, so a gap here leaks notes.</p>
+<p class="meta">Rollback: revert the code. The additive schema stays.</p>
+<details><summary>Approach, reuse, and affected areas</summary>
+<p><strong>Approach:</strong> routes to list, add, change and remove a note's shares, owner only. One access function decides owner, editor, viewer or none, and the existing note read and save routes call it instead of comparing the owner id.</p>
+<p><strong>Reuse:</strong> the workspace membership check on the member picker route; the route and test helpers in <code>server/routes/</code>.</p>
+<p><strong>New:</strong> the share routes and the access function. No new dependency.</p>
+<p><strong>Schema and data:</strong> <a href="#schema-note-shares">S1, note_shares</a>.</p>
+<p><strong>Checks:</strong> S-1, J-5. Risk: a note route that keeps comparing owner ids directly.</p>
+</details>
+</article>
+<article class="card" id="P-2">
+<h3>P-2 · Shared-notes query and last edited by</h3>
+<p><strong>Outcome:</strong> one request returns the notes shared with the user, newest first, with owner, access and who last edited each; every save records its editor. <span class="labels">Labels: server · schema (rung 5) · backfill · depends on P-1</span></p>
+<p class="meta">Rollback: revert the code; the columns stop updating and stay. The backfill can be re-run.</p>
+<details><summary>Approach, reuse, and affected areas</summary>
+<p><strong>Approach:</strong> a list route joins shares to notes and users; the save path sets both last-edited columns; a one-off job fills existing notes.</p>
+<p><strong>Reuse:</strong> the note list route's paging; the job runner already used for imports.</p>
+<p><strong>New:</strong> the list route and the backfill job.</p>
+<p><strong>Schema and data:</strong> <a href="#schema-notes">S2, notes</a> and the <a href="#schema-backfill">backfill</a>.</p>
+<p><strong>Checks:</strong> S-1.</p>
+</details>
+</article>
+<article class="card" id="P-3">
+<h3>P-3 · Share dialog and Shared with me</h3>
+<p><strong>Outcome:</strong> the Share dialog and the Shared with me view work as the approved frames show, on desktop and phone, light and dark. <span class="labels">Labels: web · extend · depends on P-1, P-2</span></p>
+<details><summary>Approach, reuse, and affected areas</summary>
+<p><strong>Approach:</strong> a Share button on the note toolbar opens the dialog; the sidebar gains the new view; a read-only editor mode for viewers.</p>
+<p><strong>Reuse:</strong> Modal, the member picker, the note list and its empty state.</p>
+<p><strong>New:</strong> the dialog and the view. No new dependency.</p>
+<p><strong>Schema and data:</strong> no schema changes.</p>
+<p><strong>Checks:</strong> S-2, J-1 to J-4, and mockup fidelity in QA.</p>
+</details>
+</article>
+</section>
+
+<section id="how-we-know">
+<h2>How we will know it works</h2>
+<p class="meta">App journeys run against the local dev server with two seeded users in one workspace and one in another.</p>
+<article class="card" id="J-1">
+<h3>J-1 · share a note <span class="meta">covers SC-1 · P-1 · P-3</span></h3>
+<p><strong>Given</strong> Ana owns the note "Trip plan" and Ben is in her workspace<br>
+<strong>When</strong> Ana opens Share, picks Ben, leaves Can view and chooses Share<br>
+<strong>Then</strong> the dialog matches share-v2-added with Ben under People with access as Can view, and "Trip plan" appears in Ben's Shared with me<br>
+<strong>Check</strong> app · J-1-shared-desktop-light.png</p>
+</article>
+<article class="card" id="J-2">
+<h3>J-2 · Shared with me: empty and long titles <span class="meta">covers SC-2 · SC-4 · P-2 · P-3</span></h3>
+<p><strong>Given</strong> Cleo has nothing shared with her, and Ben has three shared notes, one with a 200-character title<br>
+<strong>When</strong> each opens Shared with me<br>
+<strong>Then</strong> Cleo sees the empty state of shared-v2-empty; Ben sees three rows, newest share first, each with owner, access and "Last edited by", the long title cut with an ellipsis on one line<br>
+<strong>Check</strong> app · J-2-empty-phone-dark.png, J-2-long-title-desktop-light.png</p>
+</article>
+<article class="card" id="J-3">
+<h3>J-3 · remove access while the note is open <span class="meta">covers SC-3 · P-1 · P-3</span></h3>
+<p><strong>Given</strong> Ben has edit access to "Trip plan" and has it open<br>
+<strong>When</strong> Ana removes Ben's access, then Ben types and saves<br>
+<strong>Then</strong> Ben sees "You no longer have access", his change is not saved, and the note is gone from his Shared with me<br>
+<strong>Check</strong> app · J-3-revoked-desktop-light.png</p>
+</article>
+<article class="card" id="J-4">
+<h3>J-4 · an editor's save shows as last edited <span class="meta">covers SC-4 · P-2 · P-3</span></h3>
+<p><strong>Given</strong> Ben has edit access to "Trip plan"<br>
+<strong>When</strong> Ben edits and saves it<br>
+<strong>Then</strong> Ana's note and Ben's Shared with me both show "Last edited by Ben" with the save time<br>
+<strong>Check</strong> app · J-4-last-edited-desktop-light.png</p>
+</article>
+<article class="card" id="J-5">
+<h3>J-5 · nobody outside the share reads or writes <span class="meta">covers SC-1 · SC-3 · P-1</span></h3>
+<p><strong>Given</strong> a note shared with Ben as viewer, and Dev in another workspace (server test)<br>
+<strong>When</strong> Ben saves the note, Dev reads it, and either tries to share it<br>
+<strong>Then</strong> every request is refused and the note is unchanged; Dev cannot be picked in the dialog<br>
+<strong>Check</strong> test · server tests named in J-5 of the verification page</p>
+</article>
+<article class="card" id="S-1">
+<h3>S-1 · server suite <span class="meta">covers P-1 · P-2</span></h3>
+<p>Run <code>pnpm test --filter server</code> → expect 0 failures, including the access-check and share-route cases.</p>
+</article>
+<article class="card" id="S-2">
+<h3>S-2 · web suite <span class="meta">covers P-3</span></h3>
+<p>Run <code>pnpm test --filter web</code> → expect 0 failures.</p>
+</article>
+</section>
+
+<section id="control-flow" data-control-flow-revision="2">
+<h2>Control flow</h2>
+<p class="meta">Rendered from <a href="control-flow.json">control-flow.json</a>, revision 2, not yet approved. Do not hand-edit. Two review points: a checkpoint after the server pull request, and the end review. QA: up to 2 rounds, desktop and phone, light and dark, jank checklist on, every approved frame must match.</p>
+<figure class="cf-diagram">
+<svg viewBox="0 0 640 380" role="img" aria-labelledby="cf-title cf-desc">
+<title id="cf-title">Control flow: server pull request, then web pull request</title>
+<desc id="cf-desc">Phase 1: the implementer builds and checks P-1 and P-2, with one approval gate (the staging migration after P-1), opens the server pull request, and stops for a checkpoint review the orchestrator starts. A human applies the production migration before the server deploys. Phase 2: the implementer builds and checks P-3, runs the QA loop up to 2 rounds, opens the web pull request, and stops for the end review.</desc>
+<defs><marker id="cfa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="headhot"/></marker><marker id="cfg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="head"/></marker></defs>
+<text x="10" y="16" class="phase">1 · Server pull request</text>
+<rect x="10" y="26" width="140" height="48" rx="8" class="box"/><text x="20" y="46">Build + check P-1</text><text x="20" y="63" class="small">shares, access check</text>
+<path d="M150,50 L170,50" class="path" marker-end="url(#cfa)"/>
+<rect x="170" y="26" width="140" height="48" rx="8" class="box"/><text x="180" y="46">Build + check P-2</text><text x="180" y="63" class="small">shared query</text>
+<path d="M310,50 L330,50" class="path" marker-end="url(#cfa)"/>
+<rect x="330" y="26" width="140" height="48" rx="8" class="box"/><text x="340" y="46">Server PR</text><text x="340" y="63" class="small">P-1, P-2, Deploy notes</text>
+<path d="M470,50 L490,50" class="path" marker-end="url(#cfa)"/>
+<rect x="490" y="26" width="140" height="48" rx="8" class="hot"/><text x="500" y="46">Checkpoint review</text><text x="500" y="63" class="small">schema · P-1, P-2</text>
+<path d="M80,74 L80,96" class="line dash" marker-end="url(#cfg)"/>
+<polygon points="20,98 140,98 150,118 140,138 20,138 10,118" class="warnbox"/><text x="26" y="115" class="small gate">Staging migration:</text><text x="26" y="129" class="small gate">you approve</text>
+<path d="M400,74 L400,96" class="line dash" marker-end="url(#cfg)"/>
+<polygon points="340,98 460,98 470,118 460,138 340,138 330,118" class="warnbox"/><text x="346" y="115" class="small gate">Production migration:</text><text x="346" y="129" class="small gate">a human applies it</text>
+<text x="180" y="122" class="small">after merge, before deploy</text>
+<path d="M560,74 L560,156 L80,156 L80,194" class="path" marker-end="url(#cfa)"/>
+<text x="568" y="120" class="small">continue:</text>
+<text x="92" y="184" class="phase">2 · Web pull request</text>
+<rect x="10" y="196" width="140" height="48" rx="8" class="box"/><text x="20" y="216">Build + check P-3</text><text x="20" y="233" class="small">dialog, Shared with me</text>
+<path d="M150,220 L170,220" class="path" marker-end="url(#cfa)"/>
+<rect x="170" y="196" width="140" height="48" rx="8" class="box"/><text x="180" y="216">QA loop</text><text x="180" y="233" class="small">check, fix, repeat</text>
+<path d="M280,244 C280,282 200,282 200,248" class="path" marker-end="url(#cfa)"/>
+<text x="170" y="298" class="small">up to 2 rounds · desktop, phone · light, dark</text>
+<path d="M310,220 L330,220" class="path" marker-end="url(#cfa)"/>
+<rect x="330" y="196" width="140" height="48" rx="8" class="box"/><text x="340" y="216">Web PR</text><text x="340" y="233" class="small">P-3</text>
+<path d="M470,220 L490,220" class="path" marker-end="url(#cfa)"/>
+<rect x="490" y="196" width="140" height="48" rx="8" class="hot"/><text x="500" y="216">End review</text><text x="500" y="233" class="small">scope all</text>
+<rect x="10" y="322" width="22" height="16" rx="4" class="box"/><text x="38" y="335" class="small">implementer</text>
+<rect x="130" y="322" width="22" height="16" rx="4" class="hot"/><text x="158" y="335" class="small">review: the orchestrator starts a reviewer; the implementer waits</text>
+<polygon points="10,350 28,350 32,358 28,366 10,366 6,358" class="warnbox"/><text x="38" y="362" class="small">a person approves or acts; the implementer asks first and waits</text>
+</svg>
+</figure>
+<details id="control-flow-steps">
+<summary>Step-by-step detail (11 steps)</summary>
+<h4>1 · Server pull request</h4>
+<ol class="flow" start="1">
+  <li data-step="build-P-1"><strong>Build P-1</strong> · shares and the access check <span class="meta">(implementer · <code>build-P-1</code> · build)</span><br><span class="meta">The staging migration needs the person's approval: raise needs_you before applying it.</span></li>
+  <li data-step="verify-P-1"><strong>Verify</strong> · checks S-1, J-5 <span class="meta">(implementer · <code>verify-P-1</code> · verify)</span></li>
+  <li data-step="build-P-2"><strong>Build P-2</strong> · shared-notes query and last edited by <span class="meta">(implementer · <code>build-P-2</code> · build)</span><br><span class="meta">The backfill runs on staging only with the person's approval; never on production.</span></li>
+  <li data-step="verify-P-2"><strong>Verify</strong> · checks S-1 <span class="meta">(implementer · <code>verify-P-2</code> · verify)</span></li>
+  <li data-step="pr-server"><strong>Open the pull request</strong> <span class="meta">(implementer · <code>pr-server</code> · pr)</span><br><span class="meta">Server pull request (P-1, P-2) with Deploy notes giving the migration.</span></li>
+  <li data-step="review-server"><strong>Checkpoint review</strong> · scope P-1, P-2 · schema: a new table every note read checks, and columns every save writes; the orchestrator starts one reviewer <span class="meta">(orchestrator · <code>review-server</code> · review)</span></li>
+</ol>
+<h4>2 · Web pull request</h4>
+<ol class="flow" start="7">
+  <li data-step="build-P-3"><strong>Build P-3</strong> · Share dialog and Shared with me <span class="meta">(implementer · <code>build-P-3</code> · build)</span></li>
+  <li data-step="verify-P-3"><strong>Verify</strong> · checks S-2 <span class="meta">(implementer · <code>verify-P-3</code> · verify)</span></li>
+  <li data-step="qa"><strong>QA loop</strong> · up to 2 rounds · the verifier drives J-1, J-2, J-3, J-4, J-5 at desktop and phone, light and dark, with the jank checklist and 5 approved frames to match <span class="meta">(implementer · <code>qa</code> · qa)</span></li>
+  <li data-step="pr-web"><strong>Open the pull request</strong> <span class="meta">(implementer · <code>pr-web</code> · pr)</span><br><span class="meta">Web pull request (P-3), stacked on the server branch.</span></li>
+  <li data-step="review-final"><strong>End review</strong> · scope all; the orchestrator starts one reviewer <span class="meta">(orchestrator · <code>review-final</code> · review)</span></li>
+</ol>
+</details>
+<p>Anything else: the orchestrator asks you first.</p>
 </section>
 
 <section id="decisions-locked">
@@ -152,9 +530,11 @@ ol.flow li { margin: .3rem 0; }
 <table>
   <thead><tr><th>Decision</th><th>Chosen</th><th>Rejected</th><th>Why</th></tr></thead>
   <tbody>
-    <tr><td><a href="decisions.html#D-1">D-1</a></td><td>One .md per note; zip for all</td><td>One combined file; format picker</td><td>Each note stands alone; fits a day</td></tr>
-    <tr><td><a href="decisions.html#D-2">D-2</a></td><td>Server endpoint</td><td>Build in the browser</td><td>One tested code path; no new browser dependency</td></tr>
-    <tr><td><a href="decisions.html#D-3">D-3</a></td><td>End review only</td><td>A checkpoint after P-1</td><td>No schema, security or shared-contract change</td></tr>
+    <tr><td><a href="decisions.html#D-1">D-1</a></td><td>View or edit</td><td>A comment role</td><td>Two roles cover the asks; comments do not exist yet</td></tr>
+    <tr><td><a href="decisions.html#D-2">D-2</a></td><td>Workspace members only</td><td>Public links</td><td>Notes hold private work</td></tr>
+    <tr><td><a href="decisions.html#D-3">D-3</a></td><td>A checkpoint after the server pull request</td><td>End review only</td><td>The access check guards every note</td></tr>
+    <tr><td><a href="decisions.html#D-4">D-4</a></td><td>Removal is immediate</td><td>Access lasts until the note is closed</td><td>The owner expects removal to mean removed</td></tr>
+    <tr><td><a href="decisions.html#D-5">D-5</a></td><td>No email on share</td><td>Email each person</td><td>Jotter sends no email today</td></tr>
   </tbody>
 </table>
 </section>
@@ -164,32 +544,33 @@ ol.flow li { margin: .3rem 0; }
 <table>
   <thead><tr><th>Item</th><th>Why</th><th>Revisit when</th></tr></thead>
   <tbody>
-    <tr><td>Import Markdown</td><td>Separate problem</td><td>Users ask to move notes in</td></tr>
-    <tr><td>Streaming the zip</td><td>Notes are capped at 100 KB</td><td>The cap is raised</td></tr>
+    <tr><td>Live co-editing</td><td>Saves are whole-note today</td><td>Two editors overwrite each other in practice</td></tr>
+    <tr><td>Share notifications</td><td><a href="decisions.html#D-5">D-5</a></td><td>Jotter gains email or in-app notices</td></tr>
   </tbody>
 </table>
 </section>
 
 <section id="scope">
 <h2>Scope</h2>
-<p>A serializer and file-name function, two read-only routes, one menu item, one Settings button, and their tests.</p>
+<p>A share table and access check, share routes, the shared-notes query, last-edited columns and backfill, the Share dialog, the Shared with me view, and their tests. Two pull requests.</p>
 </section>
 
 <section id="constraints">
 <h2>Constraints</h2>
-<p>No storage change. No new browser dependency. Routes reuse the existing owner check.</p>
+<p>No change to how notes are saved beyond the last-edited columns. No new browser dependency. Production migrations are applied by a human.</p>
 </section>
 
 <section id="non-goals">
 <h2>Non-goals</h2>
-<p>Import, PDF or HTML export, attachments, scheduled backups.</p>
+<p>Public links, comments, live co-editing, sharing folders, transferring ownership.</p>
 </section>
 
 <section id="ask-first">
 <h2>Ask-first actions</h2>
-<ul>
-  <li>Adding any dependency to the server or the browser bundle.</li>
-  <li>Changing the notes table or the stored body.</li>
+<ul class="tight">
+  <li>Applying the migration to staging; production is applied by a human from the Deploy notes.</li>
+  <li>Running the backfill on staging or production.</li>
+  <li>Adding any dependency.</li>
 </ul>
 </section>
 
@@ -197,110 +578,34 @@ ol.flow li { margin: .3rem 0; }
 <h2>Cross-cutting</h2>
 <table>
   <tbody>
-    <tr><th>Security</th><td>Addressed in P-1: both routes use the existing owner check; a user can only export their own notes.</td></tr>
-    <tr><th>Privacy</th><td>n/a because the files go only to the signed-in owner and nothing is stored.</td></tr>
-    <tr><th>Observability</th><td>Addressed in P-1: one log line per export with note count and duration, no titles.</td></tr>
-    <tr><th>Migration and rollback</th><td>n/a because nothing is stored; rollback is reverting the pull request.</td></tr>
-    <tr><th>Performance</th><td>Addressed in P-1: a full export of the largest test account is checked in S-1.</td></tr>
+    <tr><th>Security</th><td>Addressed in P-1: one access function guards every note read and save; only the owner shares; picks are limited to the workspace (J-5).</td></tr>
+    <tr><th>Privacy</th><td>Addressed in P-1: logs carry note and user ids, never titles or bodies.</td></tr>
+    <tr><th>Observability</th><td>Addressed in P-1: one log line per share change with who, which note and the access.</td></tr>
+    <tr><th>Migration and rollback</th><td>Addressed in P-1 and P-2: an additive migration applied before the server deploys and a re-runnable backfill; rollback is reverting the code.</td></tr>
+    <tr><th>Performance</th><td>Addressed in P-1 and P-2: one primary-key lookup per read of a shared note; the per-user index serves the list.</td></tr>
   </tbody>
 </table>
-</section>
-
-<section id="how-we-know">
-<h2>How we will know it works</h2>
-<article class="card" id="J-1">
-<h3>J-1 · single note download <span class="meta">covers SC-1 · P-1 · P-2</span></h3>
-<p><strong>Given</strong> a note titled "Trip plan" with a heading, a checklist and a link<br>
-<strong>When</strong> I choose Download as Markdown from the note's menu<br>
-<strong>Then</strong> trip-plan-n42.md downloads, its first line is "# Trip plan", and the checklist and link read the same as in the app<br>
-<strong>Check</strong> app · J-1-download-desktop-light.svg</p>
-</article>
-<article class="card" id="J-2">
-<h3>J-2 · export every note <span class="meta">covers SC-2 · P-1 · P-2</span></h3>
-<p><strong>Given</strong> an account with three notes, two of them titled "Ideas"<br>
-<strong>When</strong> I click Export all notes in Settings<br>
-<strong>Then</strong> jotter-notes-2026-10-14.zip downloads with three .md files whose names are all different<br>
-<strong>Continues to</strong> the Settings page still saves the theme choice<br>
-<strong>Check</strong> app · J-2-export-all-desktop-light.svg</p>
-</article>
-<article class="card" id="J-3">
-<h3>J-3 · unsafe title <span class="meta">covers SC-3 · P-1</span></h3>
-<p><strong>Given</strong> a note titled "Q3/Q4 plans: draft?"<br>
-<strong>When</strong> I download it as Markdown, and again inside Export all notes<br>
-<strong>Then</strong> the file is named q3-q4-plans-draft-n57.md in both cases and the zip has no folders<br>
-<strong>Check</strong> app · J-3-unsafe-title-desktop-light.svg</p>
-</article>
-<article class="card" id="S-1">
-<h3>S-1 · server export suite <span class="meta">covers P-1</span></h3>
-<p>Run <code>pnpm test --filter server -- export</code> → expect 0 failures, including the serializer and file-name cases.</p>
-</article>
-</section>
-
-<section id="packages">
-<h2>Packages</h2>
-<article class="card" id="P-1">
-<h3>P-1 · Serializer and export routes</h3>
-<p><strong>Outcome:</strong> the server turns any note into Markdown and serves one note as .md and all notes as .zip. <span class="meta">Labels: server, tests · Depends on: nothing</span></p>
-<details><summary>Approach</summary>
-<p>New module <code>server/export/</code> with <code>toMarkdown(note)</code> (title as "# ", headings by level, "- [ ]" and "- [x]" for checklists, links as <code>[text](href)</code>, fenced code) and <code>fileName(note)</code> (lower-case slug, unsafe characters to "-", note id appended). Two routes in <code>server/routes/export.ts</code> behind the owner check. The zip uses the archive library the server already has. Test first with tdd.</p>
-</details>
-</article>
-<article class="card" id="P-2">
-<h3>P-2 · Download controls</h3>
-<p><strong>Outcome:</strong> a "Download as Markdown" item in each note's menu and an "Export all notes" button in Settings. <span class="meta">Labels: web · Depends on: P-1</span></p>
-<details><summary>Approach</summary>
-<p>Both controls follow a plain link to the P-1 routes so the browser handles the download. The Settings button shows "Preparing…" and is disabled until the response starts.</p>
-</details>
-</article>
-</section>
-
-<section id="control-flow" data-control-flow-revision="1">
-<h2>Control flow</h2>
-<p class="meta">Rendered from <a href="control-flow.json">control-flow.json</a>, revision 1, approved by D-3. Do not hand-edit.</p>
-<svg viewBox="0 0 640 70" role="img" aria-labelledby="cf-title">
-  <title id="cf-title">Seven steps in a line; only the last is a review</title>
-  <defs>
-    <marker id="cfh" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="head"/></marker>
-  </defs>
-  <rect x="4" y="18" width="78" height="34" rx="6" class="box"/><text x="12" y="40" class="small">build P-1</text>
-  <rect x="94" y="18" width="78" height="34" rx="6" class="box"/><text x="102" y="40" class="small">verify S-1</text>
-  <rect x="184" y="18" width="78" height="34" rx="6" class="box"/><text x="192" y="40" class="small">build P-2</text>
-  <rect x="274" y="18" width="78" height="34" rx="6" class="box"/><text x="282" y="40" class="small">verify S-1</text>
-  <rect x="364" y="18" width="78" height="34" rx="6" class="box"/><text x="372" y="40" class="small">qa ≤2</text>
-  <rect x="454" y="18" width="78" height="34" rx="6" class="box"/><text x="462" y="40" class="small">pr</text>
-  <rect x="544" y="18" width="92" height="34" rx="6" class="hot"/><text x="552" y="40" class="small">review all</text>
-  <path d="M82,35 L94,35 M172,35 L184,35 M262,35 L274,35 M352,35 L364,35 M442,35 L454,35 M532,35 L544,35" class="line" marker-end="url(#cfh)"/>
-</svg>
-<ol class="flow">
-  <li data-step="build-P-1"><code>build-P-1</code> · implementer · build P-1 · skills: tdd</li>
-  <li data-step="verify-P-1"><code>verify-P-1</code> · implementer · verify · flows S-1</li>
-  <li data-step="build-P-2"><code>build-P-2</code> · implementer · build P-2</li>
-  <li data-step="verify-P-2"><code>verify-P-2</code> · implementer · verify · flows S-1</li>
-  <li data-step="qa"><code>qa</code> · implementer · qa · flows J-1, J-2, J-3 · spawn verifier · up to 2 rounds · desktop · light, dark · jank checklist</li>
-  <li data-step="pr"><code>pr</code> · implementer · pull request</li>
-  <li data-step="review-final"><code>review-final</code> · orchestrator · review · scope all · reviewer: codex · end review, no reason needed</li>
-</ol>
 </section>
 
 <section id="open-markers">
 <h2>Open markers</h2>
 <p>NEEDS DECISION: 0.</p>
-<p class="callout warn">[ASSUMPTION: notes stay under the 100 KB body cap, so P-1 builds the zip in memory instead of streaming it.]</p>
+<p class="callout warn">[ASSUMPTION: Shared with me pages 50 notes at a time, like My notes.]</p>
 </section>
 
 <section id="look-first">
 <h2>Look at these first</h2>
 <ul>
-  <li><code>fileName()</code> in P-1: both routes must call it, or SC-3 breaks inside the zip.</li>
-  <li>The checklist case in <code>toMarkdown()</code>: the tick is a flag, not text.</li>
+  <li><a href="#P-1">P-1</a>: every note route must go through the access function, or SC-3 breaks.</li>
+  <li><a href="#schema-notes">S2</a>: the save path writes the new columns, so the migration must land before the server.</li>
 </ul>
 </section>
 
 <section id="change-log">
 <h2>Change log</h2>
 <ul>
-  <li>2026-10-14 · status done after the end review and the merge.</li>
-  <li>2026-10-14 · revision 1 · approved through the relay as D-3.</li>
+  <li>2026-10-14 · revision 2 · D-4: removal is immediate; J-3 rewritten (control flow revision 2).</li>
+  <li>2026-10-14 · revision 1 · first draft after D-3.</li>
 </ul>
 </section>
 </main>

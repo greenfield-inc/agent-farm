@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{Feature name plan}</title>
+<title>{Feature name} plan</title>
 <style>
 :root {
   --bg: #fbfaf6; --panel: #ffffff; --ink: #1d2420; --muted: #5d6861; --line: #dcdfd6;
@@ -69,6 +69,32 @@ svg .headhot { fill: var(--accent); }
 footer { color: var(--muted); font-size: .85rem; margin-top: 3rem; border-top: 1px solid var(--line); padding-top: .8rem; }
 ol.flow { padding-left: 1.4rem; }
 ol.flow li { margin: .3rem 0; }
+.labels { color: var(--muted); font-size: .85rem; }
+.look { color: var(--warn); font-weight: 600; }
+ul.tight li, ol.tight li { margin: .2rem 0; }
+.track figure { margin: .6rem 0; }
+.track img { width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 6px; }
+.track .pair figure { margin: .3rem 0; }
+svg .phase { font-weight: 600; }
+svg .small.gate { fill: var(--ink); }
+.cf-diagram { margin: .8rem 0; }
+#control-flow-steps h4 { margin: .8rem 0 .2rem; }
+#schema-changes code { overflow-wrap: normal; word-break: normal; white-space: nowrap; }
+.schema-group { margin: 1.4rem 0 1.8rem; }
+.schema-group h4 { font-size: 1.02rem; margin: 0 0 .1rem; }
+.schema-group .ddl { position: relative; margin: .5rem 0; }
+.schema-group .ddl pre { max-height: 22rem; overflow: auto; white-space: pre; margin: 0; padding-right: 4.5rem; font-size: .8rem; line-height: 1.5; }
+#schema-changes .ddl pre code { white-space: pre; overflow-wrap: normal; word-break: normal; }
+.ddl .copy { position: absolute; top: .5rem; right: 1.1rem; font: 600 .78rem system-ui, sans-serif; padding: .2rem .6rem; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--ink); cursor: pointer; }
+.schema-table { table-layout: fixed; font-size: .86rem; }
+.schema-table th, .schema-table td { border: 1px solid var(--line); overflow-wrap: break-word; }
+.schema-table th { background: var(--code); }
+#schema-changes .schema-table code { white-space: normal; overflow-wrap: normal; word-break: normal; }
+@media (max-width: 640px) { .schema-group .ddl pre { padding-top: 2.4rem; padding-right: .8rem; } }
+.badge { display: inline-block; font-size: .72rem; font-weight: 600; line-height: 1.4; padding: 0 .45rem; border-radius: 999px; border: 1px solid; white-space: nowrap; }
+.b-all { color: var(--bad); background: var(--bad-soft); }
+.b-one { color: var(--warn); background: var(--warn-soft); }
+.b-minor { color: var(--accent); background: var(--accent-soft); }
 </style>
 <script type="application/json" id="doc-meta">
 { "kind": "cover-sheet", "id": "work-slug",
@@ -85,6 +111,8 @@ ol.flow li { margin: .3rem 0; }
      "id" is the work's slug; "updated" is today's date. List every ID this page defines in "defines"
      (each needs an element with that id) and every ID it mentions in "cites".
      Set "open" to the number of NEEDS DECISION and ASSUMPTION markers left in the visible text.
+     Keep the sections in this order (check-bundle's section-order rule): summary, what we're building,
+     schema changes, packages, checks, control flow, then decisions, scope and the rest.
      A section that does not apply says "n/a because ..." instead of being deleted. -->
 <h1>Plan: {feature} <span class="chip">draft</span></h1>
 <p class="lede">{one-line outcome for the user}</p>
@@ -97,6 +125,8 @@ ol.flow li { margin: .3rem 0; }
 </svg>
 </figure>
 
+<div class="callout"><strong>What you are approving.</strong> {the tracks and packages in a few sentences, linking #what-we-build and #schema-changes; the most consequential choice and its cost; the packages worth a close look; the review points}</div>
+
 <section id="control-flow-summary">
 <p class="panel"><strong>Control flow:</strong> {review points and QA settings in one line}</p>
 </section>
@@ -106,18 +136,28 @@ ol.flow li { margin: .3rem 0; }
 <ul>
   <li><a href="#three-sentences">In three sentences</a></li>
   <li><a href="#before-after">Before and after</a></li>
+  <li><a href="#what-we-build">What we're building</a></li>
+  <li><a href="#schema-changes">Schema changes</a></li>
+  <li><a href="#packages">Packages</a></li>
+  <li><a href="#how-we-know">How we will know it works</a></li>
+  <li><a href="#control-flow">Control flow</a></li>
   <li><a href="#decisions-locked">Decisions locked</a></li>
   <li><a href="#deferred">Deferred</a></li>
   <li><a href="#scope">Scope</a></li>
+  <li><a href="#constraints">Constraints</a></li>
+  <li><a href="#non-goals">Non-goals</a></li>
+  <li><a href="#ask-first">Ask-first actions</a></li>
   <li><a href="#cross-cutting">Cross-cutting</a></li>
-  <li><a href="#how-we-know">How we will know it works</a></li>
-  <li><a href="#packages">Packages</a></li>
-  <li><a href="#control-flow">Control flow</a></li>
   <li><a href="#open-markers">Open markers</a></li>
   <li><a href="#look-first">Look at these first</a></li>
   <li><a href="#change-log">Change log</a></li>
 </ul>
-<p class="meta">{links to the related bundle files}</p>
+<table>
+  <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td>{relative link to a bundle file that exists}</td><td>{what it holds}</td></tr>
+  </tbody>
+</table>
 </nav>
 
 <section id="three-sentences">
@@ -128,9 +168,176 @@ ol.flow li { margin: .3rem 0; }
 <section id="before-after">
 <h2>Before and after</h2>
 <div class="pair">
-  <div class="panel"><h3>Before</h3><p>{diagram or screenshot of today}</p></div>
-  <div class="panel"><h3>After</h3><p>{diagram or approved mockups; the screens that must match}</p></div>
+  <div class="panel"><h3>Before</h3><p>{today, with a link to the current-app captures}</p></div>
+  <div class="panel"><h3>After</h3><p>{the approved design; links to every screen that must match}</p></div>
 </div>
+</section>
+
+<section id="what-we-build">
+<h2>What we're building</h2>
+<p>{one line: how many things a user can do, the mockup size and theme; open a track's sections for the steps, the rules and what makes it work underneath}</p>
+<ol class="tight">
+  <li><a href="#track-{slug}">{track title}</a>: {a few words}</li>
+</ol>
+
+<!-- One track per user-facing capability. Visible: the numbered title and the approved mockup frames
+     (images, each linking to its mockup page, with alt text describing the frame and a one-line caption).
+     Everything else sits in <details> closed by default. No UI change: "n/a because ..." for the frames,
+     and the track says what the caller or operator can now do. -->
+<article class="card track" id="track-{slug}">
+<h3>{n} · {what the user can do, as a title}</h3>
+<figure><a href="{mockups/frame.html}"><img src="{mockups/frame.png}" alt="{what the frame shows}" loading="lazy"></a>
+<figcaption>{one line on this frame}</figcaption></figure>
+<details>
+<summary>What happens, step by step</summary>
+<ol class="tight">
+  <li>{each step the user takes and what the product does, side effects included}</li>
+</ol>
+</details>
+<details>
+<summary>Rules</summary>
+<p class="meta">{SC-n · D-n}</p>
+<p>{who may do it, limits, what never happens}</p>
+</details>
+<details>
+<summary>What makes it work underneath</summary>
+<p>{the P-n that build it, the existing pieces they reuse, and the schema changes it needs, each linked to its row: <a href="#schema-{slug}">table or column</a>}</p>
+</details>
+</article>
+</section>
+
+<section id="schema-changes">
+<h2>Schema changes</h2>
+<!-- No nested <section> here. No schema change at all: replace the contents with
+     "n/a because ..." and the stores or tables checked. -->
+<p>{every database change in this feature: the schema file, how many statements in how many groups, the order they apply in, any backfill; additive or not. Name the impact badges:} <span class="badge b-all">everyone</span>, <span class="badge b-one">one feature</span> or <span class="badge b-minor">slower / minor</span> {say who is affected if it is missing when the new code starts.}</p>
+
+<figure>
+<svg viewBox="0 0 640 160" role="img" aria-labelledby="schema-title">
+  <title id="schema-title">{the new and changed tables, how they relate, and the existing tables read but not changed}</title>
+  <rect x="20" y="20" width="600" height="120" rx="8" class="box dash"/>
+  <text x="40" y="85">{table diagram: new and changed tables in accent, untouched ones dashed}</text>
+</svg>
+<figcaption>Green: new or changed. Dashed: existing tables the feature reads and does not change.</figcaption>
+</figure>
+
+<h3>New tables</h3>
+<article class="schema-group" id="schema-{table}">
+<h4>S{n}. {table}: {what it holds, in plain words} <span class="meta">({count} statements)</span></h4>
+<p class="meta">{P-n · SC-n · D-n}</p>
+<div class="ddl"><pre><code>{the exact DDL for this group, as it will be applied, visible (never in a details)}</code></pre></div>
+<table class="schema-table">
+<colgroup><col style="width:27%"><col style="width:33%"><col style="width:40%"></colgroup>
+<thead><tr><th>Object</th><th>What it is for</th><th>Why it's needed</th></tr></thead>
+<tbody>
+<tr id="schema-{object}"><td><code>{table_<wbr>or_<wbr>index}</code></td><td>{what it holds and where it shows in the mockups}</td><td><span class="badge b-one">one feature</span> {why the feature needs it: what is impossible or broken without it}</td></tr>
+</tbody>
+</table>
+<p>{cost and rollout: fast or slow to apply, what fills, what must happen before or after the deploy}</p>
+</article>
+
+<h3>Changes to existing tables</h3>
+<article class="schema-group" id="schema-{existing-table}">
+<h4>S{n}. {existing table}: {what the changes add, together} <span class="meta">({count} statements)</span></h4>
+<p class="meta">{P-n · SC-n · D-n}</p>
+<div class="ddl"><pre><code>{the exact ALTER / CREATE INDEX statements for this table}</code></pre></div>
+<table class="schema-table">
+<colgroup><col style="width:27%"><col style="width:33%"><col style="width:40%"></colgroup>
+<thead><tr><th>Object</th><th>What it is for</th><th>Why it's needed</th></tr></thead>
+<tbody>
+<tr id="schema-{columns}"><td><code>{table.<wbr>column_<wbr>a, column_<wbr>b}</code></td><td>{what the related columns record together}</td><td><span class="badge b-all">everyone</span> {why these changes are needed, in aggregate}</td></tr>
+<tr id="schema-{backfill}"><td><code>Backfill (not DDL)</code></td><td>{what it fills, and from where}</td><td><span class="badge b-minor">slower / minor</span> {what users see without it}</td></tr>
+</tbody>
+</table>
+<p>{cost and rollout for this group}</p>
+</article>
+
+<h3>Considered and not needed</h3>
+<ul class="tight"><li><strong>{a change someone might expect}.</strong> {why it is not needed}</li></ul>
+
+<h3>How it rolls out</h3>
+<ol>
+  <li><strong>{Local or staging}:</strong> {who approves and applies it, and what waits for it}</li>
+  <li><strong>Production:</strong> {who applies it, in which order, before or after the deploy}</li>
+  <li><strong>Rollback:</strong> {what reverting does to the schema and data}</li>
+</ol>
+<script>
+(function () {
+  if (!navigator.clipboard) return;
+  document.querySelectorAll('#schema-changes .ddl').forEach(function (box) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'copy'; b.textContent = 'Copy';
+    b.addEventListener('click', function () {
+      navigator.clipboard.writeText(box.querySelector('code').textContent).then(function () {
+        b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy'; }, 1500);
+      });
+    });
+    box.appendChild(b);
+  });
+})();
+</script>
+</section>
+
+<section id="packages">
+<h2>Packages</h2>
+<article class="card" id="{P-n}">
+<h3>{P-n} · {package name}</h3>
+<p><strong>Outcome:</strong> {what is true when it is done} <span class="labels">Labels: {reuse | extend | new} · {surface} · depends on {P-n or nothing}</span></p>
+<p class="look">{Look at this: a real decision or risk, with the reason; otherwise delete this line}</p>
+<p class="meta">{Rollback line when it touches data; otherwise delete this line}</p>
+<details><summary>Approach, reuse, and affected areas</summary>
+<p><strong>Approach:</strong> {what changes and how it will be built}</p>
+<p><strong>Reuse:</strong> {existing pieces built on}</p>
+<p><strong>New:</strong> {new pieces and why, or "none"}</p>
+<p><strong>Schema and data:</strong> {the schema groups this package applies, linked to #schema-changes, or "no schema changes"}</p>
+<p><strong>Checks:</strong> {J/S that prove it; its key risk}</p>
+</details>
+</article>
+</section>
+
+<section id="how-we-know">
+<h2>How we will know it works</h2>
+<article class="card" id="{J-n}">
+<h3>{J-n} · {journey name} <span class="meta">covers {SC-n · P-n}</span></h3>
+<p><strong>Given</strong> {starting state}<br>
+<strong>When</strong> {the user's action}<br>
+<strong>Then</strong> {the observable result}<br>
+<strong>Continues to</strong> {bug fixes and risky changes: behavior that must not change; otherwise delete this line}<br>
+<strong>Check</strong> {app | command | test} · {evidence file, named J-n-step-viewport-theme}</p>
+</article>
+<article class="card" id="{S-n}">
+<h3>{S-n} · {suite name} <span class="meta">covers {P-n}</span></h3>
+<p>Run <code>{command}</code> → expect {result}.</p>
+</article>
+<p class="meta">{One card per journey and suite; the text matches control-flow.json flows exactly.}</p>
+</section>
+
+<section id="control-flow" data-control-flow-revision="1">
+<h2>Control flow</h2>
+<!-- Rendered from control-flow.json (references/control-flow.md, "Rendering"). Do not hand-edit.
+     Set data-control-flow-revision to the JSON's revision. No nested sections here.
+     Only the step list carries data-step; the diagram never does. -->
+<p class="meta">Rendered from <a href="control-flow.json">control-flow.json</a>, revision {n}, {approved by D-n | not yet approved}. Do not hand-edit. {the review points in one sentence}. QA: up to {n} rounds, {viewports}, {themes}{, jank checklist on}{, approved frames must match}.</p>
+<figure class="cf-diagram">
+<svg viewBox="0 0 640 300" role="img" aria-labelledby="cf-title cf-desc">
+  <title id="cf-title">Control flow: {phases in order}</title>
+  <desc id="cf-desc">{every phase, its steps, who acts at each, the review points, the QA loop and its round cap, and each human gate, in reading order}</desc>
+  <text x="10" y="16" class="phase">1 · {phase name}</text>
+  <rect x="10" y="26" width="620" height="48" rx="8" class="box dash"/>
+  <text x="20" y="54" class="small">{implementer steps as .box, review points as .hot, gates as .warnbox hexagons, QA as a loop arrow, arrows in .path}</text>
+  <rect x="10" y="262" width="22" height="16" rx="4" class="box"/><text x="38" y="275" class="small">implementer</text>
+  <rect x="130" y="262" width="22" height="16" rx="4" class="hot"/><text x="158" y="275" class="small">review: the orchestrator starts a reviewer; the implementer waits</text>
+  <polygon points="10,284 28,284 32,292 28,300 10,300 6,292" class="warnbox"/><text x="38" y="296" class="small">a person approves or acts</text>
+</svg>
+</figure>
+<details id="control-flow-steps">
+<summary>Step-by-step detail ({count} steps)</summary>
+<h4>1 · {phase name}</h4>
+<ol class="flow" start="1">
+  <li data-step="{step id}"><strong>{Build P-n | Verify | QA loop | Open the pull request | Checkpoint review | End review}</strong> · {package title, flows, scope, reason_kind and reason, "up to N rounds", "no review (waived), D-n", as the step has them} <span class="meta">({actor} · <code>{step id}</code> · {do})</span><br><span class="meta">{the step's note, when it has one}</span></li>
+</ol>
+</details>
+<p>Anything else: the orchestrator asks you first.</p>
 </section>
 
 <section id="decisions-locked">
@@ -166,7 +373,7 @@ ol.flow li { margin: .3rem 0; }
 
 <section id="ask-first">
 <h2>Ask-first actions</h2>
-<p>{actions the implementer must ask about before taking}</p>
+<p>{actions the implementer must ask about before taking; every migration and backfill is one}</p>
 </section>
 
 <section id="cross-cutting">
@@ -180,46 +387,6 @@ ol.flow li { margin: .3rem 0; }
     <tr><th>Performance</th><td>{same}</td></tr>
   </tbody>
 </table>
-</section>
-
-<section id="how-we-know">
-<h2>How we will know it works</h2>
-<article class="card" id="{J-n}">
-<h3>{J-n} · {journey name} <span class="meta">covers {SC-n · P-n}</span></h3>
-<p><strong>Given</strong> {starting state}<br>
-<strong>When</strong> {the user's action}<br>
-<strong>Then</strong> {the observable result}<br>
-<strong>Continues to</strong> {bug fixes and risky changes: behavior that must not change; otherwise delete this line}<br>
-<strong>Check</strong> {app | command | test} · {evidence file, named J-n-step-viewport-theme}</p>
-</article>
-<article class="card" id="{S-n}">
-<h3>{S-n} · {suite name} <span class="meta">covers {P-n}</span></h3>
-<p>Run <code>{command}</code> → expect {result}.</p>
-</article>
-<p class="meta">{One card per journey and suite; the text matches control-flow.json flows exactly.}</p>
-</section>
-
-<section id="packages">
-<h2>Packages</h2>
-<article class="card" id="{P-n}">
-<h3>{P-n} · {package name}</h3>
-<p><strong>Outcome:</strong> {what is true when it is done} <span class="meta">Labels: {labels} · Depends on: {P-n or nothing}</span></p>
-<p>{rollback line when it touches data; otherwise delete this line}</p>
-<details><summary>Approach</summary><p>{files, functions, and how it is built}</p></details>
-</article>
-</section>
-
-<section id="control-flow" data-control-flow-revision="1">
-<h2>Control flow</h2>
-<p class="meta">Rendered from control-flow.json, revision {n}, approved by {D-n}. Do not hand-edit. Set data-control-flow-revision to the JSON's revision. No nested sections here.</p>
-<svg viewBox="0 0 640 70" role="img" aria-labelledby="cf-title">
-  <title id="cf-title">{the steps in order, review points in accent}</title>
-  <rect x="20" y="18" width="600" height="34" rx="6" class="box dash"/>
-  <text x="36" y="40" class="small">{one box per step}</text>
-</svg>
-<ol class="flow">
-  <li data-step="{step id}"><code>{step id}</code> · {actor} · {do} · {package, flows, scope, reason_kind and reason, spawn, as the step has them; a qa step adds "up to N rounds"; a waived review says "no review (waived), D-n"}</li>
-</ol>
 </section>
 
 <section id="open-markers">
