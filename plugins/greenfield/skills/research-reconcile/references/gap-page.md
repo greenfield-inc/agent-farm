@@ -21,7 +21,10 @@ It must read complete with JavaScript off. Add grouped views below it as `detail
 
 - by `state`
 - by `mismatch` (only items with one)
+- **proposed record fixes**, from `record_fixes`: record, field, current value, proposed value, evidence, and status (proposed, approved or rejected). Always shown when there are any
 - when the topic produces them: **promises owed** (`promised_not_started` and `started` promises, by deadline), **shipped but not announced** (`shipped` items no source says were told to the asker), and **tracker hygiene** (stale or mismatched tracker entries)
+
+Next to every rank value filled from primary evidence rather than the record, show its source, so the reader sees which values were reconciled.
 
 A small script may add sorting or filtering on top. The page must not depend on it.
 

@@ -282,6 +282,9 @@ test('planning-and-prioritization runs read-only Opus lanes and a reconciler fro
  assert.deepEqual(children,{lane:['lane-researcher','native','claude','claude-opus-5-5','medium'],reconciler:['lane-researcher','native','claude','claude-opus-5-5','high']});
  const lane=fs.readFileSync(path.join(root,'agents/lane-researcher.md'),'utf8').replace(/\s+/g,' ');
  for(const rule of ['Write only the path your prompt names','record that source as `unavailable` with the exact error','create, update, comment on'])assert.ok(lane.toLowerCase().includes(rule.toLowerCase()),rule);
+ const skill=fs.readFileSync(path.join(root,'skills/research-reconcile/SKILL.md'),'utf8').replace(/\s+/g,' ');
+ for(const rule of ['verify and reconcile before acting',"never written without the person's approval",'Rank only on reconciled values'])assert.ok(skill.toLowerCase().includes(rule.toLowerCase()),rule);
+ assert.match(fs.readFileSync(path.join(root,'skills/research-reconcile/references/reconciler-prompt.md'),'utf8'),/"record_fixes"/);
  const bundle=build(root,'planning-and-prioritization',target);verify(bundle);
  for(const alias of ['lane','reconciler'])assert.ok(fs.existsSync(path.join(bundle,'main','native-agents',alias+'.json')));
  const launch=command(bundle,'main',{prepare:false,args:['rank_by=deadline','topic=x']});
