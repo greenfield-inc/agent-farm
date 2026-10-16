@@ -237,6 +237,7 @@ const unbundledMentions={
  'babysit-pr -> create-ticket':"falls back to the PR's findings or handoff file where the agent cannot create tickets",
  'html-explainer -> excalidraw-pr-diagrams':'names editable diagrams as outside its scope',
  'refactor -> cold-read':'the parent runs the cold-read gate with its cold-reader child; a refactor child returns to it there',
+ 'session-trace -> prepare-pr':'names the pull request a trace attaches to; planning-and-prioritization never opens one, so it does not bundle prepare-pr',
  'principled-review -> review':"uses the review skill's context step where bundled, and otherwise reads the PR and issues itself",
 };
 
@@ -266,6 +267,26 @@ test('every Greenfield skill and agent is bundled by a profile, and every skill 
  assert.deepEqual(agents.filter(agent=>!reachedAgents.has(agent)),[]);
  assert.deepEqual([...unresolved],[]);
  assert.deepEqual(Object.keys(unbundledMentions).filter(key=>!usedExceptions.has(key)),[],'stale exception');
+});
+
+test('planning-and-prioritization runs read-only Opus lanes and a reconciler from one lane-researcher, and takes the sweep arguments',t=>{
+ const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-sweep-')));
+ t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
+ const resolved=resolveProfile(root,'planning-and-prioritization'),main=resolved.nodes.main;
+ assert.deepEqual([main.harness,main.model,main.reasoning_effort],['claude','claude-opus-5-5','high']);
+ assert.deepEqual(main.skills,['research-reconcile','swarm','interview','page','session-trace']);
+ assert.ok(main.instructions.includes('# Standing rules'));
+ assert.ok(!main.skills.includes('prepare-pr'));
+ assert.deepEqual(Object.keys(main.argument_definitions).sort(),['docs','parent','rank_by','source','topic','window']);
+ const children=Object.fromEntries(Object.entries(main.children).map(([alias,route])=>{const n=resolved.nodes[route];return [alias,[n.name,n.mode,n.harness,n.model,n.reasoning_effort]];}));
+ assert.deepEqual(children,{lane:['lane-researcher','native','claude','claude-opus-5-5','medium'],reconciler:['lane-researcher','native','claude','claude-opus-5-5','high']});
+ const lane=fs.readFileSync(path.join(root,'agents/lane-researcher.md'),'utf8').replace(/\s+/g,' ');
+ for(const rule of ['Write only the path your prompt names','record that source as `unavailable` with the exact error','create, update, comment on'])assert.ok(lane.toLowerCase().includes(rule.toLowerCase()),rule);
+ const bundle=build(root,'planning-and-prioritization',target);verify(bundle);
+ for(const alias of ['lane','reconciler'])assert.ok(fs.existsSync(path.join(bundle,'main','native-agents',alias+'.json')));
+ const launch=command(bundle,'main',{prepare:false,args:['rank_by=deadline','topic=x']});
+ assert.deepEqual([launch.launch.arguments.rank_by,launch.launch.arguments.topic],['deadline','x']);
+ assert.throws(()=>command(bundle,'main',{prepare:false,args:['foo=1']}),/undeclared|Unknown|unknown|does not declare/);
 });
 
 test('every agent whose own text or skills point to the standing rules loads them',()=>{
