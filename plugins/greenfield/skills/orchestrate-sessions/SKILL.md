@@ -1,6 +1,6 @@
 ---
 name: orchestrate-sessions
-description: Coordinate authorized work through host-managed workspaces and planner, implementer and reviewer sessions, keep the workstream map, and clean up finished worktrees, without taking over the workers' work or polling them.
+description: Coordinate authorized work through host-managed workspaces and planner, implementer and reviewer sessions, keep the workstream map, watch in-flight work, and clean up finished worktrees, without taking over the workers' work.
 ---
 
 # Orchestrate sessions
@@ -91,11 +91,26 @@ The simplify checkpoint is optional and off by default. When the user turns it o
 
 The user can skip review, add checkpoints (including the simplify checkpoint), or review each plan separately. Change the policy only on the user's explicit word, and show the current policy in the map's header.
 
-## Events, not polling
+## Events, then a watcher
 
 After dispatch, rely on the host's completion and blocker events and yield the way it prescribes. Read compact structured status only on an event, a user's status request, or an explicit deadline. Deduplicate repeated events by worker and event identity. Batch independent status reads and update only the items that changed.
 
-Wait for events instead of checking on a schedule: no recurring checks, sleep loops, transcript tails, repeated screen reads or automatic watchers. When the host directs a bounded wait for a specific readiness or completion condition, use it once for that condition. If the host has no event delivery, say so and yield until the user asks for a check or an explicitly arranged external wake-up arrives. Promise unattended monitoring only when a delivery mechanism exists.
+While work is in flight, keep watching it, so the Session never stalls silently. After the first dispatch, ask once: "Set up a watcher? I'll check in at 5 minutes, slow down while nothing changes, and tell you only when something does." Start it unless the user says no; they can change the schedule or turn it off.
+
+```
+schedule:         3 checks each at 5, 10, 15, then 30 minutes; after 3 quiet 30-minute checks, expire
+on start:         fire one test wake-up in the background, a few seconds out (or the shortest your harness allows),
+                  keep working, and confirm it arrived
+on dispatch:      start a fresh watcher at 5 minutes (or reset the running one to 5)
+on each wake-up:  record the time; read each in-flight worker's compact status
+                  something changed: report it (a finished result, a question, a blocker), reset to 5 minutes
+                  nothing changed: move one step down the schedule
+                  nothing in flight, or the schedule ran out: stop, and say so in one line
+whenever active:  if the last wake-up is more than one interval overdue, tell the user the watcher failed, then restart it
+on host event:    handle it now; the watcher only catches what events miss
+```
+
+Build the wake-up from what your harness offers, and name it when you start: for example a scheduled recurring prompt (Claude Code), a background command that waits and then notifies you (`runpane watch --until-event` in Pane, or a shell loop that sleeps and exits), or the host's own wait. A watcher you haven't seen fire isn't running: when the test wake-up doesn't arrive, or no mechanism exists, tell the user the work will sit until they check in. When the host directs a bounded wait for a specific condition, use it once for that condition.
 
 A quiet worker or a long-running step is normal. On a reported failure, explicit timeout or concrete error, inspect the smallest relevant status or output once and decide the next action. Routine coordination runs on compact status; full transcripts belong to trace publication.
 

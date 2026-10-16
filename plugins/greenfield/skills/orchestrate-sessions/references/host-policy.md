@@ -14,4 +14,4 @@ Read only the relevant host guidance. A useful host policy identifies:
 
 Follow those mechanics exactly within the authorized scope. Greenfield's rules still hold: division of labor, explicit phase approval, one implementation writer, verification and review requirements, and budget limits. The host may set stricter limits. A host tool being available grants access only to the work you were assigned.
 
-For example, a host that owns feature worktrees and requires association with a coordination session must create and associate the workspace before the task is submitted. A host that asks for yielding after dispatch gets exactly that, with no Greenfield polling on top. These describe capabilities, so they apply regardless of the app's name or commands.
+For example, a host that owns feature worktrees and requires association with a coordination session must create and associate the workspace before the task is submitted. A host that asks for yielding after dispatch gets that; the orchestrator's watcher then runs through the host's own wake-up mechanism. These describe capabilities, so they apply regardless of the app's name or commands.
