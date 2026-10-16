@@ -190,11 +190,11 @@ test('simplify-and-refactor runs the refactor and principled-review skills on So
  for(const [profile,agent,harness,model,effort] of [['simplify-and-refactor:sol','simplify-and-refactor','codex','gpt-6.1-sol','low'],['simplify-and-refactor:opus','simplify-and-refactor-claude','claude','claude-opus-5-5','medium']]){
   const resolved=resolveProfile(root,profile),main=resolved.nodes.main;
   assert.deepEqual([main.name,main.harness,main.model,main.reasoning_effort],[agent,harness,model,effort],profile);
-  assert.deepEqual([...main.skills].sort(),['excalidraw-pr-diagrams','prepare-pr','principled-review','refactor','refactor-apply','refactor-deep','refactor-simple'],profile);
+  assert.deepEqual([...main.skills].sort(),['excalidraw-pr-diagrams','prepare-pr','principled-review','refactor'],profile);
   assert.deepEqual(Object.keys(main.children).sort(),['cold-reader','refactor'],profile);
   const child=resolved.nodes[main.children.refactor];
   assert.deepEqual([child.name,child.mode,child.harness,child.model,child.reasoning_effort],['refactor','native',harness,model,effort],profile);
-  assert.deepEqual([...child.skills].sort(),['refactor','refactor-apply','refactor-deep','refactor-simple'],profile);
+  assert.deepEqual([...child.skills].sort(),['refactor'],profile);
   assert.ok(resolved.nodes[main.children['cold-reader']].skills.includes('cold-read'),profile);
   const launch=command(build(root,profile,target),'main',{prepare:false});
   assert.equal(launch.argv[launch.argv.indexOf('--model')+1],model);
@@ -236,12 +236,8 @@ const unbundledMentions={
  'create-ticket -> explain-visually':'offers a visual only where the agent has explain-visually',
  'babysit-pr -> create-ticket':"falls back to the PR's findings or handoff file where the agent cannot create tickets",
  'html-explainer -> excalidraw-pr-diagrams':'names editable diagrams as outside its scope',
- 'refactor-apply -> prepare-pr':'names who owns the commit when the person runs it by hand',
  'refactor -> cold-read':'the parent runs the cold-read gate with its cold-reader child; a refactor child returns to it there',
  'principled-review -> review':"uses the review skill's context step where bundled, and otherwise reads the PR and issues itself",
- 'refactor-simple -> refactor':'names the orchestrator that may run it; elsewhere it points to greenfield/simplify-and-refactor',
- 'refactor-simple -> refactor-deep':'elsewhere it points to greenfield/simplify-and-refactor for the deep pass',
- 'refactor-simple -> refactor-apply':'elsewhere it points to greenfield/simplify-and-refactor to apply a plan',
 };
 
 test('every Greenfield skill and agent is bundled by a profile, and every skill named in bundled text is bundled with it',()=>{
@@ -270,7 +266,6 @@ test('every Greenfield skill and agent is bundled by a profile, and every skill 
  assert.deepEqual(agents.filter(agent=>!reachedAgents.has(agent)),[]);
  assert.deepEqual([...unresolved],[]);
  assert.deepEqual(Object.keys(unbundledMentions).filter(key=>!usedExceptions.has(key)),[],'stale exception');
- assert.match(skillText['refactor-simple'],/greenfield\/simplify-and-refactor/);
 });
 
 test('every agent whose own text or skills point to the standing rules loads them',()=>{

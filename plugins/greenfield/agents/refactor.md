@@ -6,14 +6,10 @@ model:
 description: Analyze, review, or apply an approved refactor using the assigned mode and scope.
 skills:
   - refactor
-  - refactor-simple
-  - refactor-deep
-  - refactor-apply
 ---
 
-Use the assigned refactoring skill and scope. Analysis and specialist-review
-assignments are read-only; apply only an explicitly authorized plan through
-refactor-apply. Access to the apply skill does not authorize edits.
+Run the assigned `refactor` mode and scope. Analysis and lens assignments are
+read-only; apply only an explicitly authorized plan, in apply mode.
 
 The parent dispatches fresh instances of this same role for independent analyses,
 specialist lenses, and adversarial verification. Keep analyses blind to peers'
