@@ -27,6 +27,7 @@ For a one-page visual map of how work is routed, open [index.html](index.html). 
 | `codebase-audit` | Fable 5.2 medium | Audits a whole codebase for polish and publishes one visual map: architecture, size and attention per part, polish scores, a timeline, your priorities checked against the code, and 25 verified quick wins plus 25 bigger investments. Changes nothing in the audited repository. See [Codebase audit](#codebase-audit) |
 | `ui-polish` | Opus 5.5 medium | Explores a running app (web, Electron or native) like a picky designer, measures hover, focus, hit-area and motion defects with an in-page probe where it can, fixes them, and opens a draft PR with before and after screenshots |
 | `bug-reporter` (`bug-reporter:claude`) / `bug-reporter:codex` | Opus 5.5 high / Sol 6.1 high | Reproduce and write a report without fixing code |
+| `planning-and-prioritization` | Opus 5.5 high | Sweeps every reachable source on a topic read-only, reconciles it against ground truth, ranks the open items by a key you choose, and ends with your decisions and a planner command per chosen item |
 | `free-range` (`free-range:claude`) / `free-range:codex` | Opus 5.5 high / Astra medium | Raw-model comparison profiles without the Greenfield workflow |
 | `orchestrator` (`orchestrator:claude`) / `orchestrator:codex` | Opus 5.5 medium / Astra high | Experimental coordination of features, one workspace each, with every role a fresh agent in it. When a feature is ready for review, it offers an optional `pr-understanding-check` |
 | `customer-insights-loop` | Opus 5.5 medium | Researches a product's own usage data, ranks directions with mockups and competitor context, settles your picks in one sitting, then coordinates a build per pick and hands back every PR with a merge order. Claude only. See [Customer insights loop](#customer-insights-loop) |
@@ -93,6 +94,7 @@ agent-farm run greenfield/codebase-audit --directory /path/to/project \
 | `socrates` | planner | Opus 5.5 high (Astra high under Codex planner); challenge unnecessary scope |
 | `investigator`, `researcher` | planner, customer-insights-loop; `investigator` also under bug-reporter | Opus 5.5 high (Sol 6.1 max under Codex planner, Sol 6.1 high under Codex bug-reporter); bounded evidence questions |
 | `qa` | bug-reporter | Opus 5.5 medium (Sol 6.1 medium under `:codex`); reproduce a bug in the app |
+| `lane`, `reconciler` (agent `lane-researcher`) | planning-and-prioritization | Opus 5.5 medium and Opus 5.5 high, native; one read-only source per lane, then one pass that verifies and reconciles the lanes |
 | `advisor` | orchestrator, customer-insights-loop | Astra high, process; advice about session coordination |
 
 Planners do not launch the implementer. When a cover sheet is approved, the planner gives the person the `agent-farm run greenfield/implementer` command; Agent Farm runs the default variant unless the command names another.
@@ -124,6 +126,7 @@ An orchestrator passes the planner its source as `source` and a status JSON path
 - `explain`, `brief`, `options`, `spike`, `ui-mockup`, and `page` support planning.
 - `research-and-product-design` builds a feature's research packet and design rounds before its options and plan. The planners use it, and the orchestrators use it to run several features in parallel.
 - `interview` makes the planner lead with structured questions and keep a decision log; `architecture-diagram` draws system and flow diagrams from a shared kit; `swarm` fans research and audits out to parallel read-only agents and reconciles what they find. The planner has all three, the implementer, audits and product-researcher get `swarm` (and the implementer and researchers `architecture-diagram`), and the orchestrator uses `interview` and `architecture-diagram` for decisions and its workstream map.
+- `research-reconcile` supports planning-and-prioritization: saved lane prompts, a source registry with the account each source reads as, one shared JSON item record, a reconciler pass and a ranked gap page. It reuses `swarm`, `interview` and `page`.
 - `bug-intake`, `gather-evidence`, `research-web`, and `orchestrate-sessions` support the other profiles.
 - `customer-insights-loop` supports the profile of the same name, with references for correcting the numbers, the study and directions pages, and the handoff's merge train. The orchestrators and `customer-insights-loop` share their coordination rules from `instructions/coordination.md`.
 - `tdd` and `codebase-design` remain vendored unchanged from [mattpocock/skills](https://github.com/mattpocock/skills/tree/c55ee46073ed/skills/engineering/tdd), MIT; see `THIRD_PARTY_NOTICES.md`.
@@ -176,6 +179,7 @@ Pass repeatable `--arg key=value` flags before the native-CLI `--` separator. Qu
 | `planner`, `planner:codex` | `docs`, `source`, `parent` |
 | `orchestrator`, `customer-insights-loop` | `docs`, `host_policy` |
 | `bug-reporter` | `source`, `parent` |
+| `planning-and-prioritization` | `topic`, `window`, `rank_by`, `docs`, `source`, `parent` |
 
 `parent` is the status JSON file path, not a host session ID. `host_policy` is a guidance-file path, not automatic tool configuration. Path arguments are passed through as written, so supply absolute paths for cross-workspace handoffs. `source` may be a document path, artifact URL, or contained task. Use `--message` for supplemental assignment text; unsupported profile arguments are not a substitute for host-injected context.
 
