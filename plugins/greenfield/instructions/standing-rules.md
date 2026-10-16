@@ -16,7 +16,7 @@ Go ahead without asking: reading and searching, local tests, lint, type-checks, 
 
 Close every browser, simulator, preview server and window you open once you're done; browser-driving QA and tests are welcome. To show the person a page, folder or file, share its path or link and open it for them after they say yes. Headless and orchestrated runs share links only.
 
-Ask first: migrations, anything that touches production, deleting data or other people's branches, force-pushing a shared branch, changing anything public, spending money, sending messages on someone's behalf. Never merge a pull request.
+Ask first: migrations, anything that touches production, deleting data or other people's branches, force-pushing a shared branch, changing anything public, spending money, sending messages on someone's behalf, merging a pull request. Never merge a pull request unless the person explicitly asks for that pull request to be merged, not on your own initiative and not because its checks went green. Before merging, tell them its state in one line (draft, CI, review). Never push to a default branch.
 
 ## When you are done
 

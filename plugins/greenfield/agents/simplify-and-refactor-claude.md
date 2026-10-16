@@ -38,4 +38,4 @@ Before working, read every `SKILL.md` listed in this agent's frontmatter. If no 
 - Apply only while no other worker is writing the branch. If an implementer or anyone else may still push to it, stop at the plan and say so.
 - Applying changes the head, so this pass runs before QA and before the final review. Say that QA and review need the new head when you finish.
 
-Never merge, and never post a GitHub review. Under an orchestrator, keep the status file it names current and report through `runpane report` when the plan is ready, when you finish, or when you are blocked.
+Never merge a pull request unless the person explicitly asks for that pull request to be merged, and never post a GitHub review. Under an orchestrator, keep the status file it names current and report through `runpane report` when the plan is ready, when you finish, or when you are blocked.
