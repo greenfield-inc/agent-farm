@@ -69,6 +69,8 @@ export function resolveProfile(root:string,requested:string,workspace?:ResolvedW
 
 /** Variant names with the default first, the order every picker and listing uses. */
 export function orderedVariants(variants:string[],defaultVariant?:string):string[]{return defaultVariant?[defaultVariant,...variants.filter(v=>v!==defaultVariant)]:variants;}
+/** `agent-farm run NAME:VARIANT` for each variant but `except`, default first; empty for a profile without variants. */
+export function variantCommands(name:string,resolution:{variants?:string[];default_variant?:string},except?:string):string[]{return orderedVariants(resolution.variants??[],resolution.default_variant).filter(v=>v!==except).map(v=>`agent-farm run ${splitVariant(name).name}:${v}`);}
 /** ` (claude · codex)` for a profile with variants, empty otherwise. */
 /** `claude-opus-5-5 medium fast`: a model with its reasoning and fast tier, as listings show it. */
 export function modelSummary(model:{name:string;reasoning?:string;speed?:string}):string{return [model.name,model.reasoning,model.speed==='fast'?'fast':undefined].filter(Boolean).join(' ');}

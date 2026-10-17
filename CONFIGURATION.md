@@ -145,11 +145,21 @@ name rule. The Claude and Codex variants still point at separate agent files,
 because instructions are tuned per harness; the profile only groups them.
 
 Select a variant with `NAME:VARIANT`, for example `agent-farm run
-greenfield/planner:codex`. A name without a variant runs the default, so scripts,
-orchestrators, and headless launches never prompt. A first interactive `agent-farm
-run` of a profile with more than one variant asks which to launch; `--resume`
-never asks (see [Resuming a session](#resuming-a-session)). The
-picker and `profiles list` show each variant with its model and reasoning,
+greenfield/planner:codex`. `agent-farm run` with a name and no variant launches
+the default and never prompts, in a terminal too; it prints one line to stderr
+naming the variant it used and the command for each other one, such as `Using
+greenfield/planner:claude (default). Other variants: agent-farm run
+greenfield/planner:codex`. `--resume` reopens the variant that started the
+session (see [Resuming a session](#resuming-a-session)). When a launch fails
+before the harness starts (the profile or variant does not resolve, or the
+harness binary is missing), the error names the variant that failed and the
+other variants that still resolve: `error: greenfield/planner:claude failed to
+start: Missing native harness: claude. Try another variant: agent-farm run
+greenfield/planner:codex`. Once the harness has started it replaces Agent
+Farm's process, so a harness that exits on its own (for example, not signed in)
+gets no hint. Only the interactive menu (bare `agent-farm`) asks which variant
+to launch. The
+menu and `profiles list` show each variant with its model and reasoning,
 default first: `greenfield/planner (claude: claude-opus-5-5 high · codex:
 gpt-6-astra high)`. `run`, `inspect`, `load`, and `set
 global` all accept `NAME:VARIANT`; `unload` and `unset global` also take it,
@@ -370,7 +380,7 @@ top-level Codex session the launch started in its runtime Codex home.
 agent-farm run greenfield/free-range --resume 0c6d0d57-2f8b-4c8e-9a47-5b1f9e2f3a10
 ```
 
-A resume never asks for a variant. With a bare profile name it uses the variant
+With a bare profile name, a resume uses the variant
 that started the session, so a session begun on `:codex` resumes on Codex even
 when the default is Claude. Naming a different variant, or a different profile,
 is an error, because the conversation belongs to the other harness. If the
@@ -378,13 +388,13 @@ session closed before anything was saved, Agent Farm starts a new conversation
 under the same ID. An ID Agent Farm did not record is passed to the harness as
 a native session ID. `--resume` works only for interactive launches, and it
 cannot be combined with native resume arguments such as `-- --continue`; those
-leave session identity to the harness and skip the variant question too.
+leave session identity to the harness.
 
 Under Pane (when `PANE_PANEL_ID` is set), each
 interactive launch prints `PANE_AGENT_SESSION_ID=ID` before the harness starts.
 Set the command's resume to **CLI reports its ID** with the resume template
 `{command} --resume {sessionId}`, and Pane restores the panel into the same
-conversation without the variant question.
+conversation on the same variant.
 
 ## Local OpenTelemetry collection
 

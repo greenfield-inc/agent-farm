@@ -83,7 +83,7 @@ Review runs once, separately, through `greenfield/reviewer`, launched by you or 
 | `qa` | bug-reporter | Opus 5.5 medium; reproduce a bug in the app |
 | `advisor` | orchestrator | Astra high, process; advice about session coordination |
 
-Planners do not launch the implementer. When a cover sheet is approved, the planner gives the person the `agent-farm run greenfield/implementer` command, and Agent Farm asks which variant to run.
+Planners do not launch the implementer. When a cover sheet is approved, the planner gives the person the `agent-farm run greenfield/implementer` command; Agent Farm runs the default variant unless the command names another.
 
 ## Post-mortem and conversation viewer
 

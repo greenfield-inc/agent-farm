@@ -11,6 +11,7 @@ import {validatePlugin,installPlugin} from '../dist/plugins.js';
 import {ProfileManager} from '../dist/profile-manager.js';
 import {loadProfile,loadedProfiles,unloadProfile} from '../dist/user-skills.js';
 import {chooseVariant} from '../dist/interactive.js';
+import {writeHarness} from './harness.mjs';
 const cli=fileURLToPath(new URL('../dist/cli.js',import.meta.url));
 
 function fixture(t) {
@@ -114,4 +115,60 @@ test('the variant question is skipped when a variant is named or there is only o
  const f=fixture(t);
  assert.equal(await chooseVariant(f.root,'planner:claude'),'planner:claude');
  assert.equal(await chooseVariant(f.root,'plain'),'plain');
+});
+
+/** Runs `agent-farm run` against fake harnesses; `harnesses` limits which ones are on PATH. */
+function launcher(t,{harnesses=['claude','codex']}={}){
+ const f=fixture(t),home=path.join(f.base,'home'),bin=path.join(f.base,'bin'),record=path.join(f.base,'launched.json');
+ for(const dir of [path.join(home,'.codex'),bin])fs.mkdirSync(dir,{recursive:true});
+ for(const harness of harnesses)writeHarness(bin,harness,`require('fs').writeFileSync(${JSON.stringify(record)},${JSON.stringify(harness)});\n`);
+ const env={...process.env,HOME:home,USERPROFILE:home,PATH:bin,AGENT_FARM_TELEMETRY:'off'};
+ for(const key of ['CODEX_HOME','AGENT_FARM_NATIVE_CODEX_HOME','CLAUDE_CONFIG_DIR','PANE_PANEL_ID'])delete env[key];
+ const args=(profile,extra=[])=>[cli,'run',profile,'--config-root',f.root,'--directory',f.target,'--no-workspace',...extra];
+ const launched=()=>fs.existsSync(record)?fs.readFileSync(record,'utf8'):undefined;
+ const invoke=(profile,extra)=>{fs.rmSync(record,{force:true});const result=spawnSync(process.execPath,args(profile,extra),{encoding:'utf8',env});return {...result,launched:launched()};};
+ return {...f,env,args,record,launched,invoke};
+}
+// script(1) takes the command last on macOS and as one -c string on Linux.
+const scriptArgv=command=>process.platform==='darwin'?['-q','/dev/null',...command]:['-qec',command.map(a=>`'${a.replaceAll("'","'\\''")}'`).join(' '),'/dev/null'];
+const script='/usr/bin/script',hasScript=process.platform!=='win32' && fs.existsSync(script) && spawnSync(script,scriptArgv(['true']),{stdio:'ignore'}).status===0;
+
+test('a bare name on a terminal launches the default variant without asking',{skip:!hasScript && 'needs script(1) for a pseudo-terminal'},t=>{
+ const f=launcher(t),command=[process.execPath,...f.args('planner')];
+ // script(1) gives the CLI a real TTY on stdin and stderr; a picker would wait on it and never launch.
+ const result=spawnSync(script,scriptArgv(command),{encoding:'utf8',env:f.env,stdio:['ignore','pipe','pipe'],timeout:20000});
+ assert.equal(result.error,undefined);assert.equal(result.status,0,result.stdout+result.stderr);
+ assert.equal(f.launched(),'codex');
+ assert.match(result.stdout+result.stderr,/Using planner:codex \(default\)\. Other variants: agent-farm run planner:claude/);
+ assert.doesNotMatch(result.stdout+result.stderr,/Which .*variant/);
+});
+
+test('a named variant launches without the default notice',t=>{
+ const f=launcher(t),r=f.invoke('planner:claude');
+ assert.equal(r.status,0,r.stderr);assert.equal(r.launched,'claude');assert.doesNotMatch(r.stderr,/Using |Try another variant/);
+});
+
+test('an unknown variant fails listing the valid ones',t=>{
+ const f=launcher(t),r=f.invoke('planner:gemini');
+ assert.equal(r.status,1);assert.equal(r.launched,undefined);
+ assert.match(r.stderr,/error: planner:gemini failed to start: Profile planner has no variant gemini; choose one of: claude, codex\. Try another variant: agent-farm run planner:codex or agent-farm run planner:claude/);
+});
+
+test('a variant that cannot start suggests the others',t=>{
+ const f=launcher(t,{harnesses:['claude']}),r=f.invoke('planner');
+ assert.equal(r.status,1);assert.equal(r.launched,undefined);
+ assert.match(r.stderr,/error: planner:codex failed to start: Missing native harness: codex\. Try another variant: agent-farm run planner:claude$/m);
+ f.put('profiles/planner.yaml','variants:\n  claude:\n    agent: planner-claude\n  codex:\n    agent: missing-agent\ndefault: claude\n');
+ const broken=f.invoke('planner:codex');
+ assert.equal(broken.status,1);assert.match(broken.stderr,/error: planner:codex failed to start: .*missing-agent.*\. Try another variant: agent-farm run planner:claude$/m);
+});
+
+test('no variant hint for a profile without variants, a resume, or a harness that ran',t=>{
+ const plain=launcher(t,{harnesses:[]}).invoke('plain');
+ assert.equal(plain.status,1);assert.match(plain.stderr,/^error: Missing native harness: claude$/m);assert.doesNotMatch(plain.stderr,/Try another variant/);
+ const f=launcher(t,{harnesses:['claude']}),resumed=f.invoke('planner',['--resume','unknown-session']);
+ assert.equal(resumed.status,1);assert.doesNotMatch(resumed.stderr,/Try another variant/);
+ writeHarness(path.join(f.base,'bin'),'codex','process.exit(3);\n');
+ const exited=f.invoke('planner');
+ assert.equal(exited.status,3);assert.doesNotMatch(exited.stderr,/error:|Try another variant/);
 });
