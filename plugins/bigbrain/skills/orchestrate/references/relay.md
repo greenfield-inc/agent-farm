@@ -13,7 +13,7 @@ Reply   pick an option, or answer in your own words → recorded as D-n
 
 - The header names the kind of worker, the work item, the Q-n and title, and what is waiting (`waiting`).
 - The recommended option comes first and says why. Other options follow with their one-line reason. Use the host's structured question tool when it has one, with the same order and labels.
-- Files: open HTML and images with `runpane panels open --url file://<path> --split --no-focus`; say "(opened)" beside each one you opened, and link the rest.
+- Files: open HTML and images beside the person with the host's file-opening mechanism; say "(opened)" beside each one you opened, and link the rest.
 
 By kind:
 

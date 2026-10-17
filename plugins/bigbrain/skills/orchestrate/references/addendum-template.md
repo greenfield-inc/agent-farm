@@ -11,4 +11,4 @@ Do            revise your plan or work to match, then report again
 Source        decision log entries D-n …, from Q-n …
 ```
 
-Send `addendum: <absolute path>` to each affected tab with `runpane panels submit`, confirm each delivery (taken or queued), and add it to the map's addenda log. A change to an approved control flow is not an addendum: it goes to the planner as a new revision.
+Send `addendum: <absolute path>` to each affected worker with the host's message mechanism, confirm each delivery (taken or queued), and add it to the map's addenda log. A change to an approved control flow is not an addendum: it goes to the planner as a new revision.

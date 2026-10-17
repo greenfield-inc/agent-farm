@@ -150,7 +150,7 @@ a:hover { text-decoration: underline; }
 
 <section class="slide" id="front-door"><div class="inner"><p class="kicker">The front door</p><h2>Workers never ask you directly.</h2><p class="sub">They write a status file and report. The orchestrator relays the question and sends your answer back.</p><div class="stage"><div class="map"><svg viewBox="0 0 760 500" role="img" aria-labelledby="fd-title fd-desc">
 <title id="fd-title">The front door and the relay loop</title>
-<desc id="fd-desc">You talk only to the orchestrator. It starts worker tabs in one Pane per feature: planner, designer, implementer, reviewer, investigator and teacher. A worker that needs you writes needs_you with a Q-n to its status file, reports with runpane report, the orchestrator relays the question to you with the recommended answer first, and submits answer Q-n to that tab only. The worker records the decision and continues.</desc>
+<desc id="fd-desc">You talk only to the orchestrator. It starts workers in one workspace per feature: planner, designer, implementer, reviewer, investigator and teacher. A worker that needs you writes needs_you with a Q-n to its status file, signals through the host's report mechanism, the orchestrator relays the question to you with the recommended answer first, and sends answer Q-n to that worker only. The worker records the decision and continues.</desc>
 <defs><marker id="ah1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-arrow"/></marker></defs>
 
 <rect x="290" y="14" width="180" height="40" rx="20" class="d-gate"/>
@@ -164,10 +164,10 @@ a:hover { text-decoration: underline; }
 <text x="380" y="128" text-anchor="middle" class="d-ob">bigbrain/orchestrator · Opus 5.5 medium</text>
 <text x="380" y="148" text-anchor="middle" class="d-os">starts workers · relays every question · keeps the map</text>
 <path d="M380,162 V196" class="d-line" marker-end="url(#ah1)"/>
-<text x="390" y="184" class="d-s">starts tabs (runpane panels create)</text>
+<text x="390" y="184" class="d-s">starts workers (host orchestration skill)</text>
 
 <rect x="20" y="198" width="720" height="104" rx="14" class="d-lane"/>
-<text x="36" y="220" class="d-b">One Pane per feature: worker tabs</text>
+<text x="36" y="220" class="d-b">One workspace per feature: workers</text>
 <g>
 <rect x="36" y="232" width="108" height="56" rx="8" class="d-box"/><text x="90" y="256" text-anchor="middle" class="d-b">planner</text><text x="90" y="275" text-anchor="middle" class="d-s">only plans</text>
 <rect x="152" y="232" width="108" height="56" rx="8" class="d-box"/><text x="206" y="256" text-anchor="middle" class="d-b">designer</text><text x="206" y="275" text-anchor="middle" class="d-s">mockup options</text>
@@ -188,9 +188,9 @@ a:hover { text-decoration: underline; }
 <text x="110" y="393" text-anchor="middle" class="d-m">needs_you: Q-7</text>
 <text x="110" y="413" text-anchor="middle" class="d-s">.agent/status/&lt;role&gt;.json</text>
 <rect x="215" y="350" width="160" height="78" rx="8" class="d-box"/>
-<text x="295" y="372" text-anchor="middle" class="d-b">2 · runpane report</text>
-<text x="295" y="393" text-anchor="middle" class="d-m">--state blocked</text>
-<text x="295" y="413" text-anchor="middle" class="d-m">--question "Q-7: …"</text>
+<text x="295" y="372" text-anchor="middle" class="d-b">2 · signal</text>
+<text x="295" y="393" text-anchor="middle" class="d-m">blocked</text>
+<text x="295" y="413" text-anchor="middle" class="d-m">"Q-7: …"</text>
 <rect x="400" y="350" width="160" height="78" rx="8" class="d-orch"/>
 <text x="480" y="372" text-anchor="middle" class="d-ob">3 · relay</text>
 <text x="480" y="393" text-anchor="middle" class="d-os">asks you, one round,</text>
@@ -198,7 +198,7 @@ a:hover { text-decoration: underline; }
 <rect x="585" y="350" width="160" height="78" rx="8" class="d-orch"/>
 <text x="665" y="372" text-anchor="middle" class="d-ob">4 · panels submit</text>
 <text x="665" y="393" text-anchor="middle" class="d-om">answer: Q-7 → …</text>
-<text x="665" y="413" text-anchor="middle" class="d-os">to that tab only</text>
+<text x="665" y="413" text-anchor="middle" class="d-os">to that worker only</text>
 </g>
 <path d="M190,389 H213" class="d-line" marker-end="url(#ah1)"/>
 <path d="M375,389 H398" class="d-line" marker-end="url(#ah1)"/>
@@ -226,7 +226,7 @@ a:hover { text-decoration: underline; }
 <path d="M380,52 V76" class="d-line" marker-end="url(#ah2)"/>
 <rect x="220" y="78" width="320" height="46" rx="10" class="d-orch"/>
 <text x="380" y="97" text-anchor="middle" class="d-ob">orchestrator starts a planner</text>
-<text x="380" y="114" text-anchor="middle" class="d-os">in a new Pane for the feature</text>
+<text x="380" y="114" text-anchor="middle" class="d-os">in a new workspace for the feature</text>
 <path d="M255,124 V150" class="d-line" marker-end="url(#ah2)"/>
 
 <rect x="40" y="152" width="430" height="66" rx="8" class="d-box"/>
@@ -425,7 +425,7 @@ a:hover { text-decoration: underline; }
 </svg></div></div></div></section>
 
 <section class="slide" id="start"><div class="inner"><h2>Get started.</h2><div class="stage"><pre><code>agent-farm plugin install bigbrain
-agent-farm run bigbrain/orchestrator --directory /path/to/project</code></pre><p class="note">Run it as a Pane Session coordinator or in a Pane tab. Pane must be installed with <code>runpane</code> on <code>PATH</code>.</p><div class="links"><a href="README.md">Read the README ›</a><a href="instructions/contract.md">The contract ›</a><a href="skills/documents/references/control-flow.md">Control flow ›</a></div><p class="fine">Bigbrain · an Agent Farm plugin</p></div></div></section>
+agent-farm run bigbrain/orchestrator --directory /path/to/project</code></pre><p class="note">Run it inside a host whose orchestration skill launches, messages and waits on workers.</p><div class="links"><a href="README.md">Read the README ›</a><a href="instructions/contract.md">The contract ›</a><a href="skills/documents/references/control-flow.md">Control flow ›</a></div><p class="fine">Bigbrain · an Agent Farm plugin</p></div></div></section>
 </main>
 </body>
 </html>
