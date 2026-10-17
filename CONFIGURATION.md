@@ -375,10 +375,25 @@ that started the session, so a session begun on `:codex` resumes on Codex even
 when the default is Claude. Naming a different variant, or a different profile,
 is an error, because the conversation belongs to the other harness. If the
 session closed before anything was saved, Agent Farm starts a new conversation
-under the same ID. An ID Agent Farm did not record is passed to the harness as
-a native session ID. `--resume` works only for interactive launches, and it
+under the same ID and sends `--message`; when it reopens a saved conversation it
+skips `--message` and says so. `--resume` works only for interactive launches, and it
 cannot be combined with native resume arguments such as `-- --continue`; those
 leave session identity to the harness and skip the variant question too.
+
+`--resume` accepts three kinds of ID:
+
+- A launch ID: the one Agent Farm reported as `PANE_AGENT_SESSION_ID`, named by
+  the files in `~/.local/state/agent-farm/launches/` (kept for 90 days).
+- A telemetry session ID (`agent_farm.session.id`, the folder name under the
+  telemetry directory). Agent Farm maps it to its launch through the session's
+  `agent_farm.launch.id`. Sessions recorded before that attribute existed map to
+  the one launch with the same directory, profile and variant that started within
+  2 seconds; if there are none or several, Agent Farm stops and lists them.
+- A native Claude or Codex session ID that Agent Farm did not record. A Claude ID
+  must have a transcript; a Codex ID is passed to Codex unchecked.
+
+An ID that is none of these is refused before anything launches, and under Pane
+no `PANE_AGENT_SESSION_ID` line is printed for it.
 
 Under Pane (when `PANE_PANEL_ID` is set), each
 interactive launch prints `PANE_AGENT_SESSION_ID=ID` before the harness starts.
@@ -416,6 +431,8 @@ the inherited environment are not recorded. Non-Git directories are supported.
 
 `agent_farm.session.id`, `agent_farm.session.trace_id`, and
 `agent_farm.session.span_id` correlate native resources with their launch.
+Interactive launches also record `agent_farm.launch.id`, the ID `--resume`
+reopens; a telemetry session ID passed to `--resume` maps to it.
 Process children inherit the parent session ID and W3C trace context. Native trace
 IDs are preserved: harnesses may start independent traces, particularly interactive
 Claude sessions, so use the session attributes to join those traces.

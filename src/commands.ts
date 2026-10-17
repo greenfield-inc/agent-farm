@@ -35,7 +35,7 @@ export const commands: Command[] = [
       {name: 'explain', description: 'Print the resolved launch command as JSON (no launch)', type: 'boolean'},
       {name: 'exec', description: 'Headless execution (no interactive terminal)', type: 'boolean'},
       {name: 'print-launch', description: 'Prepare a headless launch and print argv, cwd, bundle and env overrides as JSON. Consumers spawn the printed argv verbatim and must never assume argv[0] is the harness binary; it may be a wrapper with prefix arguments before the harness flags.', type: 'boolean'},
-      {name: 'resume', description: 'Reopen an earlier interactive session by the ID Agent Farm reported (PANE_AGENT_SESSION_ID) or a native session ID, without asking for a variant', type: 'string'},
+      {name: 'resume', description: 'Reopen an earlier interactive session without asking for a variant. Takes the launch ID Agent Farm reported (PANE_AGENT_SESSION_ID), a telemetry session ID (mapped to its launch), or a native Claude or Codex session ID; any other ID is refused. Skips --message when a saved conversation is reopened', type: 'string'},
       {name: 'native-arg', description: 'Repeatable native argument, before the message; use --native-arg=--flag for flags', type: 'string'},
       {name: 'config-root', description: 'Configuration directory, including host provider targeting in settings.json', type: 'string', default: '~/.config/agent-farm'},
     ],

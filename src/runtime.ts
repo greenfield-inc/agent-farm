@@ -366,7 +366,7 @@ export function codexHome(bundle: string, route: string, env: NodeJS.ProcessEnv,
 export function referencesNote(directory: string): string {
   return `Bundled references: ${directory}. A path written as \`.references/<path>\` in your instructions or skills means ${path.join(directory,'<path>')}; read it from there, not from the repository.`;
 }
-export interface LaunchOptions { headless?: boolean; nativeArgs?: string[]; message?: string; prepare?: boolean; env?: NodeJS.ProcessEnv; home?: string; configRoot?: string; model?: string; reasoning?: string; speed?: string; args?: string[]; resume?: string; sessionId?: string }
+export interface LaunchOptions { headless?: boolean; nativeArgs?: string[]; message?: string; prepare?: boolean; env?: NodeJS.ProcessEnv; home?: string; configRoot?: string; model?: string; reasoning?: string; speed?: string; args?: string[]; resume?: string; sessionId?: string; launchId?: string }
 
 /** What an interactive launch used, so `--resume <id>` can reopen the same native session without asking again. */
 export interface LaunchRecord { id: string; profile: string; variant?: string; harness: 'claude'|'codex'; directory: string; started_at: string; codex_home?: string; native_session_id?: string }
@@ -452,6 +452,10 @@ export function resolveTelemetry(root:string, workspace?:TelemetrySettings, env:
   if (env.AGENT_FARM_TELEMETRY!==undefined && !['on','off'].includes(env.AGENT_FARM_TELEMETRY)) throw new Error('AGENT_FARM_TELEMETRY must be on or off');
   return {enabled:env.AGENT_FARM_TELEMETRY ? env.AGENT_FARM_TELEMETRY==='on' : value.enabled ?? true,directory:value.directory ?? path.join(home,'.local/state/agent-farm/telemetry'),...(value.capture_content===undefined?{}:{capture_content:value.capture_content}),...(value.agent_access===undefined?{}:{agent_access:{enabled:false,scope:'project' as const,...value.agent_access}})};
 }
+/** Where telemetry sessions are stored, even while collection is off, so their IDs can still be resumed. */
+export function telemetryStore(configRoot: string|undefined, workspace?: TelemetrySettings): string {
+  return resolveTelemetry(path.resolve(configRoot ?? process.env.AGENT_FARM_CONFIG_ROOT ?? path.join(os.homedir(),'.config/agent-farm')),workspace).directory;
+}
 export function command(bundle: string, route: string, options: LaunchOptions = {}) {
   const manifest: Manifest=JSON.parse(fs.readFileSync(path.join(bundle,'manifest.json'),'utf8'));
   assertWorkspaceTrust(manifest.workspace_source,options.home);
@@ -524,7 +528,7 @@ export function command(bundle: string, route: string, options: LaunchOptions = 
   if (telemetry.enabled) {
     // The receiver starts only when this command executes, including when a
     // consumer spawns --print-launch output. No ports or session IDs at build time.
-    const descriptor={directory:telemetry.directory,bundle,route,harness:agent.harness,launch,captureContent:telemetry.capture_content===true};
+    const descriptor={directory:telemetry.directory,bundle,route,harness:agent.harness,launch,captureContent:telemetry.capture_content===true,...(options.launchId?{launchId:options.launchId}:{})};
     argv=[process.execPath,path.join(bundle,'telemetry.mjs'),JSON.stringify(descriptor),'--',...argv];
   }
   return {argv,env,envOverrides,cwd:manifest.directory,launch,telemetry,telemetry_access:access};
@@ -566,25 +570,52 @@ export function execute(argv: string[], cwd: string, environment: NodeJS.Process
   throw new Error('Native exec unexpectedly returned');
 }
 /** Chooses the native session for an interactive launch: a new recorded one, or the one `--resume <id>` names. */
-export interface LaunchSession { resume?: string; sessionId?: string; report?: string; record?: LaunchRecord }
-export function launchSession(manifest: Manifest, harness: 'claude'|'codex', resume: string|undefined, context: {interactive: boolean; nativeArgs: string[]; env?: NodeJS.ProcessEnv; home?: string}): LaunchSession {
+export interface LaunchSession { resume?: string; sessionId?: string; report?: string; launchId?: string; record?: LaunchRecord }
+/** Maps a telemetry session ID to the launch that started it: by the recorded launch ID, or for sessions from before
+ *  launch IDs were recorded, by the one launch with the same directory, profile and variant that started within 2 s. */
+function telemetryLaunch(id: string, directory: string|undefined, home: string): string|undefined {
+  if (!directory || !launchId.test(id)) return undefined;
+  let session:{startTimeUnixNano?:string;attributes?:Record<string,unknown>};
+  try { session=JSON.parse(fs.readFileSync(path.join(directory,id,'session.json'),'utf8')); } catch { return undefined; }
+  const attributes=session.attributes ?? {};
+  if (typeof attributes['agent_farm.launch.id']==='string') return attributes['agent_farm.launch.id'];
+  const started=Number(BigInt(session.startTimeUnixNano ?? '0')/1_000_000n);
+  let names:string[];try{names=fs.readdirSync(launchRecords(home)).filter(name=>name.endsWith('.json'));}catch{names=[];}
+  const matches=names.map(name=>readLaunchRecord(name.slice(0,-5),home)).filter((record):record is LaunchRecord=>!!record
+    && record.directory===attributes['process.working_directory'] && record.profile===attributes['agent_farm.profile']
+    && (record.variant ?? undefined)===(attributes['agent_farm.profile.variant'] ?? undefined) && record.harness===attributes['agent_farm.harness']
+    && Math.abs(Date.parse(record.started_at)-started)<=2000);
+  if (matches.length===1) return matches[0]!.id;
+  if (!matches.length) throw new Error(`no launch matches telemetry session ${id}; resume with the PANE_AGENT_SESSION_ID it reported or a launch ID from ${launchRecords(home)}`);
+  throw new Error(`telemetry session ${id} matches more than one launch; resume with one of these launch IDs: ${matches.map(record=>`${record.id} (started ${record.started_at})`).join(', ')}`);
+}
+/** The launch a `--resume` ID names: the ID itself when it is a launch or native ID, or the launch a telemetry session belongs to. */
+export function resumeLaunchId(id: string, telemetry: string|undefined, home = os.homedir()): string {
+  return readLaunchRecord(id,home) ? id : telemetryLaunch(id,telemetry,home) ?? id;
+}
+export function launchSession(manifest: Manifest, harness: 'claude'|'codex', resume: string|undefined, context: {interactive: boolean; nativeArgs: string[]; env?: NodeJS.ProcessEnv; home?: string; telemetry?: string}): LaunchSession {
   const env=context.env ?? process.env,home=context.home ?? os.homedir();
-  const fresh=(id:string=randomUUID()):LaunchSession=>({report:id,...(harness==='claude'?{sessionId:id}:{}),record:{id,profile:manifest.profile,...(manifest.variant?{variant:manifest.variant}:{}),harness,directory:manifest.directory,started_at:new Date().toISOString()}});
+  const fresh=(id:string=randomUUID()):LaunchSession=>({report:id,launchId:id,...(harness==='claude'?{sessionId:id}:{}),record:{id,profile:manifest.profile,...(manifest.variant?{variant:manifest.variant}:{}),harness,directory:manifest.directory,started_at:new Date().toISOString()}});
   if (resume===undefined) return context.interactive && !nativeResume(context.nativeArgs) ? fresh() : {};
   if (!context.interactive) throw new Error('--resume reopens an interactive session; it cannot be combined with --exec or --print-launch');
   if (nativeResume(context.nativeArgs)) throw new Error('Use either --resume or native resume arguments, not both');
   if (!resume) throw new Error('--resume needs a session ID');
-  const record=readLaunchRecord(resume,home);
-  // An ID Agent Farm did not record is a native session ID; hand it to the harness as is.
-  if (!record) return {resume,report:resume};
-  if (record.profile!==manifest.profile || record.harness!==harness) throw new Error(`Session ${resume} was launched as ${record.profile}${record.variant?':'+record.variant:''} on ${record.harness}; resume it with that profile and variant`);
-  const native=record.native_session_id ?? (harness==='claude' ? (claudeTranscriptExists(record.id,env,home) ? record.id : undefined) : codexSession(record));
+  const id=resumeLaunchId(resume,context.telemetry,home);
+  const record=readLaunchRecord(id,home);
+  if (!record) {
+    // Codex thread IDs can't be checked cheaply, so they go to Codex as is; a Claude ID must have a transcript.
+    if (harness==='codex' || claudeTranscriptExists(id,env,home)) return {resume:id,report:id};
+    throw new Error(`no session ${resume} to resume. --resume takes a launch ID (the PANE_AGENT_SESSION_ID Agent Farm reported, recorded in ${launchRecords(home)}), a telemetry session ID (agent_farm.session.id), or a native Claude or Codex session ID`);
+  }
+  if (record.profile!==manifest.profile || record.harness!==harness) throw new Error(`Session ${record.id} was launched as ${record.profile}${record.variant?':'+record.variant:''} on ${record.harness}; resume it with that profile and variant`);
+  // Claude names its transcript after the launch ID, so check it is still there before reopening it.
+  const native=harness==='claude' ? (claudeTranscriptExists(record.id,env,home) ? record.id : undefined) : record.native_session_id ?? codexSession(record);
   if (!native) {
     // Nothing was said before the panel closed; start fresh under the same ID so the host keeps one handle.
-    console.error(`agent-farm: no saved conversation for ${resume}; starting a new one`);
+    console.error(`agent-farm: no saved conversation for ${record.id}; starting a new one`);
     return {...fresh(record.id),record:{...record,started_at:new Date().toISOString()}};
   }
-  return {resume:native,report:resume,record:record.native_session_id ? undefined : {...record,native_session_id:native}};
+  return {resume:native,report:record.id,launchId:record.id,record:record.native_session_id===native ? undefined : {...record,native_session_id:native}};
 }
 export function run(bundle: string, route: string, args: string[], launchCommand: typeof command = command, configRoot?: string): ChildProcess | undefined {
   const {values,tokens}=parseArgs({args,options:{exec:{type:'boolean'},message:{type:'string'},explain:{type:'boolean'},'print-launch':{type:'boolean'},'native-arg':{type:'string',multiple:true},model:{type:'string'},reasoning:{type:'string'},speed:{type:'string'},arg:{type:'string',multiple:true},resume:{type:'string'}},strict:true,allowPositionals:true,tokens:true});
@@ -598,8 +629,12 @@ export function run(bundle: string, route: string, args: string[], launchCommand
   const selected=manifest.nodes[route]; if (!selected) throw new Error('Unknown bundled child');
   bundle=materializeLaunch(bundle,route,resolveLaunch(selected,requested));
   const nativeArgs=[...(values['native-arg'] ?? []),...args.slice(separator+1)];
-  const session=launchSession(manifest,selected.harness,values.resume,{interactive:!requested.headless && !values.explain,nativeArgs});
-  const launch=launchCommand(bundle,route,{...requested,nativeArgs,message:values.message,prepare:!values.explain,configRoot,resume:session.resume,sessionId:session.sessionId});
+  // Old telemetry stays readable after telemetry is turned off, so look it up wherever it is stored.
+  const telemetry=values.resume ? telemetryStore(configRoot,manifest.workspace_telemetry) : undefined;
+  const session=launchSession(manifest,selected.harness,values.resume,{interactive:!requested.headless && !values.explain,nativeArgs,telemetry});
+  // The starter message belongs to a new conversation; a reopened one already has it.
+  if (session.resume && values.message!==undefined) console.error('agent-farm: reopening a saved conversation, so --message was not sent');
+  const launch=launchCommand(bundle,route,{...requested,nativeArgs,message:session.resume ? undefined : values.message,prepare:!values.explain,configRoot,resume:session.resume,sessionId:session.sessionId,launchId:session.launchId});
   if (session.record && !values.explain) {
     if (session.record.harness==='codex') session.record.codex_home=launch.env.CODEX_HOME;
     writeLaunchRecord(session.record);

@@ -26,7 +26,16 @@ function fixture(t) {
   return {...result,launched:fs.existsSync(record)?JSON.parse(fs.readFileSync(record,'utf8')):undefined,reported:[...result.stderr.matchAll(/^PANE_AGENT_SESSION_ID=(\S+)$/gm)].map(m=>m[1])};
  };
  const launches=()=>{const dir=path.join(home,'.local/state/agent-farm/launches');return fs.existsSync(dir)?fs.readdirSync(dir).map(f=>JSON.parse(fs.readFileSync(path.join(dir,f),'utf8'))):[];};
- return {base,root,target,home,bin,invoke,launches};
+ const state=path.join(home,'.local/state/agent-farm');
+ const transcript=id=>{const dir=path.join(home,'.claude/projects/-repo');fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(path.join(dir,id+'.jsonl'),'{}\n');};
+ // Shaped like what 0.2.25 and earlier wrote: a launch record, then a telemetry session a few ms later with no launch ID.
+ const legacy=(launch,telemetry,{at,gap,variant='claude',harness='claude',directory=target})=>{
+  const started=Date.parse(at);
+  if(launch){fs.mkdirSync(path.join(state,'launches'),{recursive:true});fs.writeFileSync(path.join(state,'launches',launch+'.json'),JSON.stringify({id:launch,profile:'planner',variant,harness,directory,started_at:new Date(started-gap).toISOString()}));}
+  const dir=path.join(state,'telemetry',telemetry);fs.mkdirSync(dir,{recursive:true});
+  fs.writeFileSync(path.join(dir,'session.json'),JSON.stringify({id:telemetry,startTimeUnixNano:(BigInt(started)*1_000_000n).toString(),attributes:{'agent_farm.session.id':telemetry,'agent_farm.profile':'planner','agent_farm.profile.variant':variant,'agent_farm.harness':harness,'process.working_directory':directory},state:'finished'}));
+ };
+ return {base,root,target,home,bin,invoke,launches,transcript,legacy,state};
 }
 
 test('a first Claude launch gets a recorded session ID and reports it to Pane',t=>{
@@ -76,10 +85,78 @@ test('a Codex resume finds the top-level session the launch started and ignores 
  assert.equal(f.launches()[0].native_session_id,'22222222-2222-2222-2222-222222222222');assert.deepEqual(r.reported,[id]);
 });
 
-test('an unrecorded ID is handed to the harness as a native session ID',t=>{
- const f=fixture(t),r=f.invoke('planner:claude',['--resume','native-session']);
+test('a native Claude ID with a transcript but no Agent Farm record still resumes',t=>{
+ const f=fixture(t);f.transcript('native-session');
+ const r=f.invoke('planner:claude',['--resume','native-session']);
  assert.equal(r.status,0,r.stderr);assert.equal(r.launched.argv[r.launched.argv.indexOf('--resume')+1],'native-session');
- assert.deepEqual(f.launches(),[]);
+ assert.deepEqual(r.reported,['native-session']);assert.deepEqual(f.launches(),[]);
+});
+
+test('an unrecorded Codex ID is handed to Codex as a native thread ID',t=>{
+ const f=fixture(t),r=f.invoke('planner:codex',['--resume','native-thread']);
+ assert.equal(r.status,0,r.stderr);assert.deepEqual(r.launched.argv.slice(0,2),['resume','native-thread']);
+});
+
+test('an ID Agent Farm cannot reopen is refused before anything launches',t=>{
+ const f=fixture(t),r=f.invoke('planner:claude',['--resume','00000000-0000-4000-8000-000000000000']);
+ assert.equal(r.status,1);assert.equal(r.launched,undefined,'a harness was launched');
+ assert.deepEqual(r.reported,[],'Pane would save the bad ID');assert.deepEqual(f.launches(),[]);
+ assert.match(r.stderr,/no session 00000000-0000-4000-8000-000000000000/);
+ for(const accepted of [/launch ID/,/telemetry session ID/,/native/])assert.match(r.stderr,accepted);
+});
+
+// The three telemetry IDs that failed with "No conversation found" on 2026-10-11, and the launches they belong to.
+const addendum=[
+ ['89a32337-8e18-429c-be2c-3ebfc7c3492e','e6d42f7f-15b8-4e18-9e4c-7b2e64c7d675','2026-10-11T17:38:30.852Z',67],
+ ['4f19fea0-2371-4a10-8ca1-ef3d55be7b98','73c278a9-5c7d-40ab-aa28-cf4fe14bbf25','2026-10-11T17:08:59.750Z',106],
+ ['e88eaced-8b6a-414d-8f02-6e55d2c7faea','5609ba04-8b03-4a9c-844a-031beffc2187','2026-10-11T16:24:53.725Z',75],
+];
+test('a telemetry session ID from before launch IDs were recorded resumes its launch',t=>{
+ const f=fixture(t);
+ for(const [telemetry,launch,at,gap] of addendum){f.legacy(launch,telemetry,{at,gap});f.transcript(launch);}
+ for(const [telemetry,launch] of addendum){
+  const r=f.invoke('planner',['--resume',telemetry]);
+  assert.equal(r.status,0,r.stderr);assert.equal(r.launched.harness,'claude');
+  assert.equal(r.launched.argv[r.launched.argv.indexOf('--resume')+1],launch);assert.deepEqual(r.reported,[launch]);
+ }
+});
+
+test('a legacy telemetry ID with no single matching launch is refused and lists what it found',t=>{
+ const f=fixture(t),[telemetry,launch,at]=addendum[0];
+ f.legacy(launch,telemetry,{at,gap:67});f.legacy('aaaaaaaa-0000-4000-8000-000000000000','unused-telemetry',{at,gap:900});
+ // A launch in another directory or on another variant is not a candidate.
+ f.legacy('bbbbbbbb-0000-4000-8000-000000000000','other-dir',{at,gap:10,directory:path.join(f.base,'elsewhere')});
+ f.legacy('cccccccc-0000-4000-8000-000000000000','other-variant',{at,gap:10,variant:'codex',harness:'codex'});
+ let r=f.invoke('planner',['--resume',telemetry]);
+ assert.equal(r.status,1);assert.equal(r.launched,undefined);assert.deepEqual(r.reported,[]);
+ assert.match(r.stderr,new RegExp(launch));assert.match(r.stderr,/aaaaaaaa-0000-4000-8000-000000000000/);assert.doesNotMatch(r.stderr,/bbbbbbbb|cccccccc/);
+ const [lonely,,lonelyAt]=addendum[1];f.legacy(undefined,lonely,{at:lonelyAt,gap:0});
+ r=f.invoke('planner',['--resume',lonely]);
+ assert.equal(r.status,1);assert.equal(r.launched,undefined);assert.match(r.stderr,/no launch matches telemetry session/);
+});
+
+test('new telemetry sessions record their launch ID, and that telemetry ID resumes the launch',t=>{
+ const f=fixture(t),first=f.invoke('planner:claude',[],{AGENT_FARM_TELEMETRY:'on'});
+ assert.equal(first.status,0,first.stderr);const launch=first.reported[0];
+ const [telemetry]=fs.readdirSync(path.join(f.state,'telemetry'));
+ const session=JSON.parse(fs.readFileSync(path.join(f.state,'telemetry',telemetry,'session.json'),'utf8'));
+ assert.notEqual(telemetry,launch);assert.equal(session.attributes['agent_farm.launch.id'],launch);
+ f.transcript(launch);
+ const r=f.invoke('planner',['--resume',telemetry]);
+ assert.equal(r.status,0,r.stderr);assert.equal(r.launched.argv[r.launched.argv.indexOf('--resume')+1],launch);assert.deepEqual(r.reported,[launch]);
+});
+
+test('reopening a saved conversation skips --message; a fresh start sends it once',t=>{
+ const f=fixture(t),first=f.invoke('planner:claude',['--message','hello']),id=first.reported[0];
+ assert.deepEqual(first.launched.argv.slice(-2),['--','hello']);
+ f.transcript(id);
+ let r=f.invoke('planner',['--message','hello','--resume',id]);
+ assert.equal(r.status,0,r.stderr);assert.equal(r.launched.argv.includes('hello'),false);
+ assert.equal(r.stderr.match(/--message/g)?.length,1,r.stderr);
+ fs.rmSync(path.join(f.home,'.claude'),{recursive:true,force:true});
+ r=f.invoke('planner',['--message','hello','--resume',id]);
+ assert.equal(r.status,0,r.stderr);assert.deepEqual(r.launched.argv.slice(-2),['--','hello']);
+ assert.equal(r.launched.argv.filter(a=>a==='hello').length,1);assert.doesNotMatch(r.stderr,/--message/);
 });
 
 test('resume refuses headless launches, native resume arguments and a different variant',t=>{
