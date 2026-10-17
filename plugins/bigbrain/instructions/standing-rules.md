@@ -19,7 +19,7 @@ An approved cover sheet ships `control-flow.json`. The implementer executes it s
 
 ## One writer
 
-Each profile does its own core work. Helpers only read, absorb noisy output, or check work independently; they never edit the branch or the bundle. No profile runs parallel writing subagents. Parallel building happens only at the orchestrator, as separate implementers in separate Panes, for packages the cover sheet marks independent.
+Each profile does its own core work. Helpers only read, absorb noisy output, or check work independently; they never edit the branch or the bundle. No profile runs parallel writing subagents. Parallel building happens only at the orchestrator, as separate implementers in separate workspaces, for packages the cover sheet marks independent.
 
 A helper gets a brief, never the conversation: goal, source, known state, constraints, stop condition, return format (at most about 2k tokens back). A checker gets the spec and the diff, not the author's reasoning.
 

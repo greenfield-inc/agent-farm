@@ -16,13 +16,13 @@ For a one-page visual map, open [index.html](index.html).
 agent-farm plugin install bigbrain
 ```
 
-Then start the orchestrator in your repository, as a Pane Session coordinator or in a Pane tab, and tell it what you want:
+Then start the orchestrator in your repository, inside a host whose orchestration skill launches, messages and waits on workers (for example Pane, through its orchestrator guide), and tell it what you want:
 
 ```sh
 agent-farm run bigbrain/orchestrator --directory /path/to/project
 ```
 
-It starts the other profiles as tabs in one Pane per feature (`runpane panels create`), so Pane must be installed with `runpane` on `PATH`. Workers can also be run on their own (`agent-farm run bigbrain/planner …`); without an orchestrator, they report their questions in their reply and stop there instead of guessing.
+It starts the other profiles in one host workspace (worktree and branch) per feature, using the host's orchestration skill. Workers can also be run on their own (`agent-farm run bigbrain/planner …`); without an orchestrator, they report their questions in their reply and stop there instead of guessing.
 
 ## Profiles
 
@@ -42,7 +42,7 @@ Helpers: `verifier` (drives the app, QA, mockup fidelity, jank), `explorer` (one
 
 ## What happens to one feature
 
-1. You describe the work. The orchestrator starts a planner in a new Pane.
+1. You describe the work. The orchestrator starts a planner in a new workspace.
 2. The planner's interview reaches you in the orchestrator's chat, one round at a time, the recommended answer first, the relevant pages opened beside you. Your answer goes back to the planner and lands in `decisions.html` as a D-n.
 3. For interface work the planner asks for design; the orchestrator starts the designer, and you pick between its options the same way.
 4. You approve the cover sheet (the orchestrator runs `check-bundle` first). The orchestrator starts the implementer.
@@ -54,7 +54,7 @@ Helpers: `verifier` (drives the app, QA, mockup fidelity, jank), `explorer` (one
 
 ## The relay and status files
 
-A worker never asks you anything in its own tab. It writes a `needs_you` block to `.agent/status/<role>.json` and reports with `runpane report` (`blocked` with `--question "Q-n: …"`; a checkpoint as `ready`); the orchestrator relays it and submits `answer: Q-n → …` to that tab only. The full contract (states, message formats, the checkpoint handshake) is `instructions/contract.md`.
+A worker never asks you anything in its own session. It writes a `needs_you` block to `.agent/status/<role>.json` and signals the orchestrator through the host's report mechanism (blocked with `Q-n: …`; a checkpoint as ready); the orchestrator relays it and sends `answer: Q-n → …` to that worker only. The full contract (states, message formats, the checkpoint handshake) is `instructions/contract.md`.
 
 ## Control flow
 
