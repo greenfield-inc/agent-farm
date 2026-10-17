@@ -6,12 +6,11 @@ import {validatePlugin,packPlugin,installPlugin,listPlugins,uninstallPlugin} fro
 import os from 'node:os';
 import {parseArgs} from 'node:util';
 import {resolveWorkspace,resolveInteractiveWorkspace,trustWorkspace,untrustWorkspace,showWorkspace} from './workspaces.js';
-import {build,variantLabel,resolveProfile,splitVariant} from './compiler.js';
-import {run,execute,nativeResume,readLaunchRecord} from './runtime.js';
+import {build,variantCommands,variantLabel,resolveProfile,splitVariant} from './compiler.js';
+import {run,execute,readLaunchRecord} from './runtime.js';
 import {loginCommand} from './mcp-auth.js';
 import {loadWorkspace,unloadWorkspace,loadedWorkspaces} from './user-workspaces.js';
 import {inspectProfile,listProfiles} from './inspect.js';
-import {chooseVariant} from './interactive.js';
 import {loadProfile,unloadProfile,loadedProfiles,globalSkills,globalSkillWarning,saveGlobalSkills} from './user-skills.js';
 import {configurationName,loadHostSettings} from './config.js';
 
@@ -53,6 +52,16 @@ function resumedProfile(root:string,requested:string,id:string,workspace:Paramet
   if (splitVariant(requested).variant!==undefined || !record?.variant) return requested;
   return resolveProfile(root,requested,workspace).profile===record.profile ? `${requested}:${record.variant}` : requested;
 }
+/** The variant that failed and a ` Try another variant: …` naming the others that still resolve, or nothing for a profile without them. */
+function variantHint(root:string,requested:string,workspace:Parameters<typeof resolveProfile>[2]):{failed:string;hint:string}|undefined {
+  try {
+    const {name,variant}=splitVariant(requested),resolution=resolveProfile(root,name,workspace),failed=variant ?? resolution.default_variant;
+    if (!resolution.variants || !failed) return undefined;
+    const others=variantCommands(name,resolution,failed).filter(command=>{try { resolveProfile(root,command.slice('agent-farm run '.length),workspace); return true; } catch { return false; }});
+    return others.length ? {failed:`${name}:${failed}`,hint:` Try another variant: ${others.join(' or ')}`} : undefined;
+  } catch { return undefined; }
+}
+let launching:{root:string;requested:string;workspace:Parameters<typeof resolveProfile>[2]}|undefined;
 
 try {
   if(rawArgs[0]==='ui'||rawArgs[0]==='traces'||rawArgs[0]==='telemetry'){
@@ -210,12 +219,17 @@ try {
     const root=path.resolve(values['config-root']!),directory=path.resolve(values.directory!),options={directory,noWorkspace:values['no-workspace']};
     const interactive=!values.exec&&!values['print-launch']&&!values.build&&!values.explain&&!!process.stdin.isTTY&&!!process.stderr.isTTY;
     const workspace=interactive?await resolveInteractiveWorkspace(root,options):resolveWorkspace(root,options);
-    // A first interactive launch asks which variant to run. A resume reopens the
-    // variant that started the session, and scripts get the profile's default.
-    const requested=values.resume!==undefined ? resumedProfile(root,positionals[1]!,values.resume,workspace)
-      : interactive && !nativeResume(nativeArgs) ? await chooseVariant(root,positionals[1]!,workspace) : positionals[1]!;
+    // A name without a variant launches the profile's default and never asks. A resume
+    // reopens the variant that started the session.
+    const requested=values.resume!==undefined ? resumedProfile(root,positionals[1]!,values.resume,workspace) : positionals[1]!;
+    const launches=!values.build && !values.explain && !values['print-launch'];
+    if (launches && values.resume===undefined) launching={root,requested,workspace};
+    if (launches && values.resume===undefined && splitVariant(requested).variant===undefined) {
+      const resolution=resolveProfile(root,requested,workspace),others=variantCommands(requested,resolution,resolution.default_variant);
+      if (others.length) console.error(`Using ${requested}:${resolution.default_variant} (default). Other variants: ${others.join(', ')}`);
+    }
     const bundle=build(root,requested,directory,workspace);
-    if (!values.build && !values.explain && !values['print-launch']) {
+    if (launches) {
       const manifest=JSON.parse(fs.readFileSync(path.join(bundle,'manifest.json'),'utf8'));
       try {
         const warning=globalSkillWarning({harness:manifest.nodes.main.harness});
@@ -239,4 +253,8 @@ try {
     }
   }
   }
-} catch (error) { console.error('error:',error instanceof Error ? error.message : error); process.exitCode=1; }
+} catch (error) {
+  const message=error instanceof Error ? error.message : String(error),variant=launching && variantHint(launching.root,launching.requested,launching.workspace);
+  console.error('error:',variant ? `${variant.failed} failed to start: ${message.replace(/\.$/,'')}.${variant.hint}` : message);
+  process.exitCode=1;
+}

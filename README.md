@@ -95,11 +95,13 @@ until you run `agent-farm plugin uninstall dcouple`.
 
 **Variants** — Some profiles come in more than one version, such as a Claude
 and a Codex planner. They're one profile with variants, and the menu shows
-how many: `greenfield/planner (2)`. `agent-farm run` asks which one you want
-and shows each variant's model; `agent-farm profiles list` shows every variant's
-name. Add the variant name to skip the question, as in `greenfield/planner:codex`;
-without it, scripts get the profile's default variant. Resuming with
-`--resume ID` never asks: it reopens the variant that started the session,
+how many: `greenfield/planner (2)`, and asks which one you want.
+`agent-farm run` never asks: without a variant name it launches the profile's
+default and prints the commands for the others. Add the variant name to run
+another, as in `greenfield/planner:codex`. If a variant fails to start, the
+error names the other variants to try. `agent-farm profiles list` shows every
+variant with its model. Resuming with
+`--resume ID` reopens the variant that started the session,
 and Pane uses it to restore panels
 ([details](CONFIGURATION.md#resuming-a-session)).
 
