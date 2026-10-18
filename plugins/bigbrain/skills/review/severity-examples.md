@@ -1,6 +1,6 @@
 # Severity examples
 
-Worked gradings for the rubric in [CRITERIA.md](CRITERIA.md#severity-how-bad-a-finding-is). Match a new finding to the closest example before choosing its level. The first seven come from one review of a terminal-workspace app (Pane) where two reviewers graded the same bugs differently.
+Worked gradings for the rubric in [CRITERIA.md](CRITERIA.md#severity-how-bad-a-finding-is). Match a new finding to the closest example before choosing its level. The first seven come from one review of a terminal-workspace app where two reviewers graded the same bugs differently.
 
 | Finding | Harm | Reach | Recovery | Level |
 |---|---|---|---|---|
@@ -8,7 +8,7 @@ Worked gradings for the rubric in [CRITERIA.md](CRITERIA.md#severity-how-bad-a-f
 | Two concurrent resumes of the same session both type the launch command | High: stray input lands in a fresh agent | Low: needs two resumes at the same moment | Visible | Should-Fix |
 | An HTML preview doesn't reload when Preview is pressed a second time | Medium: shows stale content | High: every edit-then-preview | Visible; reopening works | Should-Fix |
 | `resume` reports a generic failure and hides why the relaunch failed | Medium: misleading message | Medium | Visible; `--json` carries the reason | Should-Fix |
-| A secondary client (the Python CLI) returns a generic error code (`ERR_RUNPANE_FAILED` instead of `ERR_SESSION_PAYLOAD_INVALID`) and lists only the first payload problem | Medium: an agent that branches on the code takes the wrong path | Low: that client only | Visible | Must-Fix (public contract: error codes) |
+| A secondary client (the Python CLI) returns a generic error code (`ERR_CLI_FAILED` instead of `ERR_SESSION_PAYLOAD_INVALID`) and lists only the first payload problem | Medium: an agent that branches on the code takes the wrong path | Low: that client only | Visible | Must-Fix (public contract: error codes) |
 | A "View source" action is hidden for worktrees on WSL paths | Low | Low: WSL worktrees only | Visible | Suggestion |
 | A move-to-host picker greys out machines whose owner allows everyone on the tailnet, though the CLI allows the move | Medium: blocks an action that should work | Medium | Visible; no workaround in the UI | Should-Fix |
 

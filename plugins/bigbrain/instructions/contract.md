@@ -45,19 +45,19 @@ How workers and the orchestrator talk. One channel each way: a worker writes its
 - Every `[NEEDS DECISION: …]` in a page becomes a needs_you before that page can change stage.
 - Implementers raise needs_you only for what the plan leaves open. Routine technical choices are theirs.
 
-## Reporting through Pane
+## Signalling the orchestrator
 
-`runpane report` accepts four states and carries no files, so the status file holds the real state and the report points at it:
+A report is only a signal that the status file changed; the status file holds the real state. Send it with the host's report mechanism, as the host's orchestration skill describes, pointing at the status file. Each signal carries one of these:
 
-| Status state | Report |
+| Status state | Signal |
 | --- | --- |
-| `needs_you` | `runpane report --state blocked --question "Q-7: Invoice filename" --summary-file <status file>` |
-| `checkpoint` | `runpane report --state ready --pr <n> --head <sha> --summary-file <status file>` |
-| `blocked` | `runpane report --state blocked --question "<what would unblock it>" --summary-file <status file>` |
-| `done` | `runpane report --state ready --pr <n> --head <sha> --summary-file <status file>` when something waits on review or approval, otherwise `--state done` |
-| `failed` | `runpane report --state failed --summary-file <status file>` |
+| `needs_you` | blocked, with the question as `Q-n: <title>` |
+| `checkpoint` | ready, with the PR and pushed head |
+| `blocked` | blocked, with what would unblock it |
+| `done` | ready, with the PR and head, when something waits on review or approval; otherwise done |
+| `failed` | failed |
 
-A `fyi` needs no report of its own; the orchestrator batches it into the map. Each report replaces the previous one. Without Pane, report the same summary to whoever launched you.
+A `fyi` needs no signal of its own; the orchestrator batches it into the map. Each signal replaces the previous one. Without a host report mechanism, report the same summary to whoever launched you.
 
 ## Answers and messages to a worker
 
@@ -116,7 +116,7 @@ The copied greenfield skills stay byte-identical. Where they name something bigb
 
 - `options`, "mockup": the planner sets `needs: design` and the designer makes the mockups.
 - `babysit-pr`, `create-ticket`: record the follow-up in the post-mortem's action items instead.
-- `session-trace`, `handoff`: not used in bigbrain. Moving work to another machine is Pane's `runpane handoff`.
+- `session-trace`, `handoff`: not used in bigbrain. Moving work to another machine is the host's job.
 - `quick-verify`, the Cross-OS Workspaces link into `pr-test-automation`: not shipped in bigbrain. An OS-specific check you cannot run is `undetermined` with the reason.
 - `prepare-pr`, its `cold-read` step: not shipped in bigbrain. Skip it.
 - `page` → use `documents` (its templates and style rules). The bundle layout, local root and destinations are in `documents` too.
