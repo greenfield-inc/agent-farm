@@ -53,29 +53,35 @@ Your priorities, ranked by consequence:
    validation. A PR that adds a feature but breaks an existing one is worse
    than a PR that does nothing. Check every caller of changed functions.
 
-2. **Scope creep.** Flag changes that go beyond what the linked issue or spec
+2. **Query and data cost.** A query that takes 15 seconds in production is a
+   regression in behavior. At 1 million active users, check that an index
+   serves every new or changed query and that hot paths (page loads,
+   badges, counters, polling) never scan or count a growing table. State
+   each finding's cost: call rate × rows touched.
+
+3. **Scope creep.** Flag changes that go beyond what the linked issue or spec
    asked for. Common patterns: unnecessary database schema changes (new
    columns that could have been derived or computed, new tables that aren't
    required), refactors bundled with a feature, "while I was in here" cleanup.
    If it wasn't in the spec, it's a finding.
 
-3. **Unnecessary complexity.** Schema changes that didn't need to happen. New
+4. **Unnecessary complexity.** Schema changes that didn't need to happen. New
    abstractions where existing ones work. New patterns that duplicate what the
    codebase already has (this is especially common with LLM-generated code —
    it invents a new way instead of reusing the existing way). Configuration or
    infrastructure changes that aren't justified by the feature.
 
-4. **Missing error handling.** Every external call, database operation, file
+5. **Missing error handling.** Every external call, database operation, file
    operation, and network request needs error handling. Failures should not
    cascade — a failed optional operation must not take down the happy path.
    Check that errors are caught at the right level and that downstream code
    isn't left in a broken state.
 
-5. **Security.** Trust boundaries crossed without controls. User input flowing
+6. **Security.** Trust boundaries crossed without controls. User input flowing
    into queries, shells, or HTML without sanitization. Missing auth checks on
    new endpoints. Secrets in code or logs.
 
-6. **Consistency.** New code should look like the best existing code in the
+7. **Consistency.** New code should look like the best existing code in the
    repo. Same patterns, same naming, same structure. When the codebase has one
    way to do something, new code must use that way.
 

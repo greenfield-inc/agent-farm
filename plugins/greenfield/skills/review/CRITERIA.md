@@ -56,6 +56,7 @@ Calibrate against the worked examples in [severity-examples.md](severity-example
 - Async bugs: missing `await`, unhandled promise rejections, race conditions
 - Error handling: missing `try/catch` on calls that can throw, unhandled error states
 - State bugs: stale closures in hooks, missing dependency array entries
+- Query cost at 1M active users: an index serves every new or changed query, and hot paths (page loads, badges, counters, polling) never scan or count a growing table
 
 ## 2. Security
 
