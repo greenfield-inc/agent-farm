@@ -64,7 +64,8 @@ Compose a `PROJECT_CONTEXT` block summarizing:
 ## Step 3: Spawn the Applicable Review Agents in Parallel
 
 Read the diff, then choose principles. Always run 3, 4, 5 and 12 (scope,
-correctness and spec). Run 13 when the diff crosses a trust boundary (input,
+correctness and spec). Run 9 when the diff adds or changes a query, schema,
+data access or a loop over data that grows. Run 13 when the diff crosses a trust boundary (input,
 auth, secrets, shell, network, file paths, HTML); 14 and 15 when behaviour or
 tests changed; and the rest only when relevant files changed (for example 7
 and 10 only when UI components changed). List the skipped principles in one
@@ -176,6 +177,10 @@ WHAT TO CHECK:
    project convention)
 6. Check for inconsistent async/callback patterns vs what the codebase uses
 7. Verify file structure conventions are followed
+8. Flag imports well past a file's import block (inside a function,
+   conditional or mid-file): they usually hide a circular dependency or
+   missing injection. Name the cycle or root cause. Framework lazy
+   loading (React.lazy, Next.js dynamic, Python TYPE_CHECKING) is fine.
 
 SMELL BASELINE (always applies, even when the repo documents nothing —
 from Fowler's Refactoring ch.3; repo standards override these):
@@ -207,8 +212,8 @@ linting or formatting already enforces. A documented repo standard
 always wins over the baseline.
 
 OUTPUT: PASS/WARN/FAIL status, anti-patterns found with file:line
-references, convention violations, smell findings (labelled as judgement
-calls), recommendations.
+references, convention violations, late imports with their cause,
+smell findings (labelled as judgement calls), recommendations.
 ```
 
 ### Principle 5: Single Way to Do Things (MOST IMPORTANT)
@@ -338,37 +343,53 @@ complex code lacking explanation, orphaned TODOs without context,
 recommendations.
 ```
 
-### Principle 9: Circular Dependencies
+### Principle 9: Query & Data Cost
 
 ```
-Review the diff for CIRCULAR DEPENDENCIES indicated by late imports.
+Review the diff for QUERY & DATA COST at production scale.
 
 PROJECT_CONTEXT: {project_context}
 Changed files: {file_list}
 
-THE PRINCIPLE: Imports should appear at the top of files. Late imports
-(well past the import block) indicate circular dependencies, missing
-dependency injection, or architectural smells.
+THE PRINCIPLE: No request should get slower as the product grows.
+Assume 1 million active users. Derive each table's row count from what
+it stores per user (for example messages per user per day x days
+retained) and each path's call rate from how often 1M users hit it.
+Show the arithmetic.
 
 WHAT TO CHECK:
 1. Get the full diff: git diff {diff_range}
-2. Read each changed file completely
-3. Scan for imports appearing well after the file's import block:
-   - ES6: import ... from '...'
-   - CommonJS: require('...')
-   - Python: import / from ... import
-   - Dynamic: await import(...) / importlib
-4. EXCEPTIONS: Lazy-loading patterns explicitly supported by the
-   framework (React.lazy, Next.js dynamic, Python TYPE_CHECKING) are
-   acceptable
-5. For each late import, diagnose root cause:
-   - Inside a function/method = likely circular dependency
-   - Conditional import = should be injected or restructured
-   - Mid-file = should be top-level
+2. List every database query the diff adds or changes, whatever the
+   ORM, query builder or raw SQL produces
+3. For each query, find the table's real indexes in the schema,
+   migrations or ORM models. Confirm an index serves the WHERE, JOIN
+   and ORDER BY columns. A function on the column, a leading %
+   wildcard, a type mismatch or an OR across unindexed columns
+   defeats the index.
+4. Weigh call rate against table size. Badges, counters, polled
+   endpoints and page-load paths run constantly; a COUNT over a large
+   table there is the classic failure (for example a per-user unread
+   counter on every page load).
+5. Check query shape: a query per item in a loop or resolver (N+1), a
+   large read with no LIMIT or pagination, a count where EXISTS
+   answers the question, SELECT * on a wide table, an unbounded IN
+   list.
+6. Check in-memory work that grows with data: nested loops over
+   growing collections, or loading a whole table to filter it in code.
+7. When the repo has a local or dev database you can reach read-only,
+   run EXPLAIN and include the plan. Never run anything against
+   production.
 
-OUTPUT: PASS/WARN/FAIL status, late imports found with file:line,
-root cause analysis for each, circular dependency chains identified,
-recommendations.
+Every finding states its cost at 1M users, e.g. "runs on every page
+load, ~20k calls/s, scans ~500M rows with no index on user_id". Drop
+any finding with no plausible scale cost. No micro-optimizations.
+
+If the diff adds or changes no queries and no data-sized loops, report
+N/A.
+
+OUTPUT: PASS/WARN/FAIL/N/A status, each query or loop with file:line,
+the index that serves it (or none), call rate x rows touched at 1M
+users, EXPLAIN plans when run, recommendations.
 ```
 
 ### Principle 10: Self-Contained Components
@@ -659,7 +680,7 @@ After the started agents complete, aggregate into a final report:
 | 6 | Backend Conventions | {status} | {count} |
 | 7 | Frontend Conventions | {status} | {count} |
 | 8 | Documentation Standards | {status} | {count} |
-| 9 | Circular Dependencies | {status} | {count} |
+| 9 | Query & Data Cost | {status} | {count} |
 | 10 | Self-Contained Components | {status} | {count} |
 | 11 | Data Layer Consistency | {status} | {count} |
 | 12 | Spec Fidelity | {status} | {count} |
@@ -685,11 +706,13 @@ Ran: {n, names} · Skipped: {names - reason each, or "none"}
 - Any agent WARN (none FAIL) → overall WARN
 - Principle 5 (Single Way) violations are weighted most heavily
 - Skipped principles count as N/A
-- Principles 6, 7, 11 report N/A when their domain has no changes — N/A
+- Principles 6, 7, 9, 11 report N/A when their domain has no changes — N/A
   does not affect the overall score
 - Principle 12 reports SKIPPED when no spec/issue is found
 - Mismatched data-layer patterns (Principle 11) are CRITICAL severity
 - Security boundary gaps (Principle 13) with no control are CRITICAL severity
+- A missing index or unbounded scan on a hot path (Principle 9) is CRITICAL
+  severity
 - Principles 14, 15 report N/A when the diff contains no test changes and
   no testable behavior changes
 - Test theater (Principle 14) — tests that pass with broken code — is a
