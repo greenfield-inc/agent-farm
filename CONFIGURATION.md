@@ -991,8 +991,10 @@ reports the preset, resolved arguments, resolved model, and the agent/preset
 source of each model field. `--explain` and `--print-launch` add the actual
 launch metadata, including any flag sources and `ad hoc` override marker.
 
-`greenfield/implementer` has three variants: `opus` (the default), `astra`, and
-`sol`. It is the former `dcouple/raw`; its earlier `claude`, `standard`, and
+`greenfield/implementer` has four variants: `opus` (the default), `astra`,
+`sol`, and `codex`. Both `sol` and `codex` use GPT-6.1 Sol; `codex` also keeps
+its opt-in second opinion on Codex. See the [Greenfield guide](plugins/greenfield/README.md#orchestration)
+for Codex worker routing. It is the former `dcouple/raw`; its earlier `claude`, `standard`, and
 `fast` variants were removed. The `dcouple` plugin, which still ships for
 existing installs, also has an `implementer` profile, so use the qualified name
 when both plugins are installed. `agent-farm plugin uninstall dcouple` removes it.

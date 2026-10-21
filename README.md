@@ -55,7 +55,7 @@ installed, `agent-farm` shows a menu like this (abridged):
 ◆  What would you like to do? Tab: show all descriptions
 │  ● greenfield/planner (2) (Help you understand a problem, decide what to do, and write the plan. Doesn't write code.)
 │  ○ orchestra/overseer (2)
-│  ○ greenfield/implementer (3)
+│  ○ greenfield/implementer (4)
 │  ○ greenfield/qa-and-fix (2)
 │  ○ greenfield/reviewer (2)
 │  ─────────────────────

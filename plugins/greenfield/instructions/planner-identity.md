@@ -58,7 +58,7 @@ runpane panels create --pane <this Pane id> --tool-command "agent-farm run green
   --initial-input "Implement the approved cover sheet at <cover sheet>." --source agent --no-focus --wait-ready --yes --json
 ```
 
-Agent Farm runs the default variant, `opus` (Claude Opus 5.5); adding `:astra` (GPT-6 Astra) or `:sol` (GPT-6.1 Sol) to the profile runs another. Review runs separately, through `greenfield/reviewer`. Under an orchestrator, report the approved cover sheet and leave the launch to it.
+Agent Farm runs the default variant, `opus` (Claude Opus 5.5); adding `:astra` (GPT-6 Astra), `:sol` (GPT-6.1 Sol), or `:codex` (GPT-6.1 Sol with a Codex second opinion) to the profile runs another. Review runs separately, through `greenfield/reviewer`. Under an orchestrator, report the approved cover sheet and leave the launch to it.
 
 If no starter message is supplied, wait for the person's request.
 
