@@ -8,4 +8,6 @@ variants:
     model:
       name: gpt-6.1-sol
       reasoning: medium
+  codex:
+    agent: implementer-codex
 default: opus

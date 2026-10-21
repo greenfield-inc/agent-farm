@@ -294,3 +294,36 @@ test('code-smell-fixes runs on Sonnet 5.5 low with a native Claude finder and a 
  assert.ok(fs.existsSync(path.join(bundle,'main','dispatch','codex-finder')));
  assert.ok(fs.existsSync(path.join(bundle,'main','native-agents','finder.json')));
 });
+
+test('Codex orchestration routes every worker and helper to Codex while retaining Claude defaults',t=>{
+ const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-codex-orchestrator-')));
+ t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
+ validatePlugin(root);
+ const resolved=resolveProfile(root,'orchestrator:codex'),main=resolved.nodes.main;
+ assert.deepEqual([main.harness,main.model,main.reasoning_effort],['codex','gpt-6-astra','high']);
+ const advisor=resolved.nodes[main.children.advisor];
+ assert.deepEqual([advisor.mode,advisor.harness,advisor.model,advisor.reasoning_effort],['process','codex','gpt-6-astra','high']);
+ const workers=['bug-reporter:codex','planner:codex','implementer:codex','reviewer:codex','qa-and-fix:codex','simplify-and-refactor:sol'];
+ for(const profile of workers){
+  assert.ok(main.instructions.includes('greenfield/'+profile),profile);
+  const worker=resolveProfile(root,profile);
+  for(const node of Object.values(worker.nodes))assert.equal(node.harness,'codex',`${profile}: ${node.name}`);
+  verify(build(root,profile,target));
+ }
+ const implementer=resolveProfile(root,'implementer:codex');
+ assert.deepEqual([implementer.nodes.main.model,implementer.nodes.main.reasoning_effort],['gpt-6.1-sol','medium']);
+ const second=implementer.nodes[implementer.nodes.main.children['second-opinion']];
+ assert.deepEqual([second.mode,second.harness,second.model,second.reasoning_effort],['process','codex','gpt-6.1-sol','low']);
+ const bug=resolveProfile(root,'bug-reporter:codex');
+ for(const [alias,effort] of [['investigator','high'],['qa','medium']]){
+  const child=bug.nodes[bug.nodes.main.children[alias]];
+  assert.deepEqual([child.mode,child.model,child.reasoning_effort],['native','gpt-6.1-sol',effort]);
+ }
+ for(const profile of ['orchestrator','orchestrator:claude','bug-reporter','bug-reporter:claude','implementer'])assert.equal(resolveProfile(root,profile).nodes.main.harness,'claude',profile);
+ assert.match(main.instructions,/Preserve explicit user model overrides/);
+ const launch=command(build(root,'orchestrator:codex',target),'main',{prepare:false});
+ assert.equal(launch.argv[launch.argv.indexOf('--model')+1],'gpt-6-astra');
+ assert.ok(main.skills.includes('orchestrate-sessions'));
+ const skill=fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8');
+ assert.match(skill,/Use the orchestrator agent's worker routing defaults/);
+});

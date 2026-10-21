@@ -15,7 +15,7 @@ For a one-page visual map of how work is routed, open [index.html](index.html). 
 | `planner` (`planner:claude`) | Opus 5.5 high | Discussion, brief/options when needed, then the approved cover sheet |
 | `planner:codex` | Astra high | The same planner workflow on Codex |
 | `implementer` (`implementer:opus`) | Opus 5.5 medium | Builds a plan or a clear task with its skills, opens a draft PR, and watches it until checks are green |
-| `implementer:astra` / `implementer:sol` | Astra medium / Sol 6.1 medium | The same implementer on Codex |
+| `implementer:astra` / `implementer:sol` / `implementer:codex` | Astra medium / Sol 6.1 medium / Sol 6.1 medium | The same implementer on Codex; `:codex` also keeps its second opinion on Codex |
 | `reviewer` (`reviewer:claude`) / `reviewer:codex` | Opus 5.5 high / Sol 6.1 max | Reviews a pull request from many angles and ranks what to fix |
 | `simplify-and-refactor` (`simplify-and-refactor:sol`) / `simplify-and-refactor:opus` | Sol 6.1 low / Opus 5.5 medium | Asks whether an open pull request could be simpler, plans the cleanup, and applies only what you approve |
 | `qa-and-fix` (`qa-and-fix:claude`) / `qa-and-fix:codex` | Opus 5.5 medium / Sol 6.1 medium | Tests a finished pull request and fixes small safe problems |
@@ -24,9 +24,9 @@ For a one-page visual map of how work is routed, open [index.html](index.html). 
 | `seo` (`seo:claude`) / `seo:codex` | Opus 5.5 high / Astra high | Search strategy and pages |
 | `audits` (`audits:claude`) / `audits:codex` | Opus 5.5 high / Astra low | Stale issues, pull requests and docs |
 | `code-smell-fixes` | Sonnet 5.5 low | Hunts the whole codebase for confusing code with a Claude and a Codex finder swarm, writes a ranked report, and, unattended, opens fix PRs and files issues |
-| `bug-reporter` | Opus 5.5 high | Reproduce and write a report without fixing code |
+| `bug-reporter` (`bug-reporter:claude`) / `bug-reporter:codex` | Opus 5.5 high / Sol 6.1 high | Reproduce and write a report without fixing code |
 | `free-range` (`free-range:claude`) / `free-range:codex` | Opus 5.5 high / Astra medium | Raw-model comparison profiles without the Greenfield workflow |
-| `orchestrator` | Opus 5.5 medium | Experimental coordination of features, one Pane each, with every role a tab in it. When a feature is ready for review, it offers an optional `pr-understanding-check` |
+| `orchestrator` (`orchestrator:claude`) / `orchestrator:codex` | Opus 5.5 medium / Astra high | Experimental coordination of features, one Pane each, with every role a tab in it. When a feature is ready for review, it offers an optional `pr-understanding-check` |
 
 ```sh
 agent-farm plugin install
@@ -62,7 +62,7 @@ The cover sheet is the only plan document; older plans are still accepted as inp
 
 The implementer is the model on its own with a few house habits, the former `dcouple/raw`. Before working it reads every skill listed in its agent file: `tdd` and `codebase-design` for code and tests, `quick-verify` after each change, `prepare-pr`, `excalidraw-pr-diagrams` and `babysit-pr` for the pull request, `investigate` for bugs, plus `create-ticket`, `handoff`, `smallest-test`, `pr-test-automation`, `ui-mockup`, `research-web`, `refactor`, `session-trace`, `architecture-diagram` and `swarm`. It is the only writer on its branch. Under an orchestrator it keeps the named status file current and reports through `runpane report`.
 
-Review runs once, separately, through `greenfield/reviewer`, launched by you or by an orchestrator when a workstream's pull requests are ready for review (at `deferred`, in the end-of-Session pass). Launched by an orchestrator, the reviewer only writes its findings file; the orchestrator offers to fix the must-fix items now, batch them into the end-of-Session pass, or skip them; fixes go to the implementer that owns the pull request, and a follow-up review checks only those items. Run by hand, the reviewer saves its findings file and suggests `greenfield/implementer` to fix them. Nothing merges without the person's word. Run standalone, or when you ask, the implementer can get a quick review on the other vendor's model from its `second-opinion` child before calling a pull request done; under an orchestrator it leaves review to `greenfield/reviewer`.
+Review runs once, separately, through `greenfield/reviewer`, launched by you or by an orchestrator when a workstream's pull requests are ready for review (at `deferred`, in the end-of-Session pass). Launched by an orchestrator, the reviewer only writes its findings file; the orchestrator offers to fix the must-fix items now, batch them into the end-of-Session pass, or skip them; fixes go to the implementer that owns the pull request, and a follow-up review checks only those items. Run by hand, the reviewer saves its findings file and suggests `greenfield/implementer` to fix them. Nothing merges without the person's word. Run standalone, or when you ask, the implementer can get a quick review (on Codex under `:codex`, otherwise on the other vendor's model) from its `second-opinion` child before calling a pull request done; under an orchestrator it leaves review to `greenfield/reviewer`.
 
 `greenfield/simplify-and-refactor` is an optional pass between the implementer finishing and QA or review. It runs `refactor`: blind simple and deep analyses (with `principled-review` when you ask for it), merged into one plan. Analysis is read-only. It applies the plan only after you approve it, and only while no other worker is writing the branch, then has an adversary try to break the change. Applying changes the head, so QA and review run after it. The implementer has the same `refactor` skill for a quick simple pass on its own diff.
 
@@ -73,14 +73,14 @@ Review runs once, separately, through `greenfield/reviewer`, launched by you or 
 | `explorer`, `cold-reader` | implementer | Sonnet 5 medium, native (Sol 6.1 low under the Codex variants); codebase facts and a fresh read of prose |
 | `qa-and-verify` (agent `pr-qa`) | implementer | Opus 5.5 medium, native (Sol 6.1 medium under the Codex variants); a full QA pass on a finished pull request |
 | `refactor`, `cold-reader` | simplify-and-refactor | Sol 6.1 low under `:sol`; Opus 5.5 medium for `refactor` and Sonnet 5 medium for `cold-reader` under `:opus`; native. A fresh `refactor` runs each analysis, lens and adversarial pass |
-| `second-opinion` (agent `pr-reviewer`) | implementer | Sol 6.1 low under `:opus`, Opus 5.5 medium under the Codex variants, process; an opt-in quick review with `review` |
+| `second-opinion` (agent `pr-reviewer`) | implementer | Sol 6.1 low under `:opus`, Opus 5.5 medium under `:astra` / `:sol`, Sol 6.1 low under `:codex`, process; an opt-in quick review with `review` |
 | `finder`, `codex-finder` (agent `smell-finder`) | code-smell-fixes | Sonnet 5.5 low, native, one per lens; Sol 6.1 low, process, one per pair of lenses. Read-only |
 | `codebase-explorer` | reviewer, qa-and-fix | Targeted repository questions; a process child under `reviewer:claude` |
 | business reviewers, `cold-reader` | business | Context, research adversary, spec and artifact reviewers |
 | `socrates` | planner | Opus 5.5 high (Astra high under Codex planner); challenge unnecessary scope |
-| `investigator`, `researcher` | planner; `investigator` also under bug-reporter | Opus 5.5 high (Sol 6.1 max under Codex planner); bounded evidence questions |
+| `investigator`, `researcher` | planner; `investigator` also under bug-reporter | Opus 5.5 high (Sol 6.1 max under Codex planner, Sol 6.1 high under Codex bug-reporter); bounded evidence questions |
 | `mockup-artist` | Claude planner | Sol 6.1 medium, process; generated design assets when needed |
-| `qa` | bug-reporter | Opus 5.5 medium; reproduce a bug in the app |
+| `qa` | bug-reporter | Opus 5.5 medium (Sol 6.1 medium under `:codex`); reproduce a bug in the app |
 | `advisor` | orchestrator | Astra high, process; advice about session coordination |
 
 Planners do not launch the implementer. When a cover sheet is approved, the planner gives the person the `agent-farm run greenfield/implementer` command; Agent Farm runs the default variant unless the command names another.
@@ -115,6 +115,8 @@ An orchestrator passes the planner its source as `source` and a status JSON path
 Compare runs using the same approved feature, current-code validation, reviewer rubric, model/effort, costs, active elapsed time, and human intervention time. Record the resolved trace identity `greenfield/<profile>[:<variant>]@<version>`; the earlier multi-worker benchmark is not the new workflow.
 
 ## Orchestration
+
+Launch the Codex coordinator with `agent-farm run greenfield/orchestrator:codex --directory /absolute/coordination`. It defaults to `planner:codex` (Astra high), `implementer:codex` (Sol 6.1 medium), `bug-reporter:codex` (Sol 6.1 high), `reviewer:codex`, `qa-and-fix:codex` and `simplify-and-refactor:sol`. Its advisor remains Astra high. Explicit user model or variant overrides take precedence. The dedicated implementer keeps even its opt-in second opinion on Codex (Sol 6.1 low); the existing `implementer:sol` and `:astra` retain their cross-vendor second opinions. Codex bug intake uses Sol 6.1 high for investigation and medium for QA. Shared skills are reused. `greenfield/orchestrator` still defaults to Claude.
 
 `greenfield/orchestrator` routes all work the same way: 1 feature = 1 branch = 1 workspace (in Pane, one Pane and its worktree); reviews, audits, fixes and QA for it are tabs in that workspace. In Pane, the feature gets one Pane (`runpane panes create`, one worktree and branch), and every later role opens as a new agent tab in that Pane (`runpane panels create --pane <id>`):
 
