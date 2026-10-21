@@ -1,1 +1,6 @@
-agent: orchestrator
+variants:
+  claude:
+    agent: orchestrator
+  codex:
+    agent: orchestrator-codex
+default: claude

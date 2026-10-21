@@ -29,7 +29,7 @@ Every piece of work follows the same three roles, each a fresh agent in that wor
 | --- | --- |
 | Idea, open product or architecture decision, investigation, or anything of uncertain size | `greenfield/planner`: investigate, present options, produce the HTML cover sheet, or ask the necessary question |
 | Bug needing a reproducible report | `greenfield/bug-reporter` |
-| Approved cover sheet | `greenfield/implementer` (`opus` unless the user picks `astra` or `sol`) |
+| Approved cover sheet | `greenfield/implementer` (use the orchestrator's routing default; otherwise `opus`) |
 | Clearly straightforward, authorized fix | `greenfield/implementer` directly, with the original task and a `no-plan` label |
 | Implementer done, when the user turned on the simplify checkpoint | `greenfield/simplify-and-refactor:sol` on that PR's branch, before QA and review (see Review policy) |
 | Every PR of the workstream ready for review | `greenfield/reviewer:codex`, one per PR, one `COMMENT` review, no fixes (see Review policy) |
@@ -70,7 +70,7 @@ runpane panels create --pane <feature Pane id> --source agent --no-focus --wait-
   --initial-input-file <absolute starting-message file> --as-file-pointer
 ```
 
-Always name the variant, or the worker runs the profile's default instead of the one you meant: `greenfield/planner:claude` and `greenfield/implementer:opus` unless the user picked another, `greenfield/reviewer:codex` for review, and `greenfield/simplify-and-refactor:sol` for the simplify checkpoint. Only single-variant profiles such as `greenfield/bug-reporter` go without one. The starting message names the source and its revision, the validation criteria or PR, the status-file path, the document destination, the Session name and the validation level (see Review policy). `planner` and `bug-reporter` also accept `source` and `parent` (`--arg`); `implementer`, `reviewer` and `simplify-and-refactor` take everything in the message. `parent` is an absolute status-file path; host session IDs travel separately.
+Use the orchestrator agent's worker routing defaults when it declares them, preserving explicit user model or variant overrides. Otherwise use the defaults below. Always name the variant, or the worker runs the profile's default instead of the one you meant: `greenfield/planner:claude` and `greenfield/implementer:opus` unless the user picked another, `greenfield/reviewer:codex` for review, and `greenfield/simplify-and-refactor:sol` for the simplify checkpoint. Use `greenfield/bug-reporter:claude` for intake unless the orchestrator or user selects `:codex`. The starting message names the source and its revision, the validation criteria or PR, the status-file path, the document destination, the Session name and the validation level (see Review policy). `planner` and `bug-reporter` also accept `source` and `parent` (`--arg`); `implementer`, `reviewer` and `simplify-and-refactor` take everything in the message. `parent` is an absolute status-file path; host session IDs travel separately.
 
 Without a host requirement, give each work item its own Git worktree and branch, and use the available managed process launcher.
 
