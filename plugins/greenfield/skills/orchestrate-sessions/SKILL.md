@@ -95,7 +95,7 @@ The user can skip review, add checkpoints (including the simplify checkpoint), o
 
 After dispatch, rely on the host's completion and blocker events and yield the way it prescribes. Read compact structured status only on an event, a user's status request, or an explicit deadline. Deduplicate repeated events by worker and event identity. Batch independent status reads and update only the items that changed.
 
-While work is in flight, keep watching it, so the Session never stalls silently. After the first dispatch, ask once: "Set up a watcher? I'll check in at 5 minutes, slow down while nothing changes, and tell you only when something does." Start it unless the user says no; they can change the schedule or turn it off.
+While work is in flight, keep watching it, so the Session never stalls silently. The watcher is on by default: start it in the same turn as the first dispatch, before you reply, and never wait for the user to agree to it. Then say it is on and offer to turn it off, in one line: "Watcher on: I'll check in at 5 minutes, slow down while nothing changes, and tell you only when something does. Say 'no watcher' to turn it off." The user can change the schedule or turn it off; until they do, every later dispatch keeps it running. Phrasing the watcher as a question and waiting for an answer is the failure this rule exists to prevent.
 
 ```
 schedule:         3 checks each at 5, 10, 15, then 30 minutes; after 3 quiet 30-minute checks, expire
