@@ -56,6 +56,7 @@ Calibrate against the worked examples in [severity-examples.md](severity-example
 - Async bugs: missing `await`, unhandled promise rejections, race conditions
 - Error handling: missing `try/catch` on calls that can throw, unhandled error states
 - State bugs: stale closures in hooks, missing dependency array entries
+- Query cost at 1M active users: an index serves every new or changed query, and hot paths (page loads, badges, counters, polling) never scan or count a growing table
 
 ## 2. Security
 
@@ -133,6 +134,11 @@ Severity follows the rubric above. In bigbrain the cover sheet is the contract:
 - A J-n or S-n the change breaks is a broken promise in a public contract: Must-Fix.
 - Drift from the cover sheet, a locked D-n or the design notes that breaks no J/S is Should-Fix, unless its harm and reach make it Must-Fix.
 - Every Must-Fix and Should-Fix is checked by a checker on the other vendor before it is posted. Suggestions are the author's call; at most five per review.
+
+Every Must-Fix and Should-Fix also carries two routing answers, set by the finder and re-checked by the checker. The orchestrator routes on them (`orchestrate`, After a review):
+
+- **Scope: in | out.** In when the fix stays inside what this PR changes or the packages in scope; out when it lies elsewhere (code the PR does not touch, another package's work, a follow-up). Must-Fix is fixed either way; an out-of-scope Should-Fix goes to the person.
+- **Approach/scope: no | yes.** Yes when fixing it would need a different approach or change the work's scope: a broken premise, a missing package, a plan-level gap (or, without a plan, work the linked issue did not ask for). Say in one line what plan change it would need. A flagged finding is never sent to the implementer; it goes to the person, whatever its level.
 
 Plan checks, in scope only for the step's packages:
 
