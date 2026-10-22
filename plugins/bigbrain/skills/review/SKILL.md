@@ -110,7 +110,7 @@ Fetch the created review back and confirm the event, the commit, the marker and 
 
 ## Follow-up
 
-A follow-up message names a step (or, in PR mode, the label) and a list of F-n. Check only those F-n on the new head: for each, `closed` (with the evidence) or `still open` (with what still fails). Append a "Follow-up (<sha>)" section to the same findings file and post one short `COMMENT` review marked `<!-- bigbrain-review step=<step id> head=<sha> follow-up -->`. Raise nothing new; a new problem you happen to see goes in the report to the orchestrator, not in the review.
+A follow-up message names a step (or, in PR mode, the label) and a list of F-n. Check only those F-n on the new head: for each, `closed` (with the evidence) or `still open` (with what still fails). Append a "Follow-up (<sha>)" section to the same findings file and post one short `COMMENT` review marked `<!-- bigbrain-review step=<step id> head=<sha> follow-up -->`. Raise nothing new, with one exception: a problem in the lines the fix round changed that would be a Must-Fix. Brief a checker on the other vendor for it; if confirmed, number it as a new F-n marked `fix-caused`, add it to the findings file and the follow-up post, and name it in your report. The orchestrator's thrash rule pauses the loop on it. Any other new problem goes in the report to the orchestrator, not in the review.
 
 ## Report
 

@@ -5,7 +5,7 @@ description: Executes an approved bigbrain control-flow.json one step at a time 
 
 # Implement plan
 
-You build what the approved cover sheet says by running its `control-flow.json`, in order. You are the only writer on the branch and you write alone. The orchestrator owns every review and design step; the person is reached only through `needs_you` (`contract.md`). The step types and review-point rules are in the `documents` skill's `references/control-flow.md`.
+You build what the approved cover sheet says by running its `control-flow.json`, in order. You are the only writer on the branch and you write alone. The orchestrator owns every review and design step, and reviews every PR before it is ready; the person is reached only through `needs_you` (`contract.md`). The step types and review-point rules are in the `documents` skill's `references/control-flow.md`.
 
 Two modes, chosen by your starting message:
 
@@ -39,7 +39,7 @@ Run the steps in order. Before each one, set `step` to its id in your status fil
 | `verify` | `quick-verify` | Prove the listed flows. S-n: run the command yourself and keep the output. J-n, or any step with `spawn: "verifier"`: brief the verifier (below). Write the results into `verification.json`. |
 | `qa` | (the verifier brings `verify-app` and `design`) | The QA loop below. |
 | `pr` | `prepare-pr`, `excalidraw-pr-diagrams`, `babysit-pr` | The PR step below. |
-| `review`, `design` | none | The checkpoint handshake in `contract.md`: commit, push, run `check-bundle`, set `state: checkpoint` with `{ step, scope, head }`, report, and change nothing on the branch until `continue:`. Fix only the must-fix F-n the orchestrator sends, then check in again. You never start a reviewer or a designer. |
+| `review`, `design` | none | The checkpoint handshake in `contract.md`: commit, push, run `check-bundle`, set `state: checkpoint` with `{ step, scope, head }`, report, and change nothing on the branch until `continue:`. Fix exactly the F-n a `review: … → fix` message sends, then check in again. You never start a reviewer or a designer. |
 
 Use `explorer` for large read-only questions about the codebase (with file:line answers). Never give a helper write work, and never run parallel writing subagents.
 
@@ -66,9 +66,9 @@ Watch for thrashing: a fix that breaks something fixed earlier, or the same area
 ## The PR step
 
 1. Run `check-bundle <bundle> --stage done`. A pending row means a step did not run: go back and run it, or record it as undetermined with the reason.
-2. Use `prepare-pr`. The first line is an imperative, standalone summary. The body follows the bigbrain PR layout: why (SC-n delivered), concepts and approach (D-n), walkthrough by P-n, validation (the J/S verdict summary, QA rounds used, a link to the verification page) and limitations. Add a size note when more than about 1,000 lines changed, saying why it is not split. Skip `prepare-pr`'s offer of another simplify pass and its `cold-read` step.
+2. Use `prepare-pr`, and open the PR as a draft: it stays draft until the end review leaves no Must-Fix open. The first line is an imperative, standalone summary. The body follows the bigbrain PR layout: why (SC-n delivered), concepts and approach (D-n), walkthrough by P-n, validation (the J/S verdict summary, QA rounds used, a link to the verification page) and limitations. Add a size note when more than about 1,000 lines changed, saying why it is not split. Skip `prepare-pr`'s offer of another simplify pass and its `cold-read` step.
 3. Use `babysit-pr` until the required checks and bots are green. It never merges.
-4. Then the end review: check in at the end review step with the handshake (it is the last step). When it is waived, the orchestrator decides with the person whether to review.
+4. Then the end review: check in at the end review step with the handshake (it is the last step). When it is waived, the orchestrator decides with the person whether to review. On its `continue:`, mark the PR ready for review (`gh pr ready`).
 
 ## Post-mortem
 
@@ -87,12 +87,13 @@ Run `check-bundle --stage done`, set the status file's `checks` from `verificati
 
 ## Quick fix
 
-The starting message gives the task in the person's words, what "done" looks like, the branch, and the status file. No planner, no cover sheet, no reviewer.
+The starting message gives the task in the person's words, what "done" looks like, the branch, and the status file. No planner, no cover sheet, no control flow; the PR is still reviewed.
 
 1. Reproduce or observe the current behaviour first. If the task turns out to need a product or design decision, or grows beyond a small, reversible change, stop and report a `needs_you` that says so; do not plan it yourself.
 2. Fix it with `tdd` where a test fits, and check the real effect with `quick-verify`. For a UI change, brief the verifier for screenshots at the affected viewports and themes.
 3. Run the repository's own checks.
 4. Commit to the named feature branch and push, or, for new work, open a draft PR labelled `no-plan`.
-5. Report with what you checked and how (commands and their results, screenshots), the commit or PR, and anything you could not check. A short "what happened" note in the report replaces the post-mortem, unless you hit one of its four triggers (an unexpected issue, a critical decision, a wrong assumption, or thrashing); then write the post-mortem as above.
+5. Run the checkpoint handshake with step `quick-fix`, scope `all` and the pushed head, and wait. The orchestrator reviews the PR in PR mode; fix exactly what a `review: quick-fix → fix …` message sends and check in again. On `continue: quick-fix`, mark the PR ready (`gh pr ready`) if it is still a draft.
+6. Report with what you checked and how (commands and their results, screenshots), the commit or PR, the review outcome, and anything you could not check. A short "what happened" note in the report replaces the post-mortem, unless you hit one of its four triggers (an unexpected issue, a critical decision, a wrong assumption, or thrashing); then write the post-mortem as above.
 
 Never start a reviewer, and never merge.

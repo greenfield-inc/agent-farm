@@ -17,6 +17,8 @@ Without an orchestrator (no `parent` in the launch context and nobody relaying),
 
 An approved cover sheet ships `control-flow.json`. The implementer executes it step by step, the orchestrator executes its review and design steps, and nobody improvises a step the flow does not list. Anything the control flow does not list is unplanned: a worker reports it, and the orchestrator asks the person before acting on it. Implementers never start reviewers.
 
+Every PR is reviewed before it is marked ready. The orchestrator starts a review sized to the change, without asking, at each review step and for each quick fix's PR; a PR stays draft until no Must-Fix is open. Fixes that stay within the approved approach and scope go back to the implementer on their own. A finding that would change the approach or the scope, and a fix loop that thrashes, go to the person. Any other review is unplanned.
+
 ## One writer
 
 Each profile does its own core work. Helpers only read, absorb noisy output, or check work independently; they never edit the branch or the bundle. No profile runs parallel writing subagents. Parallel building happens only at the orchestrator, as separate implementers in separate workspaces, for packages the cover sheet marks independent.
