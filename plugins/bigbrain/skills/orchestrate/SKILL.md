@@ -46,8 +46,8 @@ When the person asks for a simple fix, or approves one in words, send it straigh
 - Only on the person's explicit word. Never route work here on your own judgement, and an investigator's `direct-to-implementer` report still gets the "straight to an implementer, or plan it first?" question; only a yes to that opens this route.
 - Existing feature: if that feature's implementer is running and idle, send the quick-fix message to it; otherwise start a new `bigbrain/implementer` in the feature's workspace once the previous writer has stopped (one writer per branch). New work: a new workspace and branch.
 - The starting message is the quick-fix variant in `contract.md`: the task in the person's words, the done-when, the branch, and the status file.
-- When it reports `checkpoint` (step `quick-fix`) with its draft PR and head, start one sized reviewer in PR mode without asking (see Reviews), and run the fix loop as for a planned review. A quick fix committed onto a feature branch whose control flow has a review point still ahead is reviewed there instead; say so to the implementer with `continue: quick-fix`.
-- When no Must-Fix is open, send `continue: quick-fix`; the implementer marks the PR ready. Then check its status and evidence (what it checked, the PR and the review outcome) and tell the person. Never merge.
+- When it reports `checkpoint` (step `quick-fix`) with its draft PR and head, start one sized reviewer in PR mode without asking (see Reviews), and run the fix loop as for a planned review. A quick fix committed onto a feature branch whose control flow has a review point still ahead is reviewed there instead: send `continue: quick-fix → reviewed at <step id>`, and the implementer leaves the PR as it is.
+- When its own review leaves no Must-Fix open, send `continue: quick-fix`; the implementer marks the PR ready. A quick fix has no bundle: record the person's answers on its findings as D-n in the map's decision log, and a "re-plan" answer means planning it properly (start a planner with the finding as source). Then check its status and evidence (what it checked, the PR and the review outcome) and tell the person. Never merge.
 
 ## Launching workers
 
@@ -119,7 +119,7 @@ Every PR is reviewed before it is marked ready: at each `review` step of an appr
 
 Send the implementer's share in one message, `review: <step> → fix F-… (findings: <path>)`, or `review: <step> → nothing to fix (findings: <path>)`. Put the person's share to them as one relay message listing each finding with its file:line and, for a flagged one, the plan gap it exposes. A finding the person sends back to be fixed goes to the implementer in the next `review:` message. A re-plan goes to the planner as a new revision, and the implementer waits at its checkpoint.
 
-**The fix loop.** After the implementer's next checkpoint for the same step, start a follow-up reviewer that checks only the F-n it was sent. Read its findings file and route any still-open F-n the same way. Send `continue: <step>` only when no Must-Fix is open or waits on the person's answer, and every F-n sent has been checked. If the implementer reports `blocked` or `failed` on its fixes, relay that to the person instead.
+**The fix loop.** After the implementer's next checkpoint for the same step, start a follow-up reviewer that checks only the F-n it was sent. A follow-up is not sized again; it runs no finders. Read its findings file and route any still-open F-n the same way. Send `continue: <step>` only when no Must-Fix is open or waits on the person's answer, and every F-n sent has been checked. A Must-Fix the person accepted as is counts as closed: record their D-n and say so in the map. If the implementer reports `blocked` or `failed` on its fixes, relay that to the person instead.
 
 **The thrash rule.** Stop sending fixes and ask the person when any of these happens on one review point:
 

@@ -45,7 +45,7 @@ F-n  Approach/scope · Must-Fix · src/billing/export.ts:88 — <what is wrong>
        Accept as is
 F-n  Out of scope · Should-Fix · src/shared/date.ts:14 — <what is wrong>
      → Record a follow-up · Fix it here · Skip
-Files   findings/pr-<n>-<step>.md (opened)
+Files   findings/pr-<n>-<step>.md (linked)
 ```
 
 Thrash question (`orchestrate`, the thrash rule), always these three options:

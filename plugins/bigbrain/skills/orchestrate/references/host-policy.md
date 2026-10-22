@@ -12,6 +12,6 @@ Read only the relevant host guidance. A useful host policy identifies:
 - How workers report to their parent: completion and blocker events, yielding, and bounded waits.
 - Where durable state lives, concurrency and usage limits, and cleanup permissions.
 
-Follow those mechanics exactly within the authorized scope. Bigbrain's rules still hold: one front door, division of labor, explicit phase approval through the relay, one implementation writer, review only at planned steps or on the person's word, and budget limits. The host may set stricter limits. A host tool being available grants access only to the work you were assigned.
+Follow those mechanics exactly within the authorized scope. Bigbrain's rules still hold: one front door, division of labor, explicit phase approval through the relay, one integrator per branch, every PR reviewed before it is ready (sized, started without asking at review steps and for quick-fix PRs; any other review only on the person's word), and budget limits. The host may set stricter limits. A host tool being available grants access only to the work you were assigned.
 
 For example, a host that owns feature worktrees and requires association with a coordination session must create and associate the workspace before the task is submitted. A host that asks for yielding after dispatch gets exactly that, with no polling on top. These describe capabilities, so they apply regardless of the app's name or commands.

@@ -83,7 +83,7 @@ At a control-flow step with `do: review`:
 5. Fixes come back as `review: <step> → fix …`. The implementer fixes only those, pushes, and repeats step 2 with the new head. The orchestrator starts a follow-up that checks only those items. If the loop thrashes, the orchestrator pauses it and asks the person; the implementer keeps waiting.
 6. `continue: <step>` resumes the flow at the next step, once no Must-Fix is open. At the end review it also means: mark the PR ready for review.
 
-The same handshake runs for the end review after the `pr` step; there `continue:` means the work is done. A quick fix runs it once its draft PR is pushed, with step `quick-fix` and scope `all`; the review is in PR mode. A waived end review (`"review": "none"`) still gets the handshake: the orchestrator starts no reviewer, puts "review now, or continue?" to the person, and sends `continue:` or a reviewer's findings accordingly.
+The same handshake runs for the end review after the `pr` step; there `continue:` means the work is done. A quick fix runs it once its draft PR is pushed, with step `quick-fix` and scope `all`; with no bundle it skips `check-bundle` and `verification.json` in step 1, and the review is in PR mode. A waived end review (`"review": "none"`) still gets the handshake: the orchestrator starts no reviewer, puts "review now, or continue?" to the person, and sends `continue:` or a reviewer's findings accordingly.
 
 ## Starting message and helper brief
 
