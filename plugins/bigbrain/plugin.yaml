@@ -1,11 +1,11 @@
 name: bigbrain
-version: 0.1.0
+version: 0.2.0
 cli_major: 0
 source:
   repository: https://github.com/greenfield-inc/agent-farm
   commit: 5ae9b63d09495907b098aebced8a0702b38da290
 checksums:
-  agents/builder.md: c5ae80966687c2f86d7d4fbd3dca33ad128e81a6babe8f373699fb8abeb5bb6d
+  agents/builder.md: 5e8d1275431beaf1f79df880dbdc7c272258ef10ad2a28f1075353dd128bd49f
   agents/designer.md: 136934e54918120391232d4837f0d988cad2907a6a4ca9c3adc3412b442a478b
   agents/explorer.md: 1635f450fb53b7a435e550cdf8b91e44826512f23461836416a3da32f1dc5e6f
   agents/implementer-codex.md: 2f366eb0b8a0cc70f528163fdc68d2db4f64e0ea4c9a4fbc4534bb598f4d84c1
@@ -89,7 +89,7 @@ checksums:
   skills/excalidraw-pr-diagrams/references/render_excalidraw.py: c8c703455044faa84bbad2585b900c67e436e0c9772d45f32d4fce591f9d9120
   skills/excalidraw-pr-diagrams/references/render_template.html: 5caa1087d0fa68cdc873103aa761590cb16d2ae888d67a08d517ebab01ca110d
   skills/explain/SKILL.md: 26588e0aff49ada0e878cf6f8005eb123a0dc0043e663ffa19b89d76057b35af
-  skills/implement-plan/SKILL.md: ef399723bcd3d34320a4afc5dbc497609add8eed3e1f47a3cbbe2cfb98058c98
+  skills/implement-plan/SKILL.md: 3162bd9c9b174f1a7c159444cc7eb4fa953f61eac4965ec90510c54fd8da9c3e
   skills/interview/SKILL.md: 4632bf435dd8158e64e52c46937c95577159bf2250b89633e64ad33d4f3c1c39
   skills/interview/references/decision-log-template.md: ad61b41c20e6d734c82418cb9a7b4ee46820a98e6cbbcb201dcda84357f0bc27
   skills/interview/references/question-format.md: 53ea57ce0ca40e7e74bdec11e661e0249fe2989ca1684ba5c6b348499bef54a4

@@ -35,7 +35,7 @@ Run the steps in order. Before each one, set `step` to its id in your status fil
 
 | `do` | Default skills | What you do |
 | --- | --- | --- |
-| `build` | `tdd`, `quick-verify`, `codebase-design` when an interface or seam is in question, `investigate` when something breaks unexpectedly | Build the package's outcome, test-first at the seams the cover sheet's checks imply, yourself or split across builders (below). Commit in small, focused commits on the feature branch and push. |
+| `build` | `tdd`, `quick-verify`, `codebase-design` when an interface or seam is in question, `investigate` when something breaks unexpectedly | Build the package's outcome, test-first at the seams the cover sheet's checks imply, yourself or split across builders (below). Run the cleanup checklist (below) before each commit, then commit in small, focused commits on the feature branch and push. |
 | `verify` | `quick-verify` | Prove the listed flows. S-n: run the command yourself and keep the output. J-n, or any step with `spawn: "verifier"`: brief the verifier (below). Write the results into `verification.json`. |
 | `qa` | (the verifier brings `verify-app` and `design`) | The QA loop below. |
 | `pr` | `prepare-pr`, `excalidraw-pr-diagrams`, `babysit-pr` | The PR step below. |
@@ -43,15 +43,26 @@ Run the steps in order. Before each one, set `step` to its id in your status fil
 
 Use `explorer` for large read-only questions about the codebase (with file:line answers). Never give `explorer` or `verifier` write work; `builder` is the only helper that edits.
 
+## Cleanup before each commit
+
+Before each commit in a build step, clean up the lines this change adds or edits, following the repository's own conventions:
+
+- Remove dead code and commented-out code.
+- Name magic values (a constant or a well-named variable, where the repository would).
+- Merge duplicated logic into one function or existing helper.
+- Give each new TODO its context (an issue or a reason), or remove it.
+
+Leave code the change does not touch alone, even when it has the same problems; at most, note it as a follow-up in the post-mortem's action items. This is not a separate pass: there is no simplify step, no stop for the person, and no behaviour change. Builders follow the same checklist on their own files, and you apply it again to the integrated diff before committing. Quick fixes follow it too.
+
 ## Builders
 
-In a `build` step, and only there, you may split the package across up to three `builder` subagents running at once. QA fixes, review fixes and the simplify pass stay with you, one at a time.
+In a `build` step, and only there, you may split the package across up to three `builder` subagents running at once. QA fixes and review fixes stay with you, one at a time.
 
 1. **Split by file ownership.** Cut the work into chunks that touch disjoint files and do not need each other's output. Chunks that share a file, or where one needs what another produces, run one after the other, or you do them yourself. Write the split down (in the Surprises log or your notes): each builder, its chunk, and the exact files it owns.
 2. **Keep the shared files.** Lockfiles, manifests, generated files, migrations, index or barrel exports, and any file two chunks would touch are yours: edit them yourself, before or after the builders. Installs, code generation and migrations are yours too.
 3. **Brief each builder** with the chunk's outcome, the files it owns, the tests it may run, and what the other chunks are doing (the brief format in `contract.md`). Builders never commit, check out, stash, install or migrate.
 4. **Check each diff before integrating.** Start the builders from a clean tree (commit your own edits first). When they return, compare `git status --porcelain` with the files you assigned, and each builder's reported list with its own files. A changed file nobody owns, or a builder touching a file it does not own, is a stray: restore that file (`git restore <file>`), and redo the straying builder's chunk yourself, serially.
-5. **Integrate, then verify and commit.** Make the shared edits, run the package's checks and the step's `verify` only after all chunks are in, then commit in focused commits yourself.
+5. **Integrate, then verify and commit.** Make the shared edits, run the cleanup checklist on the integrated diff, run the package's checks and the step's `verify` only after all chunks are in, then commit in focused commits yourself.
 
 Anything the plan leaves open that is a product, design, scope or approval question goes to the person as a `needs_you`; keep building what is not blocked. Routine technical choices are yours: record the consequential ones in the Surprises log and the post-mortem's critical decisions. A change to a check, a step or the scope is not yours to make: ask for a new plan revision through a `needs_you`.
 
