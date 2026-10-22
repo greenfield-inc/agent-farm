@@ -139,7 +139,7 @@ test('resume identity survives profile retargeting and compiler/runtime upgrades
  const installation=path.join(f.base,'upgrade');fs.mkdirSync(installation);
  fs.writeFileSync(path.join(installation,'package.json'),'{"type":"module"}');
  writeLink(fileURLToPath(new URL('../node_modules',import.meta.url)),path.join(installation,'node_modules'));
- for(const name of ['compiler.js','runtime.js','telemetry.js','telemetry-query.js','telemetry-mcp.js','telemetry-conversation.js','telemetry-hierarchy.js','telemetry-export.js','skill-layout.js','config.js','connections.js','workspaces.js']) {
+ for(const name of ['compiler.js','grain-policy.js','runtime.js','telemetry.js','telemetry-query.js','telemetry-mcp.js','telemetry-conversation.js','telemetry-hierarchy.js','telemetry-export.js','skill-layout.js','config.js','connections.js','workspaces.js']) {
   fs.copyFileSync(fileURLToPath(new URL('../dist/'+name,import.meta.url)),path.join(installation,name));
  }
  for(const name of ['compiler.js','runtime.js'])fs.appendFileSync(path.join(installation,name),'\n// Upgrade fixture\n');

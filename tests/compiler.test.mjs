@@ -6,6 +6,7 @@ import os from 'node:os';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {build} from '../dist/compiler.js';
+import {grainInstructions} from '../dist/grain-policy.js';
 import {command,fileMap,verify} from '../dist/runtime.js';
 import {writeHarness,writeLink,assertLinked} from './harness.mjs';
 const cli=fileURLToPath(new URL('../dist/cli.js',import.meta.url));
@@ -25,6 +26,31 @@ test('complete child/support bundle reuses inputs',t=>{
  const m=JSON.parse(fs.readFileSync(path.join(b,'manifest.json')));
  assert.deepEqual(m.nodes.main.connections,m.nodes['main/children/worker'].connections);
  assert.equal(m.directory,f.target);verify(b);
+});
+
+test('Grain delivery policy reaches both harnesses and process/native children without rewriting skills',t=>{
+ for(const harness of ['claude','codex'])for(const mode of ['process','native']){
+  const f=fixture(t);
+  f.put('agents/planner.yaml',`harness: ${harness}\nmodel: test\ninstructions: Keep the requested destination.\nskills: [proof]\nsubagents: {worker: {agent: worker, mode: ${mode}}}\n`);
+  f.put('agents/worker.yaml',`harness: ${harness}\nmodel: test\ninstructions: Keep private access.\nskills: [proof]\n`);
+  const skill='---\nname: proof\ndescription: Delivery test\n---\nSave the report. Open Grain last when connected.\n';
+  f.put('skills/proof/SKILL.md',skill);
+  const b=f.build(),m=JSON.parse(fs.readFileSync(path.join(b,'manifest.json')));
+  for(const [route,node] of Object.entries(m.nodes)){
+   assert.ok(node.instructions.endsWith(grainInstructions),`${harness}/${mode}/${route}`);
+   assert.equal(fs.readFileSync(path.join(b,route,'instructions.md'),'utf8'),node.instructions);
+   assert.equal(fs.readFileSync(path.join(b,route,'skills/proof/SKILL.md'),'utf8'),skill);
+   assert.equal(node.connections.docs.url,'https://example.com/mcp');
+  }
+  assert.ok(m.nodes.main.instructions.startsWith('Keep the requested destination.'));
+  assert.ok(m.nodes['main/children/worker'].instructions.startsWith('Keep private access.'));
+  if(mode==='native'){
+   const file=path.join(b,'main/native-agents/worker.'+(harness==='claude'?'json':'toml'));
+   const text=fs.readFileSync(file,'utf8');
+   assert.ok(harness==='claude'?JSON.parse(text).prompt.includes(grainInstructions):text.includes(JSON.stringify(grainInstructions).slice(1,-1)));
+  }
+  verify(b);
+ }
 });
 test('changed skills coexist with unchanged old bundle',t=>{
  const f=fixture(t),b=f.build(),before=fileMap(b);f.put('skills/proof/helper.txt','NEW');
@@ -128,7 +154,7 @@ test('profiles preset partial models and declared arguments but reject other beh
  f.put('profiles/entry.yaml','agent: base\nmodel: {name: second, speed: fast}\nargs: {mode: fast, source: ../plan.md}\n');
  const b=build(f.root,'entry',f.target),m=JSON.parse(fs.readFileSync(path.join(b,'manifest.json')));
  assert.equal(m.nodes.main.name,'base');assert.equal(m.nodes.main.model,'second');assert.equal(m.nodes.main.reasoning_effort,'medium');assert.equal(m.nodes.main.speed,'fast');
- assert.equal(m.nodes.main.instructions,'Base intent.');
+ assert.equal(m.nodes.main.instructions,'Base intent.\n\n'+grainInstructions);
  assert.deepEqual(m.nodes.main.launch.model.sources,{name:'preset',reasoning:'agent',speed:'preset'});
  assert.deepEqual(m.nodes.main.launch.arguments,{mode:'fast',source:'../plan.md'});assert.equal(m.nodes.main.launch.override,'preset');assert.equal(m.nodes.main.launch.preset,'entry');
  for(const extra of ['instructions: Extra','subagents: {}','harness: claude','skills: []']){
@@ -180,7 +206,7 @@ test('directory agents compose Markdown and invalidate bundles',t=>{
  f.put('instructions/shared.md','Shared guidance.');f.put('agents/writer/instructions.md','Role guidance.');
  f.put('profiles/writer.yaml','agent: writer\n');
  const b=build(f.root,'writer',f.target);
- assert.equal(fs.readFileSync(path.join(b,'main/instructions.md'),'utf8'),'Shared guidance.\n\nRole guidance.');
+ assert.equal(fs.readFileSync(path.join(b,'main/instructions.md'),'utf8'),'Shared guidance.\n\nRole guidance.\n\n'+grainInstructions);
  f.put('instructions/shared.md','Updated guidance.');assert.notEqual(build(f.root,'writer',f.target),b);verify(b);
 });
 test('instruction files fail on missing files, escapes, and ambiguous sources',t=>{
@@ -198,7 +224,7 @@ test('Markdown agents compose shared instructions and reject malformed frontmatt
  f.put('agents/writer.md','---\nharness: codex\nmodel: test\ninstructions_files: [../instructions/shared.md]\n---\n\nRole body.\n');
  f.put('instructions/shared.md','Shared.');
  const run=()=>build(f.root,'writer',f.target),b=run();
- assert.equal(fs.readFileSync(path.join(b,'main/instructions.md'),'utf8'),'Shared.\n\nRole body.');
+ assert.equal(fs.readFileSync(path.join(b,'main/instructions.md'),'utf8'),'Shared.\n\nRole body.\n\n'+grainInstructions);
  f.put('agents/writer.md','No frontmatter');assert.throws(run,/frontmatter/);
  f.put('agents/writer.md','---\nharness: codex\nmodel: one\nmodel: two\n---\nBody');assert.throws(run,/unique/);
  f.put('agents/writer.md','---\nharness: codex\nmodel: test\ninstructions: wrong\n---\nBody');assert.throws(run,/Markdown body/);
