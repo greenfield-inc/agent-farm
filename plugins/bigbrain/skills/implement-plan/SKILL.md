@@ -5,7 +5,7 @@ description: Executes an approved bigbrain control-flow.json one step at a time 
 
 # Implement plan
 
-You build what the approved cover sheet says by running its `control-flow.json`, in order. You are the only writer on the branch and you write alone. The orchestrator owns every review and design step, and reviews every PR before it is ready; the person is reached only through `needs_you` (`contract.md`). The step types and review-point rules are in the `documents` skill's `references/control-flow.md`.
+You build what the approved cover sheet says by running its `control-flow.json`, in order. You are the one integrator on the branch: builders may write chunks of a build step for you, but only you edit shared files, integrate and commit. The orchestrator owns every review and design step, and reviews every PR before it is ready; the person is reached only through `needs_you` (`contract.md`). The step types and review-point rules are in the `documents` skill's `references/control-flow.md`.
 
 Two modes, chosen by your starting message:
 
@@ -35,13 +35,23 @@ Run the steps in order. Before each one, set `step` to its id in your status fil
 
 | `do` | Default skills | What you do |
 | --- | --- | --- |
-| `build` | `tdd`, `quick-verify`, `codebase-design` when an interface or seam is in question, `investigate` when something breaks unexpectedly | Build the package's outcome, test-first at the seams the cover sheet's checks imply. Commit in small, focused commits on the feature branch and push. |
+| `build` | `tdd`, `quick-verify`, `codebase-design` when an interface or seam is in question, `investigate` when something breaks unexpectedly | Build the package's outcome, test-first at the seams the cover sheet's checks imply, yourself or split across builders (below). Commit in small, focused commits on the feature branch and push. |
 | `verify` | `quick-verify` | Prove the listed flows. S-n: run the command yourself and keep the output. J-n, or any step with `spawn: "verifier"`: brief the verifier (below). Write the results into `verification.json`. |
 | `qa` | (the verifier brings `verify-app` and `design`) | The QA loop below. |
 | `pr` | `prepare-pr`, `excalidraw-pr-diagrams`, `babysit-pr` | The PR step below. |
 | `review`, `design` | none | The checkpoint handshake in `contract.md`: commit, push, run `check-bundle`, set `state: checkpoint` with `{ step, scope, head }`, report, and change nothing on the branch until `continue:`. Fix exactly the F-n a `review: … → fix` message sends, then check in again. You never start a reviewer or a designer. |
 
-Use `explorer` for large read-only questions about the codebase (with file:line answers). Never give a helper write work, and never run parallel writing subagents.
+Use `explorer` for large read-only questions about the codebase (with file:line answers). Never give `explorer` or `verifier` write work; `builder` is the only helper that edits.
+
+## Builders
+
+In a `build` step, and only there, you may split the package across up to three `builder` subagents running at once. QA fixes, review fixes and the simplify pass stay with you, one at a time.
+
+1. **Split by file ownership.** Cut the work into chunks that touch disjoint files and do not need each other's output. Chunks that share a file, or where one needs what another produces, run one after the other, or you do them yourself. Write the split down (in the Surprises log or your notes): each builder, its chunk, and the exact files it owns.
+2. **Keep the shared files.** Lockfiles, manifests, generated files, migrations, index or barrel exports, and any file two chunks would touch are yours: edit them yourself, before or after the builders. Installs, code generation and migrations are yours too.
+3. **Brief each builder** with the chunk's outcome, the files it owns, the tests it may run, and what the other chunks are doing (the brief format in `contract.md`). Builders never commit, check out, stash, install or migrate.
+4. **Check each diff before integrating.** Start the builders from a clean tree (commit your own edits first). When they return, compare `git status --porcelain` with the files you assigned, and each builder's reported list with its own files. A changed file nobody owns, or a builder touching a file it does not own, is a stray: restore that file (`git restore <file>`), and redo the straying builder's chunk yourself, serially.
+5. **Integrate, then verify and commit.** Make the shared edits, run the package's checks and the step's `verify` only after all chunks are in, then commit in focused commits yourself.
 
 Anything the plan leaves open that is a product, design, scope or approval question goes to the person as a `needs_you`; keep building what is not blocked. Routine technical choices are yours: record the consequential ones in the Surprises log and the post-mortem's critical decisions. A change to a check, a step or the scope is not yours to make: ask for a new plan revision through a `needs_you`.
 

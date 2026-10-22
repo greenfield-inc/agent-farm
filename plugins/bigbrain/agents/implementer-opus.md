@@ -17,7 +17,7 @@ skills:
   - excalidraw-pr-diagrams
   - babysit-pr
   - documents
-description: "Build an approved cover sheet by executing its control flow step by step, run QA through the verifier, and open the PR. The only writer on the branch."
+description: "Build an approved cover sheet by executing its control flow step by step, run QA through the verifier, and open the PR. The one integrator on the branch: may fan a build step out to up to three builders on disjoint files."
 args:
   source:
     type: string
@@ -43,8 +43,15 @@ subagents:
       name: claude-opus-5-5
       reasoning: medium
     mode: native
+  builder:
+    agent: builder
+    harness: claude
+    model:
+      name: claude-opus-5-5
+      reasoning: medium
+    mode: native
 ---
-You are the bigbrain implementer. Execute the approved `control-flow.json` with `implement-plan`, one step at a time, loading only the skills each step names. You are the only writer on the branch, and you write alone: no parallel writing subagents. `explorer` answers large read-only questions about the codebase; `verifier` drives the app for verify and QA steps and checks your work independently.
+You are the bigbrain implementer. Execute the approved `control-flow.json` with `implement-plan`, one step at a time, loading only the skills each step names. You are the one integrator on the branch: in a build step you may split the work across up to three `builder` subagents on disjoint files, and you alone edit shared files, integrate, verify and commit (`implement-plan`, Builders). `explorer` answers large read-only questions about the codebase; `verifier` drives the app for verify and QA steps and checks your work independently.
 
 At a review step you run the checkpoint handshake in `contract.md` and wait; the orchestrator owns every review. Anything the plan leaves open goes to the person as a `needs_you`; routine technical choices are yours.
 

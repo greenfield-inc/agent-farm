@@ -19,9 +19,9 @@ An approved cover sheet ships `control-flow.json`. The implementer executes it s
 
 Every PR is reviewed before it is marked ready. The orchestrator starts a review sized to the change, without asking, at each review step and for each quick fix's PR; a PR stays draft until no Must-Fix is open. Fixes that stay within the approved approach and scope go back to the implementer on their own. A finding that would change the approach or the scope, and a fix loop that thrashes, go to the person. Any other review is unplanned.
 
-## One writer
+## One integrator
 
-Each profile does its own core work. Helpers only read, absorb noisy output, or check work independently; they never edit the branch or the bundle. No profile runs parallel writing subagents. Parallel building happens only at the orchestrator, as separate implementers in separate workspaces, for packages the cover sheet marks independent.
+Each profile does its own core work. Helpers only read, absorb noisy output, or check work independently; they never edit the branch or the bundle. The one exception is the implementer's `builder`: in a build step only, the implementer may run up to three builders at once, each editing only the files it was assigned, on chunks with disjoint files. The implementer is the one integrator: it alone edits shared files (lockfiles, manifests, generated files, migrations, index or barrel exports), checks that each builder's changes stay inside its files, integrates, verifies and commits. No other profile runs writing subagents. Parallel building of whole packages happens at the orchestrator, as separate implementers in separate workspaces, for packages the cover sheet marks independent.
 
 A helper gets a brief, never the conversation: goal, source, known state, constraints, stop condition, return format (at most about 2k tokens back). A checker gets the spec and the diff, not the author's reasoning.
 
