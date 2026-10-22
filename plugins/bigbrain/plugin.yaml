@@ -109,10 +109,10 @@ checksums:
   skills/quick-verify/SKILL.md: f1a6912e6188654d456f50018a5b99ce0afbd8000bcbec895621ff62696b645a
   skills/quick-verify/metadata/codex.yaml: f6786d928d9220b0b05c85352c44daa631b1c72b1709438251b3c3d23d4a37e8
   skills/research-web/SKILL.md: e4d7741a699f69bf350485695fcce75e526aa4d9d6bbfd8e4e755c969bbab163
-  skills/review/CRITERIA.md: a2a3ec038247a9c9f1c164b5891ceeaf3b61157e8176317526a66c82467037e6
-  skills/review/SKILL.md: a5811e8d1e54a5f8dddec01aeb124deb1fa6268cb450ad8a4e493de1539a20fc
-  skills/review/references/findings.md: 64eaaa428b5108ed94f023a05a501b17d67125c854d9b5137c19aad186daf824
-  skills/review/references/worker-briefs.md: a4afe8fd20ec1dab354391d1f738cdc26700a28794adc6d5fd565e08a981e674
+  skills/review/CRITERIA.md: 405d9979d52f38f639d04c4e21432b96da6ef7337698a1c15c0bb8c117bf65a4
+  skills/review/SKILL.md: 42b2cb40e446c3118bb9c73a4b4862f511b0dcc33f3dd13227f35bb28f6ff804
+  skills/review/references/findings.md: a020b007d69cd823cacfdd65b3dee6f7337df2129f910efa731d95c06be34fb4
+  skills/review/references/worker-briefs.md: 24fee2eb78c3fe8db97aeb7e922c080c3779b14744a6fb7a1ecb28a2dd7831ee
   skills/review/scripts/review-size.mjs: 700f26386596a37c7e694e9c65ebd5eea6dca902e1eae3e0e4f44aae66f4213a
   skills/review/severity-examples.md: 8f322f2c08fa8a0557c7e117d23a269ef0272debde0fbe9d5468cf3b13d0b3fa
   skills/session-trace/SKILL.md: 41856b20114f871cedbbd64cd2349d5947c29f45f1a960aa69c6eef4cb74f26b

@@ -7,9 +7,10 @@ One review-worker definition, two jobs. The reviewer sends one of these briefs; 
 ```text
 Job          finder · area: bugs | spec and scope | conventions | security | tests | lane: <lane name>
 PR           <owner/repo>#<n> at <head sha>
-Scope        step <id>, packages <P-n…|all>
+Scope        step <id>, packages <P-n…|all>   (PR mode: the whole PR, or the commit range)
 Files        <the scoped file list>; read the diff with git diff <base>...<head> -- <files>
 Spec         <bundle>/cover-sheet.html#<P-n> cards and J/S in scope; control-flow.json; decisions cited
+             (PR mode: the PR description and each linked issue with its comments)
 Criteria     CRITERIA.md beside the review skill: section 0, Severity, the sections for your area, section 7; severity-examples.md
 Return       one entry per candidate, most severe first
 ```
@@ -17,7 +18,7 @@ Return       one entry per candidate, most severe first
 Areas:
 
 - **bugs:** logic, edge cases, error handling, async and state bugs, regressions in callers of changed code (sections 1, and 3 to 4 where they apply).
-- **spec and scope:** does each package do what its card says, through its stated approach; anything unrequested (schema, dependency, refactor); anything missing (section 7).
+- **spec and scope:** does each package do what its card says, through its stated approach (in PR mode: what the issue and description ask for); anything unrequested (schema, dependency, refactor); anything missing (section 7).
 - **conventions:** the repository's own rules (AGENTS.md or CLAUDE.md, lint configuration) and section 6; consistency with the best existing code.
 - **security:** trust boundaries crossed by the diff (section 2).
 - **tests:** behaviour added without a test at a sensible seam; tests that cannot fail; flaky timing.

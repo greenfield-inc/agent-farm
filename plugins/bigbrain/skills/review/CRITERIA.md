@@ -140,6 +140,8 @@ Every Must-Fix and Should-Fix also carries two routing answers, set by the finde
 - **Scope: in | out.** In when the fix stays inside what this PR changes or the packages in scope; out when it lies elsewhere (code the PR does not touch, another package's work, a follow-up). Must-Fix is fixed either way; an out-of-scope Should-Fix goes to the person.
 - **Approach/scope: no | yes.** Yes when fixing it would need a different approach or change the work's scope: a broken premise, a missing package, a plan-level gap (or, without a plan, work the linked issue did not ask for). Say in one line what plan change it would need. A flagged finding is never sent to the implementer; it goes to the person, whatever its level.
 
+Without a bundle (PR mode), the linked issue and the PR description stand in for the cover sheet: a promise in either that the change breaks is drift, graded the same way, and the plan checks below are skipped. The review's Claims section checks the description's test, QA and CI claims instead.
+
 Plan checks, in scope only for the step's packages:
 
 - Each package in scope delivers the outcome its card states, through the approach and reuse it names, with no unrequested schema, dependency or infrastructure change.
