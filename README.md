@@ -89,7 +89,7 @@ existing installs. `dcouple/raw` became `greenfield/implementer`; `dcouple/ideat
 and `dcouple/implementer` were not moved. An installed `dcouple` keeps working
 until you run `agent-farm plugin uninstall dcouple`.
 
-**bigbrain** — An opt-in alternative to greenfield (`agent-farm plugin install bigbrain`): you talk only to `bigbrain/orchestrator`, which relays every worker's questions to you, every plan carries a control flow the implementer runs step by step, reviews happen only at planned points or on your word, and every document passes a bundled checker. See [plugins/bigbrain/README.md](plugins/bigbrain/README.md).
+**bigbrain** — An opt-in alternative to greenfield (`agent-farm plugin install bigbrain`): you talk only to `bigbrain/orchestrator`, which relays every worker's questions to you, every plan carries a control flow the implementer runs step by step, every PR gets an automatic review sized to the change before it is ready, and every document passes a bundled checker. See [plugins/bigbrain/README.md](plugins/bigbrain/README.md).
 
 **Guides** — Each plugin has a one-page visual guide to its profiles and how work is routed: [greenfield](plugins/greenfield/index.html), [orchestra](plugins/orchestra/index.html), [bigbrain](plugins/bigbrain/index.html), and [dcouple](plugins/dcouple/index.html). They're also on Grain: [greenfield](https://rungrain.com/share/49gtyr7fi7hm75n71itmmlgl), [orchestra](https://rungrain.com/share/dmnwnvk2hbvsxcart76f29jk), and [dcouple](https://rungrain.com/share/6uxd73wjm97a2n2shyg5m6xz).
 

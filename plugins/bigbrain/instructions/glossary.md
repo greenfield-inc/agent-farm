@@ -12,7 +12,12 @@ Every bigbrain document and skill uses these words with these meanings.
 | cover sheet | `cover-sheet.html`: the one plan the person approves and the implementer builds from. |
 | control flow | `control-flow.json` plus its rendered Control flow section: the steps the implementer and orchestrator execute. |
 | step | One entry in the control flow: `build`, `verify`, `qa`, `pr`, `review` or `design`. |
-| review point | A `review` step. The end review is always one; a checkpoint is one placed earlier for a stated `reason_kind`. |
+| review point | A `review` step. The end review is always one; a checkpoint is one placed earlier for a stated `reason_kind`. A quick fix's draft PR gets one too, with step `quick-fix`. The orchestrator starts a sized review at every review point without asking. |
+| review size | `small`, `standard` or `large`: how many finders and lanes a review runs, set by the `review` skill's size table from files, lines and risk triggers (`scripts/review-size.mjs`). The reviewer may raise it, never lower it. |
+| lane | One focused finder brief at a review: the data-cost lane (standard and large), or one of up to six principle lanes adapted from greenfield (large only). |
+| PR mode | A review of a PR with no bigbrain bundle, checked against its linked issue and the PR description's claims. |
+| approach/scope flag | A review finding's mark that fixing it would need a different approach or change the work's scope. A flagged finding goes to the person, never to the implementer. |
+| thrash | A review fix loop going in circles: a fix-caused Must-Fix, an F-n open after two fix rounds, or a third round about to start. The orchestrator pauses the loop and asks the person. |
 | checkpoint | A review point before the end, and the handshake the implementer runs there (see `contract.md`). |
 | unplanned | Anything the control flow does not list. The orchestrator asks the person before acting on it. |
 | verification | `evidence/verification.json` and its page: one row per J/S with verdict, method, evidence, commit and round. |
@@ -23,7 +28,9 @@ Every bigbrain document and skill uses these words with these meanings.
 | needs_you | The status-file block a worker writes when it needs the person. |
 | relay | The orchestrator turning a needs_you into one message to the person, and the answer back into the asking tab. |
 | worker | A profile the orchestrator starts in a tab: planner, designer, implementer, reviewer, investigator, teacher. |
-| helper | A child a worker starts for read-only, noisy or independent checking work: verifier, explorer, researcher, review-worker, socrates. |
+| helper | A child a worker starts for read-only, noisy or independent checking work: verifier, explorer, researcher, review-worker, socrates. The one helper that edits is the builder. |
+| builder | The implementer's helper for one chunk of a build step: edits only the files its brief assigns, never commits. Up to three run at once, on disjoint files. |
+| integrator | The implementer, as the one agent that edits shared files, checks each builder's changes, integrates, verifies and commits. |
 | finder, checker | The two briefs of a review-worker: a finder looks for one kind of problem; a checker tries to refute one finding. |
 | marker | `[NEEDS DECISION: …]` (open; blocks approval) or `[ASSUMPTION: …]` (a choice made without asking). |
 | check-bundle | The `documents` skill's checker. Workers run it before a stage change; the orchestrator runs it before relaying an approval. |
