@@ -67,9 +67,9 @@ After each verify or QA step, render `evidence/verification.html` from the JSON 
 
 1. **Brief the verifier** with the round number; the app and how to start it; the commit; the flows the step lists, as written in `control-flow.json`; the approved mockups and their must-match screens; the viewports and themes; the jank checklist in `design-quality.md`; the PR's changed files; and the evidence folder `evidence/qa/round-N/`. The verifier maps the changed files to the screens they render and checks every changed screen in its empty, long-content/overflow, loading and error states (the jank checklist), even when no journey visits it. A screen or state it cannot reach is `undetermined` with the reason. The verifier checks independently and returns results with evidence; it does not see your reasoning.
 2. **Record** every result in `verification.json` (rows, `mockup_fidelity`, `jank`) with `round: N`.
-3. **Fix** each fail that is in scope: find the cause, fix it with a test where one fits, commit, and add a `fix_log` entry (`round`, `finding`, `cause`, `fix_commit`, `rechecked: false`).
+3. **Fix** each fail that is safe and easy: small, inside what the PR already changes, and altering no product decision, data schema, dependency, authentication, or anything in production. Find the cause, fix it with a test where one fits, commit it as its own small commit, and add a `fix_log` entry (`round`, `finding`, `cause`, `fix_commit`, `rechecked: false`). Any other fail is not yours to fix here: it goes to step 5 as an open item.
 4. **Next round** rechecks every fail from this round and every flow a fix could have touched; set `rechecked: true` and `fixed_in_round` when it passes.
-5. **Stop** when a round has no fails, or at `max_rounds`. A fail still open at the cap, or one you may not fix (outside the files allowed, owned by someone else, against a constraint), becomes an `open_items` entry and a `needs_you` (kind `question`: accept it, extend the rounds, or change the plan). Never mark it pass.
+5. **Stop** when a round has no fails, or at `max_rounds`. A fail still open at the cap, or one that is not safe and easy (outside the PR's changes, owned by someone else, touching a product decision, schema, dependency, auth or production, or against a constraint), becomes an `open_items` entry and a `needs_you` (kind `question`: accept it, extend the rounds, or change the plan). Never mark it pass.
 
 Watch for thrashing: a fix that breaks something fixed earlier, or the same area failing in two rounds. Log the cycle in the Surprises log; on the second occurrence, stop changing that area and investigate the cause before another round.
 
@@ -89,11 +89,15 @@ At the end of every run (done, blocked or failed), write `post-mortem.html` in t
 - **Assumptions that were wrong:** each `[ASSUMPTION]` or plan premise that turned out false, what it cost, and what would have caught it.
 - **Thrashing:** loops where fixing one problem caused another (bug ping-pong, flaky fixes, repeated QA rounds on one area), with the cycle and how it ended.
 
+A run that ends `failed` also carries its stop record in the Outcome section (see Finish).
+
 Build it from the Surprises log, the fix log and the decision log. Describe systems and decisions, never people. Use measured time and cost only.
 
 ## Finish
 
-Run `check-bundle --stage done`, set the status file's `checks` from `verification.json`, `check_bundle`, `pr` and `head`, and report as `contract.md` says. You are done when every step ran, every J/S has a verdict, the PR's checks are green, and the end review's `continue:` has arrived.
+Run `check-bundle --stage done`, set the status file's `checks` from `verification.json`, `check_bundle`, `pr` and `head`, and report as `contract.md` says.
+
+You own the stop decision. Before reporting `failed`, write a stop record: the failure that persists, each approach you tried and what it showed (with the verification rows and review findings involved), and why no approach remains within the approved plan. Put it in the post-mortem's Outcome section and summarise it in the status file's `failure`. Reaching a limit the person set (rounds, time, spend) is `blocked`, not `failed`: ask whether to extend it. You are done when every step ran, every J/S has a verdict, the PR's checks are green, and the end review's `continue:` has arrived.
 
 ## Quick fix
 
