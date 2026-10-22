@@ -22,7 +22,7 @@ checksums:
   agents/socrates.md: b893cb2283ead6cec8bb061841b25a750b007cace9f3c37ec21a13c27d9daf9c
   agents/teacher.md: 10e3470733058934fc5b5c1fd714188171eca454c919722dce9ab89d8547198a
   agents/verifier.md: 9da2a3c793c811d95f13e27739ebbedcdea625f6318f511a92f0df65b14ec76c
-  instructions/contract.md: b80e0db6a3b815aed1917e6fa17f96b166b1c0bb339e12ca886b993fe21cda90
+  instructions/contract.md: 9c01cdbc90b016bbf98095a6eb5e146e5404f0e02821efdc665dad2b27f5d23f
   instructions/glossary.md: 212baf88e6dea63e5b0f378ab20a90bb7f88930b2d285bafa4267e52a61c11ec
   instructions/planner-documents.md: 6ad39e2e2a649bd660de49d472b37b816d2ffd79af78a7f46956b1cb62e8fea4
   instructions/planner-identity.md: a184359f32525ff2439224e13ede4068d43903a63bb828d83115493760ed21fe
@@ -89,7 +89,7 @@ checksums:
   skills/excalidraw-pr-diagrams/references/render_excalidraw.py: c8c703455044faa84bbad2585b900c67e436e0c9772d45f32d4fce591f9d9120
   skills/excalidraw-pr-diagrams/references/render_template.html: 5caa1087d0fa68cdc873103aa761590cb16d2ae888d67a08d517ebab01ca110d
   skills/explain/SKILL.md: 26588e0aff49ada0e878cf6f8005eb123a0dc0043e663ffa19b89d76057b35af
-  skills/implement-plan/SKILL.md: 74fad1cbc940b32a8bf8c7c7a88954c2fd59ef514e910715f9edb4641ec893a8
+  skills/implement-plan/SKILL.md: b5ea57f0c56d5b5b4547798df7453020810401f01a5d8bd0cb82d419955266ae
   skills/interview/SKILL.md: 4632bf435dd8158e64e52c46937c95577159bf2250b89633e64ad33d4f3c1c39
   skills/interview/references/decision-log-template.md: ad61b41c20e6d734c82418cb9a7b4ee46820a98e6cbbcb201dcda84357f0bc27
   skills/interview/references/question-format.md: 53ea57ce0ca40e7e74bdec11e661e0249fe2989ca1684ba5c6b348499bef54a4
@@ -97,7 +97,7 @@ checksums:
   skills/investigate/SKILL.md: b0199e594f142eaf17a44c193de78e04463212d7b2cdc9a858796d0d51d1e5e6
   skills/options/SKILL.md: 265e16a8a542d6ba5901a1a55209e5838e7002235d1381873eda4b6feea0787e
   skills/options/references/options-template.md: cd82cdf9f56b4cdaa76c37f273beda59cecca97f46baeb046a2cc14700864579
-  skills/orchestrate/SKILL.md: 2bfc0ba91525da25e9a2f381cc706b95a80d979818c40b24ae3a987fd5024d41
+  skills/orchestrate/SKILL.md: ed20021ab149fe2bd2bf72e805eb0d1bd2e90f1cdaf9ed7141cd63990007fc78
   skills/orchestrate/references/addendum-template.md: 3a838258c90a02978c89e3f63fc18e58f32eead36989d833a6d1615efaa3f804
   skills/orchestrate/references/host-policy.md: 40963d8f248f43bfe3937abcb3a7af732d7501824426a8131eecccb8bb5e5b69
   skills/orchestrate/references/ledger.md: 2a108b1c8c4fc68bc3c2b894a579cce4e00acb6e4f91cb566ba5350c616efa2f

@@ -65,7 +65,8 @@ The orchestrator submits plain text lines to the asking tab only:
 
 - `answer: Q-7 → Invoice id. Recorded as D-12.` The worker records it where its skill says (the planner in `decisions.html`; others cite the D-n), clears `needs_you`, sets `running`, and continues. A free-text answer is quoted exactly.
 - `clarify: Q-7 → <the person's question back>`: not an answer. Keep Q-7 open and `needs_you` set, record nothing, add the clarification to the question (in `why` or the page), and report the same needs_you again.
-- `continue: <step id>`: resume after a checkpoint, or after `blocked`.
+- `continue: <step id>`: resume after a checkpoint, or after `blocked`. It may name findings the person accepted as is (`continue: review-final · accepted F-3 (D-12)`): list them in the PR description and the post-mortem.
+- `continue: quick-fix → reviewed at <step id>`: a quick fix whose review happens at that later review point; leave the PR as it is.
 - `review: <step id> → fix F-2, F-5 (findings: <path>)`: the Must-Fix and in-scope Should-Fix findings the orchestrator routed to you. Fix exactly those, then run the checkpoint handshake again for the follow-up. Findings flagged approach/scope or out of scope go to the person, not to you; never fix one unless a later `review:` message sends it.
 - `review: <step id> → nothing to fix (findings: <path>)`: followed by `continue: <step id>`, or by a later `review:` once the person has answered on findings that went to them.
 - `check-bundle: fail — <rule lines>`: the orchestrator ran `check-bundle --stage approve` before relaying your approval and it failed. Fix the page or JSON, run it yourself, and report again.
@@ -81,7 +82,7 @@ At a control-flow step with `do: review`:
 3. It makes no further commits until `continue:`. Work on the next package may be read or planned, not written.
 4. The orchestrator sizes the diff and starts exactly one reviewer with that scope, size and head. The review posts once.
 5. Fixes come back as `review: <step> → fix …`. The implementer fixes only those, pushes, and repeats step 2 with the new head. The orchestrator starts a follow-up that checks only those items. If the loop thrashes, the orchestrator pauses it and asks the person; the implementer keeps waiting.
-6. `continue: <step>` resumes the flow at the next step, once no Must-Fix is open. At the end review it also means: mark the PR ready for review.
+6. `continue: <step>` resumes the flow at the next step, once no Must-Fix is open (or the person accepted the open ones as is). At the end review it also means: mark the PR ready for review.
 
 The same handshake runs for the end review after the `pr` step; there `continue:` means the work is done. A quick fix runs it once its draft PR is pushed, with step `quick-fix` and scope `all`; with no bundle it skips `check-bundle` and `verification.json` in step 1, and the review is in PR mode. A waived end review (`"review": "none"`) still gets the handshake: the orchestrator starts no reviewer, puts "review now, or continue?" to the person, and sends `continue:` or a reviewer's findings accordingly.
 
