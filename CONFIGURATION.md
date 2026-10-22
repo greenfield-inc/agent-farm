@@ -1,14 +1,5 @@
 # Configuration files
 
-Agent Farm appends a Grain delivery instruction to every resolved agent,
-including native and process children across plugins. Grain saves must preserve
-the selected destination and private audience while avoiding UI handoff unless
-the user explicitly requests opening, revealing, focusing or refreshing it.
-This supersedes automatic-open steps in bundled skills; requested opening in
-Pane continues to use Pane. It does not change destination preferences or grant
-sharing permission. See [Grain save behavior](docs/grain-delivery.md) for the
-supported workflow, upstream limitations and validation matrix.
-
 The central authoring directory is `~/.config/agent-farm/`. Every command
 accepts `--config-root DIR` to use another directory. The CLI ignores the
 `AGENT_FARM_CONFIG_ROOT` environment variable; Agent Farm sets it only for
