@@ -45,7 +45,7 @@ Every bigbrain cover sheet ships `control-flow.json` in its bundle. It is the pr
 | `verify` | implementer | Prove the listed `flows`. With `spawn: "verifier"` the verifier drives the app; otherwise the implementer runs the commands itself. |
 | `qa` | implementer | The QA loop: the verifier checks the listed flows, mockup fidelity, and the jank checklist on every screen the PR's changed files render; the implementer fixes; repeat up to `max_rounds`. |
 | `pr` | implementer | `prepare-pr` (linking the verification page), then `babysit-pr` until checks are green. |
-| `review` | orchestrator | The implementer pushes, reports checkpoint and waits. The orchestrator starts one reviewer with `scope`. Must-fix items come back, a follow-up checks only those, then the implementer resumes. |
+| `review` | orchestrator | The implementer pushes, reports checkpoint and waits. The orchestrator sizes the diff and starts one reviewer with `scope`. Must-Fix and in-scope Should-Fix items come back, a follow-up checks only those, then the implementer resumes. Approach/scope findings and a thrashing loop go to the person (`orchestrate`, Reviews). |
 | `design` | orchestrator | A design decision in the middle of a build: the orchestrator starts the designer, relays its options, and returns the approved design. The implementer waits at this step as at a review. |
 
 `skills` on a step names the skills the implementer loads for it; without it, the defaults for that `do` apply (see `implement-plan`). `max_rounds` on a `qa` step overrides `qa.max_rounds`. `note` is free text shown on the cover sheet.
@@ -54,7 +54,7 @@ Every bigbrain cover sheet ships `control-flow.json` in its bundle. It is the pr
 
 - Every flow ends with an end review: a `review` step with `"scope": "all"`, last among the review steps, normally right after `pr`.
 - A checkpoint (a review step with a list of packages as `scope`) is added only with a `reason_kind`: `irreversible`, `schema`, `security` or `shared-contract`, and a one-line `reason`.
-- "No review" is allowed only on the person's explicit word: the end review step stays, with `"review": "none"` and `approved_by` naming the D-n that recorded their word. The implementer still stops there; the orchestrator starts no reviewer and puts "review now, or continue?" to the person. Only an explicit "review now" starts one.
+- "No review" is allowed only on the person's explicit word, and the planner never proposes it: the end review step stays, with `"review": "none"` and `approved_by` naming the D-n that recorded their word. The implementer still stops there; the orchestrator starts no reviewer and puts "review now, or continue?" to the person. Only an explicit "review now" starts one.
 - The end review (or its waiver) is the last step; nothing runs after it.
 - `profile` picks the reviewer variant; the default is the reviewer profile's default.
 - The planner settles the review points with the person during the interview. Anything else is unplanned: the orchestrator asks the person before acting on it, and an implementer never starts a reviewer.

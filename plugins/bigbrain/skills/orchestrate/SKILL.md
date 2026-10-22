@@ -1,6 +1,6 @@
 ---
 name: orchestrate
-description: Coordinates bigbrain work as the one front door. Starts planners, designers, implementers and investigators on its own, starts reviewers only at control-flow review steps, relays every worker question to the person and the answer back, keeps the ledger and workstream map, and cleans up. Used by the bigbrain orchestrator.
+description: Coordinates bigbrain work as the one front door. Starts planners, designers, implementers and investigators on its own, reviews every PR automatically before it is ready (sized, at control-flow review steps and for quick-fix PRs), sends in-scope fixes back and brings approach, scope and thrash questions to the person, relays every worker question to the person and the answer back, keeps the ledger and workstream map, and cleans up. Used by the bigbrain orchestrator.
 ---
 
 # Orchestrate
@@ -29,8 +29,11 @@ Authorization comes only from the person. Opening or restoring this session star
 | An investigator's report routes `options-first` | start a planner with the bug report as source | — |
 | An investigator's report routes `direct-to-implementer` | — | "Send B-n straight to an implementer, or plan it first?" |
 | The person asks for a simple fix, or approves one in words ("yes, just fix it") | the quick-fix route below | — |
-| An implementer reports `checkpoint` at a `review` step of its approved control flow | start exactly one `bigbrain/reviewer` for that step (see below) | — |
-| Any review the control flow does not list (including an implementer reporting `done` when the end review is waived) | — | "Review now, or continue?"; start nothing until answered |
+| An implementer reports `checkpoint` at a `review` step of its approved control flow | start exactly one sized `bigbrain/reviewer` for that step (see Reviews) | — |
+| A quick-fix implementer reports `checkpoint` with its draft PR and head | start exactly one sized `bigbrain/reviewer` in PR mode (see Reviews) | — |
+| A review's findings arrive | route them as After a review says: fixes to the implementer, approach/scope and out-of-scope findings to the person | — |
+| A review loop meets the thrash rule | — | the thrash question (see Reviews); send the implementer nothing until answered |
+| Any review beyond those (a second full round, a checkpoint the flow does not list, an implementer reporting `done` when the end review is waived) | — | "Review now, or continue?"; start nothing until answered |
 | A feature's PRs are ready for the person's review | — | offer `bigbrain/teacher` once per feature |
 | A worker reports something not in its control flow | — | relay it; act only on the answer |
 
@@ -38,12 +41,13 @@ Planners only plan. Every implementation goes through an approved cover sheet an
 
 ## Quick-fix route
 
-When the person asks for a simple fix, or approves one in words, send it straight to an implementer that builds it, verifies its own work and reports back: no planner, no cover sheet, no reviewer.
+When the person asks for a simple fix, or approves one in words, send it straight to an implementer that builds it, verifies its own work and reports back: no planner, no cover sheet, no control flow. Its PR is still reviewed before it is ready.
 
 - Only on the person's explicit word. Never route work here on your own judgement, and an investigator's `direct-to-implementer` report still gets the "straight to an implementer, or plan it first?" question; only a yes to that opens this route.
 - Existing feature: if that feature's implementer is running and idle, send the quick-fix message to it; otherwise start a new `bigbrain/implementer` in the feature's workspace once the previous writer has stopped (one writer per branch). New work: a new workspace and branch.
 - The starting message is the quick-fix variant in `contract.md`: the task in the person's words, the done-when, the branch, and the status file.
-- When it reports, check its status and evidence (what it checked, the commit or draft `no-plan` PR) and tell the person. Start no reviewer unless the person asks; never merge.
+- When it reports `checkpoint` (step `quick-fix`) with its draft PR and head, start one sized reviewer in PR mode without asking (see Reviews), and run the fix loop as for a planned review. A quick fix committed onto a feature branch whose control flow has a review point still ahead is reviewed there instead: send `continue: quick-fix → reviewed at <step id>`, and the implementer leaves the PR as it is.
+- When its own review leaves no Must-Fix open, send `continue: quick-fix`; the implementer marks the PR ready. A quick fix has no bundle: record the person's answers on its findings as D-n in the map's decision log, and a "re-plan" answer means planning it properly (start a planner with the finding as source). Then check its status and evidence (what it checked, the PR and the review outcome) and tell the person. Never merge.
 
 ## Launching workers
 
@@ -88,12 +92,42 @@ Never invent an answer to a product question, never answer for the person after 
 Approval is two steps. When the person approves, record the D-n and submit the answer to the planner; do not start anything yet. When the planner reports `done` for that revision, confirm `control-flow.json` has `approved_by` set to that D-n and the cover sheet says `approved` at the same revision, run `check-bundle --stage approve` yourself, then start the implementer once with the cover sheet and `control-flow.json` at that revision as its source, and record the dispatched revision in the ledger. A second report for the same revision starts nothing. From then on, the implementer runs its steps; you run the steps whose actor is `orchestrator`.
 
 - **Checkpoint at a waived review step** (`"review": "none"`). Confirm its `approved_by` D-n is in `decisions.html`. Start no reviewer. Ask the unplanned-review question from [references/relay.md](references/relay.md) ("review now, or continue?"). Only an explicit "review now" starts a reviewer, scoped `all`, as for a planned step; "continue" is recorded as a D-n and answered with `continue: <step>`.
-- **Checkpoint at a `review` step.** Confirm the reported `checkpoint.step` is a `review` step without `"review": "none"` in the approved `control-flow.json` and that its head is pushed. Start exactly one reviewer as a new worker in the feature's workspace, with `step.profile` or `bigbrain/reviewer:codex`. Its starting message names the PR, the step id, the scope, the head, the cover sheet, and the findings file `findings/pr-<n>-<step id>.md` in the bundle. When it reports, read the findings file: send `review: <step> → must-fix F-…` to the implementer, or `review: <step> → no must-fix` then `continue: <step>`. After the implementer's next checkpoint for the same step, start a follow-up reviewer that checks only those F-n. Wait for its report and read its findings file: if any of those F-n is still open, send `review: <step> → must-fix <the open F-n>` and repeat this loop; send `continue: <step>` only when no must-fix remains. If the implementer reports `blocked` or `failed` on them, relay that to the person instead. Run another full round only when the person asks.
+- **Checkpoint at a `review` step.** Confirm the reported `checkpoint.step` is a `review` step without `"review": "none"` in the approved `control-flow.json` and that its head is pushed. Size it and start exactly one reviewer as Reviews says, with `step.profile` or `bigbrain/reviewer:codex`, naming the step id, the scope, the cover sheet, and the findings file `findings/pr-<n>-<step id>.md` in the bundle. Then run the fix loop below until no Must-Fix is open, and send `continue: <step>`. For the end review, that `continue:` also tells the implementer to mark the PR ready. Run another full round only when the person asks.
 - **Checkpoint at a `design` step.** Start the designer as for a planner's design request, relay its options, and send `continue: <step>` with the approved mockup paths.
 - **A checkpoint the flow does not list,** or a reviewer the implementer asks for, is unplanned: ask the person.
 - **Done.** When the implementer reports done after the end review, check its status (every J/S has a verdict, `check_bundle` passes at `--stage done`) and the PR. The end review's checkpoint is handled as above, waived or not; the work is done only after its `continue:`.
 
 A change to the control flow after approval goes back to the planner as a new revision, approved through the relay. When a decision lands while workers are running, write it once as an addendum ([references/addendum-template.md](references/addendum-template.md)), send `addendum: <path>` to every affected worker, and log it.
+
+## Reviews
+
+Every PR is reviewed before it is marked ready: at each `review` step of an approved control flow, and for each quick fix's draft PR. You start these reviews without asking. Any other review is unplanned and asked first.
+
+**Size.** Run the `documents` skill's `scripts/review-size.mjs <base>...<head> --repo <feature worktree>` (`node <documents skill>/scripts/review-size.mjs …`) on the reviewed diff (the PR, the scope's commits, or the quick fix's commit range): `--floor standard` for a plan's end review, `--floor large` when the person asked for a full review. Put the size and its reason line in the reviewer's starting message. The reviewer may raise it, never lower it.
+
+**Start.** One reviewer, as a new worker in the feature's workspace. Its starting message names the PR, the head, the size and why, and either the step, scope, cover sheet and bundle findings file (plan mode), or a label and the findings file `findings/pr-<n>-<label>.md` in the Session folder (PR mode, for a quick fix).
+
+**After a review.** Read the findings file. Every Must-Fix and Should-Fix carries a scope answer and an approach/scope flag (the `review` skill's `CRITERIA.md`, section 7). Route each finding once:
+
+| Finding | Goes to |
+| --- | --- |
+| Approach/scope flagged, at any level | the person, never the implementer. It would need a different approach or a scope change (a broken premise, a missing package, a plan-level gap), so ask: re-plan it (a new revision through the planner), fix it in this PR anyway, or accept it as is |
+| Must-Fix, not flagged | the implementer |
+| Should-Fix, scope in, not flagged | the implementer |
+| Should-Fix, scope out | the person: fix it here, record a follow-up, or skip it |
+| Suggestion | the map only |
+
+Send the implementer's share in one message, `review: <step> → fix F-… (findings: <path>)`, or `review: <step> → nothing to fix (findings: <path>)`. Put the person's share to them as one relay message listing each finding with its file:line and, for a flagged one, the plan gap it exposes. A finding the person sends back to be fixed goes to the implementer in the next `review:` message. A re-plan goes to the planner as a new revision, and the implementer waits at its checkpoint.
+
+**The fix loop.** After the implementer's next checkpoint for the same step, start a follow-up reviewer that checks only the F-n it was sent. A follow-up is not sized again; it runs no finders. Read its findings file and route any still-open F-n the same way. Send `continue: <step>` only when no Must-Fix is open, every finding sent to the person has their answer (so "fix it in this PR" still has an implementer waiting to do it), and every F-n sent has been checked. A Must-Fix the person accepted as is counts as closed: record their D-n, say so in the map, and name it in the `continue:` message. When the person answers the thrash question with more fix rounds, that many further rounds may run before the thrash rule pauses again. If the implementer reports `blocked` or `failed` on its fixes, relay that to the person instead.
+
+**The thrash rule.** Stop sending fixes and ask the person when any of these happens on one review point:
+
+- a follow-up confirms a new Must-Fix in lines the last fix round changed (the reviewer marks it fix-caused);
+- an F-n is still open after two fix rounds;
+- a third fix round would start.
+
+Send the implementer nothing more. Put one question to the person naming the cycle (which F-n, which rounds, what each fix broke), with three options: more fix rounds (how many), re-plan, or accept as is. A follow-up that only confirms its F-n closed ends the loop with `continue:`, and no question.
 
 ## Ledger and map
 

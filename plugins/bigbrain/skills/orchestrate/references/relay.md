@@ -33,3 +33,27 @@ Unplanned review question, always exactly this choice:
      → Review now: start bigbrain/reviewer:codex on PR #<n>, scope all
        Continue without review: recorded as D-n
 ```
+
+Review findings for the person (`orchestrate`, After a review), one message per review, recorded as D-n like any answer:
+
+```text
+[Needs you · <item>] Q-n Review of PR #<n> · <step or label> · fixes F-… already sent to the implementer
+F-n  Approach/scope · Must-Fix · src/billing/export.ts:88 — <what is wrong>
+     Plan gap: <the plan change it would need>
+     → Re-plan (Recommended when the premise is wrong): back to the planner as a new revision
+       Fix it in this PR anyway
+       Accept as is
+F-n  Out of scope · Should-Fix · src/shared/date.ts:14 — <what is wrong>
+     → Record a follow-up · Fix it here · Skip
+Files   findings/pr-<n>-<step>.md (linked)
+```
+
+Thrash question (`orchestrate`, the thrash rule), always these three options:
+
+```text
+[Needs you · <item>] Q-n The review loop on PR #<n> · <step> is going in circles
+     Round 1 fixed F-3; the follow-up confirmed F-6 (fix-caused) in the lines that fix changed.
+     → More fix rounds: say how many
+       Re-plan: back to the planner as a new revision
+       Accept as is: record the open F-n and continue
+```
