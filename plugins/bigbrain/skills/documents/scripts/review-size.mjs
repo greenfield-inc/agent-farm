@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Sizes a review (small, standard or large) from a diff, so the orchestrator and the reviewer reach
-// the same size. Uses only node: builtins.
+// the same size. It lives in documents because both of them load that skill. Uses only node: builtins.
 //
 //   node review-size.mjs <base>...<head> [--repo <dir>] [--floor standard|large] [--json]
 //

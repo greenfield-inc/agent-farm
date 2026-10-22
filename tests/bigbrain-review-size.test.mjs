@@ -4,9 +4,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import {execFileSync} from 'node:child_process';
-import {sizeReview,parseNumstat} from '../plugins/bigbrain/skills/review/scripts/review-size.mjs';
+import {sizeReview,parseNumstat} from '../plugins/bigbrain/skills/documents/scripts/review-size.mjs';
 
-const script=path.resolve('plugins/bigbrain/skills/review/scripts/review-size.mjs');
+const script=path.resolve('plugins/bigbrain/skills/documents/scripts/review-size.mjs');
 // n files under src/, splitting `lines` changed lines between them.
 const files=(n,lines,dir='src')=>Array.from({length:n},(_,i)=>({path:`${dir}/file-${i}.ts`,added:Math.floor(lines/n)+(i<lines%n?1:0),deleted:0}));
 

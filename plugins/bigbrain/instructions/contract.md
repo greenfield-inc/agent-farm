@@ -68,7 +68,7 @@ The orchestrator submits plain text lines to the asking tab only:
 - `continue: <step id>`: resume after a checkpoint, or after `blocked`. It may name findings the person accepted as is (`continue: review-final · accepted F-3 (D-12)`): list them in the PR description and the post-mortem.
 - `continue: quick-fix → reviewed at <step id>`: a quick fix whose review happens at that later review point; leave the PR as it is.
 - `review: <step id> → fix F-2, F-5 (findings: <path>)`: the Must-Fix and in-scope Should-Fix findings the orchestrator routed to you. Fix exactly those, then run the checkpoint handshake again for the follow-up. Findings flagged approach/scope or out of scope go to the person, not to you; never fix one unless a later `review:` message sends it.
-- `review: <step id> → nothing to fix (findings: <path>)`: followed by `continue: <step id>`, or by a later `review:` once the person has answered on findings that went to them.
+- `review: <step id> → nothing to fix (findings: <path>)`: followed by `continue: <step id>` once the person has answered every finding that went to them, or by a later `review:` when they chose to have one fixed. Keep waiting until then.
 - `check-bundle: fail — <rule lines>`: the orchestrator ran `check-bundle --stage approve` before relaying your approval and it failed. Fix the page or JSON, run it yourself, and report again.
 - `addendum: <path>`: a decision that changes running work; read it, adjust, report again.
 - `stop`: save state, report, and end.

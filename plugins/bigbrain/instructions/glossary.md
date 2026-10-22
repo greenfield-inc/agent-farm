@@ -12,8 +12,8 @@ Every bigbrain document and skill uses these words with these meanings.
 | cover sheet | `cover-sheet.html`: the one plan the person approves and the implementer builds from. |
 | control flow | `control-flow.json` plus its rendered Control flow section: the steps the implementer and orchestrator execute. |
 | step | One entry in the control flow: `build`, `verify`, `qa`, `pr`, `review` or `design`. |
-| review point | A `review` step. The end review is always one; a checkpoint is one placed earlier for a stated `reason_kind`. A quick fix's draft PR gets one too, with step `quick-fix`. The orchestrator starts a sized review at every review point without asking. |
-| review size | `small`, `standard` or `large`: how many finders and lanes a review runs, set by the `review` skill's size table from files, lines and risk triggers (`scripts/review-size.mjs`). The reviewer may raise it, never lower it. |
+| review point | A `review` step. The end review is always one; a checkpoint is one placed earlier for a stated `reason_kind`. A quick fix's draft PR gets one too, with step `quick-fix`. The orchestrator starts a sized review at every review point without asking, except an end review the person waived (`"review": "none"`), where it asks "review now, or continue?". |
+| review size | `small`, `standard` or `large`: how many finders and lanes a review runs, set by the `review` skill's size table from files, lines and risk triggers (the `documents` skill's `scripts/review-size.mjs`). The reviewer may raise it, never lower it. |
 | lane | One focused finder brief at a review: the data-cost lane (standard and large), or one of up to six principle lanes adapted from greenfield (large only). |
 | PR mode | A review of a PR with no bigbrain bundle, checked against its linked issue and the PR description's claims. |
 | approach/scope flag | A review finding's mark that fixing it would need a different approach or change the work's scope. A flagged finding goes to the person, never to the implementer. |

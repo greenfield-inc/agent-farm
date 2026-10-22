@@ -54,7 +54,7 @@ Helpers: `verifier` (drives the app, QA, mockup fidelity, jank), `explorer` (one
 
 ## Review sizes
 
-The orchestrator sizes every review with `skills/review/scripts/review-size.mjs`, counting hand-written files and lines (lockfiles, generated and vendored files excluded) and looking for risk triggers. The reviewer may raise the size, never lower it, and "full review" from you means large.
+The orchestrator sizes every review with `skills/documents/scripts/review-size.mjs`, counting hand-written files and lines (lockfiles, generated and vendored files excluded) and looking for risk triggers. The reviewer may raise the size, never lower it, and "full review" from you means large.
 
 | Size | When | Who finds |
 | --- | --- | --- |

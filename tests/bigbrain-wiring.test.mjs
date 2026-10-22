@@ -21,7 +21,8 @@ test('the builder edits only its files and never commits',()=>{
  assert.match(body,/Never commit/);
 });
 
-test('the review skill names its size script, and the script exists',()=>{
- assert.match(read('skills/review/SKILL.md'),/scripts\/review-size\.mjs/);
- assert.ok(fs.existsSync(path.join(plugin,'skills/review/scripts/review-size.mjs')));
+test('the size script sits in documents, which every agent that sizes a review loads',()=>{
+ assert.ok(fs.existsSync(path.join(plugin,'skills/documents/scripts/review-size.mjs')));
+ for(const file of ['skills/review/SKILL.md','skills/orchestrate/SKILL.md'])assert.match(read(file),/documents` skill's `scripts\/review-size\.mjs/,file);
+ for(const file of ['agents/orchestrator.md','agents/reviewer-codex.md','agents/reviewer-claude.md'])assert.match(frontmatter(file),/\nskills:\n(?:  - .+\n)*  - documents\n/,file);
 });

@@ -24,7 +24,7 @@ Missing any of these is a `needs_you`, not a guess.
 
 ### Size
 
-Run `node <this skill>/scripts/review-size.mjs <base>...<head>` on the scoped diff, with `--floor standard` for a plan's end review and `--floor large` when the person asked for a full review. It counts hand-written files and changed lines (lockfiles, generated and vendored files excluded) and looks for risk triggers by path.
+Run the `documents` skill's `scripts/review-size.mjs <base>...<head>` (`node <documents skill>/scripts/review-size.mjs …`) on the scoped diff, with `--floor standard` for a plan's end review and `--floor large` when the person asked for a full review. It counts hand-written files and changed lines (lockfiles, generated and vendored files excluded) and looks for risk triggers by path.
 
 | Size | When | Who finds |
 | --- | --- | --- |
