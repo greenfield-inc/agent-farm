@@ -43,7 +43,7 @@ Helpers: `verifier` (drives the app, QA, mockup fidelity, jank), `explorer` (one
 ## What happens to one feature
 
 1. You describe the work. The orchestrator starts a planner in a new workspace.
-2. The planner's interview reaches you in the orchestrator's chat, one round at a time, the recommended answer first, the relevant pages opened beside you. Your answer goes back to the planner and lands in `decisions.html` as a D-n.
+2. The planner's interview reaches you in the orchestrator's chat, one round at a time, the recommended answer first, with links to the relevant pages and an offer to open them. Pages open only after your explicit opt-in. Your answer goes back to the planner and lands in `decisions.html` as a D-n.
 3. For interface work the planner asks for design; the orchestrator starts the designer, and you pick between its options the same way.
 4. You approve the cover sheet (the orchestrator runs `check-bundle` first). The orchestrator starts the implementer.
 5. The implementer runs the control flow. At a review step it pushes and waits; the orchestrator starts one reviewer for that step's scope; must-fix items go back, a follow-up checks only those, then it continues. The QA step runs the verifier for up to three rounds (or what the plan says): flows, mockup fidelity, and the jank checklist.
