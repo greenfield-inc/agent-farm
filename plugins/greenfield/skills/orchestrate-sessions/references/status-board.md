@@ -8,10 +8,11 @@ Header            Session name, started, last updated, review policy (default: o
                   default (deferred unless the person switched it to full),
                   workers running / queued / done, total cost and elapsed time
 
-Needs you         first and impossible to miss: plans waiting for approval, failed
+Needs you         the first section, and impossible to miss: one row per open Q-n
+                  (Q-n | feature | role | question | recommended answer | files |
+                  what is waiting on it), then plans waiting for approval, failed
                   workers with their failure summary, workers blocked with what is
-                  missing, must-fix review findings, and open questions with what
-                  is waiting on them
+                  missing, and review findings waiting on the person; "none" when empty
 
 Order of work     inline SVG dependency graph: one node per work item, arrows for
                   "must land before", nodes coloured by stage (planning, awaiting
@@ -27,9 +28,14 @@ Shared ledgers    one row per shared resource only one worker may change at a ti
 Addenda           N | date | decision | work items it was sent to
 
 Lanes             one row per work item:
-                  item | repo | Pane | profile | stage | plan | PR | validation (the ledger's
-                  `validation`, and what is pending) | review | trace |
-                  destination ("no destination" when the repo names none)
+                  item | repo | Pane | profile | stage | plan | PR | checks (required CI:
+                  green, failing or pending) | QA (passed, failed, not run) | review
+                  (reviewed at <sha>, in review, not reviewed, with open Must-Fix count)
+                  | unreviewed | validation (the ledger's `validation`, and what is
+                  pending) | trace | destination ("no destination" when the repo names none)
+                  unreviewed: "N commits since the last review at <sha>, not reviewed",
+                  counted with `git rev-list --count <last reviewed head>..<PR head>`;
+                  "never reviewed" with no reviewed head; "none" when they match
 
 Other hubs        for a Session that spans destinations: a link to each stub hub,
                   with no item details copied across
@@ -44,5 +50,7 @@ End of run        what was done and why
                   traces collected, and any session whose trace is missing or
                   not authorized by its repository or the person
 ```
+
+The last reviewed head is the ledger's `last_reviewed_head` for that PR. When the ledger has lost it, use the head in the newest `<!-- greenfield-review head=<sha> -->` marker on the PR's reviews, and record it.
 
 Draw the graph as self-contained inline SVG with a text list of the same order beside it, readable in light and dark themes. A stub hub in another destination holds only its own items, the review policy, and a link back to the canonical map.
