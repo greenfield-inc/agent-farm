@@ -37,7 +37,8 @@ export function parseNumstat(text){
  const fields=text.split('\0'),out=[];
  for(let i=0;i<fields.length;i++){
   if(!fields[i])continue;
-  const [added,deleted,file]=fields[i].split('\t');
+  // Only the first two tabs separate fields; a path may itself contain tabs.
+  const [added,deleted,...rest]=fields[i].split('\t'),file=rest.join('\t');
   const path=file===''?(i+=2,fields[i]):file;
   out.push({path,added:added==='-'?0:Number(added),deleted:deleted==='-'?0:Number(deleted)});
  }
