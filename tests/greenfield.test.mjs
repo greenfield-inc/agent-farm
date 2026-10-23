@@ -389,3 +389,10 @@ test('reviews start on ready, a plan\'s end or a cleared human review, never on 
  includesAll(['skills/plan/SKILL.md'],['`Review: at the plan\'s end · Human review: none`','Default to `required` when the plan changes UI']);
  includesAll(['skills/plan/references/cover-sheet.md'],['Human review: required | none']);
 });
+
+test('reviews check a cover sheet\'s criteria against their evidence, and implementers update docs in the same commit',()=>{
+ includesAll(['skills/review/SKILL.md'],['### Read the cover sheet','**How we will know it works**','open the evidence it names','record the criterion as supported, when the evidence shows its outcome, or unsupported','An unsupported claim is a Should-Fix, and a Must-Fix when the behaviour is in fact broken','[J-n / check from the cover sheet] - supported']);
+ includesAll(REVIEWERS,['the cover sheet when there is one; check the plan\'s criteria against their evidence under Claims']);
+ includesAll(IMPLEMENTERS,['A commit that changes what a doc states (a command, flag, config key, env var, path, default, API or UI copy) updates every doc that states it, in the same commit.']);
+ includesAll(['skills/principled-review/SKILL.md'],['flag each doc still stating the old value']);
+});
