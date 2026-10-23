@@ -327,3 +327,21 @@ test('Codex orchestration routes every worker and helper to Codex while retainin
  const skill=fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8');
  assert.match(skill,/Use the orchestrator agent's worker routing defaults/);
 });
+
+const flatText=file=>fs.readFileSync(path.join(root,file),'utf8').replace(/\s+/g,' ');
+const ORCHESTRATORS=['agents/orchestrator.md','agents/orchestrator-codex.md'];
+const REVIEWERS=['agents/claude-pr-reviewer.md','agents/codex-pr-reviewer.md'];
+const IMPLEMENTERS=['agents/raw-claude.md','agents/raw-codex.md','agents/implementer-codex.md'];
+const includesAll=(files,rules)=>{for(const file of files){const text=flatText(file);for(const rule of rules)assert.ok(text.includes(rule),`${file}: ${rule}`);}};
+
+test('workers raise numbered needs_you blocks, standalone workers ask in the same shape, and both orchestrators relay them',()=>{
+ const rules=flatText('instructions/standing-rules.md');
+ for(const rule of ['## Questions for the person','"needs_you": null','"needs_you": { "id": "Q-3", "kind": "question | choice | approval | fyi"','"files": [','"blocking": true','`answer: Q-n → <answer>. Recorded as D-n.`','`clarify: Q-n → <their question>` is not an answer: keep Q-n open','(`AskUserQuestion`)','on Codex, a numbered list','recommended one first and marked `(recommended)`','Q-n are unique per Session and never reused'])assert.ok(rules.includes(rule),rule);
+ assert.doesNotMatch(rules,/"question": null/);
+ for(const profile of ['planner:claude','planner:codex','implementer:opus','implementer:astra','implementer:sol','implementer:codex','orchestrator:claude','orchestrator:codex'])assert.ok(resolveProfile(root,profile).nodes.main.instructions.includes('## Questions for the person'),profile);
+ includesAll(ORCHESTRATORS,['numbered `needs_you` blocks','labelled with its role and feature and with its files opened beside the person','send it to the asking tab only']);
+ includesAll(IMPLEMENTERS,['goes in that status file as a `needs_you` block; run by hand, ask the person directly in the same shape']);
+ includesAll(['instructions/planner-identity.md'],['Raise each question for the person as a `needs_you`','record each `answer:` as its D-n']);
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['[references/relay.md](references/relay.md)','`[Needs you · <role> · <feature>]`','to the asking tab only']);
+ includesAll(['skills/orchestrate-sessions/references/relay.md'],['newest blocking question first','open them without asking','Recorded as D-n.` Nobody else gets it','Q-n stays open and nothing is recorded','(raised as Q-3)']);
+});
