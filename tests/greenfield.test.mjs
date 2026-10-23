@@ -392,3 +392,10 @@ test('reviews check a cover sheet\'s criteria against their evidence, and implem
  includesAll(IMPLEMENTERS,['A commit that changes what a doc states (a command, flag, config key, env var, path, default, API or UI copy) updates every doc that states it, in the same commit.']);
  includesAll(['skills/principled-review/SKILL.md'],['flag each doc still stating the old value']);
 });
+
+test('greenfield 0.0.34 documents the relay, the map, sized and cross-checked reviews, and review on ready',()=>{
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.34$/m);
+ includesAll(['README.md'],['numbered `needs_you` block','"N commits since the last review at <sha>"','`review-size.mjs`','Principle 13 (security and PHI) runs on every review','One batched `checker` call on the other vendor','A review starts when you say a PR is "ready"','`Human review: required`','| `checker` (agent `review-checker`) | reviewer |']);
+ includesAll(['index.html'],['sized, on “ready”','has the other vendor confirm what to fix']);
+ for(const file of ['README.md','index.html'])assert.doesNotMatch(flatText(file),/end-of-Session pass|once per workstream/,file);
+});
