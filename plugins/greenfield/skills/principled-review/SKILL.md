@@ -561,8 +561,9 @@ WHAT TO CHECK:
    contact or date). Sinks: logs, error messages and error trackers,
    analytics and telemetry events, caches, URLs and query strings,
    third-party APIs, and client storage (localStorage, cookies,
-   IndexedDB). Controls: leave it out, redact or hash it, or send it
-   only to an approved store over an authorized path.
+   IndexedDB). The control is redaction: leave the field out, mask or
+   hash it, or send it only to an approved store over an authorized
+   path. Name a missing one as "missing control redaction".
 
 A boundary with no control is a finding. Every finding names the
 source, the sink, and the missing control (e.g. "source

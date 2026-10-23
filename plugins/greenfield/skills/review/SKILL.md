@@ -194,6 +194,7 @@ Every section below is always present; write `none` when it is empty.
 
 Each finding, in every section:
 **[title]** · `file:line` - what is wrong. Failure scenario: ... Fix: ...
+Source: [where the value comes from] → Sink: [where it ends up] → Missing control: [the control that is absent]   (security and PHI findings)
 Harm: [high|medium|low] ([why]) · Reach: [high|medium|low] ([who]) · Recovery: [silent|visible] ([workaround]) → [level]
 Scope: in | out ([why]) · Approach/scope: no | yes ([the plan change it would need])   (Must-Fix and Should-Fix)
 Checked by: repro | test | reading · checker ([vendor]) | same vendor ([why])
