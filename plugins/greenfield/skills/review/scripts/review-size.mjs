@@ -45,7 +45,7 @@ export function sizeReview(changes){
  const files=counted.length,lines=counted.reduce((sum,c)=>sum+c.added+c.deleted,0);
  const triggers=[];
  for(const c of changes)for(const t of TRIGGERS)if(t.test.test(c.path)&&!triggers.some(x=>x.kind===t.kind))triggers.push({kind:t.kind,path:c.path});
- const why=[`${files} files, ${lines} lines`];
+ const plural=(n,word)=>`${n} ${word}${n===1?'':'s'}`,why=[`${plural(files,'file')}, ${plural(lines,'line')}`];
  let size=files<=LIMITS.small.files&&lines<=LIMITS.small.lines?'small':'standard';
  if(files>LIMITS.large.files)why.push(`over ${LIMITS.large.files} files`);
  if(lines>LIMITS.large.lines)why.push(`over ${LIMITS.large.lines.toLocaleString('en-US')} lines`);

@@ -59,6 +59,10 @@ test('auth, secrets, public contracts and irreversible changes are risk triggers
  assert.deepEqual(kind('src/components/Button.tsx'),[]);
 });
 
+test('one file and one line read in the singular',()=>{
+ assert.equal(sizeReview([{path:'src/a.ts',added:1,deleted:0}]).reason,'1 file, 1 line');
+});
+
 test('numstat parsing counts binary files with no lines and keeps renamed paths',()=>{
  assert.deepEqual(parseNumstat('3\t1\tsrc/a.ts\n-\t-\tassets/logo.png\n2\t0\tsrc/{old => new}/b.ts\n'),[
   {path:'src/a.ts',added:3,deleted:1},{path:'assets/logo.png',added:0,deleted:0},{path:'src/new/b.ts',added:2,deleted:0}]);
