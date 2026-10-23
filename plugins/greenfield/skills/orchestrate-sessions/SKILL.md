@@ -118,6 +118,8 @@ A quiet worker or a long-running step is normal. On a reported failure, explicit
 
 Answer from an existing approved source when you can, and cite where. Leave routine in-scope technical decisions to the assigned worker. Consult `advisor` only for a bounded, unresolved technical question that merits another model. Send product and architecture changes, and ask-first actions, to the user.
 
+Workers raise questions as a `needs_you` block in their status file (standing rules, Questions for the person). Relay each one as [references/relay.md](references/relay.md) says: one round at a time, newest blocking first, labelled `[Needs you · <role> · <feature>]` with its Q-n, and its files opened beside the person. Record the answer as a D-n and send `answer: Q-n → … Recorded as D-n.` to the asking tab only, or `clarify: Q-n → …` when the person asks back, which keeps Q-n open.
+
 When a decision lands while workers are running, write it once as a numbered addendum laid out as in [references/addendum-template.md](references/addendum-template.md). Submit it to every affected running worker, and add it to the decision log (`interview`). Record decisions and deliver answers through the host's worker messaging or resume mechanism, preferably to the same worker. Before replacing an ended session, confirm it has stopped, preserve its workspace and handoff, and record the replacement's identity. Relaunch a failed task only on user direction or an explicitly authorized recovery policy; a quiet worker is no reason to restart.
 
 ## Ledger, workstream map and completion

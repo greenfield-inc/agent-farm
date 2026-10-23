@@ -55,6 +55,8 @@ Use host durable state when available; otherwise `.agent/ledger.json`. Keep one 
     {
       "time": "<ISO 8601 time>",
       "item": "ENG-123",
+      "q": "Q-3",
+      "d": "D-12",
       "question": "Should the filename use the invoice id or number?",
       "answered_by": "brief | advisor | person",
       "answer": "Invoice id. Brief, Success section."
