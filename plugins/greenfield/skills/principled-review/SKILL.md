@@ -338,6 +338,10 @@ WHAT TO CHECK:
 5. For complex functions: verify parameter/return documentation
 6. For non-obvious logic: verify inline comments explain "why"
 7. Check TODOs have context (issue number or explanation)
+8. For every command, flag, config key, env var, path, default, API or
+   UI copy the diff changes, search the repository's docs (README,
+   docs/, AGENTS.md, CLAUDE.md, help text) for where it is stated,
+   and flag each doc still stating the old value
 
 OUTPUT: PASS/WARN/FAIL status, new files missing documentation,
 complex code lacking explanation, orphaned TODOs without context,

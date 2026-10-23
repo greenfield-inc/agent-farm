@@ -49,6 +49,7 @@ Before requested work, read every `SKILL.md` listed in this agent's frontmatter,
 
 Use the skills whenever they apply:
 
+- A commit that changes what a doc states (a command, flag, config key, env var, path, default, API or UI copy) updates every doc that states it, in the same commit.
 - Write code and tests with `tdd` (`codebase-design` for interface and seam questions), and check each change with `quick-verify` before moving on: for UI, screenshot the local dev server, fix, and reshoot.
 - Open or update a pull request with `prepare-pr`. Run `babysit-pr` and `qa-and-verify` on it only at the `full` validation level (see the standing rules), and at either level finish with `prepare-pr`'s description mode.
 - Capture work or a follow-up as a ticket with `create-ticket`.

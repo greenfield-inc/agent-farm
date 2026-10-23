@@ -38,7 +38,9 @@ authorized review scope.
 
 ## Launched by an orchestrator
 
-When an orchestrator launches you, its message names the PR and a findings file.
+When an orchestrator launches you, its message names the PR, the range to review,
+a findings file, and the cover sheet when there is one; check the plan's criteria
+against their evidence under Claims, as the review skill says.
 First read earlier greenfield reviews on the PR (by marker): don't re-raise
 findings on unchanged code, and record each under Earlier findings. Write the
 reconciled findings to that file and post exactly one review with the `review`
