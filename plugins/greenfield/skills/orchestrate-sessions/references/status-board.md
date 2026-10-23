@@ -3,8 +3,8 @@
 One HTML page per Session for the person, published as the Session's hub and updated in place on each worker event and when the person asks.
 
 ```
-Header            Session name, started, last updated, review policy (default: once at
-                  the end of the workstream; any override, who gave it and when), validation
+Header            Session name, started, last updated, review policy (default: on "ready" or
+                  at a plan's end; any override, who gave it and when), validation
                   default (deferred unless the person switched it to full),
                   workers running / queued / done, total cost and elapsed time
 

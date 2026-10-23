@@ -373,3 +373,15 @@ test('reviewers size every review with the bundled script, run security and PHI 
  includesAll(['agents/review-checker.md'],['start from the claim that it is wrong','one candidate\'s verdict never decides another\'s','You are read-only']);
  assert.equal(resolveProfile(root,'orchestrator').nodes.main.instructions.includes('review-size'),false,'the orchestrator never sizes');
 });
+
+test('reviews start on ready, a plan\'s end or a cleared human review, never on tweaks, and findings route by scope with a thrash pause',()=>{
+ const skill=flatText('skills/orchestrate-sessions/SKILL.md');
+ for(const rule of ['A review starts on one of three triggers, and never on a tweak or a quick fix','**"ready".**','**A plan\'s end.**','**Human review: required.**','`<last reviewed head>...HEAD`','The reviewer sizes the range itself','No reviewer starts, and the PR\'s lane shows its unreviewed commits','Never mark a PR ready, or say it can merge, while it has commits since its last review','The end-of-Session sweep','## After a review','| Approach/scope: yes, at any level | the person, never the implementer','| Must-Fix, not flagged | the PR\'s implementer, with no question |','| Should-Fix, scope out | the person: re-plan it as follow-up work, fix it here anyway, or accept it |','checks only the F-n it was sent','an F-n is still open after two fix rounds','a third fix round would start','more fix rounds (how many), re-plan, or accept as is'])assert.ok(skill.includes(rule),rule);
+ assert.doesNotMatch(skill,/Fix the N must-fix items now|end-of-Session pass/);
+ includesAll(ORCHESTRATORS,['Tweaks and quick fixes start no reviewer','Never say a PR can merge while it has unreviewed commits','in-scope Must-Fix and Should-Fix go to the PR\'s implementer with no question','the loop pauses on the thrash rule']);
+ for(const file of ORCHESTRATORS)assert.doesNotMatch(flatText(file),/fix now \(recommended\)|end-of-Session pass/,file);
+ includesAll(IMPLEMENTERS,['quick-verified, with screenshots of each changed screen when it is visual','start no reviewer for it']);
+ includesAll(['instructions/standing-rules.md'],['CI, QA and review wait until the person says "ready"','"Ready" runs `full` on the same branch']);
+ includesAll(['skills/plan/SKILL.md'],['`Review: at the plan\'s end · Human review: none`','Default to `required` when the plan changes UI']);
+ includesAll(['skills/plan/references/cover-sheet.md'],['Human review: required | none']);
+});
