@@ -399,8 +399,8 @@ test('reviews check a cover sheet\'s criteria against their evidence, and implem
 
 test('greenfield 0.0.34 documents the relay, the map, sized and cross-checked reviews, and review on ready',()=>{
  assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.34$/m);
- includesAll(['README.md'],['numbered `needs_you` block','"N commits since the last review at <sha>"','`review-size.mjs`','Principle 13 (security and PHI) runs on every review','One batched `checker` call on the other vendor','A review starts when you say a PR is "ready"','`Human review: required`','| `checker` (agent `review-checker`) | reviewer |']);
- includesAll(['index.html'],['sized, on “ready”','has the other vendor confirm what to fix']);
+ includesAll(['README.md'],['numbered `needs_you` block','"N commits since the last review at <sha>"','`review-size.mjs`','Principle 13 (security and PHI) runs on every review','One batched `checker` call on the other vendor','a quick fix or tweaked PR is reviewed when you say it is "ready"','`Human review: required`','| `checker` (agent `review-checker`) | reviewer |']);
+ includesAll(['index.html'],['sized, after CI and QA','has the other vendor confirm what to fix']);
  for(const file of ['README.md','index.html'])assert.doesNotMatch(flatText(file),/end-of-Session pass|once per workstream/,file);
 });
 
@@ -409,4 +409,12 @@ test('review-final fixes: previews the orchestrator opens, the supplied range re
  includesAll(['skills/principled-review/SKILL.md'],['When the caller supplies one','use it as `DIFF_RANGE` exactly and skip the base detection below']);
  includesAll(REVIEWERS,['pass that same range to principled-review as its `DIFF_RANGE` for every finder','a new Must-Fix in the lines that fix round changed','marked `fix-caused`']);
  includesAll(['skills/orchestrate-sessions/SKILL.md'],['plus any new Must-Fix in the lines that fix round changed, which it marks `fix-caused`']);
+});
+
+test('planned work always validates full and then reviews on its own; deferred and ready are for quick fixes and tweaks (D-65)',()=>{
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['A planned feature\'s implementer always runs `full` when its build is done','it needs no "ready"','an implementer building an approved plan always runs `full`','`deferred` and "ready" apply only to quick fixes and tweaks']);
+ includesAll(['instructions/standing-rules.md'],['Building an approved plan is always `full`','`deferred` and "ready" apply only to quick fixes and tweaks']);
+ includesAll(ORCHESTRATORS,['`full` for an approved plan, and `deferred` by default for quick fixes and tweaks','reports done after its `full` validation']);
+ includesAll(['skills/plan/SKILL.md'],['the implementer runs full validation (CI and QA) when the build is done, then `greenfield/reviewer` reviews the PR on its own']);
+ includesAll(['README.md'],['A planned feature\'s implementer always runs full validation (CI, QA) when its build is done','Quick fixes and tweaks run `deferred` by default']);
 });
