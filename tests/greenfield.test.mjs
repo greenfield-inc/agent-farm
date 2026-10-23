@@ -349,3 +349,11 @@ test('workers raise numbered needs_you blocks, standalone workers ask in the sam
  includesAll(['skills/orchestrate-sessions/SKILL.md'],['[references/relay.md](references/relay.md)','`[Needs you · <role> · <feature>]`','to the asking tab only']);
  includesAll(['skills/orchestrate-sessions/references/relay.md'],['newest blocking question first','open them without asking','Recorded as D-n.` Nobody else gets it','even when you can answer it yourself','Q-n stays open and nothing is recorded','(raised as Q-3)']);
 });
+
+test('the map leads with Needs you and shows each PR\'s validation and unreviewed commits, and the watcher is unchanged',()=>{
+ includesAll(['skills/orchestrate-sessions/references/status-board.md'],['Needs you the first section','Q-n | feature | role | question | recommended answer | files','checks (required CI: green, failing or pending) | QA (passed, failed, not run) | review','"N commits since the last review at <sha>, not reviewed"','git rev-list --count <last reviewed head>..<PR head>','`<!-- greenfield-review head=<sha> -->` marker']);
+ includesAll(['skills/orchestrate-sessions/references/ledger.md'],['"last_reviewed_head"']);
+ includesAll(ORCHESTRATORS,['Needs you first, then each PR\'s checks, QA, review state and commits since its last review','relaying any `needs_you` a wake-up finds the same way as one an event brings']);
+ const skill=fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8');
+ for(const line of ['schedule:         3 checks each at 5, 10, 15, then 30 minutes; after 3 quiet 30-minute checks, expire','on start:         fire one test wake-up in the background','on dispatch:      start a fresh watcher at 5 minutes (or reset the running one to 5)','whenever active:  if the last wake-up is more than one interval overdue, tell the user the watcher failed, then restart it','a new needs_you is relayed as Questions and resumption says, files opened','"Set up a watcher? I\'ll check in at 5 minutes, slow down while nothing changes, and tell you only when something does." Start it unless the user says no'])assert.ok(skill.includes(line),line);
+});
