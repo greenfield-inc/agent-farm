@@ -31,13 +31,17 @@ const TRIGGERS=[
 
 export const excluded=file=>EXCLUDED.some(re=>re.test(file));
 
-// git diff --numstat output → [{path, added, deleted}]; binary files count as 0 lines, renames keep the new path.
+// git diff --numstat -z output → [{path, added, deleted}]. -z keeps paths verbatim (git would otherwise quote and
+// escape unusual ones, hiding them from the triggers); binary files count as 0 lines; a rename keeps its new path.
 export function parseNumstat(text){
- return text.split('\n').filter(Boolean).map(line=>{
-  const [added,deleted,...rest]=line.split('\t'),raw=rest.join('\t');
-  const file=raw.replace(/\{[^{}]* => ([^{}]*)\}/g,'$1').replace(/^.* => /,'').replace(/\/\//g,'/');
-  return {path:file,added:added==='-'?0:Number(added),deleted:deleted==='-'?0:Number(deleted)};
- });
+ const fields=text.split('\0'),out=[];
+ for(let i=0;i<fields.length;i++){
+  if(!fields[i])continue;
+  const [added,deleted,file]=fields[i].split('\t');
+  const path=file===''?(i+=2,fields[i]):file;
+  out.push({path,added:added==='-'?0:Number(added),deleted:deleted==='-'?0:Number(deleted)});
+ }
+ return out;
 }
 
 export function sizeReview(changes){
@@ -60,7 +64,7 @@ function main(argv){
  const repo=flag('--repo')??'.';
  if(args.length!==1){process.stderr.write('Usage: review-size.mjs <base>...<head> [--repo <dir>] [--json]\n');return 2;}
  let numstat;
- try{numstat=execFileSync('git',['diff','--numstat','-M',args[0]],{cwd:repo,maxBuffer:64*1024*1024}).toString();}
+ try{numstat=execFileSync('git',['diff','--numstat','-z','-M',args[0]],{cwd:repo,maxBuffer:64*1024*1024}).toString();}
  catch(error){process.stderr.write(`git diff failed: ${error.message}\n`);return 2;}
  const result=sizeReview(parseNumstat(numstat));
  process.stdout.write(json?JSON.stringify(result,null,2)+'\n':`Size: ${result.size} because ${result.reason}\n`);
