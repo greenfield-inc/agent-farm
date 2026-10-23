@@ -32,7 +32,8 @@ Every piece of work follows the same three roles, each a fresh agent in that wor
 | Approved cover sheet | `greenfield/implementer` (use the orchestrator's routing default; otherwise `opus`) |
 | Clearly straightforward, authorized fix | `greenfield/implementer` directly, with the original task and a `no-plan` label |
 | Implementer done, when the user turned on the simplify checkpoint | `greenfield/simplify-and-refactor:sol` on that PR's branch, before QA and review (see Review policy) |
-| Every PR of the workstream ready for review | `greenfield/reviewer:codex`, one per PR, one `COMMENT` review, no fixes (see Review policy) |
+| A PR the person calls "ready", a plan's end, or a human review cleared | `greenfield/reviewer:codex`, one per review, one `COMMENT` review, no fixes (see Review policy) |
+| Review findings | routed by After a review: in-scope fixes to the PR's implementer, approach/scope and out-of-scope findings to the person |
 
 Under an orchestrator, planners only plan; they never take the small-fix route. Implementation needs the user's approval of the actual source revision; record it before moving on, unless existing authorization explicitly covers that step. A finished planning document is ready for review, nothing more. Relay open decisions to the user and let the planner write the plan.
 
@@ -81,11 +82,43 @@ Without a host requirement, give each work item its own Git worktree and branch,
 
 ## Review policy
 
-The default is one review per PR at the end of the workstream: at `full`, once every PR's checks are green and its implementer has reported done; at `deferred`, inside the end-of-Session pass below. Launch one `greenfield/reviewer:codex` agent per PR as a new tab in the Pane that owns that PR's branch. Its starting message names the PR and a findings file in the Session folder, and says: write the findings file, post one reconciled `COMMENT` review, apply no fixes.
+A review starts on one of three triggers, and never on a tweak or a quick fix:
 
-Validation level: `deferred` (your default) is local checks, then push; `full` adds QA, green PR CI, babysitting and review per this policy. Name the level in every implementer's starting message and state it in one line before launching, without waiting: "Running this deferred: local checks and push; CI, QA and review in the end-of-Session pass. Say 'full' to validate it now." The user can say "full" for any piece of work or switch the Session's default; show the default beside the review policy and each PR's validation state in its lane, kept current from implementer reports. Relay an implementer's deferred-validation question to the user right away, like any Needs-you item. When refinements wind down (the user is wrapping up, tweaks slow, or deferred PRs pile up), offer the end-of-Session pass in one line: each deferred PR's implementer runs `full` (CI, QA, babysitting until green, then its description), resumed in its tab or, once that tab has stopped, as a new implementer tab in the same Pane; then review per this policy. Run it only on a yes, and always offer it for every PR still deferred before you treat the Session's work as finished or archive its Pane.
+- **"ready".** The person says a PR is ready (ready for review, or ready to merge). Its implementer runs `full` once (CI, QA, babysitting until green, then its description), resumed in its tab or, once that tab has stopped, as a new implementer tab in the same Pane. Then one reviewer reviews `<last reviewed head>...HEAD`, or the whole PR when it has never been reviewed.
+- **A plan's end.** A planned feature's implementer reports done. When its cover sheet says `Human review: none`, start its review straight away.
+- **Human review: required.** When the cover sheet says so, open the PR beside the person instead, say it waits for their look, and start no reviewer until they say "ready".
 
-The fix loop: when findings arrive, ask once: "Fix the N must-fix items now (recommended), batch them into the end-of-Session pass, or skip?" To fix, send them to the implementer that owns the PR, resumed in its tab or, once that tab has stopped, as a new implementer tab in the same Pane. When it reports done, launch a reviewer follow-up, again as a new tab in that Pane, that checks only those items. Run another full round only when the user asks.
+Launch one `greenfield/reviewer:codex` agent per review as a new tab in the Pane that owns that PR's branch. Its starting message names the PR, the range, a findings file in the Session folder and the cover sheet when there is one, and says: write the findings file, post one reconciled `COMMENT` review, apply no fixes. The reviewer sizes the range itself; show the Size line it reports in the PR's lane, and never compute it. When the review or a follow-up posts, record the head it covered as the PR's `last_reviewed_head`.
+
+Tweaks and quick fixes go to the PR's implementer and are committed to its branch: an existing PR, or a new draft PR labelled `no-plan`. The implementer quick-verifies each one; when the change is visual, open its screenshots beside the person. No reviewer starts, and the PR's lane shows its unreviewed commits. Never mark a PR ready, or say it can merge, while it has commits since its last review: say "N commits not reviewed; say 'ready' to review them" instead.
+
+Validation level: `deferred` (your default) is local checks, quick-verify and push, with CI, QA and review held until the person says "ready"; `full` runs CI, QA and babysitting now, then review per the triggers above. Name the level in every implementer's starting message and state it in one line before launching, without waiting: "Running this deferred: local checks and push; CI, QA and review when you say 'ready'. Say 'full' to validate it now." The user can say "full" for any piece of work or switch the Session's default; show the default beside the review policy and each PR's validation state in its lane, kept current from implementer reports.
+
+The end-of-Session sweep: when refinements wind down (the user is wrapping up, tweaks slow, or unreviewed PRs pile up), list every PR with unreviewed commits, each with its count and last reviewed head, and ask "ready?" for each in one question. A yes runs the "ready" trigger for that PR. Always offer the sweep before you treat the Session's work as finished or archive a Pane whose PR has unreviewed commits.
+
+## After a review
+
+Read the findings file. Every Must-Fix and Should-Fix carries `Scope: in | out` and `Approach/scope: no | yes` (the reviewer's CRITERIA.md, section 7). Route each finding once:
+
+| Finding | Goes to |
+| --- | --- |
+| Approach/scope: yes, at any level | the person, never the implementer: re-plan it (a new revision through the planner), fix it in this PR anyway, or accept it as is |
+| Must-Fix, not flagged | the PR's implementer, with no question |
+| Should-Fix, scope in, not flagged | the PR's implementer, with no question |
+| Should-Fix, scope out | the person: re-plan it as follow-up work, fix it here anyway, or accept it |
+| Suggestion | the map only |
+
+Send the implementer's share in one message, resumed in its tab or, once that tab has stopped, as a new implementer tab in the same Pane: `review: fix F-… (findings: <path>)`. Put the person's share to them as one relay message ([references/relay.md](references/relay.md)), each finding with its file:line and, for a flagged one, the plan change it would need; record their answers as D-n. A finding they send back to be fixed goes to the implementer in the next message, and a re-plan goes to the planner.
+
+The fix loop: when the implementer reports its fixes done, launch a follow-up reviewer, again as a new tab in that Pane, that checks only the F-n it was sent. A follow-up is not sized again. Route any F-n still open the same way. The loop ends when no Must-Fix is open and every finding sent to the person has its answer; a Must-Fix the person accepted counts as closed. Run another full round only when the user asks.
+
+The thrash rule: stop sending fixes and ask the person when any of these happens on one PR's review:
+
+- a follow-up confirms a new Must-Fix in lines the last fix round changed (the reviewer marks it fix-caused);
+- an F-n is still open after two fix rounds;
+- a third fix round would start.
+
+Send the implementer nothing more. Put one question to the person naming the cycle (which F-n, which rounds, what each fix broke), with three options: more fix rounds (how many), re-plan, or accept as is.
 
 The simplify checkpoint is optional and off by default. When the user turns it on, launch one `greenfield/simplify-and-refactor:sol` agent per PR as a new tab in that PR's Pane after its implementer reports done and has stopped, before QA and review, since it may write the branch. Its starting message names the PR and says: plan, then wait for the user's approval of the merged plan. Relay the plan to the user; it applies only on their approval. When it reports done, the head has changed: QA and review run on the new head, and the implementer owns the branch again.
 
@@ -133,7 +166,7 @@ A worker is done when its revision, the checks its validation level requires, it
 
 ## Cleanup
 
-Archive a feature's Pane once the feature is finished: its PR was merged or closed, or its plan was abandoned, every agent in it has stopped, and, if its PR is still deferred, you have offered the end-of-Session pass. Keep the Pane open until then, because later review, fix and QA tabs need its worktree. A finished tab needs no archiving; close it or leave it.
+Archive a feature's Pane once the feature is finished: its PR was merged or closed, or its plan was abandoned, every agent in it has stopped, and, if its PR still has unreviewed commits, you have offered the end-of-Session sweep. Keep the Pane open until then, because later review, fix and QA tabs need its worktree. A finished tab needs no archiving; close it or leave it.
 
 Archiving finished Panes is part of finishing the work. Keep anything the person asked to keep. Pane's runpane docs describe how.
 

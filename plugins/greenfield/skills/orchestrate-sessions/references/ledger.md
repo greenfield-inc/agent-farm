@@ -6,7 +6,7 @@ Use host durable state when available; otherwise `.agent/ledger.json`. Keep one 
 {
   "caps": { "concurrent": 3, "spend_usd": null },
   "session": { "name": "<host Session name>", "id": null, "canonical_destination": null, "map": null, "stubs": [] },
-  "review_policy": { "mode": "end of workstream", "set_by": "default", "time": null },
+  "review_policy": { "mode": "on ready or at a plan's end", "set_by": "default", "time": null },
   "items": [
     {
       "id": "ENG-123",
