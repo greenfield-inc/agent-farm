@@ -38,6 +38,25 @@ Before reviewing any code, write down (internally):
 - **What approach was planned?** (from the plan, if any)
 - **What constraints or conventions apply?** (from CLAUDE.md)
 
+### Size the review
+Size the reviewed range before choosing what runs: the PR's base to its head, or
+the range your starting message names (for a batch, `<last reviewed head>...HEAD`).
+
+```bash
+node <this skill>/scripts/review-size.mjs "$base...$head" --repo "$repo_dir"
+```
+
+It prints `Size: small|standard|large because <files, lines, risk triggers>`,
+counting hand-written files only (lockfiles, generated and vendored files are
+excluded). Small is at most 10 files and 300 lines with no risk trigger; large is
+over 1,000 lines or 30 files, or a schema or migration, auth or secrets, a public
+contract, or an irreversible change; standard is everything between. You may
+raise the size when your reading finds a risk the paths miss (a destructive data
+change, a permission check moved, a shared contract in an unexpected file), or
+to large when the person asked for a full review; say why. Never lower it. That
+size line opens the posted review, right under its heading, and the principled review (when bundled) picks
+its principles from it.
+
 ## Step 2: Run Quality Gates
 
 Discover checks from AGENTS.md/CLAUDE.md, CI, manifests, and build configuration.
@@ -64,10 +83,34 @@ If an implementation plan exists in the issue:
 Check every test, QA, verification or CI claim in the PR description
 ("13/13 pass", "checked hands-on", "CI green") and record each under Claims.
 
-Before posting, verify every Must-Fix and Should-Fix finding yourself:
-reproduce it, show it with a failing test, or trace the code path that
-triggers it. Post one you can't verify as Should-Fix marked "unverified", or
-drop it (under Dropped).
+Give every Must-Fix and Should-Fix its routing line (`CRITERIA.md` section 7):
+`Scope: in | out (<why>) · Approach/scope: no | yes (<the plan change it would need>)`.
+
+### Check with the other vendor
+
+Merge duplicate candidates (same cause, same place). Then make **one** call to
+the `checker` subagent with every Must-Fix and Should-Fix candidate, numbered
+C-1, C-2, …: the spec (the linked issue, the PR description, and the cover
+sheet when there is one), the diff range, and for each candidate its title,
+file:line, what is wrong, failure scenario, severity line and routing line.
+Never send the finders' reasoning. `checker` runs on the other vendor: Codex
+for `greenfield/reviewer:claude`, Claude for `greenfield/reviewer:codex`. It
+judges each candidate on its own and returns confirmed or refuted, how it
+checked, its evidence, and its own severity or routing line where it
+disagrees. A review with no Must-Fix or Should-Fix candidate makes no call.
+
+- **Confirmed:** keep it, with `Checked by: <repro | test | reading> · checker (<vendor>)`.
+  When the checker disputes the severity line, take the level its answers
+  support under the rubric and note the change. When it disputes a routing
+  answer, keep the one that sends the finding to the person and note why.
+- **Refuted:** move it to Dropped with the refuting evidence. Only concrete
+  evidence refutes: the guard that prevents it, a passing reproduction.
+- **Undecided:** keep it at Should-Fix, marked "unverified".
+
+When the checker cannot run (the other vendor's CLI is missing, signed out or
+fails), check each candidate yourself: reproduce it, show it with a failing
+test, or trace the code path. Mark each `Checked by: same vendor (<why the
+checker could not run>)`, and finish the review.
 
 ## Step 5: Post the Review
 
@@ -111,6 +154,7 @@ Every section below is always present; write `none` when it is empty.
 ```markdown
 ## PR Review
 
+**Size:** [small|standard|large] because [files, lines, risk triggers, or why you raised it]
 **Issue context:** #[issue number] - [one-line summary]
 
 ### Quality Gates
@@ -127,16 +171,19 @@ Every section below is always present; write `none` when it is empty.
 
 Each finding, in every section:
 **[title]** · `file:line` - what is wrong. Failure scenario: ... Fix: ...
-Harm: [high|medium|low] ([why]) · Reach: [high|medium|low] ([who]) · Recovery: [silent|visible] ([workaround]) → [level] · Checked by: repro | test | reading
+Harm: [high|medium|low] ([why]) · Reach: [high|medium|low] ([who]) · Recovery: [silent|visible] ([workaround]) → [level]
+Scope: in | out ([why]) · Approach/scope: no | yes ([the plan change it would need])   (Must-Fix and Should-Fix)
+Checked by: repro | test | reading · checker ([vendor]) | same vendor ([why])
 
 ### Principles
-Ran: [n, names] · Skipped: [names - reason each] (copied from principled-review)
+Ran: [n, names] · Skipped: [names - reason each] (copied from principled-review, chosen by the size)
+Checker: [n confirmed, n refuted, n unverified] · checker ([vendor]) | same vendor ([why])
 
 ### Earlier findings
 - [finding from an earlier greenfield review, by marker] - resolved ([commit]) | still open | no longer applies
 
 ### Dropped
-- [new candidate from this review that you rejected; never an earlier finding] - [evidence that rules it out]
+- [new candidate from this review that you or the checker rejected; never an earlier finding] - [evidence that rules it out] (refuted by checker ([vendor]) | by you)
 
 ### Claims
 - [test, QA, verification or CI claim from the PR description] - checked ([evidence]) | unsupported | not checkable here ([why])

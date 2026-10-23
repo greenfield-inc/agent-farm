@@ -63,14 +63,15 @@ Compose a `PROJECT_CONTEXT` block summarizing:
 
 ## Step 3: Spawn the Applicable Review Agents in Parallel
 
-Read the diff, then choose principles. Always run 3, 4, 5 and 12 (scope,
-correctness and spec). Run 9 when the diff adds or changes a query, schema,
-data access or a loop over data that grows. Run 13 when the diff crosses a trust boundary (input,
-auth, secrets, shell, network, file paths, HTML); 14 and 15 when behaviour or
-tests changed; and the rest only when relevant files changed (for example 7
-and 10 only when UI components changed). List the skipped principles in one
-line with the reason; the `review` skill copies the Ran/Skipped line into
-its Principles section.
+Read the diff, then choose principles by the review's size. The `review` skill sizes the range first (its Size step); run on your own, size it the same way with `../review/scripts/review-size.mjs` when it is bundled, or use standard.
+
+| Size | Principles that run |
+| --- | --- |
+| small | 4, 5 and 13; plus 9 when the diff adds or changes a query, data access, or work on a hot path, and 12 when there is a spec or cover sheet. 3 to 5 agents. Skip 3: a small batch has no scope to creep |
+| standard | 3, 4, 5, 12 and 13, plus those the diff makes relevant: 9 for queries, data access or hot paths; 14 and 15 when behaviour or tests changed; the rest only when relevant files changed (for example 7 and 10 only when UI components changed). Up to 10 agents |
+| large | every relevant principle, up to all 15 |
+
+Principle 13 (security and PHI) runs at every size, and 12 joins at every size when a spec or cover sheet exists. List every skipped principle in one line with the reason; the `review` skill copies the Ran/Skipped line into its Principles section.
 
 Spawn the chosen agents in parallel in a single message. Pass each
 agent the branch name, changed file list, and the PROJECT_CONTEXT block.
@@ -343,10 +344,10 @@ complex code lacking explanation, orphaned TODOs without context,
 recommendations.
 ```
 
-### Principle 9: Query & Data Cost
+### Principle 9: Query, Data & Hot-Path Cost
 
 ```
-Review the diff for QUERY & DATA COST at production scale.
+Review the diff for QUERY, DATA AND HOT-PATH COST at production scale.
 
 PROJECT_CONTEXT: {project_context}
 Changed files: {file_list}
@@ -376,18 +377,27 @@ WHAT TO CHECK:
    list.
 6. Check in-memory work that grows with data: nested loops over
    growing collections, or loading a whole table to filter it in code.
-7. When the repo has a local or dev database you can reach read-only,
+7. Check CPU, memory, render and latency cost on hot paths (page
+   loads, request handlers, render loops, polling, startup): work per
+   call that grows with data, repeated work a cache or index would
+   remove, re-renders of large lists, synchronous I/O or blocking
+   calls on a request or UI thread, and memory that grows without
+   bound.
+8. When the repo has a local or dev database you can reach read-only,
    run EXPLAIN and include the plan. Never run anything against
    production.
 
-Every finding states its cost at 1M users, e.g. "runs on every page
-load, ~20k calls/s, scans ~500M rows with no index on user_id". Drop
-any finding with no plausible scale cost. No micro-optimizations.
+Every finding names the hot path, the scale and an estimate of the
+cost at 1M users, e.g. "runs on every page load, ~20k calls/s, scans
+~500M rows with no index on user_id" or "page load, 5k items per
+account, nested loop ~25M comparisons, ~2 s". Drop any finding that
+cannot name all three, or has no plausible scale cost. No
+micro-optimizations.
 
-If the diff adds or changes no queries and no data-sized loops, report
-N/A.
+If the diff adds or changes no queries, no data-sized loops and no
+hot-path work, report N/A.
 
-OUTPUT: PASS/WARN/FAIL/N/A status, each query or loop with file:line,
+OUTPUT: PASS/WARN/FAIL/N/A status, each query, loop or hot path with file:line,
 the index that serves it (or none), call rate x rows touched at 1M
 users, EXPLAIN plans when run, recommendations.
 ```
@@ -499,10 +509,11 @@ requirements with spec quotes, scope creep findings, wrong
 implementations with spec quotes, recommendations.
 ```
 
-### Principle 13: Security Boundaries
+### Principle 13: Security Boundaries & PHI
 
 ```
-Review the diff for SECURITY BOUNDARY violations.
+Review the diff for SECURITY BOUNDARY violations and PHI exposure.
+This principle runs on every review, whatever the size.
 
 PROJECT_CONTEXT: {project_context}
 Changed files: {file_list}
@@ -539,11 +550,25 @@ WHAT TO CHECK:
    - Missing rate limiting on expensive endpoints
    - CORS * on authenticated routes
    - Cookies without httpOnly/secure/sameSite
+7. Map PHI the same way, in every repository, declared or not. Sources:
+   any field or record about a person's health or care (diagnosis,
+   condition, medication, procedure, lab result, clinical note,
+   insurance or member id, or a patient record joined to a name,
+   contact or date). Sinks: logs, error messages and error trackers,
+   analytics and telemetry events, caches, URLs and query strings,
+   third-party APIs, and client storage (localStorage, cookies,
+   IndexedDB). Controls: leave it out, redact or hash it, or send it
+   only to an approved store over an authorized path.
 
-A boundary with no control is a finding. A finding needs the source,
-sink, and what control is missing.
+A boundary with no control is a finding. Every finding names the
+source, the sink, and the missing control (e.g. "source
+patient.diagnosis → sink logger.error → missing control redaction";
+"source query param q → sink exec() string → missing control argument
+array"). Drop any that cannot name all three. PHI reaching a sink
+without a control is always Must-Fix.
 
-OUTPUT: PASS/WARN/FAIL status, boundary map (source → sink → control),
+OUTPUT: PASS/WARN/FAIL status, boundary map (source → sink → control,
+PHI included),
 missing controls with file:line, auth gaps, secret exposures,
 dangerous defaults, recommendations.
 ```
@@ -680,11 +705,11 @@ After the started agents complete, aggregate into a final report:
 | 6 | Backend Conventions | {status} | {count} |
 | 7 | Frontend Conventions | {status} | {count} |
 | 8 | Documentation Standards | {status} | {count} |
-| 9 | Query & Data Cost | {status} | {count} |
+| 9 | Query, Data & Hot-Path Cost | {status} | {count} |
 | 10 | Self-Contained Components | {status} | {count} |
 | 11 | Data Layer Consistency | {status} | {count} |
 | 12 | Spec Fidelity | {status} | {count} |
-| 13 | Security Boundaries | {status} | {count} |
+| 13 | Security Boundaries & PHI | {status} | {count} |
 | 14 | Test Integrity | {status} | {count} |
 | 15 | Test Strategy | {status} | {count} |
 
@@ -711,7 +736,9 @@ Ran: {n, names} · Skipped: {names - reason each, or "none"}
 - Principle 12 reports SKIPPED when no spec/issue is found
 - Mismatched data-layer patterns (Principle 11) are CRITICAL severity
 - Security boundary gaps (Principle 13) with no control are CRITICAL severity
-- A missing index or unbounded scan on a hot path (Principle 9) is CRITICAL
+- A missing index, unbounded scan or data-sized loop on a hot path
+  (Principle 9) is CRITICAL severity
+- PHI reaching a sink without a control (Principle 13) is CRITICAL
   severity
 - Principles 14, 15 report N/A when the diff contains no test changes and
   no testable behavior changes

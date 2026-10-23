@@ -307,7 +307,8 @@ test('Codex orchestration routes every worker and helper to Codex while retainin
  for(const profile of workers){
   assert.ok(main.instructions.includes('greenfield/'+profile),profile);
   const worker=resolveProfile(root,profile);
-  for(const node of Object.values(worker.nodes))assert.equal(node.harness,'codex',`${profile}: ${node.name}`);
+  // The reviewer's checker runs on the other vendor by design (D-57); every other helper stays on Codex.
+  for(const node of Object.values(worker.nodes))assert.equal(node.harness,profile==='reviewer:codex'&&node.name==='review-checker'?'claude':'codex',`${profile}: ${node.name}`);
   verify(build(root,profile,target));
  }
  const implementer=resolveProfile(root,'implementer:codex');
@@ -352,4 +353,23 @@ test('the map leads with Needs you and shows each PR\'s validation and unreviewe
  includesAll(ORCHESTRATORS,['Needs you first, then each PR\'s checks, QA, review state and commits since its last review','relaying any `needs_you` a wake-up finds the same way as one an event brings']);
  const skill=fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8');
  for(const line of ['schedule:         3 checks each at 5, 10, 15, then 30 minutes; after 3 quiet 30-minute checks, expire','on start:         fire one test wake-up in the background','on dispatch:      start a fresh watcher at 5 minutes (or reset the running one to 5)','whenever active:  if the last wake-up is more than one interval overdue, tell the user the watcher failed, then restart it','a new needs_you is relayed as Questions and resumption says, files opened','"Set up a watcher? I\'ll check in at 5 minutes, slow down while nothing changes, and tell you only when something does." Start it unless the user says no'])assert.ok(skill.includes(line),line);
+});
+
+test('reviewers size every review with the bundled script, run security and PHI always, and have one checker on the other vendor',t=>{
+ const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-review-pipeline-')));
+ t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
+ for(const [profile,vendor,model] of [['reviewer:claude','codex','gpt-6.1-sol'],['reviewer:codex','claude','claude-opus-5-5']]){
+  const resolved=resolveProfile(root,profile),main=resolved.nodes.main,checker=resolved.nodes[main.children.checker];
+  assert.deepEqual([checker.name,checker.mode,checker.harness,checker.model,checker.reasoning_effort],['review-checker','process',vendor,model,'medium'],profile);
+  assert.notEqual(checker.harness,main.harness,profile);
+  const bundle=build(root,profile,target);verify(bundle);
+  const script=fs.readdirSync(bundle,{recursive:true}).find(file=>String(file).endsWith(path.join('review','scripts','review-size.mjs')));
+  assert.ok(script,`${profile} bundles review-size.mjs`);
+ }
+ includesAll(REVIEWERS,['Size the range first and run the principles for that size, with principle 13 (security and PHI) on every review','Send every Must-Fix and Should-Fix to `checker` in one call, on the other vendor','`Size: … because …` line','`Scope:` and `Approach/scope:` line']);
+ includesAll(['skills/review/SKILL.md'],['scripts/review-size.mjs','Never lower it.','make **one** call to the `checker` subagent','Never send the finders\' reasoning','Codex for `greenfield/reviewer:claude`, Claude for `greenfield/reviewer:codex`','Mark each `Checked by: same vendor (<why the checker could not run>)`','**Size:** [small|standard|large] because','Scope: in | out ([why]) · Approach/scope: no | yes']);
+ includesAll(['skills/principled-review/SKILL.md'],['| small | 4, 5 and 13;','Principle 13 (security and PHI) runs at every size','### Principle 13: Security Boundaries & PHI','missing control redaction','### Principle 9: Query, Data & Hot-Path Cost','names the hot path, the scale and an estimate']);
+ includesAll(['skills/review/CRITERIA.md'],['any PHI exposure','## 7. Routing','keep the one that sends the finding to the person']);
+ includesAll(['agents/review-checker.md'],['start from the claim that it is wrong','one candidate\'s verdict never decides another\'s','You are read-only']);
+ assert.equal(resolveProfile(root,'orchestrator').nodes.main.instructions.includes('review-size'),false,'the orchestrator never sizes');
 });

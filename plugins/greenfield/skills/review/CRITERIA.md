@@ -30,7 +30,7 @@ Sections 1 to 6 are a checklist of what to look for. Their category never sets a
 
 Then pick the level:
 
-- **Must-Fix (blocks merge):** high harm and (high reach or silent). Also, whatever the reach: any security issue, any data loss, and any broken promise in a public contract: machine-readable output other programs parse, such as JSON fields, exit codes and error codes.
+- **Must-Fix (blocks merge):** high harm and (high reach or silent). Also, whatever the reach: any security issue, any PHI exposure (PHI reaching a log, error, analytics or telemetry event, cache, URL, third party or client storage without a control), any data loss, and any broken promise in a public contract: machine-readable output other programs parse, such as JSON fields, exit codes and error codes.
 - **Should-Fix (fix in this PR unless the author explains why not):** high harm that is rare and visible, or medium harm on the normal path. A promise stated only in human-readable text or docs, even a small one.
 - **Suggestion:** low harm, or a convention or style point that lint doesn't enforce.
 - **Don't raise:** anything lint, typecheck or CI already enforces. Report a failing gate as a gate failure instead.
@@ -57,6 +57,7 @@ Calibrate against the worked examples in [severity-examples.md](severity-example
 - Error handling: missing `try/catch` on calls that can throw, unhandled error states
 - State bugs: stale closures in hooks, missing dependency array entries
 - Query cost at 1M active users: an index serves every new or changed query, and hot paths (page loads, badges, counters, polling) never scan or count a growing table
+- Hot-path cost: no CPU, memory, render or latency cost on a hot path that grows with data. A finding names the hot path, the scale and an estimate, or it is dropped
 
 ## 2. Security
 
@@ -65,6 +66,8 @@ Calibrate against the worked examples in [severity-examples.md](severity-example
 - User input rendered without sanitization
 - Command injection or XSS vectors
 - Auth/permission checks missing on new endpoints or IPC channels
+- PHI (diagnosis, condition, medication, lab result, clinical note, insurance or member id, or a patient record tied to a person) reaching logs, errors, analytics, telemetry, caches, URLs, third parties or client storage without redaction or an approved path
+- Every security or PHI finding names its source, its sink and the missing control, or it is dropped
 
 ## 3. React and Component Design
 
@@ -124,3 +127,13 @@ under a misplaced surface is usually right and reusable; say so.
 - No `console.log` in committed code (except intentional server-side logging)
 - No commented-out code blocks or dead code
 - No unused imports or variables
+
+## 7. Routing
+
+Every Must-Fix and Should-Fix carries two routing answers, set when it is found and re-checked by the checker. An orchestrator routes on them; run by hand, they tell the person what the fix would take.
+
+- **Scope: in | out.** In when the fix stays inside what this PR changes or the plan's packages; out when it lies elsewhere (code the PR does not touch, another item's work, a follow-up).
+- **Approach/scope: no | yes.** Yes when fixing it would need a different approach or a change to the work's scope: a broken premise, a missing package, a plan-level gap (or, without a plan, work the linked issue did not ask for). Say in one line what plan change it would need.
+
+When the checker and the finder disagree on a routing answer, keep the one that sends the finding to the person (scope out, flag yes) and say why.
+
