@@ -114,6 +114,14 @@ judges each candidate on its own and returns confirmed or refuted, how it
 checked, its evidence, and its own severity or routing line where it
 disagrees. A review with no Must-Fix or Should-Fix candidate makes no call.
 
+`checker` is a process launcher. Write the brief to a file and run it with
+stdin closed, or a Codex checker started from your shell waits for stdin and
+never answers:
+
+```bash
+node <checker launcher> --message "$(cat "$brief_file")" < /dev/null
+```
+
 - **Confirmed:** keep it, with `Checked by: <repro | test | reading> · checker (<vendor>)`.
   When the checker disputes the severity line, take the level its answers
   support under the rubric and note the change. When it disputes a routing
