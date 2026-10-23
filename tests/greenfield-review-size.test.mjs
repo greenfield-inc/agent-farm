@@ -70,6 +70,11 @@ test('-z numstat parsing keeps unusual paths and renames verbatim',()=>{
   {path:'migrations/\u00e9.js',added:1,deleted:0},{path:'logo.png',added:0,deleted:0},{path:'src/new name.ts',added:2,deleted:1}]);
 });
 
+test('a path containing a tab is kept whole',()=>{
+ assert.deepEqual(parseNumstat('1\t0\tdb/note\tdata.sql\x00'),[{path:'db/note\tdata.sql',added:1,deleted:0}]);
+ assert.equal(sizeReview(parseNumstat('1\t0\tdb/note\tdata.sql\x00')).size,'large');
+});
+
 test('paths git would quote still hit the risk triggers',t=>{
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-review-size-quoted-'));
  t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
