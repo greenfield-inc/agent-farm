@@ -63,9 +63,24 @@ test('one file and one line read in the singular',()=>{
  assert.equal(sizeReview([{path:'src/a.ts',added:1,deleted:0}]).reason,'1 file, 1 line');
 });
 
-test('numstat parsing counts binary files with no lines and keeps renamed paths',()=>{
- assert.deepEqual(parseNumstat('3\t1\tsrc/a.ts\n-\t-\tassets/logo.png\n2\t0\tsrc/{old => new}/b.ts\n'),[
-  {path:'src/a.ts',added:3,deleted:1},{path:'assets/logo.png',added:0,deleted:0},{path:'src/new/b.ts',added:2,deleted:0}]);
+
+test('-z numstat parsing keeps unusual paths and renames verbatim',()=>{
+ const z='1\t0\tmigrations/\u00e9.js\x00-\t-\tlogo.png\x002\t1\t\x00src/old name.ts\x00src/new name.ts\x00';
+ assert.deepEqual(parseNumstat(z),[
+  {path:'migrations/\u00e9.js',added:1,deleted:0},{path:'logo.png',added:0,deleted:0},{path:'src/new name.ts',added:2,deleted:1}]);
+});
+
+test('paths git would quote still hit the risk triggers',t=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-review-size-quoted-'));
+ t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+ const git=(...args)=>execFileSync('git',['-c','user.name=t','-c','user.email=t@example.com','-c','core.quotepath=true',...args],{cwd:dir});
+ git('init','-q','-b','main');fs.writeFileSync(path.join(dir,'README.md'),'x\n');git('add','.');git('commit','-qm','base');
+ for(const d of ['migrations','auth','db'])fs.mkdirSync(path.join(dir,d));
+ fs.writeFileSync(path.join(dir,'migrations','\u00e9.js'),'a\n');fs.writeFileSync(path.join(dir,'auth','\u00e9.js'),'a\n');fs.writeFileSync(path.join(dir,'db','\u00e9.sql'),'a\n');
+ git('add','.');git('commit','-qm','quoted');
+ const out=JSON.parse(execFileSync(process.execPath,[script,'main~1...main','--repo',dir,'--json']).toString());
+ assert.equal(out.size,'large');
+ assert.deepEqual(out.triggers.map(t=>t.kind).sort(),['auth','schema']);
 });
 
 test('the command sizes a real git range, prints the size line, and rejects bad usage',t=>{
