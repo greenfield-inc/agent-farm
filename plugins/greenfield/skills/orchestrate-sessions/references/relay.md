@@ -20,7 +20,7 @@ On Claude, put the questions through the harness question tool (`AskUserQuestion
 ## Back to the worker
 
 - **An answer.** Record it as the next D-n in that work's decision log (the bundle's, with `interview`), or in the map's Decisions log when the work has no bundle. Send one line to the asking tab only: `answer: Q-n → <the answer, quoted exactly when it is free text>. Recorded as D-n.` Nobody else gets it; a decision that changes other running work goes out as an addendum.
-- **A question back.** `clarify: Q-n → <the person's question>` to the asking tab. Q-n stays open and nothing is recorded; relay its next report the same way.
+- **A question back.** Send `clarify: Q-n → <the person's question>` to the asking tab, even when you can answer it yourself from an approved source (then add your answer and its source after it, and show the person the same), so the worker adds it to `why`. Q-n stays open and nothing is recorded; relay its next report the same way.
 - **A clash.** Q-n are unique per Session. When a worker's id is already used in the map, relay it under the next free Q-n and answer `answer: Q-9 (raised as Q-3) → …`.
 
 Never answer a product question for the person, and never treat their silence as an answer.
