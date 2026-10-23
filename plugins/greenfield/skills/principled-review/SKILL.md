@@ -13,8 +13,11 @@ project's own conventions, then evaluates the diff against them.
 
 ## Step 1: Gather Context
 
-Determine the diff range. If a PR number is provided, fetch its metadata
-to get the correct base:
+Determine the diff range. When the caller supplies one (the `review` skill
+passes the range it sized, such as `<last reviewed head>...HEAD` for a
+batch), use it as `DIFF_RANGE` exactly and skip the base detection below.
+Otherwise, if a PR number is provided, fetch its metadata to get the
+correct base:
 
 ```bash
 # PR provided — use its base and head
@@ -36,7 +39,7 @@ git diff "$BASE"...HEAD --stat
 
 Store the resolved diff range as `DIFF_RANGE` (e.g. `main...HEAD` or
 `origin/develop...feature-branch`). Every sub-agent uses this exact range
-instead of hard-coding `main...HEAD`.
+instead of hard-coding `main...HEAD` or the whole PR.
 
 Also fetch PR metadata and linked issue context when a PR number is
 available: use the review skill's Step 1 when it is bundled; otherwise read

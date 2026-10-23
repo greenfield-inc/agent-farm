@@ -110,7 +110,7 @@ Read the findings file. Every Must-Fix and Should-Fix carries `Scope: in | out` 
 
 Send the implementer's share in one message, resumed in its tab or, once that tab has stopped, as a new implementer tab in the same Pane: `review: fix F-… (findings: <path>)`. Put the person's share to them as one relay message ([references/relay.md](references/relay.md)), each finding with its file:line and, for a flagged one, the plan change it would need; record their answers as D-n. A finding they send back to be fixed goes to the implementer in the next message, and a re-plan goes to the planner.
 
-The fix loop: when the implementer reports its fixes done, launch a follow-up reviewer, again as a new tab in that Pane, that checks only the F-n it was sent. A follow-up is not sized again. Route any F-n still open the same way. The loop ends when no Must-Fix is open and every finding sent to the person has its answer; a Must-Fix the person accepted counts as closed. Run another full round only when the user asks.
+The fix loop: when the implementer reports its fixes done, launch a follow-up reviewer, again as a new tab in that Pane, that checks only the F-n it was sent, plus any new Must-Fix in the lines that fix round changed, which it marks `fix-caused`. Its starting message names the F-n, the fix round's commit range and that exception. A follow-up is not sized again. Route any F-n still open the same way. The loop ends when no Must-Fix is open and every finding sent to the person has its answer; a Must-Fix the person accepted counts as closed. Run another full round only when the user asks.
 
 The thrash rule: stop sending fixes and ask the person when any of these happens on one PR's review:
 

@@ -366,7 +366,7 @@ test('reviewers size every review with the bundled script, run security and PHI 
   const script=fs.readdirSync(bundle,{recursive:true}).find(file=>String(file).endsWith(path.join('review','scripts','review-size.mjs')));
   assert.ok(script,`${profile} bundles review-size.mjs`);
  }
- includesAll(REVIEWERS,['Size the range first and run the principles for that size, with principle 13 (security and PHI) on every review','Send every Must-Fix and Should-Fix to `checker` in one call, on the other vendor','`Size: … because …` line','`Scope:` and `Approach/scope:` line']);
+ includesAll(REVIEWERS,['and run the principles for that size, with principle 13 (security and PHI) on every review','Send every Must-Fix and Should-Fix to `checker` in one call, on the other vendor','`Size: … because …` line','`Scope:` and `Approach/scope:` line']);
  includesAll(['skills/review/SKILL.md'],['scripts/review-size.mjs','Never lower it.','make **one** call to the `checker` subagent','Never send the finders\' reasoning','Codex for `greenfield/reviewer:claude`, Claude for `greenfield/reviewer:codex`','Mark each `Checked by: same vendor (<why the checker could not run>)`','node <checker launcher> --message "$(cat "$brief_file")" < /dev/null','**Size:** [small|standard|large] because','Scope: in | out ([why]) · Approach/scope: no | yes','Source: [where the value comes from] → Sink: [where it ends up] → Missing control:']);
  includesAll(['skills/principled-review/SKILL.md'],['| small | 4, 5 and 13;','Principle 13 (security and PHI) runs at every size','### Principle 13: Security Boundaries & PHI','missing control redaction','### Principle 9: Query, Data & Hot-Path Cost','names the hot path, the scale and an estimate']);
  includesAll(['skills/review/CRITERIA.md'],['any PHI exposure','## 7. Routing','keep the one that sends the finding to the person']);
@@ -398,4 +398,11 @@ test('greenfield 0.0.34 documents the relay, the map, sized and cross-checked re
  includesAll(['README.md'],['numbered `needs_you` block','"N commits since the last review at <sha>"','`review-size.mjs`','Principle 13 (security and PHI) runs on every review','One batched `checker` call on the other vendor','A review starts when you say a PR is "ready"','`Human review: required`','| `checker` (agent `review-checker`) | reviewer |']);
  includesAll(['index.html'],['sized, on “ready”','has the other vendor confirm what to fix']);
  for(const file of ['README.md','index.html'])assert.doesNotMatch(flatText(file),/end-of-Session pass|once per workstream/,file);
+});
+
+test('review-final fixes: previews the orchestrator opens, the supplied range reaches every finder, and follow-ups catch fix-caused regressions',()=>{
+ includesAll(['instructions/standing-rules.md'],['An orchestrator opens three things beside the person without asking first','the files of a question it relays, a PR waiting on their human review, and the screenshots of a visual tweak']);
+ includesAll(['skills/principled-review/SKILL.md'],['When the caller supplies one','use it as `DIFF_RANGE` exactly and skip the base detection below']);
+ includesAll(REVIEWERS,['pass that same range to principled-review as its `DIFF_RANGE` for every finder','a new Must-Fix in the lines that fix round changed','marked `fix-caused`']);
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['plus any new Must-Fix in the lines that fix round changed, which it marks `fix-caused`']);
 });

@@ -52,7 +52,10 @@ findings, Dropped and Claims sections, ending with
 heading is the `Size: … because …` line, and every Must-Fix and Should-Fix carries its
 `Scope:` and `Approach/scope:` line, which the orchestrator routes on. Apply no fixes; the implementer owns
 the branch. A follow-up checks only the listed must-fix items, in one short
-review marked as a follow-up. Run by hand, the interactive fix flow below applies.
+review marked as a follow-up. Its one exception: a new Must-Fix in the lines
+that fix round changed. Have `checker` confirm it, number it as a new F-n marked
+`fix-caused`, and name it in your report; the orchestrator's thrash rule pauses
+on it. Any other new problem goes in your report, not the review. Run by hand, the interactive fix flow below applies.
 
 ## What you're looking for
 
@@ -107,7 +110,8 @@ independently.
 After all agents report back, aggregate their findings into a unified report
 ranked by consequence — data loss and security first, wrong behavior second,
 regressions third, then style. Deduplicate findings that multiple agents
-caught. Size the range first and run the principles for that size, with
+caught. Size the range first, pass that same range to principled-review as its
+`DIFF_RANGE` for every finder, and run the principles for that size, with
 principle 13 (security and PHI) on every review. Send every Must-Fix and
 Should-Fix to `checker` in one call, on the other vendor, as the review skill
 says; refuted ones go to Dropped. Then use the skill to post the final review
