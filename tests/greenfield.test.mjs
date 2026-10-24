@@ -311,8 +311,7 @@ test('Codex orchestration routes every worker and helper to Codex while retainin
  for(const profile of workers){
   assert.ok(main.instructions.includes('greenfield/'+profile),profile);
   const worker=resolveProfile(root,profile);
-  // The reviewer's checker runs on the other vendor by design (D-57); every other helper stays on Codex.
-  for(const node of Object.values(worker.nodes))assert.equal(node.harness,profile==='reviewer:codex'&&node.name==='review-checker'?'claude':'codex',`${profile}: ${node.name}`);
+  for(const node of Object.values(worker.nodes))assert.equal(node.harness,'codex',`${profile}: ${node.name}`);
   verify(build(root,profile,target));
  }
  const implementer=resolveProfile(root,'implementer:codex');
@@ -359,22 +358,24 @@ test('the map leads with Needs you and shows each PR\'s validation and unreviewe
  for(const line of ['schedule:         3 checks each at 5, 10, 15, then 30 minutes; after 3 quiet 30-minute checks, expire','on start:         fire one test wake-up in the background','on dispatch:      start a fresh watcher at 5 minutes (or reset the running one to 5)','whenever active:  if the last wake-up is more than one interval overdue, tell the user the watcher failed, then restart it','a new needs_you is relayed as Questions and resumption says, files opened','"Set up a watcher? I\'ll check in at 5 minutes, slow down while nothing changes, and tell you only when something does." Start it unless the user says no'])assert.ok(skill.includes(line),line);
 });
 
-test('reviewers size every review with the bundled script, run security and PHI always, and have one checker on the other vendor',t=>{
+test('reviewers size every review with the bundled script, run security and PHI always, and have the lead verify each finding itself',t=>{
  const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-review-pipeline-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
- for(const [profile,vendor,model] of [['reviewer:claude','codex','gpt-6.1-sol'],['reviewer:codex','claude','claude-opus-5-5']]){
-  const resolved=resolveProfile(root,profile),main=resolved.nodes.main,checker=resolved.nodes[main.children.checker];
-  assert.deepEqual([checker.name,checker.mode,checker.harness,checker.model,checker.reasoning_effort],['review-checker','process',vendor,model,'medium'],profile);
-  assert.notEqual(checker.harness,main.harness,profile);
+ for(const profile of ['reviewer:claude','reviewer:codex']){
+  const resolved=resolveProfile(root,profile),main=resolved.nodes.main;
+  // No cross-vendor checker (D-66): the lead verifies its own findings.
+  assert.equal(main.children.checker,undefined,profile);
+  assert.ok(Object.values(resolved.nodes).every(node=>node.name!=='review-checker'),profile);
   const bundle=build(root,profile,target);verify(bundle);
   const script=fs.readdirSync(bundle,{recursive:true}).find(file=>String(file).endsWith(path.join('review','scripts','review-size.mjs')));
   assert.ok(script,`${profile} bundles review-size.mjs`);
  }
- includesAll(REVIEWERS,['and run the principles for that size, with principle 13 (security and PHI) on every review','Send every Must-Fix and Should-Fix to `checker` in one call, on the other vendor','`Size: … because …` line','`Scope:` and `Approach/scope:` line']);
- includesAll(['skills/review/SKILL.md'],['scripts/review-size.mjs','Never lower it.','make **one** call to the `checker` subagent','Never send the finders\' reasoning','Codex for `greenfield/reviewer:claude`, Claude for `greenfield/reviewer:codex`','Mark each `Checked by: same vendor (<why the checker could not run>)`','node <checker launcher> --message "$(cat "$brief_file")" < /dev/null','**Size:** [small|standard|large] because','Scope: in | out ([why]) · Approach/scope: no | yes','Source: [where the value comes from] → Sink: [where it ends up] → Missing control:']);
+ includesAll(REVIEWERS,['and run the principles for that size, with principle 13 (security and PHI) on every review','Verify each Must-Fix and Should-Fix yourself as the review skill says','`Size: … because …` line','`Scope:` and `Approach/scope:` line']);
+ includesAll(['skills/review/SKILL.md'],['scripts/review-size.mjs','Never lower it.','### Verify each finding','verify every Must-Fix and Should-Fix candidate yourself','Post one you can\'t verify as Should-Fix marked "unverified"','**Size:** [small|standard|large] because','Scope: in | out ([why]) · Approach/scope: no | yes','Source: [where the value comes from] → Sink: [where it ends up] → Missing control:']);
  includesAll(['skills/principled-review/SKILL.md'],['| small | 4, 5 and 13;','Principle 13 (security and PHI) runs at every size','### Principle 13: Security Boundaries & PHI','missing control redaction','### Principle 9: Query, Data & Hot-Path Cost','names the hot path, the scale and an estimate']);
  includesAll(['skills/review/CRITERIA.md'],['any PHI exposure','## 7. Routing','keep the one that sends the finding to the person']);
- includesAll(['agents/review-checker.md'],['start from the claim that it is wrong','one candidate\'s verdict never decides another\'s','You are read-only']);
+ assert.equal(fs.existsSync(path.join(root,'agents','review-checker.md')),false,'no review checker (D-66)');
+ for(const file of ['skills/review/SKILL.md',...REVIEWERS])assert.doesNotMatch(flatText(file),/checker|other vendor|same vendor/i,file);
  assert.equal(resolveProfile(root,'orchestrator').nodes.main.instructions.includes('review-size'),false,'the orchestrator never sizes');
 });
 
@@ -397,10 +398,10 @@ test('reviews check a cover sheet\'s criteria against their evidence, and implem
  includesAll(['skills/principled-review/SKILL.md'],['flag each doc still stating the old value']);
 });
 
-test('greenfield 0.0.34 documents the relay, the map, sized and cross-checked reviews, and review on ready',()=>{
+test('greenfield 0.0.34 documents the relay, the map, sized and verified reviews, and review on ready',()=>{
  assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.34$/m);
- includesAll(['README.md'],['numbered `needs_you` block','"N commits since the last review at <sha>"','`review-size.mjs`','Principle 13 (security and PHI) runs on every review','One batched `checker` call on the other vendor','a quick fix or tweaked PR is reviewed when you say it is "ready"','`Human review: required`','| `checker` (agent `review-checker`) | reviewer |']);
- includesAll(['index.html'],['sized, after CI and QA','has the other vendor confirm what to fix']);
+ includesAll(['README.md'],['numbered `needs_you` block','"N commits since the last review at <sha>"','`review-size.mjs`','Principle 13 (security and PHI) runs on every review','the review lead verifies every Must-Fix and Should-Fix itself','a quick fix or tweaked PR is reviewed when you say it is "ready"','`Human review: required`','There is no separate checker']);
+ includesAll(['index.html'],['sized, after CI and QA','verifies each finding before posting it']);
  for(const file of ['README.md','index.html'])assert.doesNotMatch(flatText(file),/end-of-Session pass|once per workstream/,file);
 });
 

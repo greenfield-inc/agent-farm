@@ -101,39 +101,13 @@ is listed as not claimed.
 Give every Must-Fix and Should-Fix its routing line (`CRITERIA.md` section 7):
 `Scope: in | out (<why>) · Approach/scope: no | yes (<the plan change it would need>)`.
 
-### Check with the other vendor
+### Verify each finding
 
-Merge duplicate candidates (same cause, same place). Then make **one** call to
-the `checker` subagent with every Must-Fix and Should-Fix candidate, numbered
-C-1, C-2, …: the spec (the linked issue, the PR description, and the cover
-sheet when there is one), the diff range, and for each candidate its title,
-file:line, what is wrong, failure scenario, severity line and routing line.
-Never send the finders' reasoning. `checker` runs on the other vendor: Codex
-for `greenfield/reviewer:claude`, Claude for `greenfield/reviewer:codex`. It
-judges each candidate on its own and returns confirmed or refuted, how it
-checked, its evidence, and its own severity or routing line where it
-disagrees. A review with no Must-Fix or Should-Fix candidate makes no call.
-
-`checker` is a process launcher. Write the brief to a file and run it with
-stdin closed, or a Codex checker started from your shell waits for stdin and
-never answers:
-
-```bash
-node <checker launcher> --message "$(cat "$brief_file")" < /dev/null
-```
-
-- **Confirmed:** keep it, with `Checked by: <repro | test | reading> · checker (<vendor>)`.
-  When the checker disputes the severity line, take the level its answers
-  support under the rubric and note the change. When it disputes a routing
-  answer, keep the one that sends the finding to the person and note why.
-- **Refuted:** move it to Dropped with the refuting evidence. Only concrete
-  evidence refutes: the guard that prevents it, a passing reproduction.
-- **Undecided:** keep it at Should-Fix, marked "unverified".
-
-When the checker cannot run (the other vendor's CLI is missing, signed out or
-fails), check each candidate yourself: reproduce it, show it with a failing
-test, or trace the code path. Mark each `Checked by: same vendor (<why the
-checker could not run>)`, and finish the review.
+Merge duplicate candidates (same cause, same place). Then, before posting,
+verify every Must-Fix and Should-Fix candidate yourself: reproduce it, show it
+with a failing test, or trace the code path that triggers it. Post one you can't
+verify as Should-Fix marked "unverified", or drop it (under Dropped) with the
+evidence that rules it out.
 
 ## Step 5: Post the Review
 
@@ -197,17 +171,16 @@ Each finding, in every section:
 Source: [where the value comes from] → Sink: [where it ends up] → Missing control: [the control that is absent]   (security and PHI findings)
 Harm: [high|medium|low] ([why]) · Reach: [high|medium|low] ([who]) · Recovery: [silent|visible] ([workaround]) → [level]
 Scope: in | out ([why]) · Approach/scope: no | yes ([the plan change it would need])   (Must-Fix and Should-Fix)
-Checked by: repro | test | reading · checker ([vendor]) | same vendor ([why])
+Checked by: repro | test | reading
 
 ### Principles
 Ran: [n, names] · Skipped: [names - reason each] (copied from principled-review, chosen by the size)
-Checker: [n confirmed, n refuted, n unverified] · checker ([vendor]) | same vendor ([why])
 
 ### Earlier findings
 - [finding from an earlier greenfield review, by marker] - resolved ([commit]) | still open | no longer applies
 
 ### Dropped
-- [new candidate from this review that you or the checker rejected; never an earlier finding] - [evidence that rules it out] (refuted by checker ([vendor]) | by you)
+- [new candidate from this review that you rejected; never an earlier finding] - [evidence that rules it out]
 
 ### Claims
 - [test, QA, verification or CI claim from the PR description] - checked ([evidence]) | unsupported | not checkable here ([why])
