@@ -133,11 +133,11 @@
   freeze.remove();
   for (const [parent, rule] of inserted.reverse()) { const i = [...parent.cssRules].indexOf(rule); if (i >= 0) parent.deleteRule(i); }
 
-  // Layout shift around a real interaction: call window.uiProbeShift() before it and the returned stop() after.
-  window.uiProbeShift = () => {
-    const shifts = [], observer = new PerformanceObserver(list => shifts.push(...list.getEntries()));
-    observer.observe({ type: 'layout-shift' });
-    return () => { observer.takeRecords().forEach(e => shifts.push(e)); observer.disconnect(); return shifts.map(e => ({ value: e.value, sources: e.sources.map(s => s.node ? label(s.node) : '?') })); };
+  // Layout shift around a real interaction: uiProbeShift.start() before it, uiProbeShift.stop() after. Separate evaluate calls work.
+  let observer, shifts = [];
+  window.uiProbeShift = {
+    start() { shifts = []; observer = new PerformanceObserver(list => shifts.push(...list.getEntries())); observer.observe({ type: 'layout-shift' }); },
+    stop() { shifts.push(...observer.takeRecords()); observer.disconnect(); return shifts.map(e => ({ value: e.value, sources: e.sources.map(s => s.node ? label(s.node) : '?') })); },
   };
   return { url: location.href, viewport: `${innerWidth}x${innerHeight}`, pointer: minTarget === 44 ? 'coarse' : 'fine', scanned: elements.length, unreadableSheets, findings };
 }

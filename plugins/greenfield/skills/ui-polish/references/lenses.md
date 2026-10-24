@@ -4,9 +4,9 @@ One line per rule, each stated once. `probe` marks what `scripts/probe.js` measu
 
 ## Interaction states
 
-- Every interactive element has a distinct hover, focus-visible and active state, and a disabled state where it can be disabled. `probe`
+- Every interactive element has a distinct hover, focus-visible and active state. `probe`
+- A control that can be disabled looks disabled, and its reason is discoverable.
 - Hover, focus and press raise contrast; they never make a control fainter.
-- Press feedback appears on pointer-down, not on release.
 - A loading button keeps its label and adds a spinner. Submit stays enabled until the request starts.
 - Every view has designed loading, empty, error and success states, and skeletons match the final layout.
 - Anything revealed only on hover is also reachable by keyboard and touch.
@@ -15,14 +15,14 @@ One line per rule, each stated once. `probe` marks what `scripts/probe.js` measu
 
 - The focus ring is visible on every focusable element (WCAG 2.4.7). `outline: none` needs a visible replacement. `probe`
 - The focused element is not hidden under a sticky or fixed header or footer (WCAG 2.4.11); `scroll-padding-top` clears it. `probe`
-- The ring has 3:1 contrast against the colors next to it (WCAG 1.4.11). `probe`
-- No ancestor's `overflow: hidden` cuts the ring off; inset the ring or pad the container. `probe`
+- The ring has 3:1 contrast against the colors next to it (WCAG 1.4.11). `probe` checks outline rings; check box-shadow rings by eye.
+- No ancestor's `overflow: hidden` cuts the ring off; inset the ring or pad the container. `probe` checks outline rings.
 - Tab order follows the visual order. Dialogs trap focus and return it to their trigger on close.
 
 ## Targets and input
 
 - Targets are at least 24×24px (WCAG 2.5.8), and 44px for coarse pointers. Grow the hit area with padding or a pseudo-element, not the visual. Links inside a sentence are exempt. `probe`
-- The hit area matches what looks clickable: no unclickable padding inside a painted control, and no hit area spilling onto a neighbor. `probe`
+- The hit area matches what looks clickable: no unclickable padding inside a painted control, and no clickable area past the visible one. `probe`
 - A checkbox or radio and its label share one target. `probe`
 - No control is painted over by another element, checked edge to edge with `elementFromPoint`. `probe`
 - If it looks clickable, it is clickable, and navigation uses `<a>` so Cmd-click and middle-click work.
@@ -35,13 +35,12 @@ One line per rule, each stated once. `probe` marks what `scripts/probe.js` measu
 ## Content shown on hover or focus
 
 - Tooltips and popovers can be dismissed with Escape, can be hovered, and stay open while the pointer or focus is on them (WCAG 1.4.13).
-- Inline help comes before tooltips.
 
 ## Layout and spacing
 
 - Alignment is deliberate, to a grid, baseline or edge. Adjust optically by a pixel where geometry looks wrong, for example an icon beside text.
 - Spacing comes from the project's scale. Related items sit close, and separate groups get more room.
-- Check 375px, 768px and 1440px, and ultra-wide by zooming to 50%: no horizontal scroll, no overlap, no text sliding under a control when a row does not wrap.
+- Check 375px, 768px and 1440px wide, and ultra-wide by zooming to 50%: no horizontal scroll, no overlap, no text sliding under a control when a row does not wrap.
 - Full-height layouts use `100dvh`, and fixed bars respect `env(safe-area-inset-*)` under `viewport-fit=cover`.
 - Nested radii are concentric: a child's radius is no larger than its parent's.
 
@@ -63,10 +62,9 @@ One line per rule, each stated once. `probe` marks what `scripts/probe.js` measu
 ## Stability
 
 - Hover, focus and press never change the size or position of the element or its neighbors; use color, outline, shadow or transform. `probe`
-- Transitions list their properties and move only `transform` and `opacity`. `probe`
 - Images and embeds reserve their space with `width` and `height` or `aspect-ratio`.
 - Nothing flickers between states, such as content swapped for a spinner and back within a moment.
-- Measure shift around a real click with `window.uiProbeShift()`. `probe`
+- Measure shift around a real click with `uiProbeShift.start()` and `uiProbeShift.stop()`. `probe`
 
 ## Content stress
 
@@ -77,7 +75,7 @@ One line per rule, each stated once. `probe` marks what `scripts/probe.js` measu
 ## Flow and feedback
 
 - No dead ends: every empty and error state offers a next step.
-- Error messages name what went wrong and how to recover. "An error occurred" is a defect.
+- Error messages name what went wrong and how to recover.
 - Destructive actions ask for confirmation or offer undo.
 - A temporary value is never shown as the answer, for example "0 results" while results are still loading.
 - Where a wrong click costs something (save, delete, pay), one action is clearly primary.
