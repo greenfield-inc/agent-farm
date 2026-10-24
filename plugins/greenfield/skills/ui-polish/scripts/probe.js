@@ -14,6 +14,8 @@
   const minTarget = matchMedia('(pointer: coarse)').matches ? 44 : 24;
   const root = options.selector ? document.querySelector(options.selector) : document;
   const findings = [], inserted = new Map(), focusedBefore = document.activeElement;
+  // Focus handlers can scroll the page or a container, so every scroll position is put back at the end.
+  const scrolls = [...document.querySelectorAll('*')].filter(n => n.scrollTop || n.scrollLeft || n.scrollHeight > n.clientHeight || n.scrollWidth > n.clientWidth).map(n => [n, n.scrollLeft, n.scrollTop]);
   let unreadableSheets = 0, elements = [];
   const label = el => {
     const parts = [];
@@ -56,10 +58,11 @@
     return right > left && bottom > top ? { left, top, width: right - left, height: bottom - top } : null;
   };
   // Pseudo-elements count as the element's own feedback. Feedback drawn by a child is not read, so it is reported as unconfirmed.
-  const read = el => [null, '::before', '::after'].map(p => getComputedStyle(el, p)).flatMap(s => VISIBLE.map(k => s[k])).join('|');
+  const renders = (s, p) => !p || (s.display !== 'none' && !/^(none|normal)$/.test(s.content));
+  const read = el => [null, '::before', '::after'].map(p => [getComputedStyle(el, p), p]).flatMap(([s, p]) => renders(s, p) ? VISIBLE.map(k => s[k]) : ['-']).join('|');
   // Layout boxes ignore transforms, so press feedback such as scale(0.97) does not count as movement.
-  const rects = el => [el, el.parentElement, ...(el.parentElement?.children ?? [])].filter(Boolean).map(n => [n.offsetLeft, n.offsetTop, n.offsetWidth, n.offsetHeight]);
-  const moved = (a, b) => a.some((r, i) => r.some((v, k) => v !== b[i][k]));
+  const rects = el => new Map([el, el.parentElement, ...(el.parentElement?.children ?? [])].filter(Boolean).map(n => [n, [n.offsetLeft, n.offsetTop, n.offsetWidth, n.offsetHeight]]));
+  const moved = (a, b) => [...a].some(([n, r]) => b.has(n) && r.some((v, k) => v !== b.get(n)[k]));
   const ancestors = el => { const list = []; for (let n = el; n; n = n.parentElement) list.push(n); return list; };
   const force = (el, state, on) => (state === 'focus' ? [el] : ancestors(el)).forEach(n => n.classList.toggle(CLASS[state], on));
   const rgb = c => { const m = c.match(/^rgba?\(([^)]+)\)$/); if (!m) return null; const [r, g, b, a = 1] = m[1].split(/[ ,/]+/).filter(Boolean).map(parseFloat); return { r, g, b, a }; };
@@ -101,7 +104,9 @@
 
     for (const el of elements) {
       const disabled = el.disabled || el.getAttribute('aria-disabled') === 'true', hasChildren = el.children.length > 0;
-      const rest = read(el), restRects = rects(el), r = el.getBoundingClientRect(), seen = visibleRect(el);
+      const seen = visibleRect(el);
+      if (!seen) continue; // an earlier control's focus handler hid or removed it
+      const rest = read(el), restRects = rects(el), r = el.getBoundingClientRect();
 
       // Hit area: size, covered parts, visual containers bigger than the target, labels that are not part of the target.
       const inlineLink = el.tagName === 'A' && getComputedStyle(el).display === 'inline' && (el.parentElement?.innerText.length ?? 0) > el.innerText.length + 10;
@@ -150,7 +155,7 @@
         const ps = getComputedStyle(p), pr = p.getBoundingClientRect();
         if (clips(ps) && (fr.left - ring < pr.left || fr.top - ring < pr.top || fr.right + ring > pr.right || fr.bottom + ring > pr.bottom)) { add(el, 'focus-ring-clipped', `ring is cut off by overflow: ${ps.overflow} on ${label(p)}`); break; }
       }
-      const cover = foreign(el, seen).find(hit => ancestors(hit).some(n => /fixed|sticky/.test(getComputedStyle(n).position)));
+      const focusSeen = visibleRect(el), cover = focusSeen && foreign(el, focusSeen).find(hit => ancestors(hit).some(n => /fixed|sticky/.test(getComputedStyle(n).position)));
       if (cover) add(el, 'focus-obscured', `focused element is covered by fixed or sticky ${label(cover)}`);
       force(el, 'focus', false); el.blur();
     }
@@ -160,6 +165,7 @@
     for (const [parent, rules] of inserted) for (let i = parent.cssRules.length - 1; i >= 0; i--) if (rules.has(parent.cssRules[i])) parent.deleteRule(i);
     if (focusedBefore && focusedBefore !== document.body) focusedBefore.focus({ preventScroll: true });
     else document.activeElement?.blur();
+    for (const [n, left, top] of scrolls) { n.scrollLeft = left; n.scrollTop = top; }
   }
 
   // Layout shift around a real interaction: uiProbeShift.start() before it, uiProbeShift.stop() after. Separate evaluate calls work.
