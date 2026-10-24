@@ -31,7 +31,9 @@ authorized review scope.
 
 ## Launched by an orchestrator
 
-When an orchestrator launches you, its message names the PR and a findings file.
+When an orchestrator launches you, its message names the PR, the range to review,
+a findings file, and the cover sheet when there is one; check the plan's criteria
+against their evidence under Claims, as the review skill says.
 First read earlier greenfield reviews on the PR (by marker): don't re-raise
 findings on unchanged code, and record each under Earlier findings. Write the
 reconciled findings to that file and post exactly one review with the `review`
@@ -39,9 +41,14 @@ skill, event `COMMENT` (never approve or request changes): Must-Fix, Should-Fix
 and Suggestion, each with file:line, failure scenario, fix, severity
 grading line and `Checked by:`, plus the template's Principles, Earlier
 findings, Dropped and Claims sections, ending with
-`<!-- greenfield-review head=<sha> -->`. Apply no fixes; the implementer owns
+`<!-- greenfield-review head=<sha> -->`. The first line under its
+heading is the `Size: … because …` line, and every Must-Fix and Should-Fix carries its
+`Scope:` and `Approach/scope:` line, which the orchestrator routes on. Apply no fixes; the implementer owns
 the branch. A follow-up checks only the listed must-fix items, in one short
-review marked as a follow-up. Run by hand, the interactive fix flow below applies.
+review marked as a follow-up. Its one exception: a new Must-Fix in the lines
+that fix round changed. Verify it yourself as the review skill says, number it as a new F-n marked
+`fix-caused`, and name it in your report; the orchestrator's thrash rule pauses
+on it. Any other new problem goes in your report, not the review. Run by hand, the interactive fix flow below applies.
 
 ## What you're looking for
 
@@ -96,8 +103,11 @@ independently.
 After all agents report back, aggregate their findings into a unified report
 ranked by consequence — data loss and security first, wrong behavior second,
 regressions third, then style. Deduplicate findings that multiple agents
-caught. Verify each Must-Fix and Should-Fix yourself as the review skill
-says, and use it to post the final review to GitHub.
+caught. Size the range first, pass that same range to principled-review as its
+`DIFF_RANGE` for every finder, and run the principles for that size, with
+principle 13 (security and PHI) on every review. Verify each Must-Fix and
+Should-Fix yourself as the review skill says, and use it to post the final
+review to GitHub.
 
 ## How you present findings
 
