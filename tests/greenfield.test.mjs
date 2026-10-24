@@ -268,6 +268,10 @@ test('every Greenfield skill and agent is bundled by a profile, and every skill 
  assert.deepEqual(Object.keys(unbundledMentions).filter(key=>!usedExceptions.has(key)),[],'stale exception');
 });
 
+const withoutStandingRules={
+ 'ui-polish':"runs prepare-pr for its PR format; prepare-pr's one pointer to the standing rules names the implementer's last step, which ui-polish's own done line replaces",
+};
+
 test('every agent whose own text or skills point to the standing rules loads them',()=>{
  const walk=dir=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(entry=>{const file=path.join(dir,entry.name);return entry.isDirectory()?walk(file):[file];});
  const skillText=skill=>walk(path.join(root,'skills',skill)).map(file=>fs.readFileSync(file,'utf8')).join('\n');
@@ -276,7 +280,7 @@ test('every agent whose own text or skills point to the standing rules loads the
   const name=file.replace(/\.yaml$/,''),variants=Object.keys(parse(fs.readFileSync(path.join(root,'profiles',file),'utf8')).variants??{});
   for(const profile of [name,...variants.map(variant=>name+':'+variant)])for(const node of Object.values(resolveProfile(root,profile).nodes)){
    const text=[fs.readFileSync(node.source_file,'utf8'),...node.skills.map(skillText)].join('\n');
-   if(/standing rules/i.test(text)&&!node.instructions?.includes('# Standing rules'))missing.add(node.name);
+   if(/standing rules/i.test(text)&&!node.instructions?.includes('# Standing rules')&&!Object.hasOwn(withoutStandingRules,node.name))missing.add(node.name);
   }
  }
  assert.deepEqual([...missing],[]);

@@ -24,6 +24,7 @@ For a one-page visual map of how work is routed, open [index.html](index.html). 
 | `seo` (`seo:claude`) / `seo:codex` | Opus 5.5 high / Astra high | Search strategy and pages |
 | `audits` (`audits:claude`) / `audits:codex` | Opus 5.5 high / Astra low | Stale issues, pull requests and docs |
 | `code-smell-fixes` | Sonnet 5.5 low | Hunts the whole codebase for confusing code with a Claude and a Codex finder swarm, writes a ranked report, and, unattended, opens fix PRs and files issues |
+| `ui-polish` | Opus 5.5 medium | Explores a running web app like a picky designer, measures hover, focus, hit-area and motion defects with an in-page probe, fixes them, and opens a draft PR with before and after screenshots |
 | `bug-reporter` (`bug-reporter:claude`) / `bug-reporter:codex` | Opus 5.5 high / Sol 6.1 high | Reproduce and write a report without fixing code |
 | `free-range` (`free-range:claude`) / `free-range:codex` | Opus 5.5 high / Astra medium | Raw-model comparison profiles without the Greenfield workflow |
 | `orchestrator` (`orchestrator:claude`) / `orchestrator:codex` | Opus 5.5 medium / Astra high | Experimental coordination of features, one Pane each, with every role a tab in it. When a feature is ready for review, it offers an optional `pr-understanding-check` |
@@ -106,6 +107,7 @@ An orchestrator passes the planner its source as `source` and a status JSON path
 - `principled-review`, `review` and `pr-test-automation` support the reviewer and qa-and-fix; `principled-review` is shared with simplify-and-refactor.
 - `refactor` (simple, deep and apply modes) supports simplify-and-refactor and the implementer.
 - The research, business, SEO and audit skills support the profiles of the same names, and `code-smell-fixes` with `smell-finder` (whose `CRITERIA.md` holds the 20 lenses) supports `code-smell-fixes`.
+- `ui-polish` supports `ui-polish`: `scripts/probe.js` measures hover, focus, press, hit-area and transition defects in the page, and `references/` holds its lenses and motion bar, adapted from the sources in `THIRD_PARTY_NOTICES.md`.
 - `explain`, `brief`, `options`, `spike`, `mockup`, and `page` support planning.
 - `interview` makes the planner lead with structured questions and keep a decision log; `architecture-diagram` draws system and flow diagrams from a shared kit; `swarm` fans research and audits out to parallel read-only agents and reconciles what they find. The planner has all three, the implementer, audits and product-researcher get `swarm` (and the implementer and researchers `architecture-diagram`), and the orchestrator uses `interview` and `architecture-diagram` for decisions and its workstream map.
 - `bug-intake`, `gather-evidence`, `web-research`, and `orchestrate-sessions` support the other profiles.
