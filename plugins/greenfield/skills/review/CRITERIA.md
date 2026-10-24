@@ -130,10 +130,10 @@ under a misplaced surface is usually right and reusable; say so.
 
 ## 7. Routing
 
-Every Must-Fix and Should-Fix carries two routing answers, set when it is found and re-checked by the checker. An orchestrator routes on them; run by hand, they tell the person what the fix would take.
+Every Must-Fix and Should-Fix carries two routing answers, set when it is found and re-checked when you verify it. An orchestrator routes on them; run by hand, they tell the person what the fix would take.
 
 - **Scope: in | out.** In when the fix stays inside what this PR changes or the plan's packages; out when it lies elsewhere (code the PR does not touch, another item's work, a follow-up).
 - **Approach/scope: no | yes.** Yes when fixing it would need a different approach or a change to the work's scope: a broken premise, a missing package, a plan-level gap (or, without a plan, work the linked issue did not ask for). Say in one line what plan change it would need.
 
-When the checker and the finder disagree on a routing answer, keep the one that sends the finding to the person (scope out, flag yes) and say why.
+When your verification and the finder disagree on a routing answer, keep the one that sends the finding to the person (scope out, flag yes) and say why.
 
