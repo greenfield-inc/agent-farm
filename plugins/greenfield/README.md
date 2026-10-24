@@ -24,7 +24,7 @@ For a one-page visual map of how work is routed, open [index.html](index.html). 
 | `seo` (`seo:claude`) / `seo:codex` | Opus 5.5 high / Astra high | Search strategy and pages |
 | `audits` (`audits:claude`) / `audits:codex` | Opus 5.5 high / Astra low | Stale issues, pull requests and docs |
 | `code-smell-fixes` | Sonnet 5.5 low | Hunts the whole codebase for confusing code with a Claude and a Codex finder swarm, writes a ranked report, and, unattended, opens fix PRs and files issues |
-| `ui-polish` | Opus 5.5 medium | Explores a running web app like a picky designer, measures hover, focus, hit-area and motion defects with an in-page probe, fixes them, and opens a draft PR with before and after screenshots |
+| `ui-polish` | Opus 5.5 medium | Explores a running app (web, Electron or native) like a picky designer, measures hover, focus, hit-area and motion defects with an in-page probe where it can, fixes them, and opens a draft PR with before and after screenshots |
 | `bug-reporter` (`bug-reporter:claude`) / `bug-reporter:codex` | Opus 5.5 high / Sol 6.1 high | Reproduce and write a report without fixing code |
 | `free-range` (`free-range:claude`) / `free-range:codex` | Opus 5.5 high / Astra medium | Raw-model comparison profiles without the Greenfield workflow |
 | `orchestrator` (`orchestrator:claude`) / `orchestrator:codex` | Opus 5.5 medium / Astra high | Experimental coordination of features, one Pane each, with every role a tab in it. When a feature is ready for review, it offers an optional `pr-understanding-check` |

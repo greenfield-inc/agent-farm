@@ -83,7 +83,7 @@ cleanup you approve.
 `business` for business documents, `seo` for search content, `audits` for
 finding outdated issues and docs, `code-smell-fixes` for an unattended
 whole-codebase hunt for confusing code that ends in fix PRs and issues, and
-`ui-polish` for exploring a running web app, fixing its hover, focus and
+`ui-polish` for exploring a running app, fixing its hover, focus and
 layout rough edges, and showing before and after screenshots.
 
 These profiles used to live in the `dcouple` plugin, which still ships for
