@@ -22,7 +22,7 @@ One line per rule, each stated once. `probe` marks what `scripts/probe.js` measu
 ## Targets and input
 
 - Targets are at least 24×24px (WCAG 2.5.8), and 44px for coarse pointers. Grow the hit area with padding or a pseudo-element, not the visual. Links inside a sentence are exempt. `probe`
-- The hit area matches what looks clickable: no unclickable padding inside a painted control, and no clickable area past the visible one. `probe`
+- The hit area matches what looks clickable: no unclickable padding inside a painted control, and no clickable area far past the visible one. Transparent padding that brings a small control up to a 44px target is intended. `probe`
 - A checkbox or radio and its label share one target. `probe`
 - No control is painted over by another element, checked edge to edge with `elementFromPoint`. `probe`
 - If it looks clickable, it is clickable, and navigation uses `<a>` so Cmd-click and middle-click work.
@@ -84,4 +84,4 @@ One line per rule, each stated once. `probe` marks what `scripts/probe.js` measu
 
 ## Sources
 
-Rules are adapted from the [Vercel Web Interface Guidelines](https://github.com/vercel-labs/web-interface-guidelines) (MIT), [WCAG 2.2](https://www.w3.org/TR/WCAG22/), [uisight](https://github.com/sololabstr/uisight)'s checks (MIT), [Impeccable](https://github.com/pbakaus/impeccable)'s `polish` reference (Apache-2.0), [Emil Kowalski's skills](https://github.com/emilkowalski/skills) (`review-animations`, `emil-design-eng`, `animation-performance`, `mobile-native`, `break-ui`; MIT), and the [OneRedOak design-review agent](https://github.com/OneRedOak/claude-code-workflows/tree/main/design-review) (MIT). Notices are in the plugin's `THIRD_PARTY_NOTICES.md`.
+Rules are adapted from the [Vercel Web Interface Guidelines](https://github.com/vercel-labs/web-interface-guidelines) (MIT), [WCAG 2.2](https://www.w3.org/TR/WCAG22/), [uisight](https://github.com/sololabstr/uisight)'s checks (MIT), [Impeccable](https://github.com/pbakaus/impeccable)'s `polish` reference (Apache-2.0), [Emil Kowalski's skills](https://github.com/emilkowalski/skills) (`review-animations`, `emil-design-eng`, `animation-performance`, `mobile-native`, `break-ui`; MIT), and the [OneRedOak design-review agent](https://github.com/OneRedOak/claude-code-workflows/tree/main/design-review) (MIT). Notices are in [NOTICE.md](../NOTICE.md).
