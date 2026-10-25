@@ -406,7 +406,7 @@ test('greenfield 0.0.35 documents the relay, the map, sized and verified reviews
 });
 
 test('review-final fixes: previews the orchestrator opens, the supplied range reaches every finder, and follow-ups catch fix-caused regressions',()=>{
- includesAll(['instructions/standing-rules.md'],['An orchestrator opens three things beside the person without asking first','the files of a question it relays, a PR waiting on their human review, and the screenshots of a visual tweak']);
+ includesAll(['instructions/standing-rules.md'],['An orchestrator opens four things beside the person without asking first','the files of a question it relays, a PR waiting on their human review, and the screenshots of a visual tweak']);
  includesAll(['skills/principled-review/SKILL.md'],['When the caller supplies one','use it as `DIFF_RANGE` exactly and skip the base detection below']);
  includesAll(REVIEWERS,['pass that same range to principled-review as its `DIFF_RANGE` for every finder','a new Must-Fix in the lines that fix round changed','marked `fix-caused`']);
  includesAll(['skills/orchestrate-sessions/SKILL.md'],['plus any new Must-Fix in the lines that fix round changed, which it marks `fix-caused`']);
@@ -418,4 +418,16 @@ test('planned work always validates full and then reviews on its own; deferred a
  includesAll(ORCHESTRATORS,['`full` for an approved plan, and `deferred` by default for quick fixes and tweaks','reports done after its `full` validation']);
  includesAll(['skills/plan/SKILL.md'],['the implementer runs full validation (CI and QA) when the build is done, then `greenfield/reviewer` reviews the PR on its own']);
  includesAll(['README.md'],['A planned feature\'s implementer always runs full validation (CI, QA) when its build is done','Quick fixes and tweaks run `deferred` by default']);
+});
+
+test('the status page opens with the next step and item cards, every item has a front page, questions carry their context, and progress messages end with Next (P-1)',()=>{
+ includesAll(['skills/orchestrate-sessions/references/status-board.md'],['Next step one line under the header','Items one card per work item','Next: <the item\'s next step and who takes it>','links its front page','Order of work only when at least one item depends on another','Merge hot spots only when items depend on each other','Done every completed item\'s card','never removed','<meta http-equiv="refresh" content="60">','opened beside the person at the first dispatch','refreshed in the same tab']);
+ assert.doesNotMatch(fs.readFileSync(path.join(root,'skills/orchestrate-sessions/references/status-board.md'),'utf8'),/^Lanes /m);
+ includesAll(['skills/orchestrate-sessions/references/ledger.md'],['"next":','"front_page":']);
+ includesAll(['skills/orchestrate-sessions/references/item-hub.md'],['quick fix','three-line summary','Link only files that exist','task','PR','findings','post-mortem','trace']);
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['[references/item-hub.md](references/item-hub.md)','[references/status-board.md](references/status-board.md)','Every progress message to the person ends with "Next: …"','adds the findings file, the post-mortem (if any) and the trace']);
+ includesAll(['skills/page/references/bundle.md'],['After the PR\'s review loop closes, the orchestrator adds the findings file, the post-mortem (if any) and the trace','edits only this list']);
+ includesAll(['skills/orchestrate-sessions/references/relay.md'],['Context: <where the context lives>','its Needs you row links the same places']);
+ includesAll(ORCHESTRATORS,['end every progress message to the person with "Next: …"','open it beside the person at the first dispatch']);
+ includesAll(['instructions/standing-rules.md'],['An orchestrator opens four things beside the person without asking first','the Session\'s status page (at the first dispatch, then refreshed in the same tab)']);
 });

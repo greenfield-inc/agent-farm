@@ -28,6 +28,8 @@ Use host durable state when available; otherwise `.agent/ledger.json`. Keep one 
       "implementation_approval": null,
       "host_policy": "injected or explicit document path",
       "bundle": null,
+      "front_page": "the brief (index.html of the bundle) for a planned item, or items/<item>.html in the Session artifact (item-hub.md)",
+      "next": "the item's next step and who takes it, shown on its card",
       "post_mortem": null,
       "pr": null,
       "pr_head": null,
