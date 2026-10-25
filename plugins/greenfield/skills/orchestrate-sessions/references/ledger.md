@@ -33,6 +33,7 @@ Use host durable state when available; otherwise `.agent/ledger.json`. Keep one 
       "front_page": "the brief (index.html of the bundle) for a planned item, or items/<item>.html in the Session artifact (item-hub.md)",
       "next": "the item's next step and who takes it, shown on its card",
       "post_mortem": null,
+      "pr_artifact": "the PR's own artifact: its URL, or the local companion folder (from the implementer's status file)",
       "pr": null,
       "pr_head": null,
       "last_reviewed_head": "sha of the head the last full or follow-up review covered, or null",

@@ -45,10 +45,10 @@ When there is a `parent`, keep that JSON file current: at start, at each step, w
 { "profile": "", "source": "", "state": "running | blocked | done | failed", "step": "", "validation": "deferred | full",
   "needs_you": null, "assumptions": [], "preflight": [],
   "checks": { "passed": [], "failed": [], "undetermined": [] },
-  "attempts": {}, "temporary": [], "failure": null, "pr": null, "updated": "" }
+  "attempts": {}, "temporary": [], "failure": null, "pr": null, "pr_artifact": null, "updated": "" }
 ```
 
-`failure`: what got in the way, whenever something did, even when you recovered (a worker or tool timeout, a missing permission, a crash, a flaky tool), with its evidence; `null` when nothing did. `attempts`: what was tried for each problem, keyed by a short name for it. The orchestrator's post-mortem is built from these.
+`failure`: what got in the way, whenever something did, even when you recovered (a worker or tool timeout, a missing permission, a crash, a flaky tool), with its evidence; `null` when nothing did. `attempts`: what was tried for each problem, keyed by a short name for it. The orchestrator's post-mortem is built from these. `pr_artifact`: where the PR's own artifact is (`prepare-pr`).
 
 ## Questions for the person
 
