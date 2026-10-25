@@ -446,3 +446,12 @@ test('the Session artifact has one home in the destination\'s sessions folder, r
  includesAll(['skills/orchestrate-sessions/references/ledger.md'],['"artifact": { "path": "sessions/<host Session name> · <first 8 characters of the Session id>"','"notice_shown"']);
  includesAll(['README.md'],['names a destination service in one place only']);
 });
+
+test('every PR, however small, opens with its Excalidraw image from the pr-assets release and links its one artifact (P-4, D-73, D-75, D-78)',()=>{
+ const pr=flatText('skills/prepare-pr/SKILL.md');
+ assert.doesNotMatch(pr,/skips steps 6|a docs-only or few-line PR skips|overriding release uploads/);
+ for(const rule of ['Every PR, however small, gets the diagram image and its own artifact','a one-region diagram and a short companion page','right under the summary','`<!-- pr-artifact: <url> -->`','never a second one for the same PR','holds the diagram image, QA media, reports made for the PR and, later, the post-mortem','The pr-assets release still hosts the PR body\'s image','local companion folder with the same contents outside the repository\'s tracked files','"Material for this PR is kept locally by its author."','no personal path','a Mermaid diagram takes the image\'s place and the body says the image was not rendered'])assert.ok(pr.includes(rule),rule);
+ const ex=flatText('skills/excalidraw-pr-diagrams/SKILL.md');
+ for(const rule of ['right under the PR\'s summary','followed by the link to the PR\'s own artifact','In a private repository','The image may not show for everyone','once per repository'])assert.ok(ex.includes(rule),rule);
+ includesAll(IMPLEMENTERS,['Every PR you open, however small, starts with its diagram image and links its own artifact (`prepare-pr`).']);
+});
