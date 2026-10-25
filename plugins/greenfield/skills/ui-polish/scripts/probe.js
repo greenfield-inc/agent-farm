@@ -99,7 +99,7 @@
     const s = getComputedStyle(el), layers = [s, getComputedStyle(el, '::before'), getComputedStyle(el, '::after')].map((l, i) => renders(l, i) && l);
     const fill = layers.filter(Boolean).reduce((bg, l) => { const c = rgb(l.backgroundColor); return c ? over(c, bg) : bg; }, backdrop(el));
     const edge = ['Top', 'Right', 'Bottom', 'Left'].find(k => parseFloat(s[`border${k}Width`]) > 0), border = edge && rgb(s[`border${edge}Color`]), text = el.textContent.trim() && rgb(s.color);
-    return { fill, border: border ? over(border, fill) : null, text: text ? over(text, fill) : null, opacity: +s.opacity, own: layers.map(l => l ? l.backgroundColor + l.backgroundImage : '-') };
+    return { fill, border: border ? over(border, fill) : null, text: text ? over(text, fill) : null, opacity: +s.opacity, edges: ['Top', 'Right', 'Bottom', 'Left'].map(k => s[`border${k}Color`]), own: layers.map(l => l ? l.backgroundColor + l.backgroundImage : '-') };
   };
   const radii = s => ['TopLeft', 'TopRight', 'BottomRight', 'BottomLeft'].map(k => parseFloat(s[`border${k}Radius`]) || 0);
   // The box and corners of what paints the hover fill: the control, or an untransformed, absolutely positioned pseudo-element. Other pseudo boxes are unknown.
@@ -214,11 +214,12 @@
         else if (textAfter < 4.5 && textAfter < textBefore) add(el, 'hover-fainter', `hover lowers text contrast from ${textBefore.toFixed(2)}:1 to ${textAfter.toFixed(2)}:1`);
         const restVals = rest.split('|'), hoverVals = hover.split('|'), changes = hoverVals.map((v, i) => v !== restVals[i] && `${NAMES[i]}: ${v}`).filter(Boolean);
         // Hover is seen tens of times a day: a transition on what it changes is quick and never eases in.
-        // Per-side transitions (border-bottom-color) count for the shorthand the probe reads (border-color).
+        // Border colors are compared per side, so border-bottom-color matches only a bottom change, and border or border-color matches any side.
         const side = p => p.replace(/-(top|right|bottom|left|block|inline)(-start|-end)?(?=-|$)/g, '');
-        const changed = NAMES.filter((n, i) => i < VISIBLE.length && hoverVals[i] !== restVals[i]);
+        const changed = NAMES.filter((n, i) => i < VISIBLE.length && hoverVals[i] !== restVals[i] && n !== 'border-color')
+          .concat(['top', 'right', 'bottom', 'left'].filter((k, i) => restLook.edges[i] !== hoverLook.edges[i]).map(k => `border-${k}-color`));
         const slow = props.map((p, i) => [p, (parseFloat(durations[i % durations.length]) + parseFloat(delays[i % delays.length])) * 1000, easings[i % easings.length]])
-          .find(([p, ms, e]) => ms > 0 && changed.some(c => p === 'all' || c === side(p) || c.startsWith(side(p) + '-')) && (ms > 200 || e === 'ease-in'));
+          .find(([p, ms, e]) => ms > 0 && changed.some(c => p === 'all' || [c, side(c)].some(n => n === p || n.startsWith(p + '-'))) && (ms > 200 || e === 'ease-in'));
         if (slow) add(el, 'hover-timing', `transition ${slow[0]} takes ${Math.round(slow[1])}ms with ${slow[2]}; hover wants 200ms or less, never ease-in`);
         const kind = `${el.getAttribute('role') ?? el.tagName.toLowerCase()}, ${Math.round(r.height)}px tall, in ${label(el.closest(GROUP) ?? el.parentElement)}`;
         const key = kind + JSON.stringify([restLook.fill, restLook.text]);
