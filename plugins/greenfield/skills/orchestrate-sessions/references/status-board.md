@@ -1,6 +1,6 @@
 # Session status page
 
-One HTML page per Session for the person (the workstream map), published as the Session's hub. It always says what is next. It is written and opened beside the person at the first dispatch with the host's show-page mechanism, without asking. Update it in place at each material change (a worker report, a decision, a PR opened, reviewed or merged) and when the person asks; it is refreshed in the same tab, never opened in another. The local copy carries `<meta http-equiv="refresh" content="60">` so an open copy reloads itself every minute.
+One HTML page per Session for the person (the workstream map), published as the Session's hub. It always says what is next. It is written and opened beside the person at the first dispatch with the host's show-page mechanism, without asking. Show it as a page, never as a file to edit: open its URL (the published URL, or a `file://` URL for the local copy), in Pane with `runpane panels open --url <url>`, never `--file`, which opens HTML as source. Record that URL in the ledger's `session.artifact.opened_url`. Update the page in place at each material change (a worker report, a decision, a PR opened, reviewed or merged) and when the person asks, then open the same URL again so the host reuses its tab; it is refreshed in the same tab, never opened in another. The local copy carries `<meta http-equiv="refresh" content="60">` so an open copy reloads itself every minute.
 
 ```
 Header            Session name, started, last updated, review policy (default: on "ready" or
