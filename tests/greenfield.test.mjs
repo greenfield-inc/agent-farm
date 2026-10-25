@@ -147,9 +147,14 @@ test('planners retain Socrates without a separate plan-reviewer agent',()=>{
  }
 });
 
-test('the plugin stays tool-neutral: no agent, skill, profile or instruction names Grain',()=>{
+test('the plugin stays tool-neutral: only one orchestrate-sessions paragraph names Grain (D-71, D-74)',()=>{
  const walk=dir=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(entry=>{const file=path.join(dir,entry.name);return entry.isDirectory()?walk(file):[file];});
- for(const folder of ['agents','skills','profiles','instructions'])for(const file of walk(path.join(root,folder)))assert.doesNotMatch(fs.readFileSync(file,'utf8'),/grain/i,path.relative(root,file));
+ const skill=path.join(root,'skills','orchestrate-sessions','SKILL.md');
+ for(const folder of ['agents','skills','profiles','instructions'])for(const file of walk(path.join(root,folder)))if(file!==skill)assert.doesNotMatch(fs.readFileSync(file,'utf8'),/grain/i,path.relative(root,file));
+ const naming=fs.readFileSync(skill,'utf8').split(/\n\s*\n/).filter(paragraph=>/grain/i.test(paragraph));
+ assert.equal(naming.length,1,'exactly one paragraph names Grain');
+ assert.match(naming[0],/^\*\*Grain\.\*\* When the resolved destination is Grain/);
+ for(const rule of ['one private Grain artifact','`runpane panels open --url','open the local copy as a `file://` URL instead','Never ask the person to set up Grain'])assert.ok(naming[0].replace(/\s+/g,' ').includes(rule),rule);
 });
 
 test('the orchestrator routes planner, implementer and end-of-workstream reviewer through Pane, with safe cleanup',()=>{
@@ -430,4 +435,14 @@ test('the status page opens with the next step and item cards, every item has a 
  includesAll(['skills/orchestrate-sessions/references/relay.md'],['Context: <where the context lives>','its Needs you row links the same places']);
  includesAll(ORCHESTRATORS,['end every progress message to the person with "Next: …"','open it beside the person at the first dispatch']);
  includesAll(['instructions/standing-rules.md'],['An orchestrator opens four things beside the person without asking first','the Session\'s status page (at the first dispatch, then refreshed in the same tab)']);
+});
+
+test('the Session artifact has one home in the destination\'s sessions folder, reaches both orchestrators and names no product, and without a destination stays local with one notice (P-2)',()=>{
+ const skill=flatText('skills/orchestrate-sessions/SKILL.md');
+ for(const rule of ['a `sessions` folder in the document destination','`sessions/<host Session name> · <first 8 characters of the stable Session id>`','`sessions/Agent Farm · 55e40e55`','never from the UI selection','plus the first 8 characters of an id you generate once and record in the ledger','update that same artifact on every later publish for the life of the Session','published under an older name, keep updating it at its URL and create no second one','Opening the Session artifact shows the status page first','The workspace instructions supply only the organization or folder root','one notice line per Session','Never ask the person to set up a document service'])assert.ok(skill.includes(rule),rule);
+ const rule=fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8').split(/\n\s*\n/).find(p=>p.startsWith('**The Session artifact.**'));
+ assert.ok(rule,'the sessions-folder rule');assert.doesNotMatch(rule,/grain/i);
+ for(const profile of ['orchestrator:claude','orchestrator:codex'])assert.ok(resolveProfile(root,profile).nodes.main.skills.includes('orchestrate-sessions'),profile);
+ includesAll(['skills/orchestrate-sessions/references/ledger.md'],['"artifact": { "path": "sessions/<host Session name> · <first 8 characters of the Session id>"','"notice_shown"']);
+ includesAll(['README.md'],['names a destination service in one place only']);
 });
