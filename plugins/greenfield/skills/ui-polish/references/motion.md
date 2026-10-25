@@ -14,6 +14,7 @@ Motion in polish explains cause and effect: what was pressed, where a panel came
 - Entering or leaving: ease-out. Moving on screen: ease-in-out. Hover and color: ease. Constant motion: linear.
 - Never ease-in for UI; it delays the moment the user is watching.
 - Built-in curves are weak. A strong ease-out such as `cubic-bezier(0.23, 1, 0.32, 1)` feels faster at the same duration.
+- Hover transitions take 200ms or less, delay included, and never ease in. `probe`
 - Press feedback 100–160ms, tooltips and small popovers 125–200ms, dropdowns 150–250ms, modals and drawers 200–500ms. Most UI motion stays under 300ms.
 
 ## Physical correctness
