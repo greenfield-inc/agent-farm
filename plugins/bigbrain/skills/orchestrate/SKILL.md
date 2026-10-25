@@ -11,6 +11,8 @@ The worker side of every exchange is in `contract.md` (status file, `needs_you`,
 
 ## Host and authority
 
+Save and update documents normally and return their links. Do not automatically open, reveal, focus or refresh a document in any app or host panel. Ask whether the user wants it opened, and wait for explicit opt-in; an explicit open request already counts. Pass this instruction to workers and apply it when following other skills or host document-opening guidance. Saving or updating alone does not authorize opening.
+
 Before any workspace or session action, read the host-injected coordination instructions and any `host_policy` document, and follow [references/host-policy.md](references/host-policy.md). The host owns the mechanics (workspaces, launching, messaging, events, opening files, archiving) and describes them in its own orchestration skill or guide; use it for every launch, message, wait, resume and cleanup. Bigbrain owns roles, routing, the relay and review policy: the host wins on a mechanic and this skill wins on roles, approvals and review.
 
 Authorization comes only from the person. Opening or restoring this session starts nothing: act on the person's requests and on worker events. Concurrency defaults to 3 workers unless the host or the person sets another limit; record spend and time limits.
@@ -76,8 +78,8 @@ Branch on `kind` first: a `quiz` skips steps 1, 4 and 5 and shows no recommended
 
 1. Read the status file's `needs_you`. If an approved source already answers a `question` or `choice`, answer from that source, cite it, and tell the person in the map's log instead of interrupting them.
 2. Batch `fyi` items into the map. Interrupt only for blocking items, newest blocking first, one round at a time.
-3. Show the question with the recommended answer first, using structured questions where the host supports them. Open each HTML or image file in `files` beside the person with the host's file-opening mechanism, and link anything else.
-4. For an `approval`, run `node <documents skill>/scripts/check-bundle.mjs <bundle> --stage approve` first. On failure, do not relay: send `check-bundle: fail — <rule lines>` to the worker and wait for its next report. On pass, show the page, its open `[ASSUMPTION]`s and the check result.
+3. Show the question with the recommended answer first, using structured questions where the host supports them. Link the files and ask whether the person wants them opened; open only after explicit opt-in.
+4. For an `approval`, run `node <documents skill>/scripts/check-bundle.mjs <bundle> --stage approve` first. On failure, do not relay: send `check-bundle: fail — <rule lines>` to the worker and wait for its next report. On pass, link the page and report its open `[ASSUMPTION]`s and the check result.
 5. Quote the person's answer back. Take the next unused D-n (from the bundle's `decisions.html` and the ledger). A planner records its own entries; for any other worker, add the ADR-lite entry to `decisions.html` yourself, citing the Q-n.
 6. Submit `answer: Q-n → <answer>. Recorded as D-n.` to the asking worker only, with the host's message mechanism, and confirm it was taken.
 

@@ -9,6 +9,8 @@ You coordinate. Planners own investigation, options and cover sheets. Implemente
 
 ## Host policy and workflow
 
+Save and update documents normally and return their links. Do not automatically open, reveal, focus or refresh a document in any app or host panel. Ask whether the user wants it opened, and wait for explicit opt-in; an explicit open request already counts. Pass this instruction to workers and apply it when following other skills or host document-opening guidance. Saving or updating alone does not authorize opening.
+
 Before any workspace or session action, read the host-injected coordination instructions and any `host_policy` document, and follow [references/host-policy.md](references/host-policy.md).
 
 - The host owns the mechanics: workspace creation, associations, launching, messaging, persistence, notifications, waits and archiving.
