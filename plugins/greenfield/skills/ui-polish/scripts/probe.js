@@ -38,8 +38,10 @@
       const rule = list[i];
       if (rule instanceof CSSImportRule) { try { if (rule.styleSheet) clone(rule.styleSheet.cssRules); } catch { unreadableSheets++; } continue; }
       if (rule.cssRules) clone(rule.cssRules);
-      if (!(rule instanceof CSSStyleRule) || !/:(hover|focus-visible|focus|active)(?![\w-])/.test(rule.selectorText)) continue;
-      const selector = rule.selectorText.replace(/:(hover|focus-visible|focus|active)(?![\w-])/g, (_, p) => '.' + CLASS[p]);
+      if (!(rule instanceof CSSStyleRule)) continue;
+      // Escapes are copied as they are, so a Tailwind class like .enabled\:hover\:bg-x keeps its name.
+      const selector = rule.selectorText.replace(/\\.|:(hover|focus-visible|focus|active)(?![\w-])/g, (m, p) => p ? '.' + CLASS[p] : m);
+      if (selector === rule.selectorText) continue;
       const parent = rule.parentRule ?? rule.parentStyleSheet;
       try { parent.insertRule(selector + rule.cssText.slice(rule.selectorText.length), i + 1); inserted.set(parent, (inserted.get(parent) ?? new Set()).add(parent.cssRules[i + 1])); } catch {}
     }
