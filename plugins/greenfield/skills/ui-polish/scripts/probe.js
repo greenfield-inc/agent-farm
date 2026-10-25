@@ -68,7 +68,15 @@
   const moved = (a, b) => [...a].some(([n, r]) => b.has(n) && r.some((v, k) => v !== b.get(n)[k]));
   const ancestors = el => { const list = []; for (let n = el; n; n = n.parentElement) list.push(n); return list; };
   const force = (el, state, on) => (state === 'focus' ? [el] : ancestors(el)).forEach(n => n.classList.toggle(CLASS[state], on));
-  const rgb = c => { const m = c.match(/^rgba?\(([^)]+)\)$/); if (!m) return null; const [r, g, b, a = 1] = m[1].split(/[ ,/]+/).filter(Boolean).map(parseFloat); return { r, g, b, a }; };
+  // Other color syntaxes (oklch(), lab(), color()) are painted on a 1px canvas and read back.
+  const ink = document.createElement('canvas').getContext('2d', { willReadFrequently: true }), inks = new Map();
+  const rgb = c => {
+    const m = c.match(/^rgba?\(([^)]+)\)$/);
+    if (m) { const [r, g, b, a = 1] = m[1].split(/[ ,/]+/).filter(Boolean).map(parseFloat); return { r, g, b, a }; }
+    if (!ink || !c) return null;
+    if (!inks.has(c)) { ink.clearRect(0, 0, 1, 1); ink.fillStyle = '#0000'; ink.fillStyle = c; ink.fillRect(0, 0, 1, 1); const [r, g, b, a] = ink.getImageData(0, 0, 1, 1).data; inks.set(c, { r, g, b, a: a / 255 }); }
+    return inks.get(c);
+  };
   const over = (c, bg) => ({ r: c.r * c.a + bg.r * (1 - c.a), g: c.g * c.a + bg.g * (1 - c.a), b: c.b * c.a + bg.b * (1 - c.a), a: 1 });
   const linear = ({ r, g, b }) => [r, g, b].map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
   const luminance = c => linear(c).reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i], 0);
@@ -88,12 +96,20 @@
   };
   // What a pointer sees: own and pseudo-element backgrounds over the backdrop, then border and text over that fill.
   const look = el => {
-    const s = getComputedStyle(el), layers = [s, getComputedStyle(el, '::before'), getComputedStyle(el, '::after')].filter((l, i) => renders(l, i));
-    const fill = layers.reduce((bg, l) => { const c = rgb(l.backgroundColor); return c ? over(c, bg) : bg; }, backdrop(el));
+    const s = getComputedStyle(el), layers = [s, getComputedStyle(el, '::before'), getComputedStyle(el, '::after')].map((l, i) => renders(l, i) && l);
+    const fill = layers.filter(Boolean).reduce((bg, l) => { const c = rgb(l.backgroundColor); return c ? over(c, bg) : bg; }, backdrop(el));
     const border = parseFloat(s.borderTopWidth) > 0 && rgb(s.borderTopColor), text = el.textContent.trim() && rgb(s.color);
-    return { fill, border: border && over(border, fill), text: text && over(text, fill), opacity: +s.opacity, own: layers.map(l => l.backgroundColor + l.backgroundImage).join('|') };
+    return { fill, border: border ? over(border, fill) : null, text: text ? over(text, fill) : null, opacity: +s.opacity, own: layers.map(l => l ? l.backgroundColor + l.backgroundImage : '-') };
   };
-  const radii = el => ['TopLeft', 'TopRight', 'BottomRight', 'BottomLeft'].map(k => parseFloat(getComputedStyle(el)[`border${k}Radius`]) || 0);
+  const radii = s => ['TopLeft', 'TopRight', 'BottomRight', 'BottomLeft'].map(k => parseFloat(s[`border${k}Radius`]) || 0);
+  // The box and corners of what paints the hover fill: the control, or an absolutely positioned pseudo-element. Other pseudo boxes are unknown.
+  const fillShape = (el, box, p) => {
+    if (!p) return [box, radii(getComputedStyle(el))];
+    const s = getComputedStyle(el, p), [top, right, bottom, left] = [s.top, s.right, s.bottom, s.left].map(parseFloat), x = box.left + el.clientLeft, y = box.top + el.clientTop;
+    return s.position === 'absolute' && [top, right, bottom, left].every(Number.isFinite) ? [{ top: y + top, left: x + left, right: x + el.clientWidth - right, bottom: y + el.clientHeight - bottom }, radii(s)] : [];
+  };
+  // How far a box reaches past each side of a clipping box.
+  const beyond = (a, p) => [p.left - a.left, p.top - a.top, a.right - p.right, a.bottom - p.bottom].map(v => Math.max(v, 0));
   const overlaps = (a, b) => Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1;
   // The row a control sits in: the nearest interactive ancestor, or the outermost box of a cursor: pointer area.
   const rowOf = el => { for (let n = el.parentElement; n && n !== document.body; n = n.parentElement) if (n.matches(INTERACTIVE) || (getComputedStyle(n).cursor === 'pointer' && getComputedStyle(n.parentElement).cursor !== 'pointer')) return n; };
@@ -108,7 +124,7 @@
     for (const sheet of document.styleSheets) { try { clone(sheet.cssRules); } catch { unreadableSheets++; } }
 
     // Record transitions and running animations before freezing motion for the measurements.
-    const animated = new Map(), timing = new Map(), kinds = new Map();
+    const animated = new Map(), kinds = new Map();
     for (const anim of document.getAnimations()) {
       const props = (anim.effect?.getKeyframes?.() ?? []).flatMap(k => Object.keys(k)).filter(p => LAYOUT.test(p.replace(/[A-Z]/g, c => '-' + c.toLowerCase())));
       if (props.length && anim.effect.target) animated.set(anim.effect.target, [...new Set(props)]);
@@ -122,11 +138,6 @@
         else if (LAYOUT.test(p)) add(el, 'animates-layout', `transitions ${p}`);
       });
       if (animated.has(el)) add(el, 'animates-layout', `animation keyframes change ${animated.get(el).join(', ')}`);
-      // Hover is seen tens of times a day: its color transition is quick and never eases in.
-      const delays = s.transitionDelay.split(',').map(parseFloat), easings = s.transitionTimingFunction.split(/,(?![^(]*\))/).map(e => e.trim());
-      const slow = s.transitionProperty.split(',').map(p => p.trim()).map((p, i) => [p, (durations[i % durations.length] + delays[i % delays.length]) * 1000, easings[i % easings.length]])
-        .find(([p, ms, e]) => ms > 0 && /^(all|color|background|border|box-shadow|opacity|transform|filter|outline|text-decoration|fill|stroke)/.test(p) && (ms > 200 || e === 'ease-in'));
-      timing.set(el, { transition: `${s.transitionProperty} ${s.transitionDuration} ${s.transitionTimingFunction}`, cursor: s.cursor, slow });
     }
     document.head.append(freeze);
 
@@ -155,23 +166,30 @@
       if (disabled) continue;
 
       // Hover, then press while hovered (as a real pointer does): each a visible change, with no layout movement.
-      const restLook = look(el), restForm = read(el, FORM), row = rowOf(el), rowRest = row && look(row).own;
+      const restLook = look(el), restForm = read(el, FORM), row = rowOf(el), rowRest = row && look(row).own.join();
       let rowAlone;
-      if (row) { force(row, 'hover', true); rowAlone = look(row).own; force(row, 'hover', false); }
+      if (row) { force(row, 'hover', true); rowAlone = look(row).own.join(); force(row, 'hover', false); }
       force(el, 'hover', true);
-      const hover = read(el), hoverRects = rects(el), hoverLook = look(el), hoverForm = read(el, FORM), box = el.getBoundingClientRect(), rowLit = row && look(row).own !== rowRest;
+      const hover = read(el), hoverRects = rects(el), hoverLook = look(el), hoverForm = read(el, FORM), box = el.getBoundingClientRect(), rowLit = row && look(row).own.join() !== rowRest;
+      // The transition into hover is the hovered style's, so lift the freeze long enough to read it.
+      freeze.media = 'not all';
+      const hs = getComputedStyle(el), list = v => v.split(/,(?![^(]*\))/).map(x => x.trim());
+      const [props, durations, delays, easings] = [hs.transitionProperty, hs.transitionDuration, hs.transitionDelay, hs.transitionTimingFunction].map(list), transition = hs.transition, cursor = hs.cursor;
+      freeze.media = '';
       // Shape: a hover fill follows its rounded container (inset, concentric corners), stays inside clipping ancestors and off its neighbors.
-      const fills = hoverLook.own !== restLook.own;
-      const container = fills && ancestors(el).slice(1, -1).find(n => radii(n).some(v => v > 0));
+      const layer = [0, 1, 2].find(i => hoverLook.own[i] !== restLook.own[i]), fills = layer !== undefined;
+      const [fillBox, mine] = fills ? fillShape(el, box, [null, '::before', '::after'][layer]) : [];
+      const container = fillBox && ancestors(el).slice(1, -1).find(n => radii(getComputedStyle(n)).some(v => v > 0));
       if (container) {
-        const cs = getComputedStyle(container), c = container.getBoundingClientRect(), mine = radii(el), theirs = radii(container);
-        const inset = [box.top - c.top - parseFloat(cs.borderTopWidth), c.right - parseFloat(cs.borderRightWidth) - box.right, c.bottom - parseFloat(cs.borderBottomWidth) - box.bottom, box.left - c.left - parseFloat(cs.borderLeftWidth)];
+        const cs = getComputedStyle(container), c = container.getBoundingClientRect(), theirs = radii(cs);
+        const inset = [fillBox.top - c.top - parseFloat(cs.borderTopWidth), c.right - parseFloat(cs.borderRightWidth) - fillBox.right, c.bottom - parseFloat(cs.borderBottomWidth) - fillBox.bottom, fillBox.left - c.left - parseFloat(cs.borderLeftWidth)];
         const corner = [0, 1, 2, 3].find(i => { const [dx, dy] = [inset[i % 2 ? 1 : 3], inset[i < 2 ? 0 : 2]]; return dx > -1 && dy > -1 && dx < theirs[i] && dy < theirs[i] && mine[i] < theirs[i] - Math.max(dx, dy) - 1; });
         if (corner !== undefined) add(el, 'hover-shape', `hover fill's ${mine[corner]}px corner sits inside the ${theirs[corner]}px rounded corner of ${label(container)}, ${clips(cs) ? 'which clips it' : 'and pokes past it'}`);
         else if (Math.max(...mine) === 0 && ((Math.abs(inset[1]) <= 1 && Math.abs(inset[3]) <= 1) || (Math.abs(inset[0]) <= 1 && Math.abs(inset[2]) <= 1))) add(el, 'hover-shape', `hover fill is a square band edge to edge inside ${label(container)}, which has ${Math.max(...theirs)}px corners; inset and round it`);
       }
-      if (fills || box.width > r.width || box.height > r.height) {
-        const cut = ancestors(el).slice(1, -1).find(n => { const p = n.getBoundingClientRect(); return /hidden|clip/.test(getComputedStyle(n).overflow) && (box.left < p.left - 1 || box.top < p.top - 1 || box.right > p.right + 1 || box.bottom > p.bottom + 1); });
+      // Clipping and overlap count only where hover moves or grows the box past where it already was.
+      if (['left', 'top', 'right', 'bottom'].some(k => Math.abs(box[k] - r[k]) > 0.5)) {
+        const cut = ancestors(el).slice(1, -1).find(n => { const p = n.getBoundingClientRect(), before = beyond(r, p); return /hidden|clip/.test(getComputedStyle(n).overflow) && beyond(box, p).some((v, i) => v > before[i] + 1); });
         if (cut) add(el, 'hover-clipped', `hovered box is cut off by overflow: ${getComputedStyle(cut).overflow} on ${label(cut)}`);
         const hit = [...(el.parentElement?.children ?? [])].find(n => n !== el && (n.matches(INTERACTIVE) || n.querySelector(INTERACTIVE)) && overlaps(box, n.getBoundingClientRect()) && !overlaps(r, n.getBoundingClientRect()));
         if (hit) add(el, 'hover-spills', `hovered box overlaps ${label(hit)}`);
@@ -180,19 +198,24 @@
       const press = read(el), pressRects = rects(el);
       force(el, 'active', false); force(el, 'hover', false);
       const childNote = hasChildren ? '; a child may draw the feedback, so confirm with real input' : '';
+      // One pointer position lights one thing, and a row stays lit while the pointer is on its control.
+      if (rowLit && fills) add(el, 'doubled-hover', `hover fills both this control and its row ${label(row)}`);
+      if (row && rowAlone !== rowRest && !rowLit) add(el, 'row-hover-lost', `row ${label(row)} has a hover fill that turns off while the pointer is on this control`);
       if (hover === rest) add(el, 'no-hover-state', `no visible change on :hover${childNote}`, hasChildren);
       else {
-        // Quality of a hover that exists: visible, raising contrast, quick, one per pointer position, and the same as its siblings'.
-        const change = Math.max(...['fill', 'border', 'text'].map(k => restLook[k] && hoverLook[k] ? deltaE(restLook[k], hoverLook[k]) : 0));
+        // Quality of a hover that exists: visible, raising contrast, quick, and the same as its siblings'.
+        const colors = ['fill', 'border', 'text'].filter(k => restLook[k] || hoverLook[k]);
+        const change = colors.every(k => restLook[k] && hoverLook[k]) ? Math.max(...colors.map(k => deltaE(restLook[k], hoverLook[k]))) : NaN;
         if (hoverForm === restForm && change < 3) add(el, 'faint-hover', `hover changes color by ΔE ${change.toFixed(1)} at most; below 3 is hard to see`);
-        const textBefore = restLook.text && contrast(restLook.text, restLook.fill), textAfter = hoverLook.text && contrast(hoverLook.text, hoverLook.fill);
+        const [textBefore, textAfter] = [restLook, hoverLook].map(l => l.text ? contrast(l.text, l.fill) : NaN);
         if (hoverLook.opacity < restLook.opacity) add(el, 'hover-fainter', `hover lowers opacity from ${restLook.opacity} to ${hoverLook.opacity}`);
         else if (textAfter < 4.5 && textAfter < textBefore) add(el, 'hover-fainter', `hover lowers text contrast from ${textBefore.toFixed(2)}:1 to ${textAfter.toFixed(2)}:1`);
-        const { slow, transition, cursor } = timing.get(el);
+        const restVals = rest.split('|'), hoverVals = hover.split('|'), changes = hoverVals.map((v, i) => v !== restVals[i] && `${NAMES[i]}: ${v}`).filter(Boolean);
+        // Hover is seen tens of times a day: a transition on what it changes is quick and never eases in.
+        const changed = NAMES.filter((n, i) => i < VISIBLE.length && hoverVals[i] !== restVals[i]);
+        const slow = props.map((p, i) => [p, (parseFloat(durations[i % durations.length]) + parseFloat(delays[i % delays.length])) * 1000, easings[i % easings.length]])
+          .find(([p, ms, e]) => ms > 0 && changed.some(c => p === 'all' || c === p || c.startsWith(p + '-')) && (ms > 200 || e === 'ease-in'));
         if (slow) add(el, 'hover-timing', `transition ${slow[0]} takes ${Math.round(slow[1])}ms with ${slow[2]}; hover wants 200ms or less, never ease-in`);
-        if (rowLit && fills) add(el, 'doubled-hover', `hover fills both this control and its row ${label(row)}`);
-        if (row && rowAlone !== rowRest && !rowLit) add(el, 'row-hover-lost', `row ${label(row)} has a hover fill that turns off while the pointer is on this control`);
-        const restVals = rest.split('|'), changes = hover.split('|').map((v, i) => v !== restVals[i] && `${NAMES[i]}: ${v}`).filter(Boolean);
         const kind = `${el.getAttribute('role') ?? el.tagName.toLowerCase()}, ${Math.round(r.height)}px tall, in ${label(el.closest(GROUP) ?? el.parentElement)}`;
         const key = kind + JSON.stringify([restLook.fill, restLook.text]);
         kinds.set(key, [...(kinds.get(key) ?? []), { el, kind, parts: [...changes, `transition: ${transition}`, `cursor: ${cursor}`] }]);

@@ -7,7 +7,7 @@ One line per rule, each stated once. `probe` marks what `scripts/probe.js` measu
 - Every interactive element has a distinct hover, focus-visible and active state. `probe`
 - A control that can be disabled looks disabled, and its reason is discoverable.
 - Hover, focus and press raise contrast; they never make a control fainter. `probe` checks hover opacity and text contrast.
-- A hover is easy to see: its fill, border or text color changes by at least ΔE 3 (CIELAB), more than Tailwind's gray-50 on white. `probe`
+- A hover that only changes color is easy to see: its fill, border or text color changes by at least ΔE 3 (CIELAB), more than Tailwind's gray-50 on white. `probe`
 - Controls of one kind (same role, size and look in one menu, list or toolbar) share one hover color, transition and cursor. `probe`
 - A hover fill follows its container: inside a rounded menu or card it is inset with concentric corners (child radius = parent radius − inset), not a square band edge to edge or a square corner in a rounded one. It is not clipped by an ancestor and does not spill onto a neighbor. `probe`
 - One pointer position lights one thing: a row and the button in it do not both fill, and the row's hover stays on while the pointer is over its button. `probe`
