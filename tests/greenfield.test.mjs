@@ -403,8 +403,7 @@ test('reviews check a cover sheet\'s criteria against their evidence, and implem
  includesAll(['skills/principled-review/SKILL.md'],['flag each doc still stating the old value']);
 });
 
-test('greenfield 0.0.35 documents the relay, the map, sized and verified reviews, and review on ready',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.35$/m);
+test('greenfield documents the relay, the map, sized and verified reviews, and review on ready',()=>{
  includesAll(['README.md'],['numbered `needs_you` block','"N commits since the last review at <sha>"','`review-size.mjs`','Principle 13 (security and PHI) runs on every review','the review lead verifies every Must-Fix and Should-Fix itself','a quick fix or tweaked PR is reviewed when you say it is "ready"','`Human review: required`','There is no separate checker']);
  includesAll(['index.html'],['sized, after CI and QA','verifies each finding before posting it']);
  for(const file of ['README.md','index.html'])assert.doesNotMatch(flatText(file),/end-of-Session pass|once per workstream/,file);
@@ -466,4 +465,11 @@ test('the orchestrator writes a post-mortem after review only when something bro
  assert.ok(bundle.includes('lives in the PR\'s own artifact'),'bundle.md: post-mortem home');
  includesAll(['instructions/planner-identity.md'],['the orchestrator writes a post-mortem only when something went wrong']);
  includesAll(['skills/plan/references/presentation.md'],['Link the trace, and the post-mortem in the PR\'s own artifact, once they exist']);
+});
+
+test('greenfield 0.0.36 documents the status page, front pages, post-mortems, the PR image and artifact, and the Session artifact',()=>{
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.36$/m);
+ includesAll(['README.md'],['a "Next step" line','each card linking the item\'s front page','`sessions/<Session name> · <first 8 characters of the Session id>`','one notice line saying so','writes a post-mortem after its review loop closes, with Issues hit and Issues to file','filing only on your yes','"no issues hit"','Every PR, however small, opens with an Excalidraw image']);
+ includesAll(['index.html'],['a status page beside you says what is next','image + its own page','post-mortem if it broke','leads with a diagram and links a page of its own']);
+ for(const file of ['README.md','index.html'])assert.doesNotMatch(flatText(file),/workstream map per Session:|Lanes/,file);
 });
