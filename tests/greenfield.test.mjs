@@ -398,8 +398,8 @@ test('reviews check a cover sheet\'s criteria against their evidence, and implem
  includesAll(['skills/principled-review/SKILL.md'],['flag each doc still stating the old value']);
 });
 
-test('greenfield 0.0.34 documents the relay, the map, sized and verified reviews, and review on ready',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.34$/m);
+test('greenfield 0.0.35 documents the relay, the map, sized and verified reviews, and review on ready',()=>{
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.35$/m);
  includesAll(['README.md'],['numbered `needs_you` block','"N commits since the last review at <sha>"','`review-size.mjs`','Principle 13 (security and PHI) runs on every review','the review lead verifies every Must-Fix and Should-Fix itself','a quick fix or tweaked PR is reviewed when you say it is "ready"','`Human review: required`','There is no separate checker']);
  includesAll(['index.html'],['sized, after CI and QA','verifies each finding before posting it']);
  for(const file of ['README.md','index.html'])assert.doesNotMatch(flatText(file),/end-of-Session pass|once per workstream/,file);
