@@ -13,7 +13,7 @@ Open every file in `files` beside the person first, with the host's show-file or
    b. <option>: <consequence>
    Why: <why>
 Files   <each file, opened beside you>
-Context <where the context lives>                     (only when there are no files)
+Context: <where the context lives>                    (only when there are no files)
 ```
 
 On Claude, put the questions through the harness question tool (`AskUserQuestion`) once the files are open, the recommended option first; on Codex, use the numbered list above, answered as "1a". Keep the worker's options and wording; add only the label, and the Context line when there are no files, so its Needs you row links the same places.
