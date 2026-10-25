@@ -29,3 +29,7 @@ SOFTWARE.
 ## Moved from the dcouple plugin
 
 The `audits`, `business`, `implementer`, `product-researcher`, `qa-and-fix`, `reviewer` and `seo` profiles, with the agents and skills they use, were moved from [greenfield-inc/skills](https://github.com/greenfield-inc/skills) at `02ae3a3`. That repository published the `dcouple` plugin. The moved files keep their own notices: `skills/good-writing-fundamentals/` is adapted from [petergyang/no-ai-slop](https://github.com/petergyang/no-ai-slop) under the MIT License, reproduced in `skills/good-writing-fundamentals/LICENSE`.
+
+## ui-polish
+
+`skills/ui-polish/` adapts rules and some wording from MIT and Apache-2.0 projects. Its notices and the full Apache License travel with the skill, in `skills/ui-polish/NOTICE.md` and `skills/ui-polish/LICENSE-APACHE-2.0.txt`.
