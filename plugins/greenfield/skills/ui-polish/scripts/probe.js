@@ -98,15 +98,16 @@
   const look = el => {
     const s = getComputedStyle(el), layers = [s, getComputedStyle(el, '::before'), getComputedStyle(el, '::after')].map((l, i) => renders(l, i) && l);
     const fill = layers.filter(Boolean).reduce((bg, l) => { const c = rgb(l.backgroundColor); return c ? over(c, bg) : bg; }, backdrop(el));
-    const border = parseFloat(s.borderTopWidth) > 0 && rgb(s.borderTopColor), text = el.textContent.trim() && rgb(s.color);
+    const edge = ['Top', 'Right', 'Bottom', 'Left'].find(k => parseFloat(s[`border${k}Width`]) > 0), border = edge && rgb(s[`border${edge}Color`]), text = el.textContent.trim() && rgb(s.color);
     return { fill, border: border ? over(border, fill) : null, text: text ? over(text, fill) : null, opacity: +s.opacity, own: layers.map(l => l ? l.backgroundColor + l.backgroundImage : '-') };
   };
   const radii = s => ['TopLeft', 'TopRight', 'BottomRight', 'BottomLeft'].map(k => parseFloat(s[`border${k}Radius`]) || 0);
-  // The box and corners of what paints the hover fill: the control, or an absolutely positioned pseudo-element. Other pseudo boxes are unknown.
+  // The box and corners of what paints the hover fill: the control, or an untransformed, absolutely positioned pseudo-element. Other pseudo boxes are unknown.
   const fillShape = (el, box, p) => {
     if (!p) return [box, radii(getComputedStyle(el))];
     const s = getComputedStyle(el, p), [top, right, bottom, left] = [s.top, s.right, s.bottom, s.left].map(parseFloat), x = box.left + el.clientLeft, y = box.top + el.clientTop;
-    return s.position === 'absolute' && [top, right, bottom, left].every(Number.isFinite) ? [{ top: y + top, left: x + left, right: x + el.clientWidth - right, bottom: y + el.clientHeight - bottom }, radii(s)] : [];
+    const moved = [s.transform, s.translate, s.scale, s.rotate].some(v => v && v !== 'none');
+    return s.position === 'absolute' && !moved && [top, right, bottom, left].every(Number.isFinite) ? [{ top: y + top, left: x + left, right: x + el.clientWidth - right, bottom: y + el.clientHeight - bottom }, radii(s)] : [];
   };
   // How far a box reaches past each side of a clipping box.
   const beyond = (a, p) => [p.left - a.left, p.top - a.top, a.right - p.right, a.bottom - p.bottom].map(v => Math.max(v, 0));
@@ -124,7 +125,7 @@
     for (const sheet of document.styleSheets) { try { clone(sheet.cssRules); } catch { unreadableSheets++; } }
 
     // Record transitions and running animations before freezing motion for the measurements.
-    const animated = new Map(), kinds = new Map();
+    const animated = new Map(), kinds = new Map(), hovered = new Map(), list = v => v.split(/,(?![^(]*\))/).map(x => x.trim());
     for (const anim of document.getAnimations()) {
       const props = (anim.effect?.getKeyframes?.() ?? []).flatMap(k => Object.keys(k)).filter(p => LAYOUT.test(p.replace(/[A-Z]/g, c => '-' + c.toLowerCase())));
       if (props.length && anim.effect.target) animated.set(anim.effect.target, [...new Set(props)]);
@@ -138,6 +139,11 @@
         else if (LAYOUT.test(p)) add(el, 'animates-layout', `transitions ${p}`);
       });
       if (animated.has(el)) add(el, 'animates-layout', `animation keyframes change ${animated.get(el).join(', ')}`);
+      // The transition into hover is the hovered style's, so read it now, before motion is frozen.
+      force(el, 'hover', true);
+      const hs = getComputedStyle(el);
+      hovered.set(el, { props: list(hs.transitionProperty), durations: list(hs.transitionDuration), delays: list(hs.transitionDelay), easings: list(hs.transitionTimingFunction), transition: hs.transition, cursor: hs.cursor });
+      force(el, 'hover', false);
     }
     document.head.append(freeze);
 
@@ -171,11 +177,7 @@
       if (row) { force(row, 'hover', true); rowAlone = look(row).own.join(); force(row, 'hover', false); }
       force(el, 'hover', true);
       const hover = read(el), hoverRects = rects(el), hoverLook = look(el), hoverForm = read(el, FORM), box = el.getBoundingClientRect(), rowLit = row && look(row).own.join() !== rowRest;
-      // The transition into hover is the hovered style's, so lift the freeze long enough to read it.
-      freeze.media = 'not all';
-      const hs = getComputedStyle(el), list = v => v.split(/,(?![^(]*\))/).map(x => x.trim());
-      const [props, durations, delays, easings] = [hs.transitionProperty, hs.transitionDuration, hs.transitionDelay, hs.transitionTimingFunction].map(list), transition = hs.transition, cursor = hs.cursor;
-      freeze.media = '';
+      const { props, durations, delays, easings, transition, cursor } = hovered.get(el);
       // Shape: a hover fill follows its rounded container (inset, concentric corners), stays inside clipping ancestors and off its neighbors.
       const layer = [0, 1, 2].find(i => hoverLook.own[i] !== restLook.own[i]), fills = layer !== undefined;
       const [fillBox, mine] = fills ? fillShape(el, box, [null, '::before', '::after'][layer]) : [];
@@ -212,9 +214,11 @@
         else if (textAfter < 4.5 && textAfter < textBefore) add(el, 'hover-fainter', `hover lowers text contrast from ${textBefore.toFixed(2)}:1 to ${textAfter.toFixed(2)}:1`);
         const restVals = rest.split('|'), hoverVals = hover.split('|'), changes = hoverVals.map((v, i) => v !== restVals[i] && `${NAMES[i]}: ${v}`).filter(Boolean);
         // Hover is seen tens of times a day: a transition on what it changes is quick and never eases in.
+        // Per-side transitions (border-bottom-color) count for the shorthand the probe reads (border-color).
+        const side = p => p.replace(/-(top|right|bottom|left|block|inline)(-start|-end)?(?=-|$)/g, '');
         const changed = NAMES.filter((n, i) => i < VISIBLE.length && hoverVals[i] !== restVals[i]);
         const slow = props.map((p, i) => [p, (parseFloat(durations[i % durations.length]) + parseFloat(delays[i % delays.length])) * 1000, easings[i % easings.length]])
-          .find(([p, ms, e]) => ms > 0 && changed.some(c => p === 'all' || c === p || c.startsWith(p + '-')) && (ms > 200 || e === 'ease-in'));
+          .find(([p, ms, e]) => ms > 0 && changed.some(c => p === 'all' || c === side(p) || c.startsWith(side(p) + '-')) && (ms > 200 || e === 'ease-in'));
         if (slow) add(el, 'hover-timing', `transition ${slow[0]} takes ${Math.round(slow[1])}ms with ${slow[2]}; hover wants 200ms or less, never ease-in`);
         const kind = `${el.getAttribute('role') ?? el.tagName.toLowerCase()}, ${Math.round(r.height)}px tall, in ${label(el.closest(GROUP) ?? el.parentElement)}`;
         const key = kind + JSON.stringify([restLook.fill, restLook.text]);
