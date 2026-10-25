@@ -455,3 +455,15 @@ test('every PR, however small, opens with its Excalidraw image from the pr-asset
  for(const rule of ['right under the PR\'s summary','followed by the link to the PR\'s own artifact','In a private repository','The image may not show for everyone','once per repository'])assert.ok(ex.includes(rule),rule);
  includesAll(IMPLEMENTERS,['Every PR you open, however small, starts with its diagram image and links its own artifact (`prepare-pr`).']);
 });
+
+test('the orchestrator writes a post-mortem after review only when something broke, into the PR\'s own artifact, and offers GitHub issues that it files only on a yes (P-3, D-72)',()=>{
+ includesAll(['skills/page/references/post-mortem.md'],['The orchestrator writes it','after the PR\'s review loop closes, or when the PR merges or closes unreviewed','only when something went wrong','the PR\'s own artifact','**Issues hit:**','**Issues to file:**','repository and title','files nothing without the person\'s yes','Standalone, with no orchestrator, the implementer writes it the same way']);
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['## Post-mortems','the workers\' `failure` and `attempts` fields','a timeout, a dead tab, a crash','into the PR\'s own artifact','one question listing each proposed GitHub issue with its repository and title','A yes files that one issue, with private paths, customer text and session content removed','never guessed silently','"no issues hit"']);
+ includesAll(['instructions/standing-rules.md'],['`failure`: what got in the way','`attempts`: what was tried for each problem']);
+ includesAll(IMPLEMENTERS,['record what got in the way (a timeout, a missing permission, a crash, a flaky tool) in its `failure` field and what you tried in `attempts`']);
+ const bundle=flatText('skills/page/references/bundle.md');
+ assert.doesNotMatch(bundle,/Add `post-mortem\.html` when implementation finishes|At the end of implementation, write `post-mortem\.html`/);
+ assert.ok(bundle.includes('lives in the PR\'s own artifact'),'bundle.md: post-mortem home');
+ includesAll(['instructions/planner-identity.md'],['the orchestrator writes a post-mortem only when something went wrong']);
+ includesAll(['skills/plan/references/presentation.md'],['Link the trace, and the post-mortem in the PR\'s own artifact, once they exist']);
+});

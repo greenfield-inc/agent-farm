@@ -88,7 +88,7 @@ Planners do not launch the implementer. When a cover sheet is approved, the plan
 
 ## Post-mortem and conversation viewer
 
-Every bundle includes `trace.html`, emphasizing user/agent messages with tool calls collapsed. Capture only authorized task sessions and descendants; clearly report unavailable capture and incomplete snapshots. After implementation, add `post-mortem.html` covering outcome, blockers, surprises, deviations, verification, and lessons. Link both from the hub and cover sheet. The HTML plan contains everything requiring user review; PLAN.md is never a required companion.
+Every bundle includes `trace.html`, emphasizing user/agent messages with tool calls collapsed. Capture only authorized task sessions and descendants; clearly report unavailable capture and incomplete snapshots. Link the trace from the hub and cover sheet. When something went wrong on a PR (a worker timed out, a permission was missing, a step crashed), the orchestrator writes a post-mortem after its review loop closes, with Issues hit and Issues to file, into the PR's own artifact, links it from the item's front page, and puts each proposed GitHub issue (repository and title) to you in one question, filing only on your yes. A PR that went cleanly says "no issues hit". Workers record what got in the way in their status file's `failure` and `attempts` fields. The HTML plan contains everything requiring user review; PLAN.md is never a required companion.
 
 ## Documents and destinations
 

@@ -48,6 +48,8 @@ When there is a `parent`, keep that JSON file current: at start, at each step, w
   "attempts": {}, "temporary": [], "failure": null, "pr": null, "updated": "" }
 ```
 
+`failure`: what got in the way, whenever something did, even when you recovered (a worker or tool timeout, a missing permission, a crash, a flaky tool), with its evidence; `null` when nothing did. `attempts`: what was tried for each problem, keyed by a short name for it. The orchestrator's post-mortem is built from these.
+
 ## Questions for the person
 
 A worker that needs a decision, an approval or a fact only the person has asks in one shape, wherever it runs. Routine technical choices stay with the worker; ask only what the plan or the request leaves open.

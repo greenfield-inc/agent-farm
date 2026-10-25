@@ -130,6 +130,10 @@ The simplify checkpoint is optional and off by default. When the user turns it o
 
 The user can skip review, add checkpoints (including the simplify checkpoint), or review each plan separately. Change the policy only on the user's explicit word, and show the current policy in the map's header.
 
+## Post-mortems
+
+When a PR's review loop closes, or the PR merges or closes unreviewed, check whether anything went wrong on it: the workers' `failure` and `attempts` fields, your own events for it (a timeout, a dead tab, a crash, a missing permission, a thrash pause) and its traces. When something did, write the post-mortem as `page`'s post-mortem reference says, into the PR's own artifact, and link it from the item's front page and card. Then put one question listing each proposed GitHub issue with its repository and title, the recommended answer first. A yes files that one issue, with private paths, customer text and session content removed, in the repository that owns the failing piece (the tool's own repository or the project's), never guessed silently: when you can't tell which, say so in the question. Nothing is filed without a yes. When nothing went wrong, write no post-mortem; the card and the front page say "no issues hit".
+
 ## Events, then a watcher
 
 After dispatch, rely on the host's completion and blocker events and yield the way it prescribes. Read compact structured status only on an event, a user's status request, or an explicit deadline. Deduplicate repeated events by worker and event identity. Batch independent status reads and update only the items that changed.

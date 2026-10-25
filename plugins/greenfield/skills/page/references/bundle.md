@@ -11,7 +11,6 @@ Every piece of work has one bundle: a folder holding all the pages written for a
   decisions.html
   cover-sheet.html
   trace.html           conversation viewer, present in every bundle
-  post-mortem.html     final implementation retrospective
   explainers/<topic>.html
   mockups/<screen>-v<n>-<option>.html     or .png
   evidence/            screenshots and recordings
@@ -27,7 +26,7 @@ Every piece of work has one bundle: a folder holding all the pages written for a
   - Each related document links back to `index.html`.
   - The brief is the work's front page. After the PR's review loop closes, the orchestrator adds the findings file, the post-mortem (if any) and the trace to its Contents & related files, after the implementer's `prepare-pr` edit; the orchestrator edits only this list and leaves the planner's and implementer's sections as they are.
 - An explainer written before any brief exists gets its own bundle, and is moved in and linked when the brief appears.
-- Every bundle includes `trace.html`. Add `post-mortem.html` when implementation finishes, or when it ends blocked or failed. Link both from the hub and the cover-sheet contents, and list them in `bundle.json`. Create other documents only when needed. Until a trace is captured, `trace.html` says plainly that capture is pending or unavailable.
+- Every bundle includes `trace.html`. Link it from the hub and the cover-sheet contents, and list it in `bundle.json`. A post-mortem, when one is written, lives in the PR's own artifact and is linked from the hub ([post-mortem.md](post-mortem.md)). Create other documents only when needed. Until a trace is captured, `trace.html` says plainly that capture is pending or unavailable.
 - `cover-sheet.html` is the single implementation handoff, read by the person and by agents. It includes package outcomes and validation criteria, and links the approved design. When the input is a legacy plan, bring every decision, requirement, approach, schema implication, risk, and check that needs user review into the HTML cover sheet, so the reader can understand and approve the plan from that page alone. Legacy files can stay as supporting evidence; status and evidence keep their paths and revisions for verification.
 
 `bundle.json` is how a later session, or an orchestrator, finds and updates the same bundle instead of making a second one:
@@ -88,9 +87,9 @@ the parent or orchestrator to refresh the evidence and the published bundle afte
 the associated sessions finish. Distinguish local export from successful upload,
 verify the published evidence, and report incomplete snapshots or failures plainly.
 
-## Final post-mortem
+## Post-mortem
 
-At the end of implementation, write `post-mortem.html` in the same bundle, following [post-mortem.md](post-mortem.md), and publish it with the updated cover sheet and trace. Label a blocked or failed ending as blocked or failed. A retrospective written while work continues is an interim snapshot, and the parent refreshes it after the workers finish.
+A post-mortem is written only when something went wrong, after the PR's review loop closes, by the orchestrator (or by a standalone implementer), following [post-mortem.md](post-mortem.md). It lives in the PR's own artifact; the brief's Contents & related files links it. Label a blocked or failed ending as blocked or failed.
 
 ## Conversation viewer
 
