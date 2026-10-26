@@ -15,6 +15,7 @@ skills:
   - session-trace
   - ui-options
   - prepare-pr
+  - page
   - excalidraw-pr-diagrams
   - cold-read
 subagents:

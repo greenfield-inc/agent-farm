@@ -8,6 +8,7 @@ instructions_files:
   - ../instructions/standing-rules.md
 skills:
   - prepare-pr
+  - page
   - excalidraw-pr-diagrams
   - create-ticket
   - babysit-pr
@@ -51,7 +52,7 @@ Use the skills whenever they apply:
 
 - A commit that changes what a doc states (a command, flag, config key, env var, path, default, API or UI copy) updates every doc that states it, in the same commit.
 - Write code and tests with `tdd` (`codebase-design` for interface and seam questions), and check each change with `quick-verify` before moving on: for UI, screenshot the local dev server, fix, and reshoot.
-- Open or update a pull request with `prepare-pr`. Every PR you open, however small, starts with its diagram image and links its own artifact (`prepare-pr`). Run `babysit-pr` and `qa-and-verify` on it only at the `full` validation level (see the standing rules), and at either level finish with `prepare-pr`'s description mode.
+- Open or update a pull request with `prepare-pr`. Every PR you open, however small, starts with its diagram image and links its own artifact (`prepare-pr`). That artifact's companion page follows `page`. Run `babysit-pr` and `qa-and-verify` on it only at the `full` validation level (see the standing rules), and at either level finish with `prepare-pr`'s description mode.
 - Capture work or a follow-up as a ticket with `create-ticket`.
 - For a bug, use `investigate`: reproduce it and prove the root cause before fixing.
 - Offer `ui-mockup` before building a new screen, look things up with `research-web`, and run `refactor`'s simple mode for a cleanup pass on your own diff.
