@@ -6,7 +6,7 @@ Use host durable state when available; otherwise `.agent/ledger.json`. Keep one 
 {
   "caps": { "concurrent": 3, "spend_usd": null },
   "session": { "name": "<host Session name>", "id": null, "canonical_destination": null, "map": null, "stubs": [] },
-  "review_policy": { "mode": "end of workstream", "set_by": "default", "time": null },
+  "review_policy": { "mode": "on ready or at a plan's end", "set_by": "default", "time": null },
   "items": [
     {
       "id": "ENG-123",
@@ -30,6 +30,10 @@ Use host durable state when available; otherwise `.agent/ledger.json`. Keep one 
       "bundle": null,
       "post_mortem": null,
       "pr": null,
+      "pr_head": null,
+      "last_reviewed_head": "sha of the head the last full or follow-up review covered, or null",
+      "checks": "green | failing | pending | null",
+      "qa": "passed | failed | not run",
       "findings": null,
       "archived": null,
       "blocker": null,
@@ -55,6 +59,8 @@ Use host durable state when available; otherwise `.agent/ledger.json`. Keep one 
     {
       "time": "<ISO 8601 time>",
       "item": "ENG-123",
+      "q": "Q-3",
+      "d": "D-12",
       "question": "Should the filename use the invoice id or number?",
       "answered_by": "brief | advisor | person",
       "answer": "Invoice id. Brief, Success section."
