@@ -476,7 +476,7 @@ test('greenfield documents the status page, front pages, post-mortems, the PR im
 
 test('greenfield 0.0.39 asks planners and reviewers for the worst case at production size, with the numbers left to each repo',()=>{
  assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.39$/m);
- includesAll(['skills/review/CRITERIA.md'],['Cost at production size:','the largest real input','an unmeasured or unbounded worst case is Must-Fix','The repo\'s AGENTS.md names its hot paths, budget and where production sizes are recorded; if it names none, ask for them']);
+ includesAll(['skills/review/CRITERIA.md'],['Cost at production size:','the largest real input','an unmeasured or unbounded worst case is Must-Fix','the missing measurement is the finding, so it needs no estimate of your own','The repo\'s AGENTS.md names its hot paths, budget and where production sizes are recorded; if it names none, the finding asks the author for them']);
  includesAll(['skills/plan/SKILL.md'],['its criteria name the worst-case production size and the budget it must meet','Passing on staging or test fixtures is not a worst case']);
  includesAll(['skills/review/severity-examples.md'],['never states the cost for the largest team in production']);
 });
