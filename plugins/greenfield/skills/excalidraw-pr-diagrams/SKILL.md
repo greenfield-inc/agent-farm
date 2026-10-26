@@ -99,10 +99,10 @@ Look at the PNG with your image-reading tool (for example the Read tool), then c
 ## Publishing on a PR
 
 PR images are hosted, not committed.
-1. **Reuse the repository's long-lived asset release** (for example `pr-assets`; check with `gh release view pr-assets`). Creating that release needs the person's explicit go-ahead. Without it, keep the PNG local and report publishing as blocked, with the exact `gh release create` and `upload` commands.
+1. **Reuse the repository's long-lived asset release** (for example `pr-assets`; check with `gh release view pr-assets`). Creating that release needs the person's explicit go-ahead, once per repository. Without it, keep the PNG local and report publishing as blocked, with the exact `gh release create` and `upload` commands.
 2. **Name the file by content:** `pr-<number>-<head-short-sha>-<sha256-first-12>-visual-overview.png`. Reuse an existing asset only when its digest matches. For different content, upload under a new name, so images in older PRs never change.
 3. **Verify the upload:** download the asset URL and compare its SHA-256 and size with the local file.
-4. **Embed it** in a `## Visual Overview` section of the PR body, between `<!-- pr-visual-overview:start -->` and `<!-- pr-visual-overview:end -->`. Replace only that section on reruns.
+4. **Embed it** right under the PR's summary, in a `## Visual Overview` section between `<!-- pr-visual-overview:start -->` and `<!-- pr-visual-overview:end -->`, followed by the link to the PR's own artifact (`prepare-pr`'s companion page). In a private repository, add a line under the image: "The image may not show for everyone; it and the rest of this PR's material are in <the PR's artifact>." Replace only that section on reruns.
 5. **Read the PR body back** and confirm the image loads and the Markdown renders as separate sections.
 
 Commit an image only when tracked docs need it, under `docs/` or `.github/pr-assets/`. Keep `.excalidraw` sources outside the repository unless the person asks to track them.
