@@ -61,7 +61,7 @@ security boundary.
 
 The bundled default plugin is `greenfield`. Users run `agent-farm plugin install`
 after upgrading, plus `agent-farm plugin install NAME` for each other bundled
-plugin they use (`orchestra`, `bigbrain`). `agent-farm plugin list` shows each installed plugin's name,
+plugin they use (`orchestra`, `bigbrain`, `machine-security`). `agent-farm plugin list` shows each installed plugin's name,
 version, source, and profile count. For install, uninstall, and collision
 behavior, see [CONFIGURATION.md](../CONFIGURATION.md#plugins).
 
