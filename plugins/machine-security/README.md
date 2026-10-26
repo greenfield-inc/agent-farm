@@ -45,4 +45,4 @@ Every string the scan prints goes through one redaction step: token shapes, `KEY
 
 ## Development
 
-`tests/machine-security.test.mjs` runs the script's classifiers and parsers against fixtures, and a full scan against a fixture home folder, on any OS. The macOS-only checks report SKIP elsewhere. Run `shellcheck plugins/machine-security/skills/mac-security-check/scripts/check.sh` after changing the script, and bump `version` in `plugin.yaml` with each change.
+`tests/machine-security.test.mjs` runs the script's classifiers and parsers against fixtures, and a full scan against a fixture home folder, on macOS and Linux (the macOS-only checks report SKIP there). They are skipped on Windows. Run `shellcheck plugins/machine-security/skills/mac-security-check/scripts/check.sh` after changing the script, and bump `version` in `plugin.yaml` with each change.
