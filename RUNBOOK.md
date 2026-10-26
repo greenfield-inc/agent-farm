@@ -66,6 +66,14 @@ independent; each plugin's version is in its `plugin.yaml`.
   skills are vendored unchanged from mattpocock/skills (see
   `plugins/greenfield/THIRD_PARTY_NOTICES.md`).
 
+- **machine-security**: authored in this repository. Edit it in place and bump
+  `plugins/machine-security/plugin.yaml`'s `version`. Run `shellcheck` on
+  `skills/mac-security-check/scripts/check.sh` after changing it. The Windows
+  script, `skills/windows-security-check/scripts/check.ps1`, must stay
+  compatible with Windows PowerShell 5.1. Both scripts' fixture tests are in
+  `tests/machine-security.test.mjs`. The Windows ones need `pwsh` (or Windows
+  PowerShell), and CI runs them on all three OSes.
+
 - **bigbrain**: authored in this repository, except its 16 copies of greenfield
   skills, which are pinned to a greenfield commit. Never hand-edit a copy. Every
   file under its `profiles/`, `agents/`, `skills/` and `instructions/` is
