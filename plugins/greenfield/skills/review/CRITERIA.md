@@ -58,6 +58,7 @@ Calibrate against the worked examples in [severity-examples.md](severity-example
 - State bugs: stale closures in hooks, missing dependency array entries
 - Query cost at 1M active users: an index serves every new or changed query, and hot paths (page loads, badges, counters, polling) never scan or count a growing table
 - Hot-path cost: no CPU, memory, render or latency cost on a hot path that grows with data. A finding names the hot path, the scale and an estimate, or it is dropped
+- Cost at production size: a change that adds or alters a database query, scan or loop on a request path states the work it does for the largest real input (the biggest account, team or list in production, not the test fixture) and shows it meets the repo's budget. On a hot path, an unmeasured or unbounded worst case is Must-Fix: Harm high (a slow query on the normal path degrades production) · Reach high · Recovery silent until users notice. The repo's AGENTS.md names its hot paths, budget and where production sizes are recorded; if it names none, ask for them
 
 ## 2. Security
 
