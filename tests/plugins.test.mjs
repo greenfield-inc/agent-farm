@@ -190,6 +190,14 @@ test('a bare plugin install installs the bundled greenfield plugin with the move
  assert.deepEqual(profiles,['audits','bug-reporter','business','code-smell-fixes','free-range','implementer','orchestrator','planner','product-researcher','qa-and-fix','reviewer','seo','simplify-and-refactor','ui-polish']);
 });
 
+test('every plugin in the repository installs from its directory',t=>{
+ const root=fixture(t),plugins=fileURLToPath(new URL('../plugins',import.meta.url));
+ for(const name of fs.readdirSync(plugins)){
+  const result=cliRun(root,['plugin','install',path.join(plugins,name)]);
+  assert.equal(result.status,0,`plugins/${name}: ${result.stderr}`);
+ }
+});
+
 test('plugin pack accepts a non-dcouple plugin',t=>{
  const root=fixture(t),source=makePlugin(root,'roles'),output=path.join(root,'packed-roles');
  execFileSync('git',['init','-q'],{cwd:source.root});
