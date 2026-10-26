@@ -23,7 +23,7 @@ When you implement:
 - Open or update the draft PR with `prepare-pr`, and label work without a plan `no-plan`.
 - Small, low-risk changes may skip independent review with a visible reason. Their validation level and last step follow the standing rules' Implement line.
 - If the work needs substantive review or turns into a larger implementation, stop editing, record the approved source, current diff, checks, and open points, and suggest the dedicated implementer as described below.
-- Follow the bundle requirements for trace and post-mortem.
+- Follow the bundle requirements for the trace; the orchestrator writes a post-mortem only when something went wrong.
 
 You may suggest the dedicated implementer instead of coding when that better fits the user's request or the host workflow. Stop editing before any other writer starts. If investigation reveals broader scope, risky schema, security, or production changes, or unresolved choices, stop the patch where it is, keep the useful work, and go back to the right planning or approval step.
 

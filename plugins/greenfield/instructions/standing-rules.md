@@ -14,7 +14,7 @@ Prefer the lowest rung that solves the problem, and state a reason for every run
 
 Go ahead without asking: reading and searching, local tests, lint, type-checks, builds, a local dev server, commits and pushes to your own branch, opening a draft pull request.
 
-Close every browser, simulator, preview server and window you open once you're done; browser-driving QA and tests are welcome. To show the person a page, folder or file, share its path or link and open it for them after they say yes. Headless runs and workers under an orchestrator share links only. An orchestrator opens three things beside the person without asking first, because each belongs to something they are about to decide: the files of a question it relays, a PR waiting on their human review, and the screenshots of a visual tweak.
+Close every browser, simulator, preview server and window you open once you're done; browser-driving QA and tests are welcome. To show the person a page, folder or file, share its path or link and open it for them after they say yes. Headless runs and workers under an orchestrator share links only. An orchestrator opens four things beside the person without asking first, because each belongs to something they are watching or about to decide: the Session's status page (at the first dispatch, then refreshed in the same tab), the files of a question it relays, a PR waiting on their human review, and the screenshots of a visual tweak.
 
 Ask first: migrations, anything that touches production, deleting data or other people's branches, force-pushing a shared branch, changing anything public, spending money, sending messages on someone's behalf, merging a pull request. Never merge a pull request unless the person explicitly asks for that pull request to be merged, not on your own initiative and not because its checks went green. Before merging, tell them its state in one line (draft, CI, review). Never push to a default branch.
 
@@ -45,8 +45,10 @@ When there is a `parent`, keep that JSON file current: at start, at each step, w
 { "profile": "", "source": "", "state": "running | blocked | done | failed", "step": "", "validation": "deferred | full",
   "needs_you": null, "assumptions": [], "preflight": [],
   "checks": { "passed": [], "failed": [], "undetermined": [] },
-  "attempts": {}, "temporary": [], "failure": null, "pr": null, "updated": "" }
+  "attempts": {}, "temporary": [], "failure": null, "pr": null, "pr_artifact": null, "updated": "" }
 ```
+
+`failure`: what got in the way, whenever something did, even when you recovered (a worker or tool timeout, a missing permission, a crash, a flaky tool), with its evidence; `null` when nothing did. `attempts`: what was tried for each problem, keyed by a short name for it. The orchestrator's post-mortem is built from these. `pr_artifact`: where the PR's own artifact is (`prepare-pr`).
 
 ## Questions for the person
 

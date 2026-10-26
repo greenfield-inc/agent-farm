@@ -9,7 +9,7 @@ This format follows a user-approved sample plan (v3, 23 September 2026): a reada
 - Show the before/after diagram early, with a caption saying which systems already exist and what this work changes. Draw the real behavior.
 - Add a visible **What you are approving** callout: the scope in a few sentences, the most consequential choice, and the packages worth a close look. Add warnings only when they apply.
 - Keep **In three sentences**, compact **Decisions locked** and **Deferred** tables, scope, vertically stacked **Constraints** and **Non-goals**, relevant ask-first callouts, and the **How we will know it works** numbered journeys and whole-feature checks.
-- Follow with the stacked package cards, an execution-order sentence, related files, and the change log. Link the post-mortem and trace once they exist in the bundle.
+- Follow with the stacked package cards, an execution-order sentence, related files, and the change log. Link the trace, and the post-mortem in the PR's own artifact, once they exist.
 
 ## Package cards
 

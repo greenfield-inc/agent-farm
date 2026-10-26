@@ -147,9 +147,14 @@ test('planners retain Socrates without a separate plan-reviewer agent',()=>{
  }
 });
 
-test('the plugin stays tool-neutral: no agent, skill, profile or instruction names Grain',()=>{
+test('the plugin stays tool-neutral: only one orchestrate-sessions paragraph names Grain (D-71, D-74)',()=>{
  const walk=dir=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(entry=>{const file=path.join(dir,entry.name);return entry.isDirectory()?walk(file):[file];});
- for(const folder of ['agents','skills','profiles','instructions'])for(const file of walk(path.join(root,folder)))assert.doesNotMatch(fs.readFileSync(file,'utf8'),/grain/i,path.relative(root,file));
+ const skill=path.join(root,'skills','orchestrate-sessions','SKILL.md');
+ for(const folder of ['agents','skills','profiles','instructions'])for(const file of walk(path.join(root,folder)))if(file!==skill)assert.doesNotMatch(fs.readFileSync(file,'utf8'),/grain/i,path.relative(root,file));
+ const naming=fs.readFileSync(skill,'utf8').split(/\n\s*\n/).filter(paragraph=>/grain/i.test(paragraph));
+ assert.equal(naming.length,1,'exactly one paragraph names Grain');
+ assert.match(naming[0],/^\*\*Grain\.\*\* When the resolved destination is Grain/);
+ for(const rule of ['one private Grain artifact','`runpane panels open --url','open the local copy as a `file://` URL instead','Never ask the person to set up Grain'])assert.ok(naming[0].replace(/\s+/g,' ').includes(rule),rule);
 });
 
 test('the orchestrator routes planner, implementer and end-of-workstream reviewer through Pane, with safe cleanup',()=>{
@@ -398,15 +403,14 @@ test('reviews check a cover sheet\'s criteria against their evidence, and implem
  includesAll(['skills/principled-review/SKILL.md'],['flag each doc still stating the old value']);
 });
 
-test('greenfield 0.0.35 documents the relay, the map, sized and verified reviews, and review on ready',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.35$/m);
+test('greenfield documents the relay, the map, sized and verified reviews, and review on ready',()=>{
  includesAll(['README.md'],['numbered `needs_you` block','"N commits since the last review at <sha>"','`review-size.mjs`','Principle 13 (security and PHI) runs on every review','the review lead verifies every Must-Fix and Should-Fix itself','a quick fix or tweaked PR is reviewed when you say it is "ready"','`Human review: required`','There is no separate checker']);
  includesAll(['index.html'],['sized, after CI and QA','verifies each finding before posting it']);
  for(const file of ['README.md','index.html'])assert.doesNotMatch(flatText(file),/end-of-Session pass|once per workstream/,file);
 });
 
 test('review-final fixes: previews the orchestrator opens, the supplied range reaches every finder, and follow-ups catch fix-caused regressions',()=>{
- includesAll(['instructions/standing-rules.md'],['An orchestrator opens three things beside the person without asking first','the files of a question it relays, a PR waiting on their human review, and the screenshots of a visual tweak']);
+ includesAll(['instructions/standing-rules.md'],['An orchestrator opens four things beside the person without asking first','the files of a question it relays, a PR waiting on their human review, and the screenshots of a visual tweak']);
  includesAll(['skills/principled-review/SKILL.md'],['When the caller supplies one','use it as `DIFF_RANGE` exactly and skip the base detection below']);
  includesAll(REVIEWERS,['pass that same range to principled-review as its `DIFF_RANGE` for every finder','a new Must-Fix in the lines that fix round changed','marked `fix-caused`']);
  includesAll(['skills/orchestrate-sessions/SKILL.md'],['plus any new Must-Fix in the lines that fix round changed, which it marks `fix-caused`']);
@@ -418,4 +422,56 @@ test('planned work always validates full and then reviews on its own; deferred a
  includesAll(ORCHESTRATORS,['`full` for an approved plan, and `deferred` by default for quick fixes and tweaks','reports done after its `full` validation']);
  includesAll(['skills/plan/SKILL.md'],['the implementer runs full validation (CI and QA) when the build is done, then `greenfield/reviewer` reviews the PR on its own']);
  includesAll(['README.md'],['A planned feature\'s implementer always runs full validation (CI, QA) when its build is done','Quick fixes and tweaks run `deferred` by default']);
+});
+
+test('the status page opens with the next step and item cards, every item has a front page, questions carry their context, and progress messages end with Next (P-1)',()=>{
+ includesAll(['skills/orchestrate-sessions/references/status-board.md'],['Next step one line under the header','Items one card per work item','Next: <the item\'s next step and who takes it>','links its front page','Order of work only when at least one item depends on another','Merge hot spots only when items depend on each other','Done every completed item\'s card','never removed','<meta http-equiv="refresh" content="60">','opened beside the person at the first dispatch','refreshed in the same tab','`runpane panels open --url <url>`, never `--file`','`session.artifact.opened_url`','open the same URL again so the host reuses its tab']);
+ assert.doesNotMatch(fs.readFileSync(path.join(root,'skills/orchestrate-sessions/references/status-board.md'),'utf8'),/^Lanes /m);
+ includesAll(['skills/orchestrate-sessions/references/ledger.md'],['"next":','"front_page":']);
+ includesAll(['skills/orchestrate-sessions/references/item-hub.md'],['quick fix','three-line summary','Link only files that exist','task','PR','findings','post-mortem','trace']);
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['[references/item-hub.md](references/item-hub.md)','[references/status-board.md](references/status-board.md)','Every progress message to the person ends with "Next: …"','adds the findings file, the post-mortem (if any) and the trace']);
+ includesAll(['skills/page/references/bundle.md'],['After the PR\'s review loop closes, the orchestrator adds the findings file, the post-mortem (if any) and the trace','edits only this list']);
+ includesAll(['skills/orchestrate-sessions/references/relay.md'],['Context: <where the context lives>','its Needs you row links the same places']);
+ includesAll(ORCHESTRATORS,['end every progress message to the person with "Next: …"','open it beside the person at the first dispatch']);
+ includesAll(['instructions/standing-rules.md'],['An orchestrator opens four things beside the person without asking first','the Session\'s status page (at the first dispatch, then refreshed in the same tab)']);
+});
+
+test('the Session artifact has one home in the destination\'s sessions folder, reaches both orchestrators and names no product, and without a destination stays local with one notice (P-2)',()=>{
+ const skill=flatText('skills/orchestrate-sessions/SKILL.md');
+ for(const rule of ['a `sessions` folder in the document destination','`sessions/<host Session name> · <first 8 characters of the stable Session id>`','`sessions/Agent Farm · 55e40e55`','never from the UI selection','plus the first 8 characters of an id you generate once and record in the ledger','update that same artifact on every later publish for the life of the Session','published under an older name, keep updating it at its URL and create no second one','Opening the Session artifact shows the status page first','The workspace instructions supply only the organization or folder root','one notice line per Session','Never ask the person to set up a document service'])assert.ok(skill.includes(rule),rule);
+ const rule=fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8').split(/\n\s*\n/).find(p=>p.startsWith('**The Session artifact.**'));
+ assert.ok(rule,'the sessions-folder rule');assert.doesNotMatch(rule,/grain/i);
+ for(const profile of ['orchestrator:claude','orchestrator:codex'])assert.ok(resolveProfile(root,profile).nodes.main.skills.includes('orchestrate-sessions'),profile);
+ includesAll(['skills/orchestrate-sessions/references/ledger.md'],['"artifact": { "path": "sessions/<host Session name> · <first 8 characters of the Session id>"','"notice_shown"']);
+ includesAll(['README.md'],['names a destination service in one place only']);
+});
+
+test('every PR, however small, opens with its Excalidraw image from the pr-assets release and links its one artifact (P-4, D-73, D-75, D-78)',()=>{
+ const pr=flatText('skills/prepare-pr/SKILL.md');
+ assert.doesNotMatch(pr,/skips steps 6|a docs-only or few-line PR skips|overriding release uploads/);
+ for(const rule of ['Every PR, however small, gets the diagram image and its own artifact','a one-region diagram and a short companion page','right under the summary','`<!-- pr-artifact: <url> -->`','never a second one for the same PR','holds the diagram image, QA media, reports made for the PR and, later, the post-mortem','The pr-assets release still hosts the PR body\'s image','local companion folder with the same contents outside the repository\'s tracked files','"Material for this PR is kept locally by its author."','no personal path','a Mermaid diagram takes the image\'s place and the body says the image was not rendered'])assert.ok(pr.includes(rule),rule);
+ const ex=flatText('skills/excalidraw-pr-diagrams/SKILL.md');
+ for(const rule of ['right under the PR\'s summary','followed by the link to the PR\'s own artifact','In a private repository','The image may not show for everyone','once per repository'])assert.ok(ex.includes(rule),rule);
+ includesAll(IMPLEMENTERS,['Every PR you open, however small, starts with its diagram image and links its own artifact (`prepare-pr`).']);
+});
+
+test('the orchestrator writes a post-mortem after review only when something broke, into the PR\'s own artifact, and offers GitHub issues that it files only on a yes (P-3, D-72)',()=>{
+ includesAll(['skills/page/references/post-mortem.md'],['The orchestrator writes it','after the PR\'s review loop closes, or when the PR merges or closes unreviewed','only when something went wrong','the PR\'s own artifact','**Issues hit:**','**Issues to file:**','repository and title','files nothing without the person\'s yes','Standalone, with no orchestrator, the implementer writes it the same way']);
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['## Post-mortems','the workers\' `failure` and `attempts` fields','a timeout, a dead tab, a crash','into the PR\'s own artifact','one question listing each proposed GitHub issue with its repository and title','A yes files that one issue, with private paths, customer text and session content removed','never guessed silently','write the words "no issues hit" on the item\'s card and on its front page, creating its hub first if it has none','the implementer\'s `pr_artifact`','never a page of your own instead']);
+ includesAll(['instructions/standing-rules.md'],['`failure`: what got in the way','`attempts`: what was tried for each problem','"pr_artifact": null','`pr_artifact`: where the PR\'s own artifact is']);
+ includesAll(['skills/prepare-pr/SKILL.md'],['record where the PR\'s artifact is in your status file\'s `pr_artifact`','the path belongs there and not in the PR body']);
+ includesAll(['skills/orchestrate-sessions/references/ledger.md'],['"pr_artifact":']);
+ includesAll(IMPLEMENTERS,['record what got in the way (a timeout, a missing permission, a crash, a flaky tool) in its `failure` field and what you tried in `attempts`']);
+ const bundle=flatText('skills/page/references/bundle.md');
+ assert.doesNotMatch(bundle,/Add `post-mortem\.html` when implementation finishes|At the end of implementation, write `post-mortem\.html`/);
+ assert.ok(bundle.includes('lives in the PR\'s own artifact'),'bundle.md: post-mortem home');
+ includesAll(['instructions/planner-identity.md'],['the orchestrator writes a post-mortem only when something went wrong']);
+ includesAll(['skills/plan/references/presentation.md'],['Link the trace, and the post-mortem in the PR\'s own artifact, once they exist']);
+});
+
+test('greenfield 0.0.36 documents the status page, front pages, post-mortems, the PR image and artifact, and the Session artifact',()=>{
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.36$/m);
+ includesAll(['README.md'],['a "Next step" line','each card linking the item\'s front page','`sessions/<Session name> · <first 8 characters of the Session id>`','one notice line saying so','writes a post-mortem after its review loop closes, with Issues hit and Issues to file','filing only on your yes','"no issues hit"','Every PR, however small, opens with an Excalidraw image']);
+ includesAll(['index.html'],['a status page beside you says what is next','image + its own page','post-mortem if it broke','leads with a diagram and links a page of its own']);
+ for(const file of ['README.md','index.html'])assert.doesNotMatch(flatText(file),/workstream map per Session:|Lanes/,file);
 });

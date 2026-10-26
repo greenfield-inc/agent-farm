@@ -4,7 +4,7 @@ How a worker's `needs_you` (standing rules, Questions for the person) reaches th
 
 ## To the person
 
-Open every file in `files` beside the person first, with the host's show-file or show-page mechanism; they belong to the question, so open them without asking. Where the host has none, link them. Then put the round:
+Open every file in `files` beside the person first, with the host's show-file or show-page mechanism; they belong to the question, so open them without asking. Where the host has none, link them. When `files` is empty, find where the question's context lives (a page and anchor, a PR comment, a file and line, a decision) and add a `Context: <where the context lives>` line to the round instead. The question's Needs you row on the status page links the same places. Then put the round:
 
 ```text
 [Needs you · <role> · <feature>] Q-n <title>
@@ -13,9 +13,10 @@ Open every file in `files` beside the person first, with the host's show-file or
    b. <option>: <consequence>
    Why: <why>
 Files   <each file, opened beside you>
+Context: <where the context lives>                    (only when there are no files)
 ```
 
-On Claude, put the questions through the harness question tool (`AskUserQuestion`) once the files are open, the recommended option first; on Codex, use the numbered list above, answered as "1a". Keep the worker's options and wording; add only the label.
+On Claude, put the questions through the harness question tool (`AskUserQuestion`) once the files are open, the recommended option first; on Codex, use the numbered list above, answered as "1a". Keep the worker's options and wording; add only the label, and the Context line when there are no files, so its Needs you row links the same places.
 
 ## Back to the worker
 

@@ -172,7 +172,7 @@ a:hover { text-decoration: underline; }
 <section class="slide" id="more-jobs"><div class="inner"><p class="kicker">More jobs</p><h2>Beyond code.</h2><p class="sub">Each runs on its own, on Claude or Codex.</p><div class="stage"><div class="tiles"><div class="tile "><b>reviewer</b><span>Sizes the review, always checks security and PHI, and verifies each finding before posting it.</span><div class="to">greenfield/reviewer</div></div><div class="tile "><b>simplify-and-refactor</b><span>Asks whether a pull request could be simpler, and applies only the cleanup you approve.</span><div class="to">greenfield/simplify-and-refactor</div></div><div class="tile "><b>qa-and-fix</b><span>Tests a finished pull request and fixes what fails.</span><div class="to">greenfield/qa-and-fix</div></div><div class="tile "><b>product-researcher</b><span>Sourced research write-ups.</span><div class="to">greenfield/product-researcher</div></div><div class="tile "><b>business</b><span>Proposals, plans and memos.</span><div class="to">greenfield/business</div></div><div class="tile "><b>seo</b><span>Search strategy and pages.</span><div class="to">greenfield/seo</div></div><div class="tile "><b>audits</b><span>Stale issues, PRs and docs.</span><div class="to">greenfield/audits</div></div><div class="tile "><b>code-smell-fixes</b><span>Hunts the codebase for confusing code and opens fix PRs.</span><div class="to">greenfield/code-smell-fixes</div></div><div class="tile "><b>ui-polish</b><span>Explores a running app and fixes its hover, focus and layout rough edges.</span><div class="to">greenfield/ui-polish</div></div></div></div></div></section>
 <section class="slide" id="map"><div class="inner"><p class="kicker">Reference</p><h2>The whole map.</h2><p class="sub">Every route, every step, in one picture.</p><div class="stage"><div class="map"><svg viewBox="0 0 760 990" role="img" aria-labelledby="map-title map-desc">
 <title id="map-title">How work moves through Greenfield</title>
-<desc id="map-desc">New work branches by type. Questions, ideas and small fixes go to the planner; bugs go to the bug-reporter. Ideas become a brief, options and a cover sheet that you approve. You then launch the implementer and pick its model. The implementer builds with its skills, checks each change, opens a draft pull request and watches it until checks are green. When a plan's build has passed CI and QA (or you say a quick fix is ready), the reviewer sizes the review, always checks security and PHI, and verifies each finding before posting it. The implementer fixes the in-scope items, approach and scope questions come to you, and you merge.</desc>
+<desc id="map-desc">New work branches by type. Questions, ideas and small fixes go to the planner; bugs go to the bug-reporter. Ideas become a brief, options and a cover sheet that you approve. You then launch the implementer and pick its model. The implementer builds with its skills, checks each change, opens a draft pull request that leads with a diagram and links a page of its own, and watches it until checks are green. When a plan's build has passed CI and QA (or you say a quick fix is ready), the reviewer sizes the review, always checks security and PHI, and verifies each finding before posting it. The implementer fixes the in-scope items, approach and scope questions come to you, and you merge. The orchestrator keeps one status page beside you that always says what is next, and writes a post-mortem when something broke.</desc>
 <defs>
   <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-arrow"/></marker>
 </defs>
@@ -180,7 +180,7 @@ a:hover { text-decoration: underline; }
 <!-- orchestrator -->
 <rect x="20" y="10" width="720" height="50" rx="10" class="d-dash"/>
 <text x="380" y="31" text-anchor="middle" class="d-b">orchestrator · Claude default / Codex Astra high</text>
-<text x="380" y="50" text-anchor="middle" class="d-s">One workspace per feature; launches each profile below as a tab in it. Never writes code.</text>
+<text x="380" y="50" text-anchor="middle" class="d-s">One workspace per feature; a status page beside you says what is next. Never writes code.</text>
 <path d="M380,60 V86" class="d-line" marker-end="url(#ah)"/>
 
 <!-- new work -->
@@ -302,7 +302,7 @@ a:hover { text-decoration: underline; }
 <g>
 <rect x="35" y="868" width="160" height="54" rx="8" class="d-box"/>
 <text x="115" y="890" text-anchor="middle" class="d-b">draft PR</text>
-<text x="115" y="909" text-anchor="middle" class="d-s">prepare-pr</text>
+<text x="115" y="909" text-anchor="middle" class="d-s">image + its own page</text>
 <rect x="215" y="868" width="160" height="54" rx="8" class="d-box"/>
 <text x="295" y="890" text-anchor="middle" class="d-b">babysit-pr</text>
 <text x="295" y="909" text-anchor="middle" class="d-s">checks and bots green</text>
@@ -319,7 +319,7 @@ a:hover { text-decoration: underline; }
 
 <!-- outputs -->
 <rect x="20" y="950" width="470" height="34" rx="17" class="d-box"/>
-<text x="255" y="972" text-anchor="middle" class="d-s">One bundle per work item: brief · options · cover sheet · trace · post-mortem</text>
+<text x="255" y="972" text-anchor="middle" class="d-s">Per item: brief · options · cover sheet · trace · post-mortem if it broke</text>
 <rect x="505" y="950" width="235" height="34" rx="17" class="d-gate"/>
 <text x="622" y="972" text-anchor="middle" class="d-hb">you merge the PR</text>
 </svg></div><p class="legend"><i class="y"></i>Your steps<i class="a"></i>Runs on its own</p></div></div></section>
