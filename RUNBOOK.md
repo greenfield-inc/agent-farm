@@ -89,6 +89,8 @@ independent; each plugin's version is in its `plugin.yaml`.
 
 Check a plugin before release with
 `node dist/cli.js plugin validate plugins/<name> --config-root "$(mktemp -d)"`.
+`pnpm test` installs every plugin under `plugins/` and fails when one fails that
+check, such as a file edited without updating its `plugin.yaml` checksums.
 
 ## Local state on user machines
 
