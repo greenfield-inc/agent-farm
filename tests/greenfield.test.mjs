@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {spawnSync} from 'node:child_process';
+import {spawn,spawnSync} from 'node:child_process';
 import {build,resolveProfile} from '../dist/compiler.js';
 import {command,verify} from '../dist/runtime.js';
 import {validatePlugin} from '../dist/plugins.js';
@@ -304,6 +304,102 @@ test('code-smell-fixes runs on Sonnet 5.5 low with a native Claude finder and a 
  assert.ok(fs.existsSync(path.join(bundle,'main','native-agents','finder.json')));
 });
 
+test('process-cleanup runs on Opus or Sol with a read-only survey for each OS',t=>{
+ const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-cleanup-')));
+ t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
+ const expected={opus:['claude','claude-opus-5-5','medium'],sol:['codex','gpt-6.1-sol','medium']};
+ for(const [variant,model] of Object.entries(expected)){
+  const main=resolveProfile(root,'process-cleanup:'+variant).nodes.main;
+  assert.deepEqual([main.harness,main.model,main.reasoning_effort],model,variant);
+  assert.deepEqual(main.skills,['process-cleanup'],variant);
+  assert.deepEqual(main.launch.arguments,{machine:'local',authorized:'none'},variant);
+  assert.ok(main.instructions.includes('# Standing rules'),variant);
+  verify(build(root,'process-cleanup:'+variant,target));
+ }
+ const scripts=path.join(root,'skills','process-cleanup','scripts');
+ const code=file=>fs.readFileSync(path.join(scripts,file),'utf8').split('\n').filter(line=>!/^\s*#/.test(line)).join('\n');
+ assert.doesNotMatch(code('survey.sh'),/\b(kill -(KILL|9)|pkill|killall|sudo|rm -rf \/|fsmonitor--daemon stop)\b/);
+ assert.doesNotMatch(code('survey.ps1'),/\b(Stop-Process|taskkill|Stop-Service|Set-Service|Start-Process)\b/i);
+ const classes=fs.readFileSync(path.join(root,'skills','process-cleanup','references','classes.md'),'utf8');
+ for(const id of ['fsmonitor-orphaned','fsmonitor-idle','app-renderers','app-duplicates','dev-servers-orphaned','shells-orphaned','agents-orphaned','pane-live','git-in-progress'])assert.ok(classes.includes('`'+id+'`'),id);
+});
+
+// Git Bash on Windows runners can resolve `bash` to WSL, which wouldn't see the shims.
+test('the Linux survey counts an app\'s main processes, so duplicate instances show',{skip:process.platform==='win32'},t=>{
+ const bin=fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-survey-'));
+ t.after(()=>fs.rmSync(bin,{recursive:true,force:true}));
+ // Two real Chrome windows (one from launchd-like pid 1, one from a shell), a utility child running
+ // the main binary under the first, and one renderer.
+ const rows=[
+  [100,1,'Ss','2-00:00:00',1000,'0.0','pts/0','bash','bash'],
+  [200,1,'S','1-00:00:00',204800,'1.0','?','chrome','/opt/google/chrome/chrome'],
+  [300,100,'S','01:00:00',102400,'1.0','?','chrome','/opt/google/chrome/chrome --new-window'],
+  [210,200,'S','1-00:00:00',51200,'0.0','?','chrome','/opt/google/chrome/chrome --utility-sub-process'],
+  [220,200,'S','3-00:00:00',51200,'0.5','?','chrome','/opt/google/chrome/chrome --type=renderer --lang=en-US'],
+ ];
+ fs.writeFileSync(path.join(bin,'comm.txt'),rows.map(r=>r.slice(0,8).join(' ')).join('\n')+'\n');
+ fs.writeFileSync(path.join(bin,'args.txt'),rows.map(r=>`${r[0]} ${r[8]}`).join('\n')+'\n');
+ fs.writeFileSync(path.join(bin,'ps'),`#!/bin/sh\ncase "$*" in *args=*) cat "${bin}/args.txt" ;; *) cat "${bin}/comm.txt" ;; esac\n`,{mode:0o755});
+ fs.writeFileSync(path.join(bin,'uname'),'#!/bin/sh\necho Linux\n',{mode:0o755});
+ const run=spawnSync('bash',[path.join(root,'skills','process-cleanup','scripts','survey.sh'),'--budget','2'],{encoding:'utf8',timeout:60000,env:{...process.env,PATH:`${bin}${path.delimiter}${process.env.PATH}`}});
+ const apps=run.stdout.split('\n== ').find(section=>section.startsWith('apps'));
+ assert.ok(apps,run.stdout+run.stderr);
+ const chrome=apps.split('\n').find(line=>line.startsWith('chrome\t'))?.split('\t');
+ // app, main_binary, launched, renderers, renderers_older_2d, other_helpers, rss_mb
+ assert.deepEqual(chrome?.slice(0,7),['chrome','3','2','1','1','0','400'],apps);
+});
+
+test('the survey counts a detached shell\'s children, so a shell running a job is not idle',{skip:process.platform==='win32'},t=>{
+ const bin=fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-survey-'));
+ t.after(()=>fs.rmSync(bin,{recursive:true,force:true}));
+ // pid 400 is an orphaned shell running a build; pid 500 is an orphaned idle shell.
+ const rows=[[400,1,'Ss','2-00:00:00',1000,'0.0','?','bash','bash'],[410,400,'R','01:00:00',90000,'95.0','?','make','make -j8'],[500,1,'Ss','2-00:00:00',1000,'0.0','?','bash','bash']];
+ fs.writeFileSync(path.join(bin,'comm.txt'),rows.map(r=>r.slice(0,8).join(' ')).join('\n')+'\n');
+ fs.writeFileSync(path.join(bin,'args.txt'),rows.map(r=>`${r[0]} ${r[8]}`).join('\n')+'\n');
+ fs.writeFileSync(path.join(bin,'ps'),`#!/bin/sh\ncase "$*" in *args=*) cat "${bin}/args.txt" ;; *) cat "${bin}/comm.txt" ;; esac\n`,{mode:0o755});
+ fs.writeFileSync(path.join(bin,'uname'),'#!/bin/sh\necho Linux\n',{mode:0o755});
+ const run=spawnSync('bash',[path.join(root,'skills','process-cleanup','scripts','survey.sh'),'--budget','2'],{encoding:'utf8',timeout:60000,env:{...process.env,PATH:`${bin}${path.delimiter}${process.env.PATH}`}});
+ const lines=run.stdout.split('\n== ').find(section=>section.startsWith('agents-and-shells'))?.split('\n');
+ assert.ok(lines,run.stdout+run.stderr);
+ const header=lines[1].split('\t'),children=pid=>lines.find(line=>line.startsWith(pid+'\t'))?.split('\t')[header.indexOf('children')];
+ assert.deepEqual([children(400),children(500)],['1','0'],lines.join('\n'));
+});
+
+test('the survey marks only recognized dev servers as servers, so a batch job is never a safe stop',{skip:process.platform==='win32'},t=>{
+ const bin=fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-survey-'));
+ t.after(()=>fs.rmSync(bin,{recursive:true,force:true}));
+ const rows=[[600,1,'S','1-00:00:00',50000,'0.0','?','node','node /srv/jobs/export-customers.js'],[700,1,'S','1-00:00:00',50000,'0.0','?','node','node /app/node_modules/.bin/vite --port 3000'],[800,1,'S','1-00:00:00',50000,'0.0','?','node','node /usr/lib/node_modules/pnpm/bin/pnpm.cjs run dev']];
+ fs.writeFileSync(path.join(bin,'comm.txt'),rows.map(r=>r.slice(0,8).join(' ')).join('\n')+'\n');
+ fs.writeFileSync(path.join(bin,'args.txt'),rows.map(r=>`${r[0]} ${r[8]}`).join('\n')+'\n');
+ fs.writeFileSync(path.join(bin,'ps'),`#!/bin/sh\ncase "$*" in *args=*) cat "${bin}/args.txt" ;; *) cat "${bin}/comm.txt" ;; esac\n`,{mode:0o755});
+ fs.writeFileSync(path.join(bin,'uname'),'#!/bin/sh\necho Linux\n',{mode:0o755});
+ const run=spawnSync('bash',[path.join(root,'skills','process-cleanup','scripts','survey.sh'),'--budget','2'],{encoding:'utf8',timeout:60000,env:{...process.env,PATH:`${bin}${path.delimiter}${process.env.PATH}`}});
+ const lines=run.stdout.split('\n== ').find(section=>section.startsWith('dev-servers'))?.split('\n');
+ assert.ok(lines,run.stdout+run.stderr);
+ const header=lines[1].split('\t'),kind=pid=>lines.find(line=>line.startsWith(pid+'\t'))?.split('\t')[header.indexOf('kind')];
+ assert.deepEqual([kind(600),kind(700),kind(800)],['runtime','server','server'],lines.join('\n'));
+ const classes=fs.readFileSync(path.join(root,'skills','process-cleanup','references','classes.md'),'utf8');
+ assert.match(classes.split('\n').find(line=>line.startsWith('| `dev-servers-orphaned`')),/kind `server`/);
+});
+
+// Reads a real process's /proc environment, so it needs Linux.
+test('the Linux survey keeps a detached dev server\'s Pane ids, so a live panel protects it',{skip:process.platform!=='linux'},async t=>{
+ const bin=fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-survey-'));
+ // `exec -a vite` makes the sleeping process look like a vite dev server.
+ const child=spawn('bash',['-c','exec -a vite sleep 60'],{cwd:os.tmpdir(),stdio:'ignore',env:{...process.env,PANE_SESSION_ID:'session-1',PANE_PANEL_ID:'panel-1'}});
+ t.after(()=>{child.kill();fs.rmSync(bin,{recursive:true,force:true});});
+ await new Promise(resolve=>setTimeout(resolve,300));
+ fs.writeFileSync(path.join(bin,'comm.txt'),`${child.pid} 1 S 1-00:00:00 1000 0.0 ? sleep\n`);
+ fs.writeFileSync(path.join(bin,'args.txt'),`${child.pid} vite 60\n`);
+ fs.writeFileSync(path.join(bin,'ps'),`#!/bin/sh\ncase "$*" in *args=*) cat "${bin}/args.txt" ;; *) cat "${bin}/comm.txt" ;; esac\n`,{mode:0o755});
+ const run=spawnSync('bash',[path.join(root,'skills','process-cleanup','scripts','survey.sh'),'--budget','2'],{encoding:'utf8',timeout:60000,env:{...process.env,PATH:`${bin}${path.delimiter}${process.env.PATH}`}});
+ const rows=run.stdout.split('\n== ').find(section=>section.startsWith('dev-servers'))?.split('\n');
+ assert.ok(rows,run.stdout+run.stderr);
+ const header=rows[1].split('\t'),row=rows.find(line=>line.startsWith(child.pid+'\t'))?.split('\t');
+ assert.ok(row,rows.join('\n'));
+ assert.deepEqual([row[header.indexOf('parent')],row[header.indexOf('pane_session')],row[header.indexOf('pane_panel')]],['orphaned','session-1','panel-1']);
+});
+
 test('Codex orchestration routes every worker and helper to Codex while retaining Claude defaults',t=>{
  const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-codex-orchestrator-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
@@ -470,7 +566,7 @@ test('the orchestrator writes a post-mortem after review only when something bro
 });
 
 test('greenfield 0.0.36 documents the status page, front pages, post-mortems, the PR image and artifact, and the Session artifact',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.36$/m);
+ assert.ok(Number(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8').match(/^version: 0\.0\.(\d+)$/m)[1])>=36,'version 0.0.36 or later');
  includesAll(['README.md'],['a "Next step" line','each card linking the item\'s front page','`sessions/<Session name> · <first 8 characters of the Session id>`','one notice line saying so','writes a post-mortem after its review loop closes, with Issues hit and Issues to file','filing only on your yes','"no issues hit"','Every PR, however small, opens with an Excalidraw image']);
  includesAll(['index.html'],['a status page beside you says what is next','image + its own page','post-mortem if it broke','leads with a diagram and links a page of its own']);
  for(const file of ['README.md','index.html'])assert.doesNotMatch(flatText(file),/workstream map per Session:|Lanes/,file);
