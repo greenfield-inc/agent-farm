@@ -228,11 +228,14 @@ END {
   printf "# %d daemons\n", nfs
 
   print "\n== dev-servers (node, bun, esbuild, vite, tsc and other watchers) =="
-  print "pid\tppid\tparent\tage\trss_mb\tcpu\tpane_session\tpane_panel\tcwd\targs"
+  # kind: server when the arguments show a dev server or watcher; runtime for any other
+  # node, bun or deno program, which may be a batch job and is never a safe stop.
+  print "pid\tppid\tparent\tkind\tage\trss_mb\tcpu\tpane_session\tpane_panel\tcwd\targs"
   for (i = 1; i <= np; i++) { p = pids[i]; a = args[p]
     if (a ~ /(^|\/)(claude|codex|cursor-agent|gemini|opencode|amp)( |$)/ || a ~ /--type=/ || comm[p] ~ /\.app\//) continue
-    if (name[p] ~ /^(node|bun|deno|esbuild|tsc|tsx|turbo|nodemon|vite|next-server)$/ || a ~ /(vite|webpack|next dev|storybook|vitest|jest --watch|tsc -w|tsc --watch|esbuild .*--watch)/)
-      printf "%s\t%s\t%s\t%s\t%.0f\t%s\t%s\t%s\t%s\t%s\n", p, ppid[p], (ppid[p] == 1 ? "orphaned" : (ppid[p] in alive ? name[ppid[p]] : "gone")), age(el[p]), rss[p]/1024, cpu[p], (p in pses ? pses[p] : "-"), (p in ppan ? ppan[p] : "-"), (p in cwd ? cwd[p] : "?"), clean(a) }
+    server = (name[p] ~ /^(esbuild|nodemon|vite|next-server)$/ || a ~ /(vite|webpack|next (dev|start)|next-server|storybook|vitest|nodemon|http-server|live-server|--watch|tsc -w|esbuild .*--serve|(^| )(run )?(dev|serve|start|watch)( |$))/)
+    if (server || name[p] ~ /^(node|bun|deno|tsc|tsx|turbo)$/)
+      printf "%s\t%s\t%s\t%s\t%s\t%.0f\t%s\t%s\t%s\t%s\t%s\n", p, ppid[p], (ppid[p] == 1 ? "orphaned" : (ppid[p] in alive ? name[ppid[p]] : "gone")), (server ? "server" : "runtime"), age(el[p]), rss[p]/1024, cpu[p], (p in pses ? pses[p] : "-"), (p in ppan ? ppan[p] : "-"), (p in cwd ? cwd[p] : "?"), clean(a) }
 
   print "\n== agents-and-shells (agent CLIs, and shells older than 1 day or orphaned) =="
   # children: live child processes. A detached shell running a job is not idle.

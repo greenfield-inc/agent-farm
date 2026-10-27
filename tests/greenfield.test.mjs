@@ -365,6 +365,23 @@ test('the survey counts a detached shell\'s children, so a shell running a job i
  assert.deepEqual([children(400),children(500)],['1','0'],lines.join('\n'));
 });
 
+test('the survey marks only recognized dev servers as servers, so a batch job is never a safe stop',{skip:process.platform==='win32'},t=>{
+ const bin=fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-survey-'));
+ t.after(()=>fs.rmSync(bin,{recursive:true,force:true}));
+ const rows=[[600,1,'S','1-00:00:00',50000,'0.0','?','node','node /srv/jobs/export-customers.js'],[700,1,'S','1-00:00:00',50000,'0.0','?','node','node /app/node_modules/.bin/vite --port 3000'],[800,1,'S','1-00:00:00',50000,'0.0','?','node','node /usr/lib/node_modules/pnpm/bin/pnpm.cjs run dev']];
+ fs.writeFileSync(path.join(bin,'comm.txt'),rows.map(r=>r.slice(0,8).join(' ')).join('\n')+'\n');
+ fs.writeFileSync(path.join(bin,'args.txt'),rows.map(r=>`${r[0]} ${r[8]}`).join('\n')+'\n');
+ fs.writeFileSync(path.join(bin,'ps'),`#!/bin/sh\ncase "$*" in *args=*) cat "${bin}/args.txt" ;; *) cat "${bin}/comm.txt" ;; esac\n`,{mode:0o755});
+ fs.writeFileSync(path.join(bin,'uname'),'#!/bin/sh\necho Linux\n',{mode:0o755});
+ const run=spawnSync('bash',[path.join(root,'skills','process-cleanup','scripts','survey.sh'),'--budget','2'],{encoding:'utf8',timeout:60000,env:{...process.env,PATH:`${bin}${path.delimiter}${process.env.PATH}`}});
+ const lines=run.stdout.split('\n== ').find(section=>section.startsWith('dev-servers'))?.split('\n');
+ assert.ok(lines,run.stdout+run.stderr);
+ const header=lines[1].split('\t'),kind=pid=>lines.find(line=>line.startsWith(pid+'\t'))?.split('\t')[header.indexOf('kind')];
+ assert.deepEqual([kind(600),kind(700),kind(800)],['runtime','server','server'],lines.join('\n'));
+ const classes=fs.readFileSync(path.join(root,'skills','process-cleanup','references','classes.md'),'utf8');
+ assert.match(classes.split('\n').find(line=>line.startsWith('| `dev-servers-orphaned`')),/kind `server`/);
+});
+
 // Reads a real process's /proc environment, so it needs Linux.
 test('the Linux survey keeps a detached dev server\'s Pane ids, so a live panel protects it',{skip:process.platform!=='linux'},async t=>{
  const bin=fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-survey-'));
