@@ -235,12 +235,14 @@ END {
       printf "%s\t%s\t%s\t%s\t%.0f\t%s\t%s\t%s\t%s\t%s\n", p, ppid[p], (ppid[p] == 1 ? "orphaned" : (ppid[p] in alive ? name[ppid[p]] : "gone")), age(el[p]), rss[p]/1024, cpu[p], (p in pses ? pses[p] : "-"), (p in ppan ? ppan[p] : "-"), (p in cwd ? cwd[p] : "?"), clean(a) }
 
   print "\n== agents-and-shells (agent CLIs, and shells older than 1 day or orphaned) =="
-  print "pid\tppid\tparent\tkind\tage\trss_mb\tcpu\ttty\tpane_session\tpane_panel\tcwd"
+  # children: live child processes. A detached shell running a job is not idle.
+  print "pid\tppid\tparent\tkind\tage\trss_mb\tcpu\tchildren\ttty\tpane_session\tpane_panel\tcwd"
+  for (i = 1; i <= np; i++) { p = pids[i]; if (st[p] !~ /Z/) kids[ppid[p]]++ }
   for (i = 1; i <= np; i++) { p = pids[i]; a = args[p]; kind = ""
     if (a ~ /(^|\/)(claude|codex|cursor-agent|gemini|opencode|amp)( |$)/) { kind = a; sub(/ .*/, "", kind); kind = base(kind); if (kind ~ /^(node|bun)$/) { kind = a; sub(/^[^ ]+ +/, "", kind); sub(/ .*/, "", kind); kind = base(kind) } }
     else if (name[p] ~ /^-?(zsh|bash|fish|sh|tmux)$/ && (el[p] > now1 || ppid[p] == 1)) kind = name[p]
     if (kind == "") continue
-    printf "%s\t%s\t%s\t%s\t%s\t%.0f\t%s\t%s\t%s\t%s\t%s\n", p, ppid[p], (ppid[p] == 1 ? "orphaned" : (ppid[p] in alive ? name[ppid[p]] : "gone")), kind, age(el[p]), rss[p]/1024, cpu[p], tty[p], (p in pses ? pses[p] : "-"), (p in ppan ? ppan[p] : "-"), (p in cwd ? cwd[p] : "?") }
+    printf "%s\t%s\t%s\t%s\t%s\t%.0f\t%s\t%d\t%s\t%s\t%s\t%s\n", p, ppid[p], (ppid[p] == 1 ? "orphaned" : (ppid[p] in alive ? name[ppid[p]] : "gone")), kind, age(el[p]), rss[p]/1024, cpu[p], kids[p], tty[p], (p in pses ? pses[p] : "-"), (p in ppan ? ppan[p] : "-"), (p in cwd ? cwd[p] : "?") }
 
   print "\n== zombies =="
   print "pid\tppid\tparent\tage"
