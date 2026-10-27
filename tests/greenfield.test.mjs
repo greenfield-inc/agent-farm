@@ -349,6 +349,22 @@ test('the Linux survey counts an app\'s main processes, so duplicate instances s
  assert.deepEqual(chrome?.slice(0,7),['chrome','3','2','1','1','0','400'],apps);
 });
 
+test('the survey counts a detached shell\'s children, so a shell running a job is not idle',{skip:process.platform==='win32'},t=>{
+ const bin=fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-survey-'));
+ t.after(()=>fs.rmSync(bin,{recursive:true,force:true}));
+ // pid 400 is an orphaned shell running a build; pid 500 is an orphaned idle shell.
+ const rows=[[400,1,'Ss','2-00:00:00',1000,'0.0','?','bash','bash'],[410,400,'R','01:00:00',90000,'95.0','?','make','make -j8'],[500,1,'Ss','2-00:00:00',1000,'0.0','?','bash','bash']];
+ fs.writeFileSync(path.join(bin,'comm.txt'),rows.map(r=>r.slice(0,8).join(' ')).join('\n')+'\n');
+ fs.writeFileSync(path.join(bin,'args.txt'),rows.map(r=>`${r[0]} ${r[8]}`).join('\n')+'\n');
+ fs.writeFileSync(path.join(bin,'ps'),`#!/bin/sh\ncase "$*" in *args=*) cat "${bin}/args.txt" ;; *) cat "${bin}/comm.txt" ;; esac\n`,{mode:0o755});
+ fs.writeFileSync(path.join(bin,'uname'),'#!/bin/sh\necho Linux\n',{mode:0o755});
+ const run=spawnSync('bash',[path.join(root,'skills','process-cleanup','scripts','survey.sh'),'--budget','2'],{encoding:'utf8',timeout:60000,env:{...process.env,PATH:`${bin}${path.delimiter}${process.env.PATH}`}});
+ const lines=run.stdout.split('\n== ').find(section=>section.startsWith('agents-and-shells'))?.split('\n');
+ assert.ok(lines,run.stdout+run.stderr);
+ const header=lines[1].split('\t'),children=pid=>lines.find(line=>line.startsWith(pid+'\t'))?.split('\t')[header.indexOf('children')];
+ assert.deepEqual([children(400),children(500)],['1','0'],lines.join('\n'));
+});
+
 // Reads a real process's /proc environment, so it needs Linux.
 test('the Linux survey keeps a detached dev server\'s Pane ids, so a live panel protects it',{skip:process.platform!=='linux'},async t=>{
  const bin=fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-survey-'));
