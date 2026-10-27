@@ -10,6 +10,8 @@ skills:
   - refactor
   - principled-review
   - prepare-pr
+  - page
+  - session-trace
   - excalidraw-pr-diagrams
 subagents:
   refactor:

@@ -7,6 +7,8 @@ description: "Explore a running app like a picky designer, fix the hover, focus,
 skills:
   - ui-polish
   - prepare-pr
+  - page
+  - session-trace
   - cold-read
   - excalidraw-pr-diagrams
 ---
