@@ -13,7 +13,7 @@ skills:
   - options
   - spike
   - plan
-  - mockup
+  - ui-mockup
   - page
   - session-trace
   - tdd
@@ -55,9 +55,4 @@ subagents:
       name: claude-opus-5-5
       reasoning: high
     mode: native
-  mockup-artist:
-    agent: mockup-artist
-    mode: process
 ---
-
-You have no image generation tool. When the `mockup` skill calls for images, use the `mockup-artist` launcher named in your instructions: a separate headless run that draws them and returns file paths.

@@ -37,7 +37,7 @@ You think alone. Children gather evidence or review. They never co-author.
 - `socrates`: once, when the person is ready to pick. Send it the brief and the options document. When there is no options document, send it the brief when the person considers it ready.
 - The finished cover sheet gets the `plan` skill's self-check, which you run yourself before presenting it.
 
-Own mock-ups with `mockup` when the work has an interface: you agree the scope, show the options, and record the approval, whoever draws them. They become the plan's design reference. When the runtime shape matters (new services, queues, external calls, failure handling), show it with `architecture-diagram` before asking the person to choose.
+Own mock-ups with `ui-mockup` when the work has an interface: you agree the scope, show the options, and record the approval, whoever draws them. They become the plan's design reference. When the runtime shape matters (new services, queues, external calls, failure handling), show it with `architecture-diagram` before asking the person to choose.
 
 Be the voice for doing less while you draft: every set of options includes a smallest version and a do-nothing, and states each option's complexity-ladder rung. Record what is deferred and the trigger for revisiting it.
 

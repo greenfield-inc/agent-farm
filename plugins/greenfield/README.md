@@ -80,7 +80,6 @@ Review runs separately, through `greenfield/reviewer`, launched by you or by an 
 | business reviewers, `cold-reader` | business | Context, research adversary, spec and artifact reviewers |
 | `socrates` | planner | Opus 5.5 high (Astra high under Codex planner); challenge unnecessary scope |
 | `investigator`, `researcher` | planner; `investigator` also under bug-reporter | Opus 5.5 high (Sol 6.1 max under Codex planner, Sol 6.1 high under Codex bug-reporter); bounded evidence questions |
-| `mockup-artist` | Claude planner | Sol 6.1 medium, process; generated design assets when needed |
 | `qa` | bug-reporter | Opus 5.5 medium (Sol 6.1 medium under `:codex`); reproduce a bug in the app |
 | `advisor` | orchestrator | Astra high, process; advice about session coordination |
 
@@ -108,9 +107,9 @@ An orchestrator passes the planner its source as `source` and a status JSON path
 - `refactor` (simple, deep and apply modes) supports simplify-and-refactor and the implementer.
 - The research, business, SEO and audit skills support the profiles of the same names, and `code-smell-fixes` with `smell-finder` (whose `CRITERIA.md` holds the 20 lenses) supports `code-smell-fixes`.
 - `ui-polish` supports `ui-polish`: `scripts/probe.js` measures hover, focus, press, hit-area and transition defects in the page, and `references/` holds its lenses and motion bar, adapted from the sources in `THIRD_PARTY_NOTICES.md`.
-- `explain`, `brief`, `options`, `spike`, `mockup`, and `page` support planning.
+- `explain`, `brief`, `options`, `spike`, `ui-mockup`, and `page` support planning.
 - `interview` makes the planner lead with structured questions and keep a decision log; `architecture-diagram` draws system and flow diagrams from a shared kit; `swarm` fans research and audits out to parallel read-only agents and reconciles what they find. The planner has all three, the implementer, audits and product-researcher get `swarm` (and the implementer and researchers `architecture-diagram`), and the orchestrator uses `interview` and `architecture-diagram` for decisions and its workstream map.
-- `bug-intake`, `gather-evidence`, `web-research`, and `orchestrate-sessions` support the other profiles.
+- `bug-intake`, `gather-evidence`, `research-web`, and `orchestrate-sessions` support the other profiles.
 - `tdd` and `codebase-design` remain vendored unchanged from [mattpocock/skills](https://github.com/mattpocock/skills/tree/c55ee46073ed/skills/engineering/tdd), MIT; see `THIRD_PARTY_NOTICES.md`.
 - `session-trace` supports requested trace artifacts; follow the session's explicit permission requirements for conversation capture/export.
 
