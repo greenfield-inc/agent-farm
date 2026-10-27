@@ -324,6 +324,31 @@ test('process-cleanup runs on Opus or Sol with a read-only survey for each OS',t
  for(const id of ['fsmonitor-orphaned','fsmonitor-idle','app-renderers','app-duplicates','dev-servers-orphaned','shells-orphaned','agents-orphaned','pane-live','git-in-progress'])assert.ok(classes.includes('`'+id+'`'),id);
 });
 
+// Git Bash on Windows runners can resolve `bash` to WSL, which wouldn't see the shims.
+test('the Linux survey counts an app\'s main processes, so duplicate instances show',{skip:process.platform==='win32'},t=>{
+ const bin=fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-survey-'));
+ t.after(()=>fs.rmSync(bin,{recursive:true,force:true}));
+ // Two real Chrome windows (one from launchd-like pid 1, one from a shell), a utility child running
+ // the main binary under the first, and one renderer.
+ const rows=[
+  [100,1,'Ss','2-00:00:00',1000,'0.0','pts/0','bash','bash'],
+  [200,1,'S','1-00:00:00',204800,'1.0','?','chrome','/opt/google/chrome/chrome'],
+  [300,100,'S','01:00:00',102400,'1.0','?','chrome','/opt/google/chrome/chrome --new-window'],
+  [210,200,'S','1-00:00:00',51200,'0.0','?','chrome','/opt/google/chrome/chrome --utility-sub-process'],
+  [220,200,'S','3-00:00:00',51200,'0.5','?','chrome','/opt/google/chrome/chrome --type=renderer --lang=en-US'],
+ ];
+ fs.writeFileSync(path.join(bin,'comm.txt'),rows.map(r=>r.slice(0,8).join(' ')).join('\n')+'\n');
+ fs.writeFileSync(path.join(bin,'args.txt'),rows.map(r=>`${r[0]} ${r[8]}`).join('\n')+'\n');
+ fs.writeFileSync(path.join(bin,'ps'),`#!/bin/sh\ncase "$*" in *args=*) cat "${bin}/args.txt" ;; *) cat "${bin}/comm.txt" ;; esac\n`,{mode:0o755});
+ fs.writeFileSync(path.join(bin,'uname'),'#!/bin/sh\necho Linux\n',{mode:0o755});
+ const run=spawnSync('bash',[path.join(root,'skills','process-cleanup','scripts','survey.sh'),'--budget','2'],{encoding:'utf8',timeout:60000,env:{...process.env,PATH:`${bin}${path.delimiter}${process.env.PATH}`}});
+ const apps=run.stdout.split('\n== ').find(section=>section.startsWith('apps'));
+ assert.ok(apps,run.stdout+run.stderr);
+ const chrome=apps.split('\n').find(line=>line.startsWith('chrome\t'))?.split('\t');
+ // app, main_binary, launched, renderers, renderers_older_2d, other_helpers, rss_mb
+ assert.deepEqual(chrome?.slice(0,7),['chrome','3','2','1','1','0','400'],apps);
+});
+
 test('Codex orchestration routes every worker and helper to Codex while retaining Claude defaults',t=>{
  const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-codex-orchestrator-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
