@@ -89,7 +89,10 @@ where it is thin, with 50 verified opportunities, `ui-polish` for exploring
 a running app, fixing its hover, focus and layout rough edges, and showing
 before and after screenshots, and
 `customer-insights-loop` for turning a product's own usage data into ranked
-directions, then building the ones you pick and handing back every PR together.
+directions, then building the ones you pick and handing back every PR together,
+and `process-cleanup` for finding and stopping the leftover processes that
+slow down a machine running agents for days, including one you reach
+remotely.
 
 These profiles used to live in the `dcouple` plugin, which still ships for
 existing installs. `dcouple/raw` became `greenfield/implementer`; `dcouple/ideate`
