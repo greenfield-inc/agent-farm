@@ -201,11 +201,14 @@ END {
   # (macOS) or by something other than the app itself (Linux), which is what a real app
   # instance looks like; Electron apps also run their main binary as a plain node child.
   print "app\tmain_binary\tlaunched\trenderers\trenderers_older_2d\tother_helpers\trss_mb\toldest_launched"
+  # Off macOS there is no app bundle: an app is any program that runs --type= children,
+  # and its processes without --type= are its main binary.
+  for (i = 1; i <= np; i++) { p = pids[i]; if (os != "Darwin" && args[p] ~ /--type=/) chromium[name[p]] = 1 }
   for (i = 1; i <= np; i++) {
     p = pids[i]; a = args[p]
-    app = (os == "Darwin") ? appof(comm[p]) : ""
-    if (app == "" && a !~ /--type=/) continue
-    if (app == "") app = name[p]
+    app = (os == "Darwin") ? appof(comm[p]) : ((name[p] in chromium) ? name[p] : "")
+    if (app == "" && os == "Darwin" && a ~ /--type=/) app = name[p]
+    if (app == "") continue
     seenapp[app] = 1; ar[app] += rss[p]
     if (a ~ /--type=renderer/) { rr[app]++; if (el[p] > now2) r2[app]++ }
     else if (a ~ /--type=/ || name[p] ~ /Helper/) oh[app]++
