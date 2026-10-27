@@ -304,6 +304,26 @@ test('code-smell-fixes runs on Sonnet 5.5 low with a native Claude finder and a 
  assert.ok(fs.existsSync(path.join(bundle,'main','native-agents','finder.json')));
 });
 
+test('process-cleanup runs on Opus or Sol with a read-only survey for each OS',t=>{
+ const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-cleanup-')));
+ t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
+ const expected={opus:['claude','claude-opus-5-5','medium'],sol:['codex','gpt-6.1-sol','medium']};
+ for(const [variant,model] of Object.entries(expected)){
+  const main=resolveProfile(root,'process-cleanup:'+variant).nodes.main;
+  assert.deepEqual([main.harness,main.model,main.reasoning_effort],model,variant);
+  assert.deepEqual(main.skills,['process-cleanup'],variant);
+  assert.deepEqual(main.launch.arguments,{machine:'local',authorized:'none'},variant);
+  assert.ok(main.instructions.includes('# Standing rules'),variant);
+  verify(build(root,'process-cleanup:'+variant,target));
+ }
+ const scripts=path.join(root,'skills','process-cleanup','scripts');
+ const code=file=>fs.readFileSync(path.join(scripts,file),'utf8').split('\n').filter(line=>!/^\s*#/.test(line)).join('\n');
+ assert.doesNotMatch(code('survey.sh'),/\b(kill -(KILL|9)|pkill|killall|sudo|rm -rf \/|fsmonitor--daemon stop)\b/);
+ assert.doesNotMatch(code('survey.ps1'),/\b(Stop-Process|taskkill|Stop-Service|Set-Service|Start-Process)\b/i);
+ const classes=fs.readFileSync(path.join(root,'skills','process-cleanup','references','classes.md'),'utf8');
+ for(const id of ['fsmonitor-orphaned','fsmonitor-idle','app-renderers','app-duplicates','dev-servers-orphaned','shells-orphaned','agents-orphaned','pane-live','git-in-progress'])assert.ok(classes.includes('`'+id+'`'),id);
+});
+
 test('Codex orchestration routes every worker and helper to Codex while retaining Claude defaults',t=>{
  const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-codex-orchestrator-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
@@ -470,7 +490,7 @@ test('the orchestrator writes a post-mortem after review only when something bro
 });
 
 test('greenfield 0.0.36 documents the status page, front pages, post-mortems, the PR image and artifact, and the Session artifact',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.36$/m);
+ assert.ok(Number(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8').match(/^version: 0\.0\.(\d+)$/m)[1])>=36,'version 0.0.36 or later');
  includesAll(['README.md'],['a "Next step" line','each card linking the item\'s front page','`sessions/<Session name> · <first 8 characters of the Session id>`','one notice line saying so','writes a post-mortem after its review loop closes, with Issues hit and Issues to file','filing only on your yes','"no issues hit"','Every PR, however small, opens with an Excalidraw image']);
  includesAll(['index.html'],['a status page beside you says what is next','image + its own page','post-mortem if it broke','leads with a diagram and links a page of its own']);
  for(const file of ['README.md','index.html'])assert.doesNotMatch(flatText(file),/workstream map per Session:|Lanes/,file);

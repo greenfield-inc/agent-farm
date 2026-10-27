@@ -1,0 +1,6 @@
+variants:
+  opus:
+    agent: process-cleanup
+  sol:
+    agent: process-cleanup-codex
+default: opus

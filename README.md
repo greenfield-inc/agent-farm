@@ -85,7 +85,10 @@ cleanup you approve.
 finding outdated issues and docs, `code-smell-fixes` for an unattended
 whole-codebase hunt for confusing code that ends in fix PRs and issues, and
 `ui-polish` for exploring a running app, fixing its hover, focus and
-layout rough edges, and showing before and after screenshots.
+layout rough edges, and showing before and after screenshots, and
+`process-cleanup` for finding and stopping the leftover processes that
+slow down a machine running agents for days, including one you reach
+remotely.
 
 These profiles used to live in the `dcouple` plugin, which still ships for
 existing installs. `dcouple/raw` became `greenfield/implementer`; `dcouple/ideate`
