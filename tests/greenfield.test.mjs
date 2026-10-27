@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {spawnSync} from 'node:child_process';
+import {spawn,spawnSync} from 'node:child_process';
 import {build,resolveProfile} from '../dist/compiler.js';
 import {command,verify} from '../dist/runtime.js';
 import {validatePlugin} from '../dist/plugins.js';
@@ -347,6 +347,24 @@ test('the Linux survey counts an app\'s main processes, so duplicate instances s
  const chrome=apps.split('\n').find(line=>line.startsWith('chrome\t'))?.split('\t');
  // app, main_binary, launched, renderers, renderers_older_2d, other_helpers, rss_mb
  assert.deepEqual(chrome?.slice(0,7),['chrome','3','2','1','1','0','400'],apps);
+});
+
+// Reads a real process's /proc environment, so it needs Linux.
+test('the Linux survey keeps a detached dev server\'s Pane ids, so a live panel protects it',{skip:process.platform!=='linux'},async t=>{
+ const bin=fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-survey-'));
+ // `exec -a vite` makes the sleeping process look like a vite dev server.
+ const child=spawn('bash',['-c','exec -a vite sleep 60'],{cwd:os.tmpdir(),stdio:'ignore',env:{...process.env,PANE_SESSION_ID:'session-1',PANE_PANEL_ID:'panel-1'}});
+ t.after(()=>{child.kill();fs.rmSync(bin,{recursive:true,force:true});});
+ await new Promise(resolve=>setTimeout(resolve,300));
+ fs.writeFileSync(path.join(bin,'comm.txt'),`${child.pid} 1 S 1-00:00:00 1000 0.0 ? sleep\n`);
+ fs.writeFileSync(path.join(bin,'args.txt'),`${child.pid} vite 60\n`);
+ fs.writeFileSync(path.join(bin,'ps'),`#!/bin/sh\ncase "$*" in *args=*) cat "${bin}/args.txt" ;; *) cat "${bin}/comm.txt" ;; esac\n`,{mode:0o755});
+ const run=spawnSync('bash',[path.join(root,'skills','process-cleanup','scripts','survey.sh'),'--budget','2'],{encoding:'utf8',timeout:60000,env:{...process.env,PATH:`${bin}${path.delimiter}${process.env.PATH}`}});
+ const rows=run.stdout.split('\n== ').find(section=>section.startsWith('dev-servers'))?.split('\n');
+ assert.ok(rows,run.stdout+run.stderr);
+ const header=rows[1].split('\t'),row=rows.find(line=>line.startsWith(child.pid+'\t'))?.split('\t');
+ assert.ok(row,rows.join('\n'));
+ assert.deepEqual([row[header.indexOf('parent')],row[header.indexOf('pane_session')],row[header.indexOf('pane_panel')]],['orphaned','session-1','panel-1']);
 });
 
 test('Codex orchestration routes every worker and helper to Codex while retaining Claude defaults',t=>{
