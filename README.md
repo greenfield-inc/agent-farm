@@ -83,9 +83,11 @@ cleanup you approve.
 **More** (all in `greenfield`) — `product-researcher` for research write-ups,
 `business` for business documents, `seo` for search content, `audits` for
 finding outdated issues and docs, `code-smell-fixes` for an unattended
-whole-codebase hunt for confusing code that ends in fix PRs and issues, and
+whole-codebase hunt for confusing code that ends in fix PRs and issues,
 `ui-polish` for exploring a running app, fixing its hover, focus and
-layout rough edges, and showing before and after screenshots.
+layout rough edges, and showing before and after screenshots, and
+`customer-insights-loop` for turning a product's own usage data into ranked
+directions, then building the ones you pick and handing back every PR together.
 
 These profiles used to live in the `dcouple` plugin, which still ships for
 existing installs. `dcouple/raw` became `greenfield/implementer`; `dcouple/ideate`

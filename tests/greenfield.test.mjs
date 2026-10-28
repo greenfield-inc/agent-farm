@@ -336,8 +336,25 @@ test('Codex orchestration routes every worker and helper to Codex while retainin
  assert.match(skill,/Use the orchestrator agent's worker routing defaults/);
 });
 
+test('customer-insights-loop runs Opus 5.5 medium on Claude only, coordinates with the orchestrator\'s shared rules, and names no product, host or person',t=>{
+ const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-insights-')));
+ t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
+ assert.deepEqual(Object.keys(parse(fs.readFileSync(path.join(root,'profiles/customer-insights-loop.yaml'),'utf8')).variants),['claude']);
+ const main=resolveProfile(root,'customer-insights-loop').nodes.main;
+ assert.deepEqual([main.harness,main.model,main.reasoning_effort],['claude','claude-opus-5-5','medium']);
+ for(const skill of ['customer-insights-loop','orchestrate-sessions','interview','swarm','mockup','page'])assert.ok(main.skills.includes(skill),skill);
+ assert.deepEqual(Object.keys(main.children).sort(),['advisor','investigator','mockup-artist','researcher']);
+ for(const profile of ['customer-insights-loop','orchestrator:claude','orchestrator:codex'])assert.ok(resolveProfile(root,profile).nodes.main.instructions.includes('# Coordination'),profile);
+ const walk=dir=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(entry=>{const file=path.join(dir,entry.name);return entry.isDirectory()?walk(file):[file];});
+ for(const file of [...walk(path.join(root,'skills/customer-insights-loop')),path.join(root,'agents/customer-insights-loop.md')])assert.doesNotMatch(fs.readFileSync(file,'utf8'),/\b(pane|runpane|posthog|hogql|grain|parsa)\b/i,path.relative(root,file));
+ includesAll(['skills/customer-insights-loop/SKILL.md'],['Before stage 1, ask how hands-on the person wants to be','record the answer in the ledger as `autonomy`','With no answer, wait']);
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['set concurrency to what free disk and machine load allow','relaunch that review on `greenfield/reviewer:claude` and note the swap on the PR\'s card']);
+ verify(build(root,'customer-insights-loop',target));
+});
+
 const flatText=file=>fs.readFileSync(path.join(root,file),'utf8').replace(/\s+/g,' ');
-const ORCHESTRATORS=['agents/orchestrator.md','agents/orchestrator-codex.md'];
+const COORDINATORS=['orchestrator:claude','orchestrator:codex','customer-insights-loop'];
+const instructionsIncludeAll=(profiles,rules)=>{for(const profile of profiles){const text=resolveProfile(root,profile).nodes.main.instructions.replace(/\s+/g,' ');for(const rule of rules)assert.ok(text.includes(rule),`${profile}: ${rule}`);}};
 const REVIEWERS=['agents/claude-pr-reviewer.md','agents/codex-pr-reviewer.md'];
 const IMPLEMENTERS=['agents/raw-claude.md','agents/raw-codex.md','agents/implementer-codex.md'];
 const includesAll=(files,rules)=>{for(const file of files){const text=flatText(file);for(const rule of rules)assert.ok(text.includes(rule),`${file}: ${rule}`);}};
@@ -347,7 +364,7 @@ test('workers raise numbered needs_you blocks, standalone workers ask in the sam
  for(const rule of ['## Questions for the person','"needs_you": null','"needs_you": { "id": "Q-3", "kind": "question | choice | approval | fyi"','"files": [','"blocking": true','`answer: Q-n → <answer>. Recorded as D-n.`','`clarify: Q-n → <their question>` is not an answer: keep Q-n open','(`AskUserQuestion`)','wherever there is no question tool, a numbered list (`Files: <paths>`','`Why: <why>`','recommended one first and marked `(recommended)`','Q-n are unique per Session and never reused'])assert.ok(rules.includes(rule),rule);
  assert.doesNotMatch(rules,/"question": null/);
  for(const profile of ['planner:claude','planner:codex','implementer:opus','implementer:astra','implementer:sol','implementer:codex','orchestrator:claude','orchestrator:codex'])assert.ok(resolveProfile(root,profile).nodes.main.instructions.includes('## Questions for the person'),profile);
- includesAll(ORCHESTRATORS,['numbered `needs_you` blocks','labelled with its role and feature and with its files opened beside the person','send it to the asking tab only']);
+ instructionsIncludeAll(COORDINATORS,['numbered `needs_you` blocks','labelled with its role and feature and with its files opened beside the person','send it to the asking tab only']);
  includesAll(IMPLEMENTERS,['goes in that status file as a `needs_you` block; run by hand, ask the person directly in the same shape']);
  includesAll(['instructions/planner-identity.md'],['Raise each question for the person as a `needs_you`','record each `answer:` as its D-n']);
  includesAll(['skills/orchestrate-sessions/SKILL.md'],['[references/relay.md](references/relay.md)','`[Needs you · <role> · <feature>]`','to the asking tab only']);
@@ -357,7 +374,7 @@ test('workers raise numbered needs_you blocks, standalone workers ask in the sam
 test('the map leads with Needs you and shows each PR\'s validation and unreviewed commits, and the watcher is unchanged',()=>{
  includesAll(['skills/orchestrate-sessions/references/status-board.md'],['Needs you the first section','Q-n | feature | role | question | recommended answer | files','checks (required CI: green, failing or pending) | QA (passed, failed, not run) | review','"N commits since the last review at <sha>, not reviewed"','git rev-list --count <last reviewed head>..<PR head>','`<!-- greenfield-review head=<sha> -->` marker']);
  includesAll(['skills/orchestrate-sessions/references/ledger.md'],['"last_reviewed_head"']);
- includesAll(ORCHESTRATORS,['Needs you first, then each PR\'s checks, QA, review state and commits since its last review','relaying any `needs_you` a wake-up finds the same way as one an event brings']);
+ instructionsIncludeAll(COORDINATORS,['Needs you first, then each PR\'s checks, QA, review state and commits since its last review','relaying any `needs_you` a wake-up finds the same way as one an event brings']);
  const skill=fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8');
  for(const line of ['schedule:         3 checks each at 5, 10, 15, then 30 minutes; after 3 quiet 30-minute checks, expire','on start:         fire one test wake-up in the background','on dispatch:      start a fresh watcher at 5 minutes (or reset the running one to 5)','whenever active:  if the last wake-up is more than one interval overdue, tell the user the watcher failed, then restart it','a new needs_you is relayed as Questions and resumption says, files opened','"Set up a watcher? I\'ll check in at 5 minutes, slow down while nothing changes, and tell you only when something does." Start it unless the user says no'])assert.ok(skill.includes(line),line);
 });
@@ -387,8 +404,8 @@ test('reviews start on ready, a plan\'s end or a cleared human review, never on 
  const skill=flatText('skills/orchestrate-sessions/SKILL.md');
  for(const rule of ['A review starts on one of three triggers, and never on a tweak or a quick fix','**"ready".**','**A plan\'s end.**','**Human review: required.**','`<last reviewed head>...HEAD`','The reviewer sizes the range itself','No reviewer starts, and the PR\'s lane shows its unreviewed commits','Never mark a PR ready, or say it can merge, while it has commits since its last review','The end-of-Session sweep','## After a review','| Approach/scope: yes, at any level | the person, never the implementer','| Must-Fix, not flagged | the PR\'s implementer, with no question |','| Should-Fix, scope out | the person: re-plan it as follow-up work, fix it here anyway, or accept it |','checks only the F-n it was sent','an F-n is still open after two fix rounds','a third fix round would start','more fix rounds (how many), re-plan, or accept as is'])assert.ok(skill.includes(rule),rule);
  assert.doesNotMatch(skill,/Fix the N must-fix items now|end-of-Session pass/);
- includesAll(ORCHESTRATORS,['Tweaks and quick fixes start no reviewer','Never say a PR can merge while it has unreviewed commits','in-scope Must-Fix and Should-Fix go to the PR\'s implementer with no question','the loop pauses on the thrash rule']);
- for(const file of ORCHESTRATORS)assert.doesNotMatch(flatText(file),/fix now \(recommended\)|end-of-Session pass/,file);
+ instructionsIncludeAll(COORDINATORS,['Tweaks and quick fixes start no reviewer','Never say a PR can merge while it has unreviewed commits','in-scope Must-Fix and Should-Fix go to the PR\'s implementer with no question','the loop pauses on the thrash rule']);
+ for(const profile of COORDINATORS)assert.doesNotMatch(resolveProfile(root,profile).nodes.main.instructions,/fix now \(recommended\)|end-of-Session pass/,profile);
  includesAll(IMPLEMENTERS,['quick-verified, with screenshots of each changed screen when it is visual','start no reviewer for it']);
  includesAll(['instructions/standing-rules.md'],['CI, QA and review wait until the person says "ready"','"Ready" runs `full` on the same branch']);
  includesAll(['skills/plan/SKILL.md'],['`Review: at the plan\'s end · Human review: none`','Default to `required` when the plan changes UI']);
@@ -418,7 +435,7 @@ test('review-final fixes: previews the orchestrator opens, the supplied range re
 test('planned work always validates full and then reviews on its own; deferred and ready are for quick fixes and tweaks (D-65)',()=>{
  includesAll(['skills/orchestrate-sessions/SKILL.md'],['A planned feature\'s implementer always runs `full` when its build is done','it needs no "ready"','an implementer building an approved plan always runs `full`','`deferred` and "ready" apply only to quick fixes and tweaks']);
  includesAll(['instructions/standing-rules.md'],['Building an approved plan is always `full`','`deferred` and "ready" apply only to quick fixes and tweaks']);
- includesAll(ORCHESTRATORS,['`full` for an approved plan, and `deferred` by default for quick fixes and tweaks','reports done after its `full` validation']);
+ instructionsIncludeAll(COORDINATORS,['`full` for an approved plan, and `deferred` by default for quick fixes and tweaks','reports done after its `full` validation']);
  includesAll(['skills/plan/SKILL.md'],['the implementer runs full validation (CI and QA) when the build is done, then `greenfield/reviewer` reviews the PR on its own']);
  includesAll(['README.md'],['A planned feature\'s implementer always runs full validation (CI, QA) when its build is done','Quick fixes and tweaks run `deferred` by default']);
 });
@@ -431,7 +448,7 @@ test('the status page opens with the next step and item cards, every item has a 
  includesAll(['skills/orchestrate-sessions/SKILL.md'],['[references/item-hub.md](references/item-hub.md)','[references/status-board.md](references/status-board.md)','Every progress message to the person ends with "Next: …"','adds the findings file, the post-mortem (if any) and the trace']);
  includesAll(['skills/page/references/bundle.md'],['After the PR\'s review loop closes, the orchestrator adds the findings file, the post-mortem (if any) and the trace','edits only this list']);
  includesAll(['skills/orchestrate-sessions/references/relay.md'],['Context: <where the context lives>','its Needs you row links the same places']);
- includesAll(ORCHESTRATORS,['end every progress message to the person with "Next: …"','open it beside the person at the first dispatch']);
+ instructionsIncludeAll(COORDINATORS,['end every progress message to the person with "Next: …"','open it beside the person at the first dispatch']);
  includesAll(['instructions/standing-rules.md'],['An orchestrator opens four things beside the person without asking first','the Session\'s status page (at the first dispatch, then refreshed in the same tab)']);
 });
 
@@ -469,7 +486,7 @@ test('the orchestrator writes a post-mortem after review only when something bro
 });
 
 test('greenfield 0.0.36 documents the status page, front pages, post-mortems, the PR image and artifact, and the Session artifact',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.38$/m);
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.39$/m);
  includesAll(['README.md'],['a "Next step" line','each card linking the item\'s front page','`sessions/<Session name> · <first 8 characters of the Session id>`','one notice line saying so','writes a post-mortem after its review loop closes, with Issues hit and Issues to file','filing only on your yes','"no issues hit"','Every PR, however small, opens with an Excalidraw image']);
  includesAll(['index.html'],['a status page beside you says what is next','image + its own page','post-mortem if it broke','leads with a diagram and links a page of its own']);
  for(const file of ['README.md','index.html'])assert.doesNotMatch(flatText(file),/workstream map per Session:|Lanes/,file);

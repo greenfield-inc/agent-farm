@@ -1,0 +1,4 @@
+variants:
+  claude:
+    agent: customer-insights-loop
+default: claude
