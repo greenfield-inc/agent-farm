@@ -144,7 +144,7 @@ agent-farm run greenfield/customer-insights-loop --directory /absolute/coordinat
   --message "Find what to build next in /absolute/project, and build it."
 ```
 
-Before it reads any data, it asks how hands-on you want to be, and nothing proceeds until you answer:
+`--directory` is a folder for its own ledger and pages, outside the project; name the project in the message. Before it reads any data, it asks how hands-on you want to be, and nothing proceeds until you answer:
 
 | Level | Where it stops for you |
 | --- | --- |

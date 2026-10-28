@@ -8,7 +8,7 @@ Look, in this order, for what the product records about its use:
 2. The repository's own tracking and logging code: which events it sends, where, under what consent rule, and since which commit.
 3. Databases and exports the repository documents: usage tables, logs, support ticket exports.
 
-Read every source read-only. When a source exists but you lack access, ask the person for it once, as a `needs_you`-shaped question. When no data source exists, fall back to the code and interviews with the person and their users, and say so at the top of the report.
+Read every source read-only. When a source exists but you lack access, ask the person for it once, in the shape of the standing rules' Questions for the person; this question is blocking. When no data source exists, fall back to the code and interviews with the person and their users, label every figure from them as such, and say so at the top of the report.
 
 ## Correct the numbers
 
@@ -16,7 +16,7 @@ Apply each correction before any number is shared, and show the raw figure besid
 
 - **Automated traffic.** Remove test runners, CI machines, scanners, crawlers and the team's own installs. Name each filter and how many rows it removed.
 - **People, not installs.** Count people, not installs, devices or sessions. State the rule that links several installs to one person, and exclude the team's own outliers.
-- **Untracked share.** Estimate the share of people who opted out or block tracking against an independent count (downloads, sign-ups, server logs), with automated and internal traffic removed from that denominator too. State the method and give a range.
+- **Untracked share.** Estimate the share of people who opted out or block tracking against an independent count (downloads, sign-ups, server logs), with automated and internal traffic removed from that denominator too. State the method and give a range; with no independent count, say the share is unknown.
 - **Tracking changes.** Before reading any trend, check the window for changes in what is tracked or under what consent: a new event, a consent default, an SDK upgrade. Split the trend at each change.
 
 ## One query set

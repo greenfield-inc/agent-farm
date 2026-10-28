@@ -19,7 +19,7 @@ Before stage 1, ask how hands-on the person wants to be, with these three option
 | Review plans first | Research, directions, builds after approval, fixes | Adds: each plan before its implementer starts |
 | Choose checkpoints | Everything not checked | Any of: after research (stages 1 and 2 done), after directions, per plan, per PR |
 
-With no answer, wait: read no data and launch no helper or worker until the person answers.
+In the same round, ask for the study questions and the competitors to compare, offering stage 2's default set as the recommended answer. With no answer, wait: read no data and launch no helper or worker until the person answers.
 
 ```json
 "autonomy": { "level": "fully automatic | review plans first | choose checkpoints",
@@ -33,7 +33,7 @@ Follow [references/ground-truth.md](references/ground-truth.md). Every number an
 
 ## 2. Studies
 
-Run one read-only helper per study question with `swarm`, plus one per competitor the person names or a quick search finds. When the person names no questions, propose this set: activation, power users, reliability, the website or funnel, and instrumentation gaps. Every study reuses stage 1's query set and links the queries it ran. Lay out each report as [references/directions.md](references/directions.md) says.
+Run one read-only helper per study question with `swarm`: `investigator` for questions the data and code answer, `researcher` for competitors and the market. Add one per competitor the person names or a quick search finds. The default question set is activation, power users, reliability, the website or funnel, and instrumentation gaps. Every study reuses stage 1's query set and links the queries it ran. Lay out each report as [references/directions.md](references/directions.md) says.
 
 ## 3. Directions
 
@@ -45,9 +45,9 @@ With `interview`, settle in one sitting: the directions page's decisions, which 
 
 ## 5. Fan-out
 
-Hand each pick to `orchestrate-sessions` as one work item. Its starting message links its direction card and the D-n that apply. Under fully automatic, the starting message records the person's pre-approval of plans and `Human review: none` as their explicit choice; under the other levels, the normal approval gates stand.
+Hand each pick to `orchestrate-sessions` as one work item. Its starting message links its direction card and the D-n that apply. Under fully automatic, the starting message records the person's pre-approval of plans and `Human review: none` as their explicit choice, and the planner writes that review line on the cover sheet; under the other levels, the normal approval gates stand.
 
-**Quiet until handoff.** Under fully automatic, message the person only for a blocking question, a health failure the run cannot recover from, and the handoff. Non-blocking questions wait for the handoff. The status page stays current throughout.
+**Quiet until handoff.** Under fully automatic, message the person only for a blocking question, a health failure the run cannot recover from (the host still down after three wake-ups, or too little disk to launch any pick), and the handoff. Start the watcher without asking. Everything else `orchestrate-sessions` would bring to the person (out-of-scope and approach/scope findings, thrash pauses, post-mortem issues, the `pr-understanding-check` offer) waits for the handoff with its recommended answer, and the PR it belongs to counts as waiting on the person. The status page stays current throughout.
 
 ## 6. Handoff
 
