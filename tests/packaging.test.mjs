@@ -3,9 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import {execFileSync} from 'node:child_process';
+import {execFileSync,spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {parse} from 'yaml';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
 
@@ -26,16 +25,19 @@ function packable(t) {
  return base;
 }
 
-test('npm package contains every checksummed bundled plugin file',t=>{
- const manifest=parse(fs.readFileSync(new URL('../plugins/dcouple/plugin.yaml',import.meta.url),'utf8'));
- const checksums=Object.keys(manifest.checksums);
- assert.ok(checksums.length>0,'Bundled plugin must declare checksums');
- // npm 12 keys the report by package name; earlier versions return an array.
- const report=JSON.parse(execFileSync('npm',['pack','--dry-run','--json','--ignore-scripts'],{cwd:packable(t),encoding:'utf8',shell:process.platform==='win32'}));
- const [pack]=Array.isArray(report)?report:Object.values(report);
- const files=new Set(pack.files.map(file=>file.path));
- const missing=checksums.map(relative=>`plugins/dcouple/${relative}`).filter(file=>!files.has(file));
- assert.deepEqual(missing,[],`Checksummed plugin files omitted from npm package: ${missing.join(', ')}`);
+test('every bundled plugin installs by name from the packed npm tarball',t=>{
+ // npm drops some files (any .gitignore, for one) that a repo-directory install would still see.
+ const base=packable(t),tarball=execFileSync('npm',['pack','--ignore-scripts','--silent'],{cwd:base,encoding:'utf8',shell:process.platform==='win32'}).trim().split('\n').at(-1);
+ execFileSync('tar',['-xzf',tarball],{cwd:base});
+ const unpacked=path.join(base,'package'),home=path.join(base,'home'),configRoot=path.join(base,'config');
+ fs.symlinkSync(path.join(root,'node_modules'),path.join(unpacked,'node_modules'),'junction');
+ fs.mkdirSync(home);
+ const plugins=fs.readdirSync(path.join(unpacked,'plugins'));
+ assert.deepEqual(plugins.sort(),fs.readdirSync(path.join(root,'plugins')).sort(),'Every repository plugin ships in the package');
+ for (const name of plugins) {
+  const result=spawnSync(process.execPath,[path.join(unpacked,'dist/cli.js'),'plugin','install',name,'--config-root',configRoot],{cwd:home,encoding:'utf8',env:{...process.env,HOME:home,USERPROFILE:home}});
+  assert.equal(result.status,0,`plugins/${name}: ${result.stderr}`);
+ }
 });
 
 test('packing never rebuilds the dist that sibling tests import',t=>{
