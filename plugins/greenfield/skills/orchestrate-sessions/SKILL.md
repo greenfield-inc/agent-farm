@@ -21,7 +21,7 @@ Use the host's own tools for its mechanics. If a required host capability is mis
 
 ## Intake and routing
 
-Act only on authorized work. Opening or restoring the orchestrator starts nothing; read persisted state when a user makes a request or an authorized worker sends an event. Work from the supplied work list and caps, and treat authorization already given as settled. Concurrency defaults to 3 unless the host or user sets a stricter limit; record any spend or time limits. Urgency changes queue order and leaves the service tier alone.
+Act only on authorized work. Opening or restoring the orchestrator starts nothing; read persisted state when a user makes a request or an authorized worker sends an event. Work from the supplied work list and caps, and treat authorization already given as settled. Concurrency defaults to 3 unless the host or user sets a stricter limit; record any spend or time limits. Before launching several workspaces at once, set concurrency to what free disk and machine load allow, and say the number. Urgency changes queue order and leaves the service tier alone.
 
 Every piece of work follows the same three roles, each a fresh agent in that work's one workspace:
 
@@ -94,7 +94,7 @@ A review starts on one of three triggers, and never on a tweak or a quick fix:
 - **A plan's end.** A planned feature's implementer always runs `full` when its build is done (CI, QA, babysitting until green) and then reports done. When its cover sheet says `Human review: none`, start its review straight away; it needs no "ready".
 - **Human review: required.** When the cover sheet says so, the implementer still runs `full` first; then open the PR beside the person instead, say it waits for their look, and start no reviewer until they say "ready".
 
-Launch one `greenfield/reviewer:codex` agent per review as a new tab in the Pane that owns that PR's branch. Its starting message names the PR, the range, a findings file in the Session folder and the cover sheet when there is one, and says: write the findings file, post one reconciled `COMMENT` review, apply no fixes. The reviewer sizes the range itself; show the Size line it reports in the PR's lane, and never compute it. When the review or a follow-up posts, record the head it covered as the PR's `last_reviewed_head`.
+Launch one `greenfield/reviewer:codex` agent per review as a new tab in the Pane that owns that PR's branch. When it stops on a content filter or policy refusal, relaunch that review on `greenfield/reviewer:claude` and note the swap on the PR's card. Its starting message names the PR, the range, a findings file in the Session folder and the cover sheet when there is one, and says: write the findings file, post one reconciled `COMMENT` review, apply no fixes. The reviewer sizes the range itself; show the Size line it reports in the PR's lane, and never compute it. When the review or a follow-up posts, record the head it covered as the PR's `last_reviewed_head`.
 
 Tweaks and quick fixes go to the PR's implementer and are committed to its branch: an existing PR, or a new draft PR labelled `no-plan`. The implementer quick-verifies each one; when the change is visual, open its screenshots beside the person. No reviewer starts, and the PR's lane shows its unreviewed commits. Never mark a PR ready, or say it can merge, while it has commits since its last review: say "N commits not reviewed; say 'ready' to review them" instead.
 
@@ -149,6 +149,9 @@ on each wake-up:  record the time; read each in-flight worker's compact status
                   something changed: report it (a finished result, a question, a blocker), reset to 5 minutes;
                   a new needs_you is relayed as Questions and resumption says, files opened
                   nothing changed: move one step down the schedule
+                  also check that the host answers and how much disk is free; when space runs low,
+                  start no new workspace and archive finished ones first
+                  host down: workers' status files are the record; tell the person once, retry next wake-up
                   nothing in flight, or the schedule ran out: stop, and say so in one line
 whenever active:  if the last wake-up is more than one interval overdue, tell the user the watcher failed, then restart it
 on host event:    handle it now; the watcher only catches what events miss

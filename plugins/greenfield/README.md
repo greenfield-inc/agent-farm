@@ -28,6 +28,7 @@ For a one-page visual map of how work is routed, open [index.html](index.html). 
 | `bug-reporter` (`bug-reporter:claude`) / `bug-reporter:codex` | Opus 5.5 high / Sol 6.1 high | Reproduce and write a report without fixing code |
 | `free-range` (`free-range:claude`) / `free-range:codex` | Opus 5.5 high / Astra medium | Raw-model comparison profiles without the Greenfield workflow |
 | `orchestrator` (`orchestrator:claude`) / `orchestrator:codex` | Opus 5.5 medium / Astra high | Experimental coordination of features, one Pane each, with every role a tab in it. When a feature is ready for review, it offers an optional `pr-understanding-check` |
+| `customer-insights-loop` | Opus 5.5 medium | Researches a product's own usage data, ranks directions with mockups and competitor context, settles your picks in one sitting, then coordinates a build per pick and hands back every PR with a merge order. Claude only. See [Customer insights loop](#customer-insights-loop) |
 
 ```sh
 agent-farm plugin install
@@ -79,9 +80,9 @@ Review runs separately, through `greenfield/reviewer`, launched by you or by an 
 | `codebase-explorer` | reviewer, qa-and-fix | Targeted repository questions; a process child under `reviewer:claude` |
 | business reviewers, `cold-reader` | business | Context, research adversary, spec and artifact reviewers |
 | `socrates` | planner | Opus 5.5 high (Astra high under Codex planner); challenge unnecessary scope |
-| `investigator`, `researcher` | planner; `investigator` also under bug-reporter | Opus 5.5 high (Sol 6.1 max under Codex planner, Sol 6.1 high under Codex bug-reporter); bounded evidence questions |
+| `investigator`, `researcher` | planner, customer-insights-loop; `investigator` also under bug-reporter | Opus 5.5 high (Sol 6.1 max under Codex planner, Sol 6.1 high under Codex bug-reporter); bounded evidence questions |
 | `qa` | bug-reporter | Opus 5.5 medium (Sol 6.1 medium under `:codex`); reproduce a bug in the app |
-| `advisor` | orchestrator | Astra high, process; advice about session coordination |
+| `advisor` | orchestrator, customer-insights-loop | Astra high, process; advice about session coordination |
 
 Planners do not launch the implementer. When a cover sheet is approved, the planner gives the person the `agent-farm run greenfield/implementer` command; Agent Farm runs the default variant unless the command names another.
 
@@ -110,6 +111,7 @@ An orchestrator passes the planner its source as `source` and a status JSON path
 - `explain`, `brief`, `options`, `spike`, `ui-mockup`, and `page` support planning.
 - `interview` makes the planner lead with structured questions and keep a decision log; `architecture-diagram` draws system and flow diagrams from a shared kit; `swarm` fans research and audits out to parallel read-only agents and reconciles what they find. The planner has all three, the implementer, audits and product-researcher get `swarm` (and the implementer and researchers `architecture-diagram`), and the orchestrator uses `interview` and `architecture-diagram` for decisions and its workstream map.
 - `bug-intake`, `gather-evidence`, `research-web`, and `orchestrate-sessions` support the other profiles.
+- `customer-insights-loop` supports the profile of the same name, with references for correcting the numbers, the study and directions pages, and the handoff's merge train. The orchestrators and `customer-insights-loop` share their coordination rules from `instructions/coordination.md`.
 - `tdd` and `codebase-design` remain vendored unchanged from [mattpocock/skills](https://github.com/mattpocock/skills/tree/c55ee46073ed/skills/engineering/tdd), MIT; see `THIRD_PARTY_NOTICES.md`.
 - `session-trace` supports requested trace artifacts; follow the session's explicit permission requirements for conversation capture/export.
 
@@ -128,9 +130,28 @@ Launch the Codex coordinator with `agent-farm run greenfield/orchestrator:codex 
 
 The orchestrator keeps one status page (the workstream map) per Session and opens it beside you at the first dispatch: a "Next step" line, a "Needs you" section first (each open Q-n with its feature and recommended answer, linking its files or a "Context:" line), then one card per item with its stage, each PR's checks, QA, review state and "N commits since the last review at <sha>", and "Next:", each card linking the item's front page (its brief, or a small hub for a quick fix). Completed items move to a Done section; the dependency graph and merge hot spots appear only when items depend on each other. It is refreshed in the same tab at each worker report, decision, PR opened, reviewed or merged, and every progress message ends with "Next: …". It lives in one Session artifact at `sessions/<Session name> · <first 8 characters of the Session id>` in the document destination, reused for the Session's life; with no destination it stays as local files in the Session folder, with one notice line saying so. Before dispatching into a repository it resolves that repository's workspace instructions (`agent-farm inspect greenfield/<profile> --directory <repo>`) and passes their document destination and the Session name to the worker. When a Session spans destinations, the map lives with the first repository's destination and links to short stub hubs in the others. It collects a trace of every session it launched whose repository's workspace instructions (or you) grant conversation capture, a labeled status page for the rest, and archives a feature's Pane once its PR is merged or closed or its plan is abandoned, after a `--dry-run` shows the worktree is clean and pushed. Reviews, fixes and QA never get their own Pane; they run as tabs in the feature's Pane. It never passes `--force` and never deletes remote branches.
 
-Host-injected instructions own the mechanics; Greenfield owns roles, approvals and review policy. A standalone launch can pass `--arg host_policy=/absolute/path/to/host-guidance.md`; this is an instruction document, not a runtime adapter. The orchestrator acts on host events and, while work is in flight without guaranteed events, offers a watcher and starts it if you don't answer. It proves the watcher fires, checks at 5, 10, 15 and 30 minutes (three times each, resetting to 5 on any change), relays any new `needs_you` it finds, and expires after three quiet 30-minute checks. Urgency never implicitly enables fast mode. The orchestrator never edits project code and never pushes to a default branch. It merges a pull request only when you explicitly ask for that pull request, after telling you its state in one line (draft, CI, review).
+Host-injected instructions own the mechanics; Greenfield owns roles, approvals and review policy. A standalone launch can pass `--arg host_policy=/absolute/path/to/host-guidance.md`; this is an instruction document, not a runtime adapter. The orchestrator acts on host events and, while work is in flight without guaranteed events, offers a watcher and starts it if you don't answer. It proves the watcher fires, checks at 5, 10, 15 and 30 minutes (three times each, resetting to 5 on any change), relays any new `needs_you` it finds, and expires after three quiet 30-minute checks. It sizes concurrency to free disk and machine load before a fan-out; on each check it also confirms the host answers and disk is free, holds new workspaces and archives finished ones when space runs low, and tells you once when the host is down. When `greenfield/reviewer:codex` refuses a review on a content filter or policy, it reruns that review on `greenfield/reviewer:claude` and notes the swap on the PR's card. Urgency never implicitly enables fast mode. The orchestrator never edits project code and never pushes to a default branch. It merges a pull request only when you explicitly ask for that pull request, after telling you its state in one line (draft, CI, review).
 
 The orchestrator runs in the Pane Session folder, outside any repository, so it gets no repository's workspace file. A personal `~/.config/agent-farm/workspace.yaml` can give it the connection it needs to publish the map and its own trace; keep routing out of that file, since destinations come from each repository's workspace instructions.
+
+## Customer insights loop
+
+`greenfield/customer-insights-loop` takes a product from its own usage data to a batch of reviewed pull requests, on any repository and host:
+
+```sh
+agent-farm run greenfield/customer-insights-loop --directory /absolute/coordination \
+  --message "Find what to build next in /absolute/project, and build it."
+```
+
+`--directory` is a folder for its own ledger and pages, outside the project; name the project in the message. Before it reads any data, it asks how hands-on you want to be, and nothing proceeds until you answer:
+
+| Level | Where it stops for you |
+| --- | --- |
+| Fully automatic | The picks, blocking questions and the merge word; you hear from it only for those and the handoff |
+| Review plans first | Also each plan, before its implementer starts |
+| Choose checkpoints | Any of: after research, after directions, per plan, per PR |
+
+It finds the product's data sources (analytics, databases, logs, support exports), corrects the numbers before sharing any (automated and internal traffic removed, people counted rather than installs, the untracked share estimated with a range, tracking changes checked), runs one read-only study per question plus competitor notes, and writes a ranked directions page with a mockup per direction. You settle every pick in one sitting. Each pick then runs through `orchestrate-sessions` as a planner, an implementer and a reviewer, and every PR comes back together on the Session's status page with a merge order and a list of what was left open. It merges and releases only on your word.
 
 ## Profile arguments
 
@@ -139,7 +160,7 @@ Pass repeatable `--arg key=value` flags before the native-CLI `--` separator. Qu
 | Profile | Accepted arguments |
 | --- | --- |
 | `planner`, `planner:codex` | `docs`, `source`, `parent` |
-| `orchestrator` | `docs`, `host_policy` |
+| `orchestrator`, `customer-insights-loop` | `docs`, `host_policy` |
 | `bug-reporter` | `source`, `parent` |
 
 `parent` is the status JSON file path, not a host session ID. `host_policy` is a guidance-file path, not automatic tool configuration. Path arguments are passed through as written, so supply absolute paths for cross-workspace handoffs. `source` may be a document path, artifact URL, or contained task. Use `--message` for supplemental assignment text; unsupported profile arguments are not a substitute for host-injected context.
