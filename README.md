@@ -94,7 +94,7 @@ existing installs. `dcouple/raw` became `greenfield/implementer`; `dcouple/ideat
 and `dcouple/implementer` were not moved. An installed `dcouple` keeps working
 until you run `agent-farm plugin uninstall dcouple`.
 
-**bigbrain** — An opt-in alternative to greenfield (`agent-farm plugin install bigbrain`): you talk only to `bigbrain/orchestrator`, which relays every worker's questions to you, every plan carries a control flow the implementer runs step by step, reviews happen only at planned points or on your word, and every document passes a bundled checker. See [plugins/bigbrain/README.md](plugins/bigbrain/README.md).
+**bigbrain** — An opt-in alternative to greenfield (`agent-farm plugin install bigbrain`): you talk only to `bigbrain/orchestrator`, which relays every worker's questions to you, every plan carries a control flow the implementer runs step by step, every PR gets an automatic review sized to the change before it is ready, and every document passes a bundled checker. See [plugins/bigbrain/README.md](plugins/bigbrain/README.md).
 
 **machine-security** — `machine-security/audit` scans the Mac or Windows PC you're working on (updates, disk encryption, antivirus and firewall, sharing and remote access, startup persistence, secrets on disk, SSH keys, package-manager and agent settings, MCP servers), reports what to fix first, and applies only the fixes you approve, one command at a time. The scans are read-only, never use sudo or elevation, and never print a secret value. See [plugins/machine-security/README.md](plugins/machine-security/README.md).
 

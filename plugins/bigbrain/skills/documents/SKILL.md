@@ -75,3 +75,7 @@ It needs only Node. Exit 0 is pass; each failure names its rule:
 | `schema:status`, `status-state` | a status file is invalid or its state and blocks disagree |
 
 Run it before reporting any stage change: `--stage approve` before relaying a cover sheet for approval, `--stage done` before reporting done. The orchestrator runs `--stage approve` itself before it relays an approval. Paste the result line into your report.
+
+## Review size
+
+`node <this skill>/scripts/review-size.mjs <base>...<head> [--repo <dir>] [--floor standard|large] [--json]` prints a review's size and why. It lives here so the orchestrator and the reviewer, which both load this skill, run the same rule; the size table it implements is in the `review` skill.
