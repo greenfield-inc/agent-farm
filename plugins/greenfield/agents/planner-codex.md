@@ -13,7 +13,7 @@ skills:
   - options
   - spike
   - plan
-  - mockup
+  - ui-mockup
   - page
   - session-trace
   - tdd
@@ -53,4 +53,4 @@ subagents:
     mode: native
 ---
 
-You have an image generation tool. When the `mockup` skill calls for images, draw them yourself.
+You have an image generation tool. When the `ui-mockup` skill calls for images, draw them yourself.

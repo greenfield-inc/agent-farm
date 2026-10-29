@@ -17,7 +17,7 @@ Write `mockups/design-notes.html` from the `documents` skill's `design-notes` te
 
 ## 3. Options, three per round
 
-This is greenfield's `mockup` method. Pick the method that fits, and say which one you used on the gallery:
+This is greenfield's `ui-mockup` method. Pick the method that fits, and say which one you used on the gallery:
 
 - **Images**, for exploring looks quickly or changing an existing screen, when you have an image generation or editing tool: edit the real screenshots from step 1.
 - **HTML and CSS**, when exact text, real data, responsive behaviour or a later pixel comparison matters, and whenever you have no image tool. A missing image tool is not a blocker. Rebuild the screen from the product's own source, not from memory or by eye: its real components and markup, its styles (CSS, SCSS, tokens), its icon assets (inline the real SVGs) and its fonts, so layout, type, spacing, colours and density match the current screenshots. Write it by hand or copy from source; do not generate approximate chrome with a script.

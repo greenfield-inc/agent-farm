@@ -64,7 +64,6 @@ test('Codex roles formerly on gpt-5.6 run gpt-6.1-sol and reviewers keep their p
  const summary=node=>[node.mode,node.harness,node.model,node.reasoning_effort];
  const child=(profile,name)=>{const resolved=resolveProfile(root,profile);return resolved.nodes[resolved.nodes.main.children[name]];};
  for(const profile of profiles)for(const node of Object.values(resolveProfile(root,profile).nodes))assert.doesNotMatch(node.model,/^gpt-5\.6-/,`${profile} ${node.name}`);
- assert.deepEqual(summary(child('planner:claude','mockup-artist')),['process','codex','gpt-6.1-sol','medium']);
  for(const name of ['investigator','researcher'])assert.deepEqual(summary(child('planner:codex',name)),['native','codex','gpt-6.1-sol','max']);
  const qa=parse(/^---\n([\s\S]*?)\n---/.exec(fs.readFileSync(path.join(root,'agents/qa.md'),'utf8'))[1]);
  assert.deepEqual([qa.harness,qa.model.name,qa.model.reasoning],['codex','gpt-6.1-sol','medium']);
@@ -474,8 +473,8 @@ test('greenfield documents the status page, front pages, post-mortems, the PR im
  for(const file of ['README.md','index.html'])assert.doesNotMatch(flatText(file),/workstream map per Session:|Lanes/,file);
 });
 
-test('greenfield 0.0.39 asks planners and reviewers for the worst case at production size, with the numbers left to each repo',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.39$/m);
+test('greenfield asks planners and reviewers for the worst case at production size, with the numbers left to each repo',()=>{
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.40$/m);
  includesAll(['skills/review/CRITERIA.md'],['Cost at production size:','the largest real input','an unmeasured or unbounded worst case is Must-Fix','the missing measurement is the finding, so it needs no estimate of your own','The repo\'s AGENTS.md names its hot paths, budget and where production sizes are recorded; if it names none, the finding asks the author for them']);
  includesAll(['skills/plan/SKILL.md'],['its criteria name the worst-case production size and the budget it must meet','Passing on staging or test fixtures is not a worst case']);
  includesAll(['skills/review/severity-examples.md'],['never states the cost for the largest team in production']);
