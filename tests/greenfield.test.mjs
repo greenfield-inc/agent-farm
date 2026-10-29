@@ -336,9 +336,10 @@ test('Codex orchestration routes every worker and helper to Codex while retainin
  assert.match(skill,/Use the orchestrator agent's worker routing defaults/);
 });
 
-test('customer-insights-loop runs Opus 5.5 medium on Claude only, coordinates with the orchestrator\'s shared rules, and names no product, host or person',t=>{
+test('greenfield 0.0.40: customer-insights-loop runs Opus 5.5 medium on Claude only, coordinates with the orchestrator\'s shared rules, and names no product, host or person',t=>{
  const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-insights-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.40$/m);
  assert.deepEqual(Object.keys(parse(fs.readFileSync(path.join(root,'profiles/customer-insights-loop.yaml'),'utf8')).variants),['claude']);
  const main=resolveProfile(root,'customer-insights-loop').nodes.main;
  assert.deepEqual([main.harness,main.model,main.reasoning_effort],['claude','claude-opus-5-5','medium']);
@@ -485,9 +486,14 @@ test('the orchestrator writes a post-mortem after review only when something bro
  includesAll(['skills/plan/references/presentation.md'],['Link the trace, and the post-mortem in the PR\'s own artifact, once they exist']);
 });
 
-test('greenfield 0.0.36 documents the status page, front pages, post-mortems, the PR image and artifact, and the Session artifact',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.39$/m);
+test('greenfield documents the status page, front pages, post-mortems, the PR image and artifact, and the Session artifact',()=>{
  includesAll(['README.md'],['a "Next step" line','each card linking the item\'s front page','`sessions/<Session name> · <first 8 characters of the Session id>`','one notice line saying so','writes a post-mortem after its review loop closes, with Issues hit and Issues to file','filing only on your yes','"no issues hit"','Every PR, however small, opens with an Excalidraw image']);
  includesAll(['index.html'],['a status page beside you says what is next','image + its own page','post-mortem if it broke','leads with a diagram and links a page of its own']);
  for(const file of ['README.md','index.html'])assert.doesNotMatch(flatText(file),/workstream map per Session:|Lanes/,file);
+});
+
+test('greenfield asks planners and reviewers for the worst case at production size, with the numbers left to each repo',()=>{
+ includesAll(['skills/review/CRITERIA.md'],['Cost at production size:','the largest real input','an unmeasured or unbounded worst case is Must-Fix','the missing measurement is the finding, so it needs no estimate of your own','The repo\'s AGENTS.md names its hot paths, budget and where production sizes are recorded; if it names none, the finding asks the author for them']);
+ includesAll(['skills/plan/SKILL.md'],['its criteria name the worst-case production size and the budget it must meet','Passing on staging or test fixtures is not a worst case']);
+ includesAll(['skills/review/severity-examples.md'],['never states the cost for the largest team in production']);
 });
