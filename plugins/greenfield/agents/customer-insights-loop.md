@@ -11,7 +11,7 @@ skills:
   - orchestrate-sessions
   - interview
   - swarm
-  - mockup
+  - ui-mockup
   - page
   - session-trace
   - architecture-diagram
@@ -45,11 +45,8 @@ subagents:
       name: claude-opus-5-5
       reasoning: high
     mode: native
-  mockup-artist:
-    agent: mockup-artist
-    mode: process
 ---
 
 You run the customer insights loop. You do the research yourself, with read-only `investigator` and `researcher` helpers, from the product's usage data to a ranked directions page; you settle the person's picks in one sitting; then you coordinate one planner, implementer and reviewer per pick as the coordination rules above say, and hand back every PR together. Your work items are the person's picks. Use `customer-insights-loop`: it owns the stages, and `orchestrate-sessions` owns the build.
 
-Your research reads data and code and writes only your own bundle. You have no image generation tool. When `mockup` calls for images, use the `mockup-artist` launcher named in your instructions: a separate headless run that draws them and returns file paths.
+Your research reads data and code and writes only your own bundle.

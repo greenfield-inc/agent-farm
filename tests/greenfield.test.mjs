@@ -64,7 +64,6 @@ test('Codex roles formerly on gpt-5.6 run gpt-6.1-sol and reviewers keep their p
  const summary=node=>[node.mode,node.harness,node.model,node.reasoning_effort];
  const child=(profile,name)=>{const resolved=resolveProfile(root,profile);return resolved.nodes[resolved.nodes.main.children[name]];};
  for(const profile of profiles)for(const node of Object.values(resolveProfile(root,profile).nodes))assert.doesNotMatch(node.model,/^gpt-5\.6-/,`${profile} ${node.name}`);
- assert.deepEqual(summary(child('planner:claude','mockup-artist')),['process','codex','gpt-6.1-sol','medium']);
  for(const name of ['investigator','researcher'])assert.deepEqual(summary(child('planner:codex',name)),['native','codex','gpt-6.1-sol','max']);
  const qa=parse(/^---\n([\s\S]*?)\n---/.exec(fs.readFileSync(path.join(root,'agents/qa.md'),'utf8'))[1]);
  assert.deepEqual([qa.harness,qa.model.name,qa.model.reasoning],['codex','gpt-6.1-sol','medium']);
@@ -339,12 +338,12 @@ test('Codex orchestration routes every worker and helper to Codex while retainin
 test('greenfield 0.0.40: customer-insights-loop runs Opus 5.5 medium on Claude only, coordinates with the orchestrator\'s shared rules, and names no product, host or person',t=>{
  const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-insights-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.40$/m);
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.41$/m);
  assert.deepEqual(Object.keys(parse(fs.readFileSync(path.join(root,'profiles/customer-insights-loop.yaml'),'utf8')).variants),['claude']);
  const main=resolveProfile(root,'customer-insights-loop').nodes.main;
  assert.deepEqual([main.harness,main.model,main.reasoning_effort],['claude','claude-opus-5-5','medium']);
- for(const skill of ['customer-insights-loop','orchestrate-sessions','interview','swarm','mockup','page'])assert.ok(main.skills.includes(skill),skill);
- assert.deepEqual(Object.keys(main.children).sort(),['advisor','investigator','mockup-artist','researcher']);
+ for(const skill of ['customer-insights-loop','orchestrate-sessions','interview','swarm','ui-mockup','page'])assert.ok(main.skills.includes(skill),skill);
+ assert.deepEqual(Object.keys(main.children).sort(),['advisor','investigator','researcher']);
  for(const profile of ['customer-insights-loop','orchestrator:claude','orchestrator:codex'])assert.ok(resolveProfile(root,profile).nodes.main.instructions.includes('# Coordination'),profile);
  const walk=dir=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(entry=>{const file=path.join(dir,entry.name);return entry.isDirectory()?walk(file):[file];});
  for(const file of [...walk(path.join(root,'skills/customer-insights-loop')),path.join(root,'agents/customer-insights-loop.md')])assert.doesNotMatch(fs.readFileSync(file,'utf8'),/\b(pane|runpane|posthog|hogql|grain|parsa)\b/i,path.relative(root,file));

@@ -37,7 +37,7 @@ Run one read-only helper per study question with `swarm`: `investigator` for que
 
 ## 3. Directions
 
-Write one directions page laid out as in [references/directions.md](references/directions.md). Give each direction one illustrative Today and Proposed mockup, using `mockup`'s HTML method; full mockup rounds belong to each pick's planner later. Rank by impact the product's own data shows, then competitive gap, then effort, adjusted by the priorities the person states.
+Write one directions page laid out as in [references/directions.md](references/directions.md). Give each direction one illustrative Today and Proposed mockup, using `ui-mockup`'s HTML method; full mockup rounds belong to each pick's planner later. Rank by impact the product's own data shows, then competitive gap, then effort, adjusted by the priorities the person states.
 
 ## 4. Picks
 

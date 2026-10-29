@@ -81,7 +81,7 @@ It checks required sections, `doc-meta`, ID definitions and citations, both JSON
 
 ## Designer mockup method
 
-The designer follows greenfield's `mockup` method. With an image generation tool in its session it edits the real screenshots; without one it rebuilds each screen in HTML/CSS from the product's own components, styles, icon assets and fonts, and says on the gallery which method it used. Before showing options it compares the unchanged regions (app chrome, sidebar, header, icons) with the current screenshot; a placeholder logo or an approximated icon is a defect it fixes first.
+The designer follows greenfield's `ui-mockup` method. With an image generation tool in its session it edits the real screenshots; without one it rebuilds each screen in HTML/CSS from the product's own components, styles, icon assets and fonts, and says on the gallery which method it used. Before showing options it compares the unchanged regions (app chrome, sidebar, header, icons) with the current screenshot; a placeholder logo or an approximated icon is a defect it fixes first.
 
 ## Documents and destinations
 
