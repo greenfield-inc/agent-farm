@@ -71,13 +71,14 @@ try {
     'config-root':{type:'string',default:path.join(os.homedir(),'.config/agent-farm')},
     save:{type:'string'},model:{type:'string'},reasoning:{type:'string'},speed:{type:'string'},arg:{type:'string',multiple:true},harness:{type:'string'},'no-workspace':{type:'boolean'},yes:{type:'boolean'},directory:{type:'string',default:process.cwd()},'base-url':{type:'string'},'api-key-env':{type:'string'},
     build:{type:'boolean'},exec:{type:'boolean'},message:{type:'string'},explain:{type:'boolean'},
-    'print-launch':{type:'boolean'},'native-arg':{type:'string',multiple:true},resume:{type:'string'}
+    'print-launch':{type:'boolean'},'native-arg':{type:'string',multiple:true},resume:{type:'string'},'strict-mcp':{type:'boolean'},'inherit-mcp':{type:'boolean'}
   }});
   const separator=tokens.find(t=>t.kind==='option-terminator')?.index ?? rawArgs.length;
   const positionals=tokens.flatMap(t=>t.kind==='positional' && t.index<separator ? [t.value] : []);
   const nativeArgs=[...(values['native-arg'] ?? []),...rawArgs.slice(separator+1)];
   const runCommand=['run','agent'].includes(positionals[0] ?? '');
   if ((values['print-launch'] || values['native-arg'] || values.resume!==undefined || separator<rawArgs.length) && !['run','agent'].includes(positionals[0] ?? '')) throw new Error('Prepared launches, --resume and native arguments require run or agent');
+  if ((values['strict-mcp'] || values['inherit-mcp']) && !['run','agent'].includes(positionals[0] ?? '')) throw new Error('--strict-mcp and --inherit-mcp require run or agent');
   const globalCommand=['set','unset','status'].includes(positionals[0] ?? '') && positionals[1]==='global';
   if(values.yes && !(positionals[0]==='workspace'&&positionals[1]==='trust'))throw new Error('--yes is only supported by workspace trust');
   if(values['no-workspace'] && !runCommand && positionals[0]!=='inspect' && !(positionals[0]==='mcp'&&positionals[1]==='login') && !(positionals[0]==='workspace'&&positionals[1]==='show'))throw new Error('--no-workspace is supported by run, inspect, mcp login, and workspace show');
@@ -215,7 +216,7 @@ try {
     if (positionals.length!==2 || !['run','agent'].includes(positionals[0]!)) throw new Error('Unknown command. Run agent-farm help for usage.');
     if ([values.build,values.explain,values.exec,values['print-launch']].filter(Boolean).length>1) throw new Error('Choose only one of --build, --explain, --exec or --print-launch');
     if (values.build && nativeArgs.length) throw new Error('--build does not accept native arguments');
-    if (values.build && (values.model!==undefined || values.reasoning!==undefined || values.speed!==undefined || values.arg!==undefined || values.resume!==undefined)) throw new Error('--build does not accept launch overrides, arguments or --resume');
+    if (values.build && (values.model!==undefined || values.reasoning!==undefined || values.speed!==undefined || values.arg!==undefined || values.resume!==undefined || values['strict-mcp'] || values['inherit-mcp'])) throw new Error('--build does not accept launch overrides, arguments or --resume');
     const root=path.resolve(values['config-root']!),directory=path.resolve(values.directory!),options={directory,noWorkspace:values['no-workspace']};
     const interactive=!values.exec&&!values['print-launch']&&!values.build&&!values.explain&&!!process.stdin.isTTY&&!!process.stderr.isTTY;
     const workspace=interactive?await resolveInteractiveWorkspace(root,options):resolveWorkspace(root,options);
@@ -248,6 +249,8 @@ try {
       for (const value of values.arg ?? []) args.push('--arg='+value);
       if (values.message!==undefined) args.push('--message='+values.message);
       if (values.resume!==undefined) args.push('--resume='+values.resume);
+      if (values['strict-mcp']) args.push('--strict-mcp');
+      if (values['inherit-mcp']) args.push('--inherit-mcp');
       if (nativeArgs.length) args.push('--',...nativeArgs);
       run(bundle,'main',args,undefined,path.resolve(values['config-root']!));
     }

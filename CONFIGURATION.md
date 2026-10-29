@@ -7,7 +7,7 @@ generated launch bundles, which read it at dispatch time. The bare
 `agent-farm` menu, `init`, and `doctor` always use `$HOME/.config/agent-farm`.
 
 ```text
-settings.json                  Host settings: telemetry, provider, default_plugin
+settings.json                  Host settings: telemetry, provider, default_plugin, mcp
 profiles/
   planner.yaml                 CLI entry point with claude and codex variants
   implementer.yaml             CLI entry point: agent: implementer
@@ -347,7 +347,7 @@ and `set global` install only skills, so references reach agents through
 ## Prepared launches and native arguments
 
 `--print-launch` prints JSON containing `argv` (including `argv[0]`), `cwd`,
-`bundle`, `env`, `launch`, effective `telemetry`, profile/plugin/version, trace identity, and
+`bundle`, `env`, `launch`, effective `telemetry`, the [MCP mode](#your-own-mcp-servers) as `mcp`, profile/plugin/version, trace identity, and
 cross-plugin dependencies; `env` contains only Agent Farm's own overrides, never
 inherited values. Native arguments go after `--` or through repeatable
 `--native-arg` options, precede the message, and replace the default headless
@@ -1073,6 +1073,32 @@ Claude login uses a small private configuration under
 Codex login targets the original native Codex home, even when invoked from inside
 an Agent Farm session. No tokens are copied into launch bundles. Local MCP servers
 use their own service's authentication; use that service's login command.
+
+### Your own MCP servers
+
+By design, launches are strict: they load the workspace and agent connections,
+not MCP servers you set up yourself in Claude or Codex. Claude gets
+`--strict-mcp-config`. Under a host provider, Codex gets a generated config
+without your `[mcp_servers]`. Without a provider, Codex reads your own
+`config.toml`, so your servers already load there. The default prints nothing.
+
+To load your own servers as well, opt in through host `settings.json`:
+
+```json
+{ "mcp": "inherit" }
+```
+
+Or opt in for one launch with `--inherit-mcp`; `--strict-mcp` returns to the
+default for one launch. A per-launch flag reaches process children through
+`AGENT_FARM_MCP` (`inherit` or `strict`), which you can also set yourself. The
+flag wins over that variable, and the variable wins over `settings.json`.
+With inherit, Claude also loads the user and local servers in `~/.claude.json`
+and the project's `.mcp.json`. Codex under a provider gets your
+`[mcp_servers.NAME]` tables copied into its generated config. If one of your
+servers has the same name as a connection (`orchestra_<connection>`), the
+connection wins and the launch prints one line naming it. Telemetry tools
+(`agent_farm_telemetry`) load in both modes. `--explain` and `--print-launch`
+report an `mcp` field with `mode`, `user_servers`, and the `overridden` names.
 
 ## Connection descriptions
 

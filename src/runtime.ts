@@ -247,7 +247,7 @@ export function loadProvider(root: string): Provider | undefined {
   let settings:Record<string,unknown>;
   try{settings=JSON.parse(text);}catch{throw new Error('Host settings must be valid JSON');}
   const mapping=(v: unknown): v is Record<string,unknown>=>!!v && typeof v==='object' && !Array.isArray(v);
-  if(!mapping(settings)||Object.keys(settings).some(k=>!['provider','default_plugin','telemetry'].includes(k)))throw new Error('Host settings support only provider, default_plugin, and telemetry');
+  if(!mapping(settings)||Object.keys(settings).some(k=>!['provider','default_plugin','telemetry','mcp'].includes(k)))throw new Error('Host settings support only provider, default_plugin, telemetry, and mcp');
   if (settings.provider===undefined) return;
   const value=settings.provider;
   if (!mapping(value) || Object.keys(value).some(k=>!['name','base_url','api_key_env','match'].includes(k))) throw new Error('Provider supports only name, base_url, api_key_env, and match');
@@ -271,7 +271,7 @@ function generatedConfig(destination: string, native: string): boolean {
     return fs.readFileSync(destination,'utf8').startsWith(providerConfigMarker);
   } catch (e) { if (missing(e)) return false; throw e; }
 }
-function codexConfig(original: string, runtime: string, provider?: Provider): void {
+function codexConfig(original: string, runtime: string, provider?: Provider, mcp: McpMode='strict'): void {
   const destination=path.join(runtime,'config.toml'),native=path.join(original,'config.toml');
   if (!provider) {
     // Codex writes its settings through this link, so it needs a file to point at.
@@ -302,12 +302,56 @@ function codexConfig(original: string, runtime: string, provider?: Provider): vo
     `base_url = ${toml(provider.base_url.replace(/\/$/,'').replace(/\/v1$/,'')+'/v1')}`,
     'wire_api = "responses"',
     `env_key = ${toml(provider.api_key_env)}`
-  ].join('\n')+'\n';
+  ].join('\n')+'\n'
+    // A provider replaces the linked native config; only the inherit opt-in
+    // (see McpMode) carries the user's MCP servers over.
+    +(mcp==='inherit' ? codexServerTables(readText(native)).text : '');
   // Atomic replacement also replaces a native-config symlink without following it.
   const temporary=destination+'.'+process.pid+'.tmp';
   fs.writeFileSync(temporary,content,{mode:0o600,flag:'wx'});
   try { fs.renameSync(temporary,destination); } finally { if (fs.existsSync(temporary)) fs.unlinkSync(temporary); }
 }
+/** Whose MCP servers a launch loads. Strict (the profile's connections only) is the
+ *  default by design: a launch gets the tools its profile and workspace declare,
+ *  nothing from the machine it runs on. Inherit is the opt-in (host settings.json
+ *  "mcp", --inherit-mcp, or AGENT_FARM_MCP) that adds the user's own servers; the
+ *  profile's connection still wins a name clash. */
+export type McpMode='inherit'|'strict';
+export function resolveMcp(root:string, env:NodeJS.ProcessEnv=process.env, flag?:McpMode):McpMode {
+  if (flag) return flag;
+  if (env.AGENT_FARM_MCP!==undefined) {
+    if (env.AGENT_FARM_MCP!=='inherit' && env.AGENT_FARM_MCP!=='strict') throw new Error('AGENT_FARM_MCP must be inherit or strict');
+    return env.AGENT_FARM_MCP;
+  }
+  let value:unknown;
+  try { value=JSON.parse(fs.readFileSync(path.join(root,'settings.json'),'utf8')).mcp; } catch (e) { if (!missing(e)) throw new Error('Host settings must be valid JSON'); }
+  if (value!==undefined && value!=='inherit' && value!=='strict') throw new Error('Host settings mcp must be "inherit" or "strict"');
+  return value ?? 'strict';
+}
+const readText=(file:string)=>{ try { return fs.readFileSync(file,'utf8'); } catch { return ''; } };
+const readJson=(file:string):Record<string,unknown>|undefined=>{ try { const v=JSON.parse(fs.readFileSync(file,'utf8')); return v && typeof v==='object' && !Array.isArray(v) ? v : undefined; } catch { return undefined; } };
+const serverNames=(value:unknown)=>value && typeof value==='object' && !Array.isArray(value) ? Object.keys(value) : [];
+/** `[mcp_servers.NAME…]` tables of a Codex config.toml, as their names and verbatim text. Only node: builtins here, so this scans headers rather than parsing TOML. */
+export function codexServerTables(text:string):{names:string[];text:string} {
+  const names=new Set<string>(),kept:string[]=[];let keep=false;
+  for (const line of text.split(/\r?\n/)) {
+    const header=/^\s*\[(\[?)\s*([^\]]*)\]\]?\s*(?:#.*)?$/.exec(line);
+    if (header) {
+      // Arrays of tables ([[…]]) never hold an MCP server.
+      const server=header[1] ? null : /^mcp_servers\s*\.\s*(?:"([A-Za-z0-9_-]+)"|([A-Za-z0-9_-]+))(?:\s*\.|$)/.exec(header[2]!.trim());
+      keep=!!server;if (server) names.add(server[1] ?? server[2]!);
+    }
+    if (keep) kept.push(line);
+  }
+  return {names:[...names],text:kept.length ? '\n'+kept.join('\n')+'\n' : ''};
+}
+/** MCP server names the user configured for Claude: user and local scope in .claude.json, project scope in .mcp.json. */
+function claudeUserServers(directory:string, env:NodeJS.ProcessEnv, home:string):string[] {
+  const state=readJson(path.join(env.CLAUDE_CONFIG_DIR ?? home,'.claude.json'));
+  const projects=state?.projects as Record<string,{mcpServers?:unknown}>|undefined;
+  return [...new Set([...serverNames(state?.mcpServers),...serverNames(projects?.[directory]?.mcpServers),...serverNames(readJson(path.join(directory,'.mcp.json'))?.mcpServers)])];
+}
+const nativeCodexHome=(env:NodeJS.ProcessEnv,home:string)=>env.AGENT_FARM_NATIVE_CODEX_HOME ?? env.ORCHESTRA_NATIVE_CODEX_HOME ?? env.CODEX_HOME ?? path.join(home,'.codex');
 const codexSystemSkills='.system';
 /** Link target, null when a sibling launch removed the entry, undefined when it is not a link.
  *  A Windows hard link has no readable target, so it reports `source` when the inode matches. */
@@ -323,9 +367,9 @@ function managedLink(destination: string, source?: string): string | null | unde
     }
   }
 }
-export function codexHome(bundle: string, route: string, env: NodeJS.ProcessEnv, home = os.homedir(), provider?: Provider): string {
+export function codexHome(bundle: string, route: string, env: NodeJS.ProcessEnv, home = os.homedir(), provider?: Provider, mcp: McpMode='strict'): string {
   const manifest: Manifest=JSON.parse(fs.readFileSync(path.join(bundle,'manifest.json'),'utf8'));
-  const native=env.AGENT_FARM_NATIVE_CODEX_HOME ?? env.ORCHESTRA_NATIVE_CODEX_HOME ?? env.CODEX_HOME ?? path.join(home,'.codex');
+  const native=nativeCodexHome(env,home);
   // Without a provider, the runtime home mirrors the native one, so create it the way Codex would on first run.
   if (!provider) fs.mkdirSync(native,{recursive:true,mode:0o700});
   const original = provider && !fs.existsSync(native) ? path.resolve(native) : fs.realpathSync(native);
@@ -333,7 +377,7 @@ export function codexHome(bundle: string, route: string, env: NodeJS.ProcessEnv,
   const identity={profile:manifest.profile,workspace:manifest.workspace_source?.source ?? null,directory:manifest.directory,route};
   const runtime = path.join(home,'.cache/agent-farm/native-proof',hash(canonical(identity)).slice(0,24));
   fs.mkdirSync(runtime,{recursive:true,mode:0o700});
-  codexConfig(original,runtime,provider);
+  codexConfig(original,runtime,provider,mcp);
   for (const item of ['auth.json','.credentials.json','AGENTS.md','AGENTS.override.md','rules','plugins','mcp-oauth-locks']) link(path.join(original,item),path.join(runtime,item));
   const skills = path.join(runtime,'skills'); fs.mkdirSync(skills,{recursive:true});
   const selected = path.join(bundle,route,'skills');
@@ -366,7 +410,7 @@ export function codexHome(bundle: string, route: string, env: NodeJS.ProcessEnv,
 export function referencesNote(directory: string): string {
   return `Bundled references: ${directory}. A path written as \`.references/<path>\` in your instructions or skills means ${path.join(directory,'<path>')}; read it from there, not from the repository.`;
 }
-export interface LaunchOptions { headless?: boolean; nativeArgs?: string[]; message?: string; prepare?: boolean; env?: NodeJS.ProcessEnv; home?: string; configRoot?: string; model?: string; reasoning?: string; speed?: string; args?: string[]; resume?: string; sessionId?: string }
+export interface LaunchOptions { headless?: boolean; nativeArgs?: string[]; message?: string; prepare?: boolean; env?: NodeJS.ProcessEnv; home?: string; configRoot?: string; model?: string; reasoning?: string; speed?: string; args?: string[]; resume?: string; sessionId?: string; mcp?: McpMode }
 
 /** What an interactive launch used, so `--resume <id>` can reopen the same native session without asking again. */
 export interface LaunchRecord { id: string; profile: string; variant?: string; harness: 'claude'|'codex'; directory: string; started_at: string; codex_home?: string; native_session_id?: string }
@@ -463,6 +507,12 @@ export function command(bundle: string, route: string, options: LaunchOptions = 
   const providerConfig=loadProvider(configRoot);
   const telemetry=resolveTelemetry(configRoot,manifest.workspace_telemetry,env,options.home ?? os.homedir());
   const access=telemetryAccess(telemetry,manifest.profile);
+  const home=options.home ?? os.homedir(),mcp=resolveMcp(configRoot,env,options.mcp);
+  // Process children read settings.json themselves; pass a per-launch flag on to them.
+  if(options.mcp)envOverrides.AGENT_FARM_MCP=mcp;
+  const profileServers=new Set(Object.keys(agent.connections).map(connectionName));
+  const userServers=agent.harness==='claude' ? claudeUserServers(manifest.directory,env,home) : codexServerTables(readText(path.join(nativeCodexHome(env,home),'config.toml'))).names;
+  const mcpReport={mode:mcp,user_servers:userServers,overridden:mcp==='inherit' ? userServers.filter(name=>profileServers.has(name)) : []};
   const telemetryConnection:Connection={type:'mcp',command:process.execPath,args:[path.join(bundle,'telemetry-mcp.mjs'),JSON.stringify({directory:telemetry.directory,projectDirectory:manifest.directory,scope:telemetry.agent_access?.scope??'project'})],env:telemetry.enabled?{}:{AGENT_FARM_SESSION_ID:''},env_vars:telemetry.enabled?['AGENT_FARM_SESSION_ID']:[]};
   // Hosts can opt into slash-only routing (e.g. deepseek/deepseek-v4.1-flash).
   const provider=providerConfig && (providerConfig.match!=='slash-models' || launch.model.name.includes('/')) ? providerConfig : undefined;
@@ -487,7 +537,9 @@ export function command(bundle: string, route: string, options: LaunchOptions = 
       envOverrides.ANTHROPIC_AUTH_TOKEN='${'+provider.api_key_env+'}';
       for (const alias of ['HAIKU','SONNET','OPUS','FABLE']) envOverrides[`ANTHROPIC_DEFAULT_${alias}_MODEL`]=launch.model.name;
     }
-    argv=['claude','--dangerously-skip-permissions','--model',launch.model.name,'--plugin-dir',directory,'--mcp-config',path.join(directory,'mcp.json'),'--strict-mcp-config'];
+    // --strict-mcp-config is the default by design, so only profile and workspace
+    // connections load. Loading the user's own servers is the inherit opt-in (McpMode).
+    argv=['claude','--dangerously-skip-permissions','--model',launch.model.name,'--plugin-dir',directory,'--mcp-config',path.join(directory,'mcp.json'),...(mcp==='strict' ? ['--strict-mcp-config'] : [])];
     if(access)argv[argv.indexOf('--mcp-config')+1]=JSON.stringify({mcpServers:{...Object.fromEntries(Object.entries(agent.connections).map(([k,v])=>[connectionName(k),claudeConnection(v)])),agent_farm_telemetry:claudeConnection(telemetryConnection)}});
     const native=Object.fromEntries(Object.entries(agent.children).filter(([,r])=>manifest.nodes[r]!.mode==='native').map(([alias])=>[alias,JSON.parse(fs.readFileSync(path.join(directory,'native-agents',alias+'.json'),'utf8'))]));
     if (Object.keys(native).length) argv.push('--agents',JSON.stringify(native));
@@ -498,7 +550,7 @@ export function command(bundle: string, route: string, options: LaunchOptions = 
     else if (options.sessionId) argv.push('--session-id',options.sessionId);
   } else {
     if (options.prepare!==false) {
-      codexHome(bundle,route,env,options.home,provider);
+      codexHome(bundle,route,env,options.home,provider,mcp);
       envOverrides.CODEX_HOME=env.CODEX_HOME!;
       envOverrides.AGENT_FARM_NATIVE_CODEX_HOME=env.AGENT_FARM_NATIVE_CODEX_HOME!;
     }
@@ -509,6 +561,8 @@ export function command(bundle: string, route: string, options: LaunchOptions = 
       argv.push('-c',`agents.${alias}.description=${JSON.stringify(manifest.nodes[childRoute]!.description ?? alias)}`,'-c',`agents.${alias}.config_file=${JSON.stringify(path.join(directory,'native-agents',alias+'.toml'))}`);
     }
     if (launch.model.speed) argv.push('-c','service_tier='+JSON.stringify(launch.model.speed==='fast' ? 'fast' : 'default'));
+    // These overrides replace a same-named server in the user's config, so the
+    // profile's connection wins in either mode (McpMode).
     for (const [key,value] of Object.entries(agent.connections)) argv.push('-c',`mcp_servers.${connectionName(key)}=${toml(codexConnection(value))}`);
     if(access)argv.push('-c',`mcp_servers.agent_farm_telemetry=${toml(codexConnection(telemetryConnection))}`);
   }
@@ -527,7 +581,11 @@ export function command(bundle: string, route: string, options: LaunchOptions = 
     const descriptor={directory:telemetry.directory,bundle,route,harness:agent.harness,launch,captureContent:telemetry.capture_content===true};
     argv=[process.execPath,path.join(bundle,'telemetry.mjs'),JSON.stringify(descriptor),'--',...argv];
   }
-  return {argv,env,envOverrides,cwd:manifest.directory,launch,telemetry,telemetry_access:access};
+  return {argv,env,envOverrides,cwd:manifest.directory,launch,telemetry,telemetry_access:access,mcp:mcpReport};
+}
+/** Launch-time MCP note for the inherit opt-in: a profile connection shadows a user server. The default prints nothing. Names only, never configuration. */
+export function mcpWarnings(report:{mode:McpMode;user_servers:string[];overridden:string[]}):string[] {
+  return report.overridden.length ? [`MCP: this profile's ${report.overridden.join(', ')} replaces your server of the same name for this launch.`] : [];
 }
 /** Finds argv[0] on PATH. Windows has no shebangs, so an npm .cmd shim runs its script with this Node instead. */
 export function nativeCommand(argv: string[], environment: NodeJS.ProcessEnv): string[] {
@@ -587,10 +645,11 @@ export function launchSession(manifest: Manifest, harness: 'claude'|'codex', res
   return {resume:native,report:resume,record:record.native_session_id ? undefined : {...record,native_session_id:native}};
 }
 export function run(bundle: string, route: string, args: string[], launchCommand: typeof command = command, configRoot?: string): ChildProcess | undefined {
-  const {values,tokens}=parseArgs({args,options:{exec:{type:'boolean'},message:{type:'string'},explain:{type:'boolean'},'print-launch':{type:'boolean'},'native-arg':{type:'string',multiple:true},model:{type:'string'},reasoning:{type:'string'},speed:{type:'string'},arg:{type:'string',multiple:true},resume:{type:'string'}},strict:true,allowPositionals:true,tokens:true});
+  const {values,tokens}=parseArgs({args,options:{exec:{type:'boolean'},message:{type:'string'},explain:{type:'boolean'},'print-launch':{type:'boolean'},'native-arg':{type:'string',multiple:true},model:{type:'string'},reasoning:{type:'string'},speed:{type:'string'},arg:{type:'string',multiple:true},resume:{type:'string'},'strict-mcp':{type:'boolean'},'inherit-mcp':{type:'boolean'}},strict:true,allowPositionals:true,tokens:true});
   const separator=tokens.find(t=>t.kind==='option-terminator')?.index ?? args.length;
   if (tokens.some(t=>t.kind==='positional' && t.index<separator)) throw new Error('Native arguments must follow -- or use --native-arg');
   if (values.explain && values['print-launch']) throw new Error('Choose only one of --explain or --print-launch');
+  if (values['strict-mcp'] && values['inherit-mcp']) throw new Error('Choose only one of --strict-mcp or --inherit-mcp');
   verify(bundle);
   const requested={headless:values.exec || values['print-launch'],model:values.model,reasoning:values.reasoning,speed:values.speed,args:values.arg};
   const manifest: Manifest=JSON.parse(fs.readFileSync(path.join(bundle,'manifest.json'),'utf8'));
@@ -599,14 +658,15 @@ export function run(bundle: string, route: string, args: string[], launchCommand
   bundle=materializeLaunch(bundle,route,resolveLaunch(selected,requested));
   const nativeArgs=[...(values['native-arg'] ?? []),...args.slice(separator+1)];
   const session=launchSession(manifest,selected.harness,values.resume,{interactive:!requested.headless && !values.explain,nativeArgs});
-  const launch=launchCommand(bundle,route,{...requested,nativeArgs,message:values.message,prepare:!values.explain,configRoot,resume:session.resume,sessionId:session.sessionId});
+  const launch=launchCommand(bundle,route,{...requested,nativeArgs,message:values.message,prepare:!values.explain,configRoot,resume:session.resume,sessionId:session.sessionId,mcp:values['strict-mcp'] ? 'strict' : values['inherit-mcp'] ? 'inherit' : undefined});
   if (session.record && !values.explain) {
     if (session.record.harness==='codex') session.record.codex_home=launch.env.CODEX_HOME;
     writeLaunchRecord(session.record);
   }
   // Pane restores a panel with `{command} --resume <id>` once the CLI reports this line.
   if (session.report && !values.explain && process.env.PANE_PANEL_ID) console.error(`PANE_AGENT_SESSION_ID=${session.report}`);
-  const metadata={workspace_source:manifest.workspace_source,telemetry:launch.telemetry,telemetry_access:launch.telemetry_access,profile:manifest.profile,...(manifest.variant?{variant:manifest.variant}:{}),plugin:manifest.plugin,plugin_version:manifest.plugin_version,trace_identity:manifest.trace_identity,cross_plugin_dependencies:manifest.cross_plugin_dependencies};
+  const metadata={workspace_source:manifest.workspace_source,telemetry:launch.telemetry,telemetry_access:launch.telemetry_access,profile:manifest.profile,...(manifest.variant?{variant:manifest.variant}:{}),plugin:manifest.plugin,plugin_version:manifest.plugin_version,trace_identity:manifest.trace_identity,cross_plugin_dependencies:manifest.cross_plugin_dependencies,mcp:launch.mcp};
+  if (!values.explain && !values['print-launch']) for (const warning of mcpWarnings(launch.mcp)) console.error(warning);
   if (values.explain) console.log(JSON.stringify({...metadata,argv:launch.argv,cwd:launch.cwd,bundle,launch:launch.launch},null,2));
   else if (values['print-launch']) console.log(JSON.stringify({...metadata,argv:launch.argv,cwd:launch.cwd,bundle,env:launch.envOverrides,launch:launch.launch},null,2));
   else return execute(launch.argv,launch.cwd,launch.env);

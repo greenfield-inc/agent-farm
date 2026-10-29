@@ -7,7 +7,7 @@ import os from 'node:os';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {build} from '../dist/compiler.js';
-import {command,codexHome,hardLinked,loadProvider,fileMap,verify} from '../dist/runtime.js';
+import {command,codexHome,codexServerTables,hardLinked,loadProvider,fileMap,verify} from '../dist/runtime.js';
 import {parse as parseToml} from 'smol-toml';
 import {writeHarness,writeLink,fileIdentity,isLinked,assertLinked} from './harness.mjs';
 
@@ -37,8 +37,8 @@ test('print-launch prepares Codex bundle and home exactly as exec, without launc
  const f=fixture(t),result=f.invoke(['--print-launch']);
  assert.equal(result.status,0,result.stderr);assert.equal(result.stderr,'');
  const launch=JSON.parse(result.stdout);
- assert.deepEqual(Object.keys(launch).sort(),['argv','bundle','cross_plugin_dependencies','cwd','env','launch','profile','telemetry','telemetry_access','trace_identity','workspace_source']);
- assert.equal(launch.telemetry_access,false);
+ assert.deepEqual(Object.keys(launch).sort(),['argv','bundle','cross_plugin_dependencies','cwd','env','launch','mcp','profile','telemetry','telemetry_access','trace_identity','workspace_source']);
+ assert.equal(launch.telemetry_access,false);assert.deepEqual(launch.mcp,{mode:'strict',user_servers:[],overridden:[]});
  assert.equal(launch.trace_identity,'local/planner@local');
  assert.equal(launch.cwd,f.target);assert.ok(fs.statSync(launch.bundle).isDirectory());
  assert.ok(fs.statSync(launch.env.CODEX_HOME).isDirectory());
@@ -658,4 +658,91 @@ test('a launcher that exits straight after execute still runs the harness and re
  assert.ok(result.stderr.includes(stderr),result.stderr);
  assert.deepEqual(JSON.parse(fs.readFileSync(f.record,'utf8')).args,['probe']);
  assert.equal(result.stderr.includes('returned number'),process.platform==='win32');
+});
+
+function mcpFixture(t,harness) {
+ const f=fixture(t,harness);delete f.env.CLAUDE_CONFIG_DIR;delete f.env.AGENT_FARM_MCP;
+ fs.writeFileSync(path.join(f.root,'agents/planner.yaml'),`harness: ${harness}\nmodel: test\nskills: [proof]\nconnections:\n  svc:\n    type: mcp\n    command: node\n`);
+ const settings=value=>fs.writeFileSync(path.join(f.root,'settings.json'),JSON.stringify(value));
+ return {...f,settings};
+}
+const userCodexConfig='model = "gpt"\n[mcp_servers.mine]\ncommand = "mine-cmd"\n[mcp_servers.mine.env]\nTOKEN = "USER-MCP-SECRET"\n[mcp_servers."orchestra_svc"]\ncommand = "user-svc"\n[profiles.x]\nmodel = "y"\n';
+
+test('Claude launches stay strict by default and print nothing about MCP',t=>{
+ const f=mcpFixture(t,'claude');
+ fs.writeFileSync(path.join(f.home,'.claude.json'),JSON.stringify({mcpServers:{mine:{command:'x',env:{TOKEN:'USER-MCP-SECRET'}}},projects:{[f.target]:{mcpServers:{local_one:{command:'y'}}}}}));
+ fs.writeFileSync(path.join(f.target,'.mcp.json'),JSON.stringify({mcpServers:{project_one:{command:'z'}}}));
+ const launch=JSON.parse(f.invoke(['--print-launch']).stdout);
+ // Regression: strict is the default by design; loading the user's servers is opt-in.
+ assert.ok(launch.argv.includes('--strict-mcp-config'));
+ assert.deepEqual(launch.mcp,{mode:'strict',user_servers:['mine','local_one','project_one'],overridden:[]});
+ assert.equal(launch.env.AGENT_FARM_MCP,undefined);
+ const ran=f.invoke(['--exec']);assert.equal(ran.status,7);assert.equal(ran.stderr.includes('MCP'),false);
+ assert.ok(JSON.parse(fs.readFileSync(f.record,'utf8')).args.includes('--strict-mcp-config'));
+});
+
+test('inherit is opt-in through settings, --inherit-mcp or AGENT_FARM_MCP, and --strict-mcp turns it off',t=>{
+ const f=mcpFixture(t,'claude');
+ fs.writeFileSync(path.join(f.home,'.claude.json'),JSON.stringify({mcpServers:{mine:{command:'x'},orchestra_svc:{command:'user-svc',env:{TOKEN:'USER-MCP-SECRET'}}}}));
+ f.settings({mcp:'inherit'});
+ const ran=f.invoke(['--exec']);assert.equal(ran.status,7);
+ assert.equal(JSON.parse(fs.readFileSync(f.record,'utf8')).args.includes('--strict-mcp-config'),false);
+ assert.deepEqual(ran.stderr.split('\n').filter(line=>line.includes('MCP')),["MCP: this profile's orchestra_svc replaces your server of the same name for this launch."]);
+ assert.equal(ran.stderr.includes('USER-MCP-SECRET'),false);
+ const strict=JSON.parse(f.invoke(['--print-launch','--strict-mcp']).stdout);
+ assert.ok(strict.argv.includes('--strict-mcp-config'));assert.equal(strict.mcp.mode,'strict');assert.equal(strict.env.AGENT_FARM_MCP,'strict');
+ f.settings({});
+ const inherit=JSON.parse(f.invoke(['--print-launch','--inherit-mcp']).stdout);
+ assert.equal(inherit.argv.includes('--strict-mcp-config'),false);assert.deepEqual(inherit.mcp,{mode:'inherit',user_servers:['mine','orchestra_svc'],overridden:['orchestra_svc']});assert.equal(inherit.env.AGENT_FARM_MCP,'inherit');
+ f.env.AGENT_FARM_MCP='inherit';
+ assert.equal(JSON.parse(f.invoke(['--print-launch']).stdout).argv.includes('--strict-mcp-config'),false);
+ assert.ok(JSON.parse(f.invoke(['--print-launch','--strict-mcp']).stdout).argv.includes('--strict-mcp-config'));
+ f.env.AGENT_FARM_MCP='loose';assert.match(f.invoke(['--print-launch']).stderr,/AGENT_FARM_MCP must be inherit or strict/);delete f.env.AGENT_FARM_MCP;
+ const explained=JSON.parse(f.invoke(['--explain','--inherit-mcp']).stdout);assert.equal(explained.mcp.mode,'inherit');assert.equal(explained.argv.includes('--strict-mcp-config'),false);
+ const both=f.invoke(['--print-launch','--strict-mcp','--inherit-mcp']);assert.notEqual(both.status,0);assert.match(both.stderr,/only one of --strict-mcp or --inherit-mcp/);
+ f.settings({mcp:'loose'});assert.match(f.invoke(['--print-launch']).stderr,/mcp must be "inherit" or "strict"/);
+});
+
+test('telemetry tools stay available to Claude in both MCP modes',t=>{
+ const f=mcpFixture(t,'claude');
+ for(const mcp of ['inherit','strict']) {
+  f.settings({mcp,telemetry:{agent_access:{enabled:true}}});
+  const launch=JSON.parse(f.invoke(['--print-launch']).stdout);
+  assert.equal(launch.telemetry_access,true);assert.equal(launch.argv.includes('--strict-mcp-config'),mcp==='strict');
+  const servers=Object.keys(JSON.parse(launch.argv[launch.argv.indexOf('--mcp-config')+1]).mcpServers);
+  assert.deepEqual(servers,['orchestra_svc','agent_farm_telemetry']);
+ }
+});
+
+test('Codex argv is the same in both modes; the profile overrides a same-named user server and telemetry stays available',t=>{
+ const f=mcpFixture(t,'codex');fs.writeFileSync(path.join(f.home,'.codex/config.toml'),userCodexConfig);
+ const strict=JSON.parse(f.invoke(['--print-launch']).stdout),inherit=JSON.parse(f.invoke(['--print-launch','--inherit-mcp']).stdout);
+ assert.deepEqual(inherit.argv,strict.argv);assert.equal(strict.argv.some(a=>a.endsWith('.enabled=false')),false);
+ assert.ok(strict.argv.some(a=>a.startsWith('mcp_servers.orchestra_svc=')));
+ assert.deepEqual(strict.mcp,{mode:'strict',user_servers:['mine','orchestra_svc'],overridden:[]});
+ assert.deepEqual(inherit.mcp.overridden,['orchestra_svc']);
+ for(const mcp of ['inherit','strict']) for(const telemetry of [true,false]) {
+  f.settings({mcp,telemetry:{agent_access:{enabled:telemetry}}});
+  const launch=JSON.parse(f.invoke(['--print-launch']).stdout);
+  assert.equal(launch.argv.some(a=>a.startsWith('mcp_servers.agent_farm_telemetry=')),telemetry);
+ }
+});
+
+test('a Codex provider config carries the user mcp_servers over only on inherit',t=>{
+ const f=mcpFixture(t,'codex');fs.writeFileSync(path.join(f.home,'.codex/config.toml'),userCodexConfig);
+ for(const mcp of [undefined,'strict','inherit']) {
+  f.settings({provider,...(mcp?{mcp}:{})});
+  const launch=JSON.parse(f.invoke(['--print-launch']).stdout);
+  const data=parseToml(fs.readFileSync(path.join(launch.env.CODEX_HOME,'config.toml'),'utf8'));
+  assert.equal(data.model_provider,'cliproxy');assert.equal(data.profiles,undefined);assert.equal(data.model,undefined);
+  if(mcp==='inherit')assert.deepEqual(data.mcp_servers,{mine:{command:'mine-cmd',env:{TOKEN:'USER-MCP-SECRET'}},orchestra_svc:{command:'user-svc'}});
+  else assert.equal(data.mcp_servers,undefined);
+  assert.equal(JSON.stringify(launch).includes('USER-MCP-SECRET'),false);
+ }
+});
+
+test('codexServerTables reads mcp_servers tables only',()=>{
+ const {names,text}=codexServerTables('a = 1\n[mcp_servers.one] # note\ncommand = "x"\n[ mcp_servers . "two" . env ]\nK = "v"\n[[other]]\nx = 1\n[mcp_servers]\n[mcp_serversx.no]\n[tools]\n');
+ assert.deepEqual(names,['one','two']);
+ assert.deepEqual(parseToml(text),{mcp_servers:{one:{command:'x'},two:{env:{K:'v'}}}});
 });
