@@ -172,7 +172,9 @@ try{
  execFileSync('sh',['-c','git archive "$1" claude codex references templates | tar -x -C "$2"','sh',commit,source],{cwd:checkout});
  execFileSync('sh',['-c','mkdir "$2/dcouple-skills" && git archive "$1" '+EXTRA_SKILLS.map(e=>e.from).join(' ')+' | tar -x -C "$2/dcouple-skills"','sh',skillsCommit,source],{cwd:skillsCheckout});
  fs.rmSync(plugin,{recursive:true,force:true});
- const copy=(from,to)=>fs.cpSync(path.join(source,from),path.join(plugin,to),{recursive:true});
+ // npm never packs a file named .gitignore, so a vendored one would fail the installed plugin's checksums.
+ const shipped=file=>path.basename(file)!=='.gitignore';
+ const copy=(from,to)=>fs.cpSync(path.join(source,from),path.join(plugin,to),{recursive:true,filter:shipped});
  const write=(relative,text)=>{const file=path.join(plugin,relative);fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,text);};
  const skills=dir=>fs.readdirSync(path.join(source,dir)).filter(name=>fs.statSync(path.join(source,dir,name)).isDirectory());
 
@@ -185,7 +187,7 @@ try{
  // Skills /do still calls after orchestra moved them to dcouple/skills.
  for(const extra of EXTRA_SKILLS)copy(`dcouple-skills/${extra.from}`,`skills/${extra.to}`);
  // Agent Farm's own general-purpose skills, copied so this plugin stays self-contained.
- for(const name of AGENT_FARM_SKILLS)fs.cpSync(fileURLToPath(new URL(`../plugins/greenfield/skills/${name}/`,import.meta.url)),path.join(plugin,'skills',name),{recursive:true});
+ for(const name of AGENT_FARM_SKILLS)fs.cpSync(fileURLToPath(new URL(`../plugins/greenfield/skills/${name}/`,import.meta.url)),path.join(plugin,'skills',name),{recursive:true,filter:shipped});
  const claudeExtras=EXTRA_SKILLS.filter(e=>e.harness==='claude').map(e=>e.to),codexExtras=EXTRA_SKILLS.filter(e=>e.harness==='codex').map(e=>e.to);
 
  // One shared folder stands in for the repo-root .references/ that orchestra's

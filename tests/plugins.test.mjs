@@ -146,8 +146,10 @@ test('legacy flat installs are refused without changing user files',t=>{
 test('plugin tampering and namespaced symlink destinations are rejected before installation',t=>{
  const root=fixture(t),copy=path.join(root,'plugin');
  fs.cpSync(dcouple,copy,{recursive:true});
- fs.appendFileSync(path.join(copy,'agents/planner.md'),'tampered');
- assert.throws(()=>validatePlugin(copy),/integrity/);
+ fs.appendFileSync(path.join(copy,'agents/astra-audits.md'),'tampered');
+ assert.throws(()=>validatePlugin(copy),/^Error: Plugin dcouple failed its integrity check: agents\/astra-audits\.md changed$/);
+ fs.rmSync(path.join(copy,'agents/astra-audits.md'));
+ assert.throws(()=>validatePlugin(copy),/: agents\/astra-audits\.md missing$/);
  const target=path.join(root,'target');
  fs.mkdirSync(path.join(target,'plugins'),{recursive:true});
  writeLink(path.join(root,'missing'),path.join(target,'plugins/dcouple'));
