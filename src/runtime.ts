@@ -271,7 +271,7 @@ function generatedConfig(destination: string, native: string): boolean {
     return fs.readFileSync(destination,'utf8').startsWith(providerConfigMarker);
   } catch (e) { if (missing(e)) return false; throw e; }
 }
-function codexConfig(original: string, runtime: string, provider?: Provider, mcp: McpMode='inherit'): void {
+function codexConfig(original: string, runtime: string, provider?: Provider, mcp: McpMode='strict'): void {
   const destination=path.join(runtime,'config.toml'),native=path.join(original,'config.toml');
   if (!provider) {
     // Codex writes its settings through this link, so it needs a file to point at.
@@ -303,18 +303,19 @@ function codexConfig(original: string, runtime: string, provider?: Provider, mcp
     'wire_api = "responses"',
     `env_key = ${toml(provider.api_key_env)}`
   ].join('\n')+'\n'
-    // A provider replaces the linked native config, so carry the user's MCP servers
-    // over unless strict mode asked for profile connections only (see McpMode).
+    // A provider replaces the linked native config; only the inherit opt-in
+    // (see McpMode) carries the user's MCP servers over.
     +(mcp==='inherit' ? codexServerTables(readText(native)).text : '');
   // Atomic replacement also replaces a native-config symlink without following it.
   const temporary=destination+'.'+process.pid+'.tmp';
   fs.writeFileSync(temporary,content,{mode:0o600,flag:'wx'});
   try { fs.renameSync(temporary,destination); } finally { if (fs.existsSync(temporary)) fs.unlinkSync(temporary); }
 }
-/** Whose MCP servers a launch loads. Inherit is the default so a first launch keeps
- *  the servers the user already set up in Claude or Codex, plus the profile's
- *  connections, which win on a name clash. Strict (profile connections only) used to
- *  be the only mode and read as "my MCP servers are broken", so keep it opt-in. */
+/** Whose MCP servers a launch loads. Strict (the profile's connections only) is the
+ *  default by design: a launch gets the tools its profile and workspace declare,
+ *  nothing from the machine it runs on. Inherit is the opt-in (host settings.json
+ *  "mcp", --inherit-mcp, or AGENT_FARM_MCP) that adds the user's own servers; the
+ *  profile's connection still wins a name clash. */
 export type McpMode='inherit'|'strict';
 export function resolveMcp(root:string, env:NodeJS.ProcessEnv=process.env, flag?:McpMode):McpMode {
   if (flag) return flag;
@@ -325,7 +326,7 @@ export function resolveMcp(root:string, env:NodeJS.ProcessEnv=process.env, flag?
   let value:unknown;
   try { value=JSON.parse(fs.readFileSync(path.join(root,'settings.json'),'utf8')).mcp; } catch (e) { if (!missing(e)) throw new Error('Host settings must be valid JSON'); }
   if (value!==undefined && value!=='inherit' && value!=='strict') throw new Error('Host settings mcp must be "inherit" or "strict"');
-  return value ?? 'inherit';
+  return value ?? 'strict';
 }
 const readText=(file:string)=>{ try { return fs.readFileSync(file,'utf8'); } catch { return ''; } };
 const readJson=(file:string):Record<string,unknown>|undefined=>{ try { const v=JSON.parse(fs.readFileSync(file,'utf8')); return v && typeof v==='object' && !Array.isArray(v) ? v : undefined; } catch { return undefined; } };
@@ -366,7 +367,7 @@ function managedLink(destination: string, source?: string): string | null | unde
     }
   }
 }
-export function codexHome(bundle: string, route: string, env: NodeJS.ProcessEnv, home = os.homedir(), provider?: Provider, mcp: McpMode='inherit'): string {
+export function codexHome(bundle: string, route: string, env: NodeJS.ProcessEnv, home = os.homedir(), provider?: Provider, mcp: McpMode='strict'): string {
   const manifest: Manifest=JSON.parse(fs.readFileSync(path.join(bundle,'manifest.json'),'utf8'));
   const native=nativeCodexHome(env,home);
   // Without a provider, the runtime home mirrors the native one, so create it the way Codex would on first run.
@@ -536,10 +537,9 @@ export function command(bundle: string, route: string, options: LaunchOptions = 
       envOverrides.ANTHROPIC_AUTH_TOKEN='${'+provider.api_key_env+'}';
       for (const alias of ['HAIKU','SONNET','OPUS','FABLE']) envOverrides[`ANTHROPIC_DEFAULT_${alias}_MODEL`]=launch.model.name;
     }
-    argv=['claude','--dangerously-skip-permissions','--model',launch.model.name,'--plugin-dir',directory,'--mcp-config',path.join(directory,'mcp.json')];
-    // No --strict-mcp-config by default: it hides the user's own MCP servers, which
-    // first-time users read as Agent Farm breaking MCP. Strict is opt-in (McpMode).
-    if(mcp==='strict')argv.push('--strict-mcp-config');
+    // --strict-mcp-config is the default by design, so only profile and workspace
+    // connections load. Loading the user's own servers is the inherit opt-in (McpMode).
+    argv=['claude','--dangerously-skip-permissions','--model',launch.model.name,'--plugin-dir',directory,'--mcp-config',path.join(directory,'mcp.json'),...(mcp==='strict' ? ['--strict-mcp-config'] : [])];
     if(access)argv[argv.indexOf('--mcp-config')+1]=JSON.stringify({mcpServers:{...Object.fromEntries(Object.entries(agent.connections).map(([k,v])=>[connectionName(k),claudeConnection(v)])),agent_farm_telemetry:claudeConnection(telemetryConnection)}});
     const native=Object.fromEntries(Object.entries(agent.children).filter(([,r])=>manifest.nodes[r]!.mode==='native').map(([alias])=>[alias,JSON.parse(fs.readFileSync(path.join(directory,'native-agents',alias+'.json'),'utf8'))]));
     if (Object.keys(native).length) argv.push('--agents',JSON.stringify(native));
@@ -561,11 +561,8 @@ export function command(bundle: string, route: string, options: LaunchOptions = 
       argv.push('-c',`agents.${alias}.description=${JSON.stringify(manifest.nodes[childRoute]!.description ?? alias)}`,'-c',`agents.${alias}.config_file=${JSON.stringify(path.join(directory,'native-agents',alias+'.toml'))}`);
     }
     if (launch.model.speed) argv.push('-c','service_tier='+JSON.stringify(launch.model.speed==='fast' ? 'fast' : 'default'));
-    // The user's [mcp_servers] reach Codex through its config (linked, or copied
-    // under a provider) because inherit is the default; these overrides replace a
-    // same-named server so the profile's connection wins. Strict, which is opt-in
-    // (McpMode), disables each remaining user server instead.
-    if(mcp==='strict')for (const name of userServers) if (!profileServers.has(name)) argv.push('-c',`mcp_servers.${name}.enabled=false`);
+    // These overrides replace a same-named server in the user's config, so the
+    // profile's connection wins in either mode (McpMode).
     for (const [key,value] of Object.entries(agent.connections)) argv.push('-c',`mcp_servers.${connectionName(key)}=${toml(codexConnection(value))}`);
     if(access)argv.push('-c',`mcp_servers.agent_farm_telemetry=${toml(codexConnection(telemetryConnection))}`);
   }
@@ -586,9 +583,8 @@ export function command(bundle: string, route: string, options: LaunchOptions = 
   }
   return {argv,env,envOverrides,cwd:manifest.directory,launch,telemetry,telemetry_access:access,mcp:mcpReport};
 }
-/** Launch-time MCP notes: silent for a default launch unless a profile connection shadows a user server. Names only, never configuration. */
+/** Launch-time MCP note for the inherit opt-in: a profile connection shadows a user server. The default prints nothing. Names only, never configuration. */
 export function mcpWarnings(report:{mode:McpMode;user_servers:string[];overridden:string[]}):string[] {
-  if (report.mode==='strict') return [`Strict MCP mode: ${report.user_servers.length ? `your MCP servers (${report.user_servers.join(', ')}) are` : 'your own MCP servers are'} not loaded, only this profile's connections. To load them, pass --inherit-mcp or remove "mcp": "strict" from Agent Farm settings.json.`];
   return report.overridden.length ? [`MCP: this profile's ${report.overridden.join(', ')} replaces your server of the same name for this launch.`] : [];
 }
 /** Finds argv[0] on PATH. Windows has no shebangs, so an npm .cmd shim runs its script with this Node instead. */

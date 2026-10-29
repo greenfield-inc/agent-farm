@@ -35,9 +35,10 @@ homes, and existing Codex file-based MCP credentials are linked from the
 original home. Other platforms and credential backends are unverified; a
 successful macOS login does not prove them.
 
-Launches also load your own Claude or Codex MCP servers unless strict mode is
-on (see [CONFIGURATION.md](../CONFIGURATION.md#your-own-mcp-servers)). Those
-servers run with the agent's permissions, just as they do in a native session.
+Launches load only workspace and agent connections by default. The `inherit`
+opt-in (see [CONFIGURATION.md](../CONFIGURATION.md#your-own-mcp-servers)) adds
+your own Claude or Codex MCP servers, which then run with the agent's
+permissions, just as they do in a native session.
 
 `agent-farm inspect` reports configured connections, not whether they are
 authenticated or reachable. Use the native harness's MCP view to check

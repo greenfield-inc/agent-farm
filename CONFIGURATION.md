@@ -1046,8 +1046,8 @@ when it loads the MCP configuration. Codex receives
 `bearer_token_env_var = "SERVICE_TOKEN"`, including in native child-agent files.
 The bundle and launch arguments contain only the variable name, never its value.
 `env_var` is required for `bearer_env` and is invalid for `native` or `none`.
-Bearer connections do not use the OAuth login command. Claude receives them in
-the same MCP configuration as the other workspace and agent connections.
+Bearer connections do not use the OAuth login command. Claude continues to use
+strict MCP mode with workspace and agent connections in the same configuration.
 
 Claude receives an HTTP/stdio MCP JSON configuration; Codex receives equivalent
 native configuration, including native child-agent files. Claude native children
@@ -1076,30 +1076,29 @@ use their own service's authentication; use that service's login command.
 
 ### Your own MCP servers
 
-Launches load the MCP servers you already configured for the harness as well as
-the workspace and agent connections. For Claude these are the user and local
-servers in `~/.claude.json` and the project's `.mcp.json`. For Codex they are the
-`[mcp_servers]` tables in your `config.toml`; under a host provider, Agent Farm
-copies those tables into the generated config. When one of your servers has the
-same name as a connection (`orchestra_<connection>`), the connection wins and the
-launch prints one line naming it.
+By design, launches are strict: they load the workspace and agent connections,
+not MCP servers you set up yourself in Claude or Codex. Claude gets
+`--strict-mcp-config`. Under a host provider, Codex gets a generated config
+without your `[mcp_servers]`. Without a provider, Codex reads your own
+`config.toml`, so your servers already load there. The default prints nothing.
 
-To load only the workspace and agent connections, set strict mode in host
-`settings.json`:
+To load your own servers as well, opt in through host `settings.json`:
 
 ```json
-{ "mcp": "strict" }
+{ "mcp": "inherit" }
 ```
 
-Or choose it for one launch with `--strict-mcp`. `--inherit-mcp` returns to the
+Or opt in for one launch with `--inherit-mcp`; `--strict-mcp` returns to the
 default for one launch. A per-launch flag reaches process children through
-`AGENT_FARM_MCP` (`inherit` or `strict`), which you can also set yourself; the
-flag wins over that variable, and the variable over `settings.json`. A strict
-launch prints one line naming the servers it leaves out. Claude gets
-`--strict-mcp-config`; Codex gets `mcp_servers.NAME.enabled=false` for each of
-your servers. Telemetry tools (`agent_farm_telemetry`) load in both modes.
-`--explain` and `--print-launch` report the outcome in an `mcp` field, with
-`mode`, `user_servers`, and the `overridden` names, and print no warning.
+`AGENT_FARM_MCP` (`inherit` or `strict`), which you can also set yourself. The
+flag wins over that variable, and the variable wins over `settings.json`.
+With inherit, Claude also loads the user and local servers in `~/.claude.json`
+and the project's `.mcp.json`. Codex under a provider gets your
+`[mcp_servers.NAME]` tables copied into its generated config. If one of your
+servers has the same name as a connection (`orchestra_<connection>`), the
+connection wins and the launch prints one line naming it. Telemetry tools
+(`agent_farm_telemetry`) load in both modes. `--explain` and `--print-launch`
+report an `mcp` field with `mode`, `user_servers`, and the `overridden` names.
 
 ## Connection descriptions
 
@@ -1180,7 +1179,6 @@ Agent Farm does not resolve secret values into configuration. Remote login still
 uses `agent-farm mcp login CONNECTION --directory /path/to/repo --harness HARNESS`.
 Unload removes configuration, not credentials. Start fresh native sessions to
 observe changes. Project-level native settings can override global configuration.
-Agent Farm `run` loads its resolved workspace and agent connections; your other
-servers, globally installed ones included, load beside them unless you choose
-[strict mode](#your-own-mcp-servers). Global installation is
+Claude Agent Farm `run` uses `--strict-mcp-config`; scoped launches use their
+automatically resolved workspace and agent connections. Global installation is
 for native sessions started outside Agent Farm.

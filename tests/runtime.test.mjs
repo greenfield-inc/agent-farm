@@ -38,7 +38,7 @@ test('print-launch prepares Codex bundle and home exactly as exec, without launc
  assert.equal(result.status,0,result.stderr);assert.equal(result.stderr,'');
  const launch=JSON.parse(result.stdout);
  assert.deepEqual(Object.keys(launch).sort(),['argv','bundle','cross_plugin_dependencies','cwd','env','launch','mcp','profile','telemetry','telemetry_access','trace_identity','workspace_source']);
- assert.equal(launch.telemetry_access,false);assert.deepEqual(launch.mcp,{mode:'inherit',user_servers:[],overridden:[]});
+ assert.equal(launch.telemetry_access,false);assert.deepEqual(launch.mcp,{mode:'strict',user_servers:[],overridden:[]});
  assert.equal(launch.trace_identity,'local/planner@local');
  assert.equal(launch.cwd,f.target);assert.ok(fs.statSync(launch.bundle).isDirectory());
  assert.ok(fs.statSync(launch.env.CODEX_HOME).isDirectory());
@@ -346,7 +346,7 @@ test('Claude provider print exports references and aliases; verbatim argv resolv
  const launch=JSON.parse(result.stdout);assert.equal(fs.existsSync(f.record),false);
  assert.equal(launch.env.ANTHROPIC_BASE_URL,provider.base_url);assert.equal(launch.env.ANTHROPIC_AUTH_TOKEN,'${CLIPROXY_API_KEY}');
  for(const alias of ['HAIKU','SONNET','OPUS','FABLE'])assert.equal(launch.env['ANTHROPIC_DEFAULT_'+alias+'_MODEL'],'test');
- assert.equal(launch.argv.includes('--strict-mcp-config'),false);assert.deepEqual(launch.argv.slice(-native.length-2),[...native,'--',message]);
+ assert.ok(launch.argv.includes('--strict-mcp-config'));assert.deepEqual(launch.argv.slice(-native.length-2),[...native,'--',message]);
  assert.equal(launch.argv[0],process.execPath);assertNoSecrets(launch,result.stdout);
  const missing=spawnSync(launch.argv[0],launch.argv.slice(1),{cwd:launch.cwd,env:{...f.env,...launch.env},encoding:'utf8'});
  assert.equal(missing.status,1);assert.match(missing.stderr,/Provider environment variable is unavailable/);assert.equal(fs.existsSync(f.record),false);
@@ -394,12 +394,12 @@ test('explain keeps runtime home unprepared',t=>{
  assert.equal(fs.existsSync(f.record),false);
 });
 
-test('Claude passthrough keeps inherited MCP and caller streaming, resume, hooks and limits before the literal message',t=>{
+test('Claude passthrough keeps strict MCP and caller streaming, resume, hooks and limits before the literal message',t=>{
  const f=fixture(t,'claude'),message='$(touch NEVER) `echo no`\n"quoted"';
  const native=['-p','--output-format','stream-json','--verbose','--resume','session id','--settings','hooks with spaces.json','--max-turns','3','--max-budget-usd','2'];
  const result=f.invoke(['--print-launch','--message',message,'--',...native]);
  assert.equal(result.status,0,result.stderr);const launch=JSON.parse(result.stdout);
- assert.deepEqual(launch.env,{AGENT_FARM_CONFIG_ROOT:f.root});assert.equal(launch.argv.includes('--strict-mcp-config'),false);
+ assert.deepEqual(launch.env,{AGENT_FARM_CONFIG_ROOT:f.root});assert.ok(launch.argv.includes('--strict-mcp-config'));
  assert.deepEqual(launch.argv.slice(-native.length-2),[...native,'--',message]);
  assert.equal(launch.argv.filter(a=>a==='--output-format').length,1);assert.equal(launch.argv.includes('--print'),false);
  assert.equal(fs.existsSync(f.record),false);
@@ -668,35 +668,37 @@ function mcpFixture(t,harness) {
 }
 const userCodexConfig='model = "gpt"\n[mcp_servers.mine]\ncommand = "mine-cmd"\n[mcp_servers.mine.env]\nTOKEN = "USER-MCP-SECRET"\n[mcp_servers."orchestra_svc"]\ncommand = "user-svc"\n[profiles.x]\nmodel = "y"\n';
 
-test('Claude launches inherit the user MCP servers by default and print nothing',t=>{
+test('Claude launches stay strict by default and print nothing about MCP',t=>{
  const f=mcpFixture(t,'claude');
  fs.writeFileSync(path.join(f.home,'.claude.json'),JSON.stringify({mcpServers:{mine:{command:'x',env:{TOKEN:'USER-MCP-SECRET'}}},projects:{[f.target]:{mcpServers:{local_one:{command:'y'}}}}}));
  fs.writeFileSync(path.join(f.target,'.mcp.json'),JSON.stringify({mcpServers:{project_one:{command:'z'}}}));
- const printed=f.invoke(['--print-launch']);assert.equal(printed.status,0,printed.stderr);
- const launch=JSON.parse(printed.stdout);
- // Regression: strict mode hid every user server and read as broken MCP on a first launch.
- assert.equal(launch.argv.includes('--strict-mcp-config'),false);
- assert.ok(launch.argv.includes('--mcp-config'));
- assert.deepEqual(launch.mcp,{mode:'inherit',user_servers:['mine','local_one','project_one'],overridden:[]});
+ const launch=JSON.parse(f.invoke(['--print-launch']).stdout);
+ // Regression: strict is the default by design; loading the user's servers is opt-in.
+ assert.ok(launch.argv.includes('--strict-mcp-config'));
+ assert.deepEqual(launch.mcp,{mode:'strict',user_servers:['mine','local_one','project_one'],overridden:[]});
+ assert.equal(launch.env.AGENT_FARM_MCP,undefined);
  const ran=f.invoke(['--exec']);assert.equal(ran.status,7);assert.equal(ran.stderr.includes('MCP'),false);
- assert.equal(JSON.parse(fs.readFileSync(f.record,'utf8')).args.includes('--strict-mcp-config'),false);
+ assert.ok(JSON.parse(fs.readFileSync(f.record,'utf8')).args.includes('--strict-mcp-config'));
 });
 
-test('strict MCP is opt-in through settings or --strict-mcp, warns once by name, and --inherit-mcp turns it off',t=>{
+test('inherit is opt-in through settings, --inherit-mcp or AGENT_FARM_MCP, and --strict-mcp turns it off',t=>{
  const f=mcpFixture(t,'claude');
- fs.writeFileSync(path.join(f.home,'.claude.json'),JSON.stringify({mcpServers:{mine:{command:'x',env:{TOKEN:'USER-MCP-SECRET'}}}}));
- f.settings({mcp:'strict'});
+ fs.writeFileSync(path.join(f.home,'.claude.json'),JSON.stringify({mcpServers:{mine:{command:'x'},orchestra_svc:{command:'user-svc',env:{TOKEN:'USER-MCP-SECRET'}}}}));
+ f.settings({mcp:'inherit'});
  const ran=f.invoke(['--exec']);assert.equal(ran.status,7);
- assert.ok(JSON.parse(fs.readFileSync(f.record,'utf8')).args.includes('--strict-mcp-config'));
- const warnings=ran.stderr.split('\n').filter(line=>line.includes('MCP'));
- assert.equal(warnings.length,1);assert.match(warnings[0],/Strict MCP mode: your MCP servers \(mine\) are not loaded.*--inherit-mcp/);
+ assert.equal(JSON.parse(fs.readFileSync(f.record,'utf8')).args.includes('--strict-mcp-config'),false);
+ assert.deepEqual(ran.stderr.split('\n').filter(line=>line.includes('MCP')),["MCP: this profile's orchestra_svc replaces your server of the same name for this launch."]);
  assert.equal(ran.stderr.includes('USER-MCP-SECRET'),false);
- const inherit=JSON.parse(f.invoke(['--print-launch','--inherit-mcp']).stdout);
- assert.equal(inherit.argv.includes('--strict-mcp-config'),false);assert.equal(inherit.mcp.mode,'inherit');assert.equal(inherit.env.AGENT_FARM_MCP,'inherit');
- f.settings({});
  const strict=JSON.parse(f.invoke(['--print-launch','--strict-mcp']).stdout);
- assert.ok(strict.argv.includes('--strict-mcp-config'));assert.equal(strict.env.AGENT_FARM_MCP,'strict');
- const explained=JSON.parse(f.invoke(['--explain','--strict-mcp']).stdout);assert.equal(explained.mcp.mode,'strict');assert.ok(explained.argv.includes('--strict-mcp-config'));
+ assert.ok(strict.argv.includes('--strict-mcp-config'));assert.equal(strict.mcp.mode,'strict');assert.equal(strict.env.AGENT_FARM_MCP,'strict');
+ f.settings({});
+ const inherit=JSON.parse(f.invoke(['--print-launch','--inherit-mcp']).stdout);
+ assert.equal(inherit.argv.includes('--strict-mcp-config'),false);assert.deepEqual(inherit.mcp,{mode:'inherit',user_servers:['mine','orchestra_svc'],overridden:['orchestra_svc']});assert.equal(inherit.env.AGENT_FARM_MCP,'inherit');
+ f.env.AGENT_FARM_MCP='inherit';
+ assert.equal(JSON.parse(f.invoke(['--print-launch']).stdout).argv.includes('--strict-mcp-config'),false);
+ assert.ok(JSON.parse(f.invoke(['--print-launch','--strict-mcp']).stdout).argv.includes('--strict-mcp-config'));
+ f.env.AGENT_FARM_MCP='loose';assert.match(f.invoke(['--print-launch']).stderr,/AGENT_FARM_MCP must be inherit or strict/);delete f.env.AGENT_FARM_MCP;
+ const explained=JSON.parse(f.invoke(['--explain','--inherit-mcp']).stdout);assert.equal(explained.mcp.mode,'inherit');assert.equal(explained.argv.includes('--strict-mcp-config'),false);
  const both=f.invoke(['--print-launch','--strict-mcp','--inherit-mcp']);assert.notEqual(both.status,0);assert.match(both.stderr,/only one of --strict-mcp or --inherit-mcp/);
  f.settings({mcp:'loose'});assert.match(f.invoke(['--print-launch']).stderr,/mcp must be "inherit" or "strict"/);
 });
@@ -712,17 +714,13 @@ test('telemetry tools stay available to Claude in both MCP modes',t=>{
  }
 });
 
-test('Codex keeps the user mcp_servers by default, lets the profile win a name clash, and strict disables the rest',t=>{
+test('Codex argv is the same in both modes; the profile overrides a same-named user server and telemetry stays available',t=>{
  const f=mcpFixture(t,'codex');fs.writeFileSync(path.join(f.home,'.codex/config.toml'),userCodexConfig);
- const ran=f.invoke(['--exec']);assert.equal(ran.status,7);
- const args=JSON.parse(fs.readFileSync(f.record,'utf8')).args;
- assert.equal(args.some(a=>a.endsWith('.enabled=false')),false);
- assert.ok(args.some(a=>a.startsWith('mcp_servers.orchestra_svc=')));
- assert.deepEqual(ran.stderr.split('\n').filter(line=>line.includes('MCP')),["MCP: this profile's orchestra_svc replaces your server of the same name for this launch."]);
- const strict=JSON.parse(f.invoke(['--print-launch','--strict-mcp']).stdout);
- assert.ok(strict.argv.includes('mcp_servers.mine.enabled=false'));
- assert.equal(strict.argv.includes('mcp_servers.orchestra_svc.enabled=false'),false);
+ const strict=JSON.parse(f.invoke(['--print-launch']).stdout),inherit=JSON.parse(f.invoke(['--print-launch','--inherit-mcp']).stdout);
+ assert.deepEqual(inherit.argv,strict.argv);assert.equal(strict.argv.some(a=>a.endsWith('.enabled=false')),false);
+ assert.ok(strict.argv.some(a=>a.startsWith('mcp_servers.orchestra_svc=')));
  assert.deepEqual(strict.mcp,{mode:'strict',user_servers:['mine','orchestra_svc'],overridden:[]});
+ assert.deepEqual(inherit.mcp.overridden,['orchestra_svc']);
  for(const mcp of ['inherit','strict']) for(const telemetry of [true,false]) {
   f.settings({mcp,telemetry:{agent_access:{enabled:telemetry}}});
   const launch=JSON.parse(f.invoke(['--print-launch']).stdout);
@@ -730,10 +728,10 @@ test('Codex keeps the user mcp_servers by default, lets the profile win a name c
  }
 });
 
-test('a Codex provider config carries the user mcp_servers over unless strict',t=>{
+test('a Codex provider config carries the user mcp_servers over only on inherit',t=>{
  const f=mcpFixture(t,'codex');fs.writeFileSync(path.join(f.home,'.codex/config.toml'),userCodexConfig);
- for(const mcp of ['inherit','strict']) {
-  f.settings({provider,mcp});
+ for(const mcp of [undefined,'strict','inherit']) {
+  f.settings({provider,...(mcp?{mcp}:{})});
   const launch=JSON.parse(f.invoke(['--print-launch']).stdout);
   const data=parseToml(fs.readFileSync(path.join(launch.env.CODEX_HOME,'config.toml'),'utf8'));
   assert.equal(data.model_provider,'cliproxy');assert.equal(data.profiles,undefined);assert.equal(data.model,undefined);
