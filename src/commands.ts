@@ -36,6 +36,8 @@ export const commands: Command[] = [
       {name: 'exec', description: 'Headless execution (no interactive terminal)', type: 'boolean'},
       {name: 'print-launch', description: 'Prepare a headless launch and print argv, cwd, bundle and env overrides as JSON. Consumers spawn the printed argv verbatim and must never assume argv[0] is the harness binary; it may be a wrapper with prefix arguments before the harness flags.', type: 'boolean'},
       {name: 'resume', description: 'Reopen an earlier interactive session by the ID Agent Farm reported (PANE_AGENT_SESSION_ID) or a native session ID, on the variant that started it', type: 'string'},
+      {name: 'strict-mcp', description: 'Load only the profile and workspace MCP connections, not your own MCP servers (overrides settings.json mcp)', type: 'boolean'},
+      {name: 'inherit-mcp', description: 'Load your own MCP servers plus the profile connections, the default (overrides settings.json mcp)', type: 'boolean'},
       {name: 'native-arg', description: 'Repeatable native argument, before the message; use --native-arg=--flag for flags', type: 'string'},
       {name: 'config-root', description: 'Configuration directory, including host provider targeting in settings.json', type: 'string', default: '~/.config/agent-farm'},
     ],

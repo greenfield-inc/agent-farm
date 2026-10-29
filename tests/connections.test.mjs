@@ -40,7 +40,7 @@ test('Claude gets stdio env references and identical remote identities in differ
  assert.equal(service.env.MCP_TEST_SECRET,'${MCP_TEST_SECRET}');
  assert.equal(service.env.CLOUDSDK_CORE_PROJECT,'example-project');
 });
-test('bearer-by-env Linear joins profile connections in a strict Claude launch without persisting secrets',t=>{
+test('bearer-by-env Linear joins profile connections in a Claude launch without persisting secrets',t=>{
  const f=setup(t),secret='BEARER_SECRET_MUST_STAY_IN_CHILD_ENV';
  const previous=process.env.LINEAR_API_KEY;
  t.after(()=>{if(previous===undefined)delete process.env.LINEAR_API_KEY;else process.env.LINEAR_API_KEY=previous;});
@@ -49,7 +49,7 @@ test('bearer-by-env Linear joins profile connections in a strict Claude launch w
  f.put('agents/parent.yaml',`harness: claude\nmodel: test\nconnections:\n  profile_service:\n    type: mcp\n    command: node\nsubagents:\n  child:\n    agent: child\n    mode: native\n`);
  f.put('agents/child.yaml','harness: claude\nmodel: test\n');
  const b=f.build(),r=command(b,'main',{env:{LINEAR_API_KEY:secret},headless:true});
- assert.ok(r.argv.includes('--strict-mcp-config'));
+ assert.equal(r.argv.includes('--strict-mcp-config'),false);
  const configPath=r.argv[r.argv.indexOf('--mcp-config')+1];
  assert.equal(configPath,path.join(b,'main/mcp.json'));
  const config=JSON.parse(fs.readFileSync(configPath,'utf8'));
