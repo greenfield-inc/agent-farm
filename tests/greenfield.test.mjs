@@ -146,14 +146,12 @@ test('planners retain Socrates without a separate plan-reviewer agent',()=>{
  }
 });
 
-test('the plugin stays tool-neutral: only one orchestrate-sessions paragraph names Grain (D-71, D-74)',()=>{
+test('the plugin names no destination service: no Greenfield instruction names Grain, and the orchestrator publishes the Session artifact before it opens it (D-13, D-15)',()=>{
  const walk=dir=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(entry=>{const file=path.join(dir,entry.name);return entry.isDirectory()?walk(file):[file];});
- const skill=path.join(root,'skills','orchestrate-sessions','SKILL.md');
- for(const folder of ['agents','skills','profiles','instructions'])for(const file of walk(path.join(root,folder)))if(file!==skill)assert.doesNotMatch(fs.readFileSync(file,'utf8'),/grain/i,path.relative(root,file));
- const naming=fs.readFileSync(skill,'utf8').split(/\n\s*\n/).filter(paragraph=>/grain/i.test(paragraph));
- assert.equal(naming.length,1,'exactly one paragraph names Grain');
- assert.match(naming[0],/^\*\*Grain\.\*\* When the resolved destination is Grain/);
- for(const rule of ['one private Grain artifact','`runpane panels open --url','open the local copy as a `file://` URL instead','Never ask the person to set up Grain'])assert.ok(naming[0].replace(/\s+/g,' ').includes(rule),rule);
+ for(const folder of ['agents','skills','profiles','instructions'])for(const file of walk(path.join(root,folder)))assert.doesNotMatch(fs.readFileSync(file,'utf8'),/grain/i,path.relative(root,file));
+ const publishing=fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8').split(/\n\s*\n/).find(p=>p.startsWith('**Publishing.**'));
+ assert.ok(publishing,'the Publishing paragraph');
+ for(const rule of ['one private artifact in the Session folder','never share it','Publish first, then open the published URL beside the person','`runpane panels open --url <its URL>`','never open the local copy in its place before a publish has been tried','"Publishing the Session\'s pages to <destination> failed: <reason>; showing the local copy."','record the failure in the ledger\'s `session.artifact.publish_error`, and retry at each refresh','check the ledger\'s `session.artifact.url` and look the artifact up in the destination','never leaves a second artifact','open the published URL in the same tab','open the local copy as a `file://` URL and say so','Never ask the person to set up the destination service'])assert.ok(publishing.replace(/\s+/g,' ').includes(rule),rule);
 });
 
 test('the orchestrator routes planner, implementer and end-of-workstream reviewer through Pane, with safe cleanup',()=>{
@@ -338,7 +336,7 @@ test('Codex orchestration routes every worker and helper to Codex while retainin
 test('greenfield 0.0.40: customer-insights-loop runs Opus 5.5 medium on Claude only, coordinates with the orchestrator\'s shared rules, and names no product, host or person',t=>{
  const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-insights-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.41$/m);
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.43$/m);
  assert.deepEqual(Object.keys(parse(fs.readFileSync(path.join(root,'profiles/customer-insights-loop.yaml'),'utf8')).variants),['claude']);
  const main=resolveProfile(root,'customer-insights-loop').nodes.main;
  assert.deepEqual([main.harness,main.model,main.reasoning_effort],['claude','claude-opus-5-5','medium']);
@@ -441,25 +439,33 @@ test('planned work always validates full and then reviews on its own; deferred a
 });
 
 test('the status page opens with the next step and item cards, every item has a front page, questions carry their context, and progress messages end with Next (P-1)',()=>{
- includesAll(['skills/orchestrate-sessions/references/status-board.md'],['Next step one line under the header','Items one card per work item','Next: <the item\'s next step and who takes it>','links its front page','Order of work only when at least one item depends on another','Merge hot spots only when items depend on each other','Done every completed item\'s card','never removed','<meta http-equiv="refresh" content="60">','opened beside the person at the first dispatch','refreshed in the same tab','`runpane panels open --url <url>`, never `--file`','`session.artifact.opened_url`','open the same URL again so the host reuses its tab']);
+ includesAll(['skills/orchestrate-sessions/references/status-board.md'],['Next step one line under the header','Items one card per work item','Next: <the item\'s next step and who takes it>','links its front page','Order of work only when at least one item depends on another','Merge hot spots only when items depend on each other','Done every completed item\'s card','never removed','<meta http-equiv="refresh" content="60">','opened beside the person at the first dispatch','refreshed in the same tab','`runpane panels open --url <url>`, never `--file`','`session.artifact.opened_url`','then open the same URL so the host reuses its tab']);
  assert.doesNotMatch(fs.readFileSync(path.join(root,'skills/orchestrate-sessions/references/status-board.md'),'utf8'),/^Lanes /m);
  includesAll(['skills/orchestrate-sessions/references/ledger.md'],['"next":','"front_page":']);
  includesAll(['skills/orchestrate-sessions/references/item-hub.md'],['quick fix','three-line summary','Link only files that exist','task','PR','findings','post-mortem','trace']);
  includesAll(['skills/orchestrate-sessions/SKILL.md'],['[references/item-hub.md](references/item-hub.md)','[references/status-board.md](references/status-board.md)','Every progress message to the person ends with "Next: …"','adds the findings file, the post-mortem (if any) and the trace']);
  includesAll(['skills/page/references/bundle.md'],['After the PR\'s review loop closes, the orchestrator adds the findings file, the post-mortem (if any) and the trace','edits only this list']);
  includesAll(['skills/orchestrate-sessions/references/relay.md'],['Context: <where the context lives>','its Needs you row links the same places']);
- instructionsIncludeAll(COORDINATORS,['end every progress message to the person with "Next: …"','open it beside the person at the first dispatch']);
+ instructionsIncludeAll(COORDINATORS,['end every progress message to the person with "Next: …"','open the published URL beside the person at the first dispatch']);
  includesAll(['instructions/standing-rules.md'],['An orchestrator opens four things beside the person without asking first','the Session\'s status page (at the first dispatch, then refreshed in the same tab)']);
 });
 
 test('the Session artifact has one home in the destination\'s sessions folder, reaches both orchestrators and names no product, and without a destination stays local with one notice (P-2)',()=>{
  const skill=flatText('skills/orchestrate-sessions/SKILL.md');
- for(const rule of ['a `sessions` folder in the document destination','`sessions/<host Session name> · <first 8 characters of the stable Session id>`','`sessions/Agent Farm · 55e40e55`','never from the UI selection','plus the first 8 characters of an id you generate once and record in the ledger','update that same artifact on every later publish for the life of the Session','published under an older name, keep updating it at its URL and create no second one','Opening the Session artifact shows the status page first','The workspace instructions supply only the organization or folder root','one notice line per Session','Never ask the person to set up a document service'])assert.ok(skill.includes(rule),rule);
+ for(const rule of ['in the Session\'s folder in the document destination','Use the Session folder rule the workspace instructions give','When they give none, use `sessions/<host Session name>`, for example `sessions/Agent Farm`','if that folder already holds another Session\'s status page, use `sessions/<host Session name> · <short id>`','`sessions/Agent Farm · 55e40e55`','the first 8 hexadecimal characters of the UUID in the host\'s stable Session id','never from the UI selection','Settle the folder once, before the first dispatch, record it in the ledger, and pass it to every worker','Settle the Session folder before the first dispatch and pass that exact folder to every worker with the destination','plus the first 8 characters of an id you generate once and record in the ledger','update that same artifact on every later publish for the life of the Session','published under an older name, keep updating it at its URL and create no second one','Opening the Session artifact shows the status page first','one notice line per Session','Never ask the person to set up a document service'])assert.ok(skill.includes(rule),rule);
+ assert.ok(!skill.includes('The workspace instructions supply only the organization or folder root'),'the folder-root sentence is gone');
+ for(const rule of ['publish the Session\'s pages there instead of keeping them as local files, even when the host says to keep documents local, as Pane\'s Session "Plans and documents" does','The local files are the working copy','Fall back to local files only when no destination is named, or while publishing fails'])assert.ok(skill.includes(rule),rule);
+ for(const file of ['skills/orchestrate-sessions/SKILL.md','skills/orchestrate-sessions/references/ledger.md','README.md'])assert.ok(!flatText(file).includes('<first 8 characters of the'),`${file}: the old folder rule`);
+ const workspace=fs.readFileSync(path.join(root,'../../.agent-farm/workspace.yaml'),'utf8').replace(/\s+/g,' ');
+ for(const rule of ['"sessions/<session-name>"','if that folder already holds another Session\'s status page, append the Session\'s short ID (the first 8 hex characters of its UUID)'])assert.ok(workspace.includes(rule),`.agent-farm/workspace.yaml: ${rule}`);
+ instructionsIncludeAll(['orchestrator:claude','orchestrator:codex'],['Write it, publish it to the document destination, and open the published URL beside the person at the first dispatch','Documents follow the document destination, not the host: when the workspace instructions name a file, artifact or bundle destination, publish there instead of keeping local files, even when the host says to keep documents local, and fall back to local files only when nothing else is available.']);
+ includesAll(['skills/orchestrate-sessions/references/status-board.md'],['It is written, published to the document destination, and then opened beside the person at the first dispatch','the published URL when a destination resolves, and a `file://` URL only when none does or publishing failed','publish it again, then open the same URL so the host reuses its tab']);
  const rule=fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8').split(/\n\s*\n/).find(p=>p.startsWith('**The Session artifact.**'));
  assert.ok(rule,'the sessions-folder rule');assert.doesNotMatch(rule,/grain/i);
  for(const profile of ['orchestrator:claude','orchestrator:codex'])assert.ok(resolveProfile(root,profile).nodes.main.skills.includes('orchestrate-sessions'),profile);
- includesAll(['skills/orchestrate-sessions/references/ledger.md'],['"artifact": { "path": "sessions/<host Session name> · <first 8 characters of the Session id>"','"notice_shown"']);
- includesAll(['README.md'],['names a destination service in one place only']);
+ includesAll(['skills/orchestrate-sessions/references/ledger.md'],['"artifact": { "path": "sessions/<host Session name>, or the workspace\'s Session folder rule"','"publish_error": null','"notice_shown"']);
+ includesAll(['README.md'],['The plugin names no destination service.','It is published before it is opened']);
+ assert.ok(!flatText('README.md').includes('names a destination service in one place only'),'README: the one-place rule is gone');
 });
 
 test('every PR, however small, opens with its Excalidraw image from the pr-assets release and links its one artifact (P-4, D-73, D-75, D-78)',()=>{
@@ -486,7 +492,7 @@ test('the orchestrator writes a post-mortem after review only when something bro
 });
 
 test('greenfield documents the status page, front pages, post-mortems, the PR image and artifact, and the Session artifact',()=>{
- includesAll(['README.md'],['a "Next step" line','each card linking the item\'s front page','`sessions/<Session name> · <first 8 characters of the Session id>`','one notice line saying so','writes a post-mortem after its review loop closes, with Issues hit and Issues to file','filing only on your yes','"no issues hit"','Every PR, however small, opens with an Excalidraw image']);
+ includesAll(['README.md'],['a "Next step" line','each card linking the item\'s front page','`sessions/<Session name>` unless the workspace instructions give another rule, with the short id added only when another Session already holds that folder','one notice line saying so','writes a post-mortem after its review loop closes, with Issues hit and Issues to file','filing only on your yes','"no issues hit"','Every PR, however small, opens with an Excalidraw image']);
  includesAll(['index.html'],['a status page beside you says what is next','image + its own page','post-mortem if it broke','leads with a diagram and links a page of its own']);
  for(const file of ['README.md','index.html'])assert.doesNotMatch(flatText(file),/workstream map per Session:|Lanes/,file);
 });
