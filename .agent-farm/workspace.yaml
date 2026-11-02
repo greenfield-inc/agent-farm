@@ -17,8 +17,9 @@ instructions: |
   explicitly to discovery and creation tools.
 
   Folder: when an orchestrator supplies a Pane Session name, use
-  "sessions/<session-name>"; if another Session already uses that folder, append
-  the Session's short ID. Without an orchestrator, use
+  "sessions/<session-name>"; if that folder already holds another Session's
+  status page, append the Session's short ID (the first 8 hex characters of its
+  UUID). Without an orchestrator, use
   "Development Artifacts/DCouple/agent-farm".
 
   Treat docs=grain as the default for every bundle. tmp/greenfield/ is only the
