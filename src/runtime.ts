@@ -580,9 +580,6 @@ export function acpLaunch(bundle: string, route: string, options: AcpLaunchOptio
   const resolved=resolveLaunchFor(bundle,route,{...options,headless:false});
   const {manifest,agent,launch,directory,env,envOverrides,instructions}=resolved;
   const adapter=acpAdapters[agent.harness];
-  const harness=findExecutable(agent.harness,env);
-  // A missing harness would make the adapter fall back to its own bundled copy; refuse instead.
-  if (!harness) throw new Error(`Missing native harness: ${agent.harness}; install it, or put it on PATH, before starting an ACP session`);
   let argv: string[];
   if (options.adapter===undefined) argv=[adapter.bin];
   else {
@@ -591,6 +588,9 @@ export function acpLaunch(bundle: string, route: string, options: AcpLaunchOptio
     if (!fs.statSync(entry,{throwIfNoEntry:false})?.isFile()) throw new Error(`ACP adapter not found, or not a file: ${entry}`);
     argv=/\.(c|m)?js$/i.test(entry) ? [process.execPath,entry] : [entry];
   }
+  const harness=findExecutable(agent.harness,env);
+  // A missing harness would make the adapter fall back to its own bundled copy; refuse instead.
+  if (!harness) throw new Error(`Missing native harness: ${agent.harness}; install it, or put it on PATH, before starting an ACP session`);
   const session: {cwd: string; mcpServers: unknown[]; _meta?: Record<string,unknown>}={cwd:manifest.directory,mcpServers:[]};
   if (agent.harness==='claude') {
     envOverrides.CLAUDE_CODE_EXECUTABLE=harness;

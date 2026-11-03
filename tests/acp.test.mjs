@@ -106,7 +106,7 @@ test('print-acp refuses a missing harness rather than letting the adapter use it
   [['--print-acp','--','--verbose'],/native arguments/],[['--acp-adapter','x.js','--explain'],/--acp-adapter requires --print-acp/],
   [['--acp-adapter','x.js'],/^error: --acp-adapter requires --print-acp\n$/],
   [['--print-acp','--acp-adapter',''],/needs the path of an adapter file/],[['--print-acp','--acp-adapter',os.tmpdir()],/not found, or not a file/]
- ]){const r=f.invoke(args);assert.equal(r.status,1,args.join(' '));assert.match(r.stderr,pattern,args.join(' '));}
+ ]){const r=f.invoke(args,{PATH:f.bin});assert.equal(r.status,1,args.join(' '));assert.match(r.stderr,pattern,args.join(' '));}
 });
 
 /** Exports one span to the collector the way each harness is configured: Claude from OTEL env, Codex from -c otel args. */
