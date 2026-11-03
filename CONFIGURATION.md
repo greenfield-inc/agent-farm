@@ -410,21 +410,23 @@ printing, and `--model`, `--reasoning`, `--speed` and `--arg` apply as usual.
 agent-farm run greenfield/implementer:opus --print-acp --acp-adapter /path/to/claude-agent-acp/dist/index.js
 ```
 
-Like `--print-launch`, the JSON reports the profile, plugin, trace identity,
-`bundle`, `launch` and effective `telemetry`. It also has:
+Like `--print-launch`, the JSON reports the profile and variant, plugin, trace
+identity, workspace source, cross-plugin dependencies, `bundle`, `launch`, and
+the effective `telemetry` and `telemetry_access`. It also has:
 
 | Field | Meaning |
 | --- | --- |
 | `harness` | `claude` or `codex` |
 | `adapter` | The adapter `package` and `version` this output was verified against: `@agentclientprotocol/claude-agent-acp` 0.100.0 and `@agentclientprotocol/codex-acp` 2.5.0. Agent Farm doesn't install adapters; the client installs and pins them |
-| `argv`, `cwd` | The command to spawn, with ACP on its stdin and stdout. Spawn `argv` verbatim, as with `--print-launch` |
-| `env` | Agent Farm's overrides to add to the client's environment; never inherited values or secrets |
-| `session` | Parameters for `session/new`, and for `session/load` with the saved `sessionId` |
-| `model`, `effort` | The resolved model and effort, for display and checks |
+| `argv`, `cwd` | The command to spawn and its working directory, with ACP on its stdin and stdout. Spawn `argv` verbatim, as with `--print-launch` |
+| `env` | Agent Farm's overrides to add to the client's environment, including the variables in the table below and, for Codex, the runtime `CODEX_HOME`; never inherited values or secrets |
+| `session` | Parameters for `session/new`, and for `session/load` with the saved `sessionId`. Its `cwd` is the same directory as the top-level `cwd` |
+| `model`, `effort` | The resolved model and effort, for display and checks. Claude's adapter may report the model by its alias, such as `opus` |
 | `mode` | The session mode the client must select with `session/set_mode` after `session/new` and `session/load`: `bypassPermissions` for Claude, `agent-full-access` for Codex |
 
-`--acp-adapter PATH` names the adapter to run: a `.js` entry runs with the
-Node.js running Agent Farm, and anything else runs as is. Without it, `argv`
+`--acp-adapter PATH` names the adapter file to run, relative to the current
+directory: a `.js` entry runs with the Node.js running Agent Farm, and anything
+else runs as is. Without it, `argv`
 names the adapter's command, `claude-agent-acp` or `codex-acp`, to find on `PATH`.
 `--print-acp` doesn't take `--message`, `--resume` or native arguments: the client
 sends prompts and loads sessions itself. The harness must be installed, because

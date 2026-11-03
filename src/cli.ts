@@ -214,6 +214,7 @@ try {
     if (values.harness) throw new Error('--harness is only supported by load/unload; run uses the profile harness');
     if (positionals.length!==2 || !['run','agent'].includes(positionals[0]!)) throw new Error('Unknown command. Run agent-farm help for usage.');
     if ([values.build,values.explain,values.exec,values['print-launch'],values['print-acp']].filter(Boolean).length>1) throw new Error('Choose only one of --build, --explain, --exec, --print-launch or --print-acp');
+    if (values['acp-adapter']!==undefined && !values['print-acp']) throw new Error('--acp-adapter requires --print-acp');
     if (values.build && nativeArgs.length) throw new Error('--build does not accept native arguments');
     if (values.build && (values.model!==undefined || values.reasoning!==undefined || values.speed!==undefined || values.arg!==undefined || values.resume!==undefined)) throw new Error('--build does not accept launch overrides, arguments or --resume');
     const root=path.resolve(values['config-root']!),directory=path.resolve(values.directory!),options={directory,noWorkspace:values['no-workspace']};

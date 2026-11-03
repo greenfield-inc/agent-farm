@@ -586,8 +586,9 @@ export function acpLaunch(bundle: string, route: string, options: AcpLaunchOptio
   let argv: string[];
   if (options.adapter===undefined) argv=[adapter.bin];
   else {
+    if (!options.adapter) throw new Error('--acp-adapter needs the path of an adapter file');
     const entry=path.resolve(options.adapter);
-    if (!fs.existsSync(entry)) throw new Error(`ACP adapter not found: ${entry}`);
+    if (!fs.statSync(entry,{throwIfNoEntry:false})?.isFile()) throw new Error(`ACP adapter not found, or not a file: ${entry}`);
     argv=/\.(c|m)?js$/i.test(entry) ? [process.execPath,entry] : [entry];
   }
   const session: {cwd: string; mcpServers: unknown[]; _meta?: Record<string,unknown>}={cwd:manifest.directory,mcpServers:[]};

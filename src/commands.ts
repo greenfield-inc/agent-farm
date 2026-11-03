@@ -48,7 +48,7 @@ export const commands: Command[] = [
       'agent-farm run implementer --model gpt-6-astra --speed fast',
       'agent-farm run greenfield/planner --directory ~/repos/my-project --message "Plan issue #42"',
       'agent-farm run planner --directory ~/repos/my-app --print-launch',
-      'agent-farm run greenfield/implementer:opus --print-acp',
+      'agent-farm run greenfield/implementer:opus --print-acp --acp-adapter ./node_modules/@agentclientprotocol/claude-agent-acp/dist/index.js',
       'agent-farm run greenfield/implementer --resume 4f07cdb3-6e0d-4926-b680-917e38acccc4',
       'agent-farm run implementer --print-launch --message "Continue" -- exec resume THREAD --json',
     ],
