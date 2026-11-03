@@ -263,7 +263,7 @@ source: docs/agent/plans/invoice-pdf/handoff/WP-01.md
 ```
 
 `headless` is `true` for `--exec` and every `--print-launch`, and `false`
-otherwise. Claude receives the block through `--append-system-prompt`; Codex
+otherwise, including `--print-acp`. Claude receives the block through `--append-system-prompt`; Codex
 receives it through `developer_instructions`. It is present whether or not a
 message is supplied. Arguments are context only: there is no templating or
 substitution into instructions, skills, or frontmatter.
@@ -273,7 +273,7 @@ Its identifier includes the resolved model, arguments, their sources, and the
 headless state. The original compiled bundle remains immutable, both bundles
 remain checksum-verified, and launches with different argument values cannot
 invalidate one another. The selected route's generated `agent.json` records the
-same resolved launch metadata as `--explain` and `--print-launch`.
+same resolved launch metadata as `--explain`, `--print-launch` and `--print-acp`.
 
 Within a plugin, bare profile-agent, child-agent, and skill references resolve
 only in that plugin, regardless of what else is installed. A child may explicitly
@@ -396,12 +396,72 @@ Set the command's resume to **CLI reports its ID** with the resume template
 `{command} --resume {sessionId}`, and Pane restores the panel into the same
 conversation on the same variant.
 
+### ACP sessions
+
+`--print-acp` describes a profile for an [Agent Client Protocol](https://agentclientprotocol.com)
+client, such as a Pane chat tab, instead of a terminal. The client runs the
+printed command, which starts the harness's ACP adapter under the telemetry
+wrapper, and sends the printed session settings. The agent gets the same model,
+effort, instructions with `LAUNCH CONTEXT` (`headless: false`), skills,
+subagents and MCP servers as `agent-farm run`. Nothing is launched while
+printing, and `--model`, `--reasoning`, `--speed` and `--arg` apply as usual.
+
+```bash
+agent-farm run greenfield/implementer:opus --print-acp --acp-adapter /path/to/claude-agent-acp/dist/index.js
+```
+
+Like `--print-launch`, the JSON reports the profile, plugin, trace identity,
+`bundle`, `launch` and effective `telemetry`. It also has:
+
+| Field | Meaning |
+| --- | --- |
+| `harness` | `claude` or `codex` |
+| `adapter` | The adapter `package` and `version` this output was verified against: `@agentclientprotocol/claude-agent-acp` 0.100.0 and `@agentclientprotocol/codex-acp` 2.5.0. Agent Farm doesn't install adapters; the client installs and pins them |
+| `argv`, `cwd` | The command to spawn, with ACP on its stdin and stdout. Spawn `argv` verbatim, as with `--print-launch` |
+| `env` | Agent Farm's overrides to add to the client's environment; never inherited values or secrets |
+| `session` | Parameters for `session/new`, and for `session/load` with the saved `sessionId` |
+| `model`, `effort` | The resolved model and effort, for display and checks |
+| `mode` | The session mode the client must select with `session/set_mode` after `session/new` and `session/load`: `bypassPermissions` for Claude, `agent-full-access` for Codex |
+
+`--acp-adapter PATH` names the adapter to run: a `.js` entry runs with the
+Node.js running Agent Farm, and anything else runs as is. Without it, `argv`
+names the adapter's command, `claude-agent-acp` or `codex-acp`, to find on `PATH`.
+`--print-acp` doesn't take `--message`, `--resume` or native arguments: the client
+sends prompts and loads sessions itself. The harness must be installed, because
+an adapter left to itself would run its own bundled copy instead; Agent Farm
+fails if it can't find it.
+
+How each profile field reaches the agent:
+
+| Profile field | Claude (`claude-agent-acp`) | Codex (`codex-acp`) |
+| --- | --- | --- |
+| Harness | `CLAUDE_CODE_EXECUTABLE`: the installed `claude` | `CODEX_PATH`: the installed `codex` |
+| Model | `ANTHROPIC_MODEL` and `_meta.claudeCode.options.model` | `CODEX_CONFIG` `model` |
+| Effort, fast tier | `_meta.claudeCode.options.effort` | `CODEX_CONFIG` `model_reasoning_effort`, `service_tier` |
+| Instructions with `LAUNCH CONTEXT` | `_meta.systemPrompt.append` | `CODEX_CONFIG` `developer_instructions` |
+| Skills | `_meta.claudeCode.options.plugins`: the bundle route as a local plugin | the prepared runtime `CODEX_HOME`, as for a terminal |
+| Native subagents | `_meta.claudeCode.options.agents` | `CODEX_CONFIG` `agents` |
+| MCP servers | `_meta.claudeCode.options.mcpServers` with `strictMcpConfig` | `CODEX_CONFIG` `mcp_servers` |
+| Permissions | `mode` `bypassPermissions`, set by the client | `INITIAL_AGENT_MODE=agent-full-access` |
+| Telemetry | the wrapper's OTEL environment, which the adapter passes to `claude` | the wrapper points `CODEX_PATH` at the bundle's `codex-otel.mjs`, which adds the collector settings to `codex app-server` |
+
+MCP servers travel in each harness's own configuration, and `session.mcpServers`
+stays empty, because ACP's MCP entries hold literal header and environment values.
+This way a secret is still named by its environment variable and is resolved
+inside the harness, as in a terminal launch.
+
+Process children run as they do from a terminal. Each start of the command is a
+new telemetry session, so a client that restarts the adapter and loads the same
+ACP session records one telemetry session per process. Resume is the ACP
+client's `session/load`; Agent Farm's `--resume` and launch records don't apply.
+Agent Farm doesn't check Windows here.
+
 ## Local OpenTelemetry collection
 
 Every launched Claude Code or Codex session collects telemetry by default on the
 machine running Agent Farm, under `~/.local/state/agent-farm/telemetry/<session-id>/`.
 This applies to interactive runs, `--exec`, bundled process children, and commands
-spawned from `--print-launch`. Building, explaining, or printing a launch does not
+spawned from `--print-launch` or `--print-acp`. Building, explaining, or printing a launch does not
 start a receiver or create a session; reusing a printed command creates a new
 session each time. Native subagents are represented by their harness's telemetry.
 
@@ -718,8 +778,8 @@ but still uses host defaults and the environment override.
 
 Repository telemetry appears in the trust review and telemetry-only changes
 require approval just like other workspace changes. `workspace show` reports the
-merged workspace fields and provenance; `inspect`, `--explain`, and
-`--print-launch` report the effective `telemetry` values without starting collection.
+merged workspace fields and provenance; `inspect`, `--explain`, `--print-launch`
+and `--print-acp` report the effective `telemetry` values without starting collection.
 
 The resolved workspace telemetry is saved as `workspace_telemetry` in the bundle
 manifest. Process children use that snapshot rather than rediscovering the
@@ -962,7 +1022,7 @@ A private `last.json` beside it keeps the last approved content, which `trust`
 uses to show changes. Directories use mode 0700 and files mode 0600.
 
 An interactive `run` asks about an untrusted file. Declining launches without any
-workspace and says so. `--exec`, `--print-launch`, `--build`, `--explain`, `inspect`,
+workspace and says so. `--exec`, `--print-launch`, `--print-acp`, `--build`, `--explain`, `inspect`,
 noninteractive runs, MCP login, and native workspace installation never prompt;
 they fail with the file path and the `workspace trust` command. `workspace show`
 is an explicit review operation: it displays the merged workspace, per-field
@@ -974,7 +1034,7 @@ directory. Dispatch checks approval again and refuses a changed, missing, or
 revoked repository workspace; rebuild through `run` after approving a new version.
 Overlay edits affect subsequent builds, not existing child snapshots.
 
-`inspect`, `--explain`, `--print-launch`, and bundle manifests report
+`inspect`, `--explain`, `--print-launch`, `--print-acp`, and bundle manifests report
 `workspace_source`: its `source` is `repository:<path>`, `user:<path>`, or `none`,
 with an overlay path when present and a trust state. Generated bundles stay under
 `.agent-farm/generated/` in the launch directory. Ignore that generated directory
@@ -988,7 +1048,7 @@ version, ambiguity status, and resolved model settings.
 configuration graph and source paths without generating output. It reports
 configured MCP endpoints, not credentials or a live connection status. It also
 reports the preset, resolved arguments, resolved model, and the agent/preset
-source of each model field. `--explain` and `--print-launch` add the actual
+source of each model field. `--explain`, `--print-launch` and `--print-acp` add the actual
 launch metadata, including any flag sources and `ad hoc` override marker.
 
 `greenfield/implementer` has four variants: `opus` (the default), `astra`,
