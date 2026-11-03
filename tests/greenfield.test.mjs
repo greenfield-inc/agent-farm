@@ -335,10 +335,9 @@ test('Codex orchestration routes every worker and helper to Codex while retainin
  assert.match(skill,/Use the orchestrator agent's worker routing defaults/);
 });
 
-test('greenfield 0.0.40: customer-insights-loop runs Opus 5.5 medium on Claude only, coordinates with the orchestrator\'s shared rules, and names no product, host or person',t=>{
+test('customer-insights-loop runs Opus 5.5 medium on Claude only, coordinates with the orchestrator\'s shared rules, and names no product, host or person',t=>{
  const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-insights-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.41$/m);
  assert.deepEqual(Object.keys(parse(fs.readFileSync(path.join(root,'profiles/customer-insights-loop.yaml'),'utf8')).variants),['claude']);
  const main=resolveProfile(root,'customer-insights-loop').nodes.main;
  assert.deepEqual([main.harness,main.model,main.reasoning_effort],['claude','claude-opus-5-5','medium']);
@@ -374,7 +373,7 @@ test('workers raise numbered needs_you blocks, standalone workers ask in the sam
 test('the map leads with Needs you and shows each PR\'s validation and unreviewed commits, and the watcher is unchanged',()=>{
  includesAll(['skills/orchestrate-sessions/references/status-board.md'],['Needs you the first section','Q-n | feature | role | question | recommended answer | files','checks (required CI: green, failing or pending) | QA (passed, failed, not run) | review','"N commits since the last review at <sha>, not reviewed"','git rev-list --count <last reviewed head>..<PR head>','`<!-- greenfield-review head=<sha> -->` marker']);
  includesAll(['skills/orchestrate-sessions/references/ledger.md'],['"last_reviewed_head"']);
- instructionsIncludeAll(COORDINATORS,['Needs you first, then each PR\'s checks, QA, review state and commits since its last review','relaying any `needs_you` a wake-up finds the same way as one an event brings']);
+ instructionsIncludeAll(COORDINATORS,['relaying any `needs_you` a wake-up finds the same way as one an event brings']);
  const skill=fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8');
  for(const line of ['schedule:         3 checks each at 5, 10, 15, then 30 minutes; after 3 quiet 30-minute checks, expire','on start:         fire one test wake-up in the background','on dispatch:      start a fresh watcher at 5 minutes (or reset the running one to 5)','whenever active:  if the last wake-up is more than one interval overdue, tell the user the watcher failed, then restart it','a new needs_you is relayed as Questions and resumption says, files opened','"Set up a watcher? I\'ll check in at 5 minutes, slow down while nothing changes, and tell you only when something does." Start it unless the user says no'])assert.ok(skill.includes(line),line);
 });
@@ -495,4 +494,19 @@ test('greenfield asks planners and reviewers for the worst case at production si
  includesAll(['skills/review/CRITERIA.md'],['Cost at production size:','the largest real input','an unmeasured or unbounded worst case is Must-Fix','the missing measurement is the finding, so it needs no estimate of your own','The repo\'s AGENTS.md names its hot paths, budget and where production sizes are recorded; if it names none, the finding asks the author for them']);
  includesAll(['skills/plan/SKILL.md'],['its criteria name the worst-case production size and the budget it must meet','Passing on staging or test fixtures is not a worst case']);
  includesAll(['skills/review/severity-examples.md'],['never states the cost for the largest team in production']);
+});
+
+test('greenfield 0.0.42 points the orchestrator at the status page and item hub specs, saying when to read them, instead of summarising the page (D-8, D-9)',()=>{
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.42$/m);
+ const paragraph=(file,start)=>{const found=fs.readFileSync(path.join(root,file),'utf8').split(/\n\s*\n/).find(p=>p.startsWith(start));assert.ok(found,`${file}: ${start}`);return found.replace(/\s+/g,' ');};
+ instructionsIncludeAll(COORDINATORS,['`orchestrate-sessions`\' `references/status-board.md`','its form in the `page` skill','read both before you first write it in a Session and again before any rewrite','never write it from memory or from this paragraph']);
+ for(const profile of COORDINATORS){
+  const text=resolveProfile(root,profile).nodes.main.instructions.replace(/\s+/g,' ');
+  for(const removed of ['Needs you first','one card per item','a "Next step" line'])assert.ok(!text.includes(removed),`${profile} still summarises the page: ${removed}`);
+ }
+ const board=paragraph('skills/orchestrate-sessions/SKILL.md','Keep one status page');
+ for(const rule of ['[references/status-board.md](references/status-board.md)','before you first write it in a Session, and again before any rewrite, read status-board.md and load `page`','never from memory or from a summary such as this paragraph'])assert.ok(board.includes(rule),rule);
+ assert.doesNotMatch(board,/opens with|one card per item|Needs you \(/);
+ const hub=paragraph('skills/orchestrate-sessions/SKILL.md','Every item has a front page');
+ for(const rule of ['[references/item-hub.md](references/item-hub.md)','before you write the first hub in a Session, and again before any rewrite, read item-hub.md and load `page`','never write one from memory'])assert.ok(hub.includes(rule),rule);
 });
