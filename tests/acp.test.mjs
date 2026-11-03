@@ -37,6 +37,8 @@ function fixture(t,harness) {
  const invoke=(args,extra={})=>spawnSync(process.execPath,[cli,'run','worker','--config-root',root,'--directory',target,...args],{env:{...env,...extra},encoding:'utf8'});
  return {base,root,target,home,bin,env,invoke};
 }
+/** Windows resolves PATHEXT in its own case (claude.CMD). */
+const samePath=(actual,expected)=>assert.equal(process.platform==='win32'?actual.toLowerCase():actual,process.platform==='win32'?expected.toLowerCase():expected);
 const context='LAUNCH CONTEXT\nheadless: false\nreview: none\nparent: ../status.json';
 const noSecrets=(text)=>{for(const secret of ['AUTH-SECRET-FIXTURE','LINEAR-SECRET-FIXTURE','LOCAL-SECRET-FIXTURE'])assert.equal(text.includes(secret),false,secret);};
 
@@ -48,7 +50,7 @@ test('print-acp gives a Claude profile to claude-agent-acp: model, effort, instr
  assert.deepEqual(acp.adapter,{package:'@agentclientprotocol/claude-agent-acp',version:'0.100.0'});
  assert.deepEqual(acp.argv,['claude-agent-acp']);
  assert.equal(acp.cwd,f.target);
- assert.equal(acp.env.CLAUDE_CODE_EXECUTABLE,path.join(f.bin,process.platform==='win32'?'claude.cmd':'claude'));
+ samePath(acp.env.CLAUDE_CODE_EXECUTABLE,path.join(f.bin,process.platform==='win32'?'claude.cmd':'claude'));
  assert.equal(acp.launch.headless,false);assert.deepEqual(acp.launch.arguments,{review:'none',parent:'../status.json'});
  assert.equal(acp.model,'claude-opus-5-5');assert.equal(acp.effort,'high');assert.equal(acp.mode,'bypassPermissions');
  const session=acp.session,main=path.join(acp.bundle,'main');
@@ -79,7 +81,7 @@ test('print-acp gives a Codex profile to codex-acp: CODEX_CONFIG with instructio
  assert.deepEqual(acp.argv,['codex-acp']);
  assert.equal(acp.model,'gpt-6-astra');assert.equal(acp.effort,'medium');assert.equal(acp.mode,'agent-full-access');
  assert.deepEqual(acp.session,{cwd:f.target,mcpServers:[]});
- assert.equal(acp.env.CODEX_PATH,path.join(f.bin,process.platform==='win32'?'codex.cmd':'codex'));
+ samePath(acp.env.CODEX_PATH,path.join(f.bin,process.platform==='win32'?'codex.cmd':'codex'));
  assert.equal(acp.env.INITIAL_AGENT_MODE,'agent-full-access');
  assert.equal(fs.readFileSync(path.join(acp.env.CODEX_HOME,'skills/proof/SKILL.md'),'utf8'),'Proof skill');
  assert.equal(acp.env.AGENT_FARM_NATIVE_CODEX_HOME,path.join(f.home,'.codex'));
@@ -101,7 +103,9 @@ test('print-acp refuses a missing harness rather than letting the adapter use it
  for(const [args,pattern] of [
   [['--print-acp','--print-launch'],/Choose only one/],[['--print-acp','--exec'],/Choose only one/],
   [['--print-acp','--message','hi'],/does not accept --message/],[['--print-acp','--resume','abc'],/does not accept --message, --resume/],
-  [['--print-acp','--','--verbose'],/native arguments/],[['--acp-adapter','x.js','--explain'],/--acp-adapter requires --print-acp/]
+  [['--print-acp','--','--verbose'],/native arguments/],[['--acp-adapter','x.js','--explain'],/--acp-adapter requires --print-acp/],
+  [['--acp-adapter','x.js'],/^error: --acp-adapter requires --print-acp\n$/],
+  [['--print-acp','--acp-adapter',''],/needs the path of an adapter file/],[['--print-acp','--acp-adapter',os.tmpdir()],/not found, or not a file/]
  ]){const r=f.invoke(args);assert.equal(r.status,1,args.join(' '));assert.match(r.stderr,pattern,args.join(' '));}
 });
 
@@ -123,8 +127,9 @@ for(const harness of ['claude','codex'])test(`a client spawning the printed ${ha
  writeHarness(f.bin,harness,`require(${JSON.stringify(path.join(f.base,'exporter.cjs'))})(${JSON.stringify(record)},process.argv.slice(2)).catch(e=>{console.error(e);process.exit(1);});\n`);
  const adapter=path.join(f.base,'adapter.mjs');
  fs.writeFileSync(adapter,`import {spawnSync} from 'node:child_process';
-const harness=process.env.CODEX_PATH??process.env.CLAUDE_CODE_EXECUTABLE;
-const r=spawnSync(harness,process.env.CODEX_PATH?['app-server']:['--print'],{stdio:'inherit',shell:process.platform==='win32'});
+const harness=process.env.CODEX_PATH??process.env.CLAUDE_CODE_EXECUTABLE,args=process.env.CODEX_PATH?['app-server']:['--print'];
+// codex-acp uses cross-spawn on Windows, which runs a node shebang script (codex-otel.mjs) with node.
+const r=process.platform==='win32'&&/\\.m?js$/.test(harness)?spawnSync(process.execPath,[harness,...args],{stdio:'inherit'}):spawnSync(harness,args,{stdio:'inherit',shell:process.platform==='win32'});
 process.stdout.write(JSON.stringify({jsonrpc:'2.0',id:0,result:{}})+'\\n');process.exit(r.status??1);`);
  fs.writeFileSync(path.join(f.root,'settings.json'),JSON.stringify({telemetry:{directory:telemetry}}));
  const printed=f.invoke(['--print-acp','--acp-adapter',adapter],{AGENT_FARM_TELEMETRY:'on'});
