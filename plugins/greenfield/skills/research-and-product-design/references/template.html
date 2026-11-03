@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FEATURE: research packet</title>
+<!--
+  Template for a research packet page (round 1). Copy it to <feature>/round-1/index.html.
+  Replace every UPPERCASE placeholder and every "Write ..." line, keep the section order,
+  and delete any block that doesn't apply. The skill lists what each section holds.
+-->
+<style>
+:root {
+  --bg: #fbfaf6; --panel: #ffffff; --ink: #1d2420; --muted: #5d6861; --line: #dcdfd6;
+  --accent: #2f7d4f; --accent-soft: #e4f1e7;
+  --warn: #9a5b00; --warn-soft: #fbefd9;
+  --bad: #a23a2f; --bad-soft: #f9e4e1;
+  --code: #f0f1eb;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141815; --panel: #1b211d; --ink: #e7ebe6; --muted: #9aa69e; --line: #2e3731;
+    --accent: #6fc38d; --accent-soft: #1e3327;
+    --warn: #e5b566; --warn-soft: #352a15;
+    --bad: #ef9388; --bad-soft: #3a1f1c;
+    --code: #232a25;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px 16px 80px; }
+p, li, .lede { max-width: 72ch; }
+h1 { font-size: 28px; line-height: 1.25; margin: 0 0 6px; }
+h2 { font-size: 22px; margin: 44px 0 10px; padding-top: 12px; border-top: 1px solid var(--line); }
+h3 { font-size: 17px; margin: 22px 0 6px; }
+a { color: var(--accent); }
+code { background: var(--code); padding: 1px 5px; border-radius: 4px; font-size: .9em; overflow-wrap: anywhere; }
+.lede { color: var(--muted); margin: 0 0 18px; }
+.chip { display: inline-block; font-size: 12.5px; font-weight: 700; padding: 2px 10px; border-radius: 999px; background: var(--warn-soft); color: var(--warn); vertical-align: middle; }
+.call { border-left: 4px solid var(--accent); background: var(--accent-soft); border-radius: 8px; padding: 12px 16px; margin: 14px 0; }
+.panel, .q { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; margin: 12px 0; }
+.q h3 { margin: 0 0 6px; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+figure { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+figure img { display: block; width: 100%; height: auto; border-bottom: 1px solid var(--line); background: #fff; }
+figcaption { padding: 8px 12px; font-size: 13.5px; color: var(--muted); }
+figcaption b { color: var(--ink); }
+table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+th, td { text-align: left; vertical-align: top; padding: 7px 8px; border-bottom: 1px solid var(--line); }
+th { font-size: 13px; color: var(--muted); font-weight: 600; }
+.tw { overflow-x: auto; }
+svg text { font-family: -apple-system, system-ui, sans-serif; }
+@media (max-width: 760px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+
+<h1>FEATURE: research packet <span class="chip">Round 1 · waiting for a pick</span></h1>
+<p class="lede">Write one sentence: what the feature lets people do, and what this page asks the reader to decide.</p>
+<p><a href="compare.html">Compare the options side by side</a> · <a href="../research.html">Full research</a></p>
+
+<!-- One drawing: where the feature sits in the product, or the flow it changes. Accent for the new path, dashed for anything tentative. -->
+<svg viewBox="0 0 720 120" role="img" aria-label="Where the feature fits">
+  <rect x="10" y="35" width="190" height="50" rx="10" fill="var(--panel)" stroke="var(--line)"/>
+  <text x="105" y="65" text-anchor="middle" font-size="14" fill="var(--ink)">WHO STARTS IT</text>
+  <rect x="265" y="35" width="190" height="50" rx="10" fill="var(--accent-soft)" stroke="var(--accent)"/>
+  <text x="360" y="65" text-anchor="middle" font-size="14" fill="var(--ink)">THE NEW PART</text>
+  <rect x="520" y="35" width="190" height="50" rx="10" fill="var(--panel)" stroke="var(--line)" stroke-dasharray="5 4"/>
+  <text x="615" y="65" text-anchor="middle" font-size="14" fill="var(--ink)">WHAT CHANGES FOR THEM</text>
+  <path d="M200 60 H262 M455 60 H517" stroke="var(--accent)" stroke-width="2" fill="none"/>
+</svg>
+
+<h2 id="frame">1. Frame</h2>
+<p>The ask, in the requester's words:</p>
+<ul>
+  <li>"QUOTE" (SOURCE, with a timestamp for calls)</li>
+</ul>
+<p>Decided already: DECISION (ID, who decided). Write each decision this design must stay within.</p>
+
+<h2 id="summary">2. Summary</h2>
+<div class="call">
+  <p><b>The facts that drive the design.</b></p>
+  <ol>
+    <li>Write the fact that most constrains the design, with its source.</li>
+    <li>Write the next one. Stop at three or four.</li>
+  </ol>
+  <p>The full rules, comparable products and sources are in <a href="../research.html">research.html</a>.</p>
+</div>
+
+<h2 id="current">3. Current state</h2>
+<p>The screens the feature touches, as they are today. Every image is a real capture.</p>
+<div class="grid2">
+  <figure><a href="../current/SCREEN.png"><img src="../current/SCREEN.png" alt="SCREEN"></a><figcaption><b>SCREEN NAME</b> · SOURCE (PR, docs media, help page or local build)</figcaption></figure>
+  <figure><a href="../current/SCREEN-2.png"><img src="../current/SCREEN-2.png" alt="SCREEN 2"></a><figcaption><b>SCREEN NAME</b> · SOURCE</figcaption></figure>
+</div>
+<!-- For system work, add today's diagram, drawn from the code. -->
+<figure><a href="../current/today.svg"><img src="../current/today.svg" alt="How it works today"></a><figcaption><b>How it works today</b> · services, data stores and outside systems, and what flows between them</figcaption></figure>
+<h3>Code facts (at COMMIT)</h3>
+<div class="tw"><table>
+  <tr><th>What exists</th><th>Where</th></tr>
+  <tr><td>Write what the code does today.</td><td><code>path/to/file:LINE</code></td></tr>
+  <tr><td><b>Missing:</b> write what the feature needs that doesn't exist.</td><td></td></tr>
+</table></div>
+
+<h2 id="references">4. References</h2>
+<div class="grid3">
+  <figure><a href="../refs/PRODUCT.png"><img src="../refs/PRODUCT.png" alt="PRODUCT"></a><figcaption><b>PRODUCT: WHAT THE IMAGE SHOWS</b> · <a href="https://EXAMPLE">help article</a>. Take: write the one thing to borrow or avoid.</figcaption></figure>
+  <figure><figcaption><b>PRODUCT</b> · <a href="https://EXAMPLE">docs</a> (no image available). Describe the screen in one sentence. Take: write the one thing to borrow or avoid.</figcaption></figure>
+</div>
+<h3>Standards</h3>
+<ul>
+  <li><b>STANDARD OR REGULATION</b>: write what it requires of this feature, citing the <a href="https://EXAMPLE">primary source</a> and section.</li>
+</ul>
+
+<h2 id="options">5. Options</h2>
+<p>Three distinct directions. <a href="compare.html">compare.html</a> shows them side by side, one row per screen or diagram, so you can pick per row.</p>
+
+<h3>Option 1 · ONE-LINE IDEA</h3>
+<p>Write two or three sentences on how it works for the person using it.</p>
+<div class="grid2">
+  <div class="panel"><b>Good</b><ul><li>Write a real strength.</li></ul></div>
+  <div class="panel"><b>Costs</b><ul><li>Cost and buildability in one line.</li><li>Tables and columns it adds: NAMES, or none.</li></ul></div>
+</div>
+<div class="grid2">
+  <figure><a href="shots/option1-ROW.png"><img src="shots/option1-ROW.png" alt="Option 1, STATE"></a><figcaption><b>1 · STATE</b>: write what this screen shows.</figcaption></figure>
+</div>
+<details><summary>Copy</summary><p>Write every label, button, empty state, error and message, exactly as shipped.</p></details>
+
+<h3>Option 2 · ONE-LINE IDEA</h3>
+<p>Same blocks as Option 1.</p>
+
+<h3>Option 3 · ONE-LINE IDEA</h3>
+<p>Same blocks as Option 1.</p>
+
+<h3>Shared</h3>
+<p>States that look the same in every option, drawn once.</p>
+<div class="grid2">
+  <figure><a href="shots/shared-ROW.png"><img src="shots/shared-ROW.png" alt="Shared, STATE"></a><figcaption><b>STATE</b>: write what this screen shows.</figcaption></figure>
+</div>
+
+<h2 id="questions">6. Questions</h2>
+<p>Only what the evidence above can't settle. Zero is a fine number.</p>
+<div class="q">
+  <h3>1. QUESTION?</h3>
+  <p><b>Recommended: ANSWER.</b> Write the reason in one or two sentences.</p>
+  <p>Alternatives: write the other answers and what each would mean.</p>
+</div>
+
+<h2 id="recommendation">7. Recommendation</h2>
+<div class="call">
+  <p><b>Option N</b>, with ANY PART BORROWED FROM ANOTHER OPTION.</p>
+  <p>Write why, and what the reader accepts by taking it.</p>
+</div>
+
+<h2 id="limits">8. Fidelity limits</h2>
+<ul>
+  <li>Write which screens or diagrams were rebuilt from code rather than captured.</li>
+  <li>Write which details are illustrative. Sample data is invented.</li>
+</ul>
+
+</main>
+</body>
+</html>

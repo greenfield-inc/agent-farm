@@ -13,6 +13,7 @@ skills:
   - options
   - spike
   - plan
+  - research-and-product-design
   - ui-mockup
   - page
   - session-trace
