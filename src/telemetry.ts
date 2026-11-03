@@ -11,7 +11,9 @@ import {nativeCommand,type LaunchMetadata,type Manifest} from './runtime.js';
 import {telemetryProject} from './telemetry-query.js';
 import {exportTelemetry} from './telemetry-export.js';
 
-interface Descriptor {directory:string;bundle:string;route:string;harness:'claude'|'codex';launch:LaunchMetadata;captureContent?:boolean}
+interface Descriptor {directory:string;bundle:string;route:string;harness:'claude'|'codex';launch:LaunchMetadata;captureContent?:boolean;
+  /** Set when the wrapped command is an ACP adapter that starts the harness itself (`--print-acp`). */
+  acp?:{adapter:string}}
 type Attribute = {key:string;value:Record<string,unknown>};
 const attributes=(values:Record<string,unknown>):Attribute[]=>Object.entries(values).filter(([,v])=>v!==undefined).map(([key,value])=>({key,value:typeof value==='boolean'?{boolValue:value}:typeof value==='number'?{intValue:String(value)}:Array.isArray(value)?{arrayValue:{values:value.map(v=>({stringValue:String(v)}))}}:{stringValue:String(value)}}));
 const sensitive=/(token|secret|password|credential|authorization|api[-_]?key|cookie)/i;
@@ -73,7 +75,7 @@ export async function startSession(descriptor:Descriptor,argv:string[],env:NodeJ
     'agent_farm.model.speed':descriptor.launch.model.speed,'agent_farm.preset':descriptor.launch.preset,
     'process.owner':user.username,'user.id':String(user.uid),'host.name':os.hostname(),
     'agent_farm.launcher.pid':process.pid,'process.working_directory':manifest.directory,
-    'process.command_args':[descriptor.harness,...redactArgs(argv.slice(argv.indexOf(descriptor.harness)+1))],
+    'process.command_args':descriptor.acp?[descriptor.acp.adapter]:[descriptor.harness,...redactArgs(argv.slice(argv.indexOf(descriptor.harness)+1))],
     ...Object.fromEntries(Object.entries(descriptor.launch.arguments).map(([k,v])=>['agent_farm.argument.'+k,sensitive.test(k)||content.test(k)?hidden:v])),
     ...gitMetadata(manifest.directory),
     'agent_farm.project.directory':telemetryProject(manifest.directory).id
@@ -145,7 +147,9 @@ export async function startSession(descriptor:Descriptor,argv:string[],env:NodeJ
   };
 }
 
-export function harnessTelemetry(harness:Descriptor['harness'],argv:string[],environment:NodeJS.ProcessEnv,session:Awaited<ReturnType<typeof startSession>>,captureContent=false) {
+/** `codexShim` is the bundle's codex-otel.mjs. With it, Codex settings travel through CODEX_PATH for an ACP adapter
+ *  to apply when it starts Codex, instead of being added to this argv. */
+export function harnessTelemetry(harness:Descriptor['harness'],argv:string[],environment:NodeJS.ProcessEnv,session:Awaited<ReturnType<typeof startSession>>,captureContent=false,codexShim?:string) {
   const env:NodeJS.ProcessEnv={...environment,TRACEPARENT:session.traceparent,AGENT_FARM_TRACEPARENT:session.traceparent,AGENT_FARM_SESSION_ID:session.id};
   // No inherited remote destinations, headers, TLS options, or compression.
   for(const key of Object.keys(env))if(key.startsWith('OTEL_EXPORTER_OTLP_'))delete env[key];
@@ -157,6 +161,10 @@ export function harnessTelemetry(harness:Descriptor['harness'],argv:string[],env
   } else {
     const config=['-c',`otel.log_user_prompt=${captureContent}`];
     for(const [key,signal] of [['exporter','logs'],['trace_exporter','traces'],['metrics_exporter','metrics']])config.push('-c',`otel.${key}={ otlp-http = { endpoint = ${JSON.stringify(session.endpoint+'/v1/'+signal)}, protocol = "json" } }`);
+    if(codexShim) {
+      Object.assign(env,{AGENT_FARM_CODEX_PATH:env.CODEX_PATH??'codex',AGENT_FARM_CODEX_OTEL:JSON.stringify(config),CODEX_PATH:codexShim});
+      return {argv,env};
+    }
     // Insert before the prompt terminator, after caller options (CLI precedence).
     const separator=argv.indexOf('--');const index=separator<0?argv.length:separator;
     argv=[...argv.slice(0,index),...config,...argv.slice(index)];
@@ -167,7 +175,7 @@ export function harnessTelemetry(harness:Descriptor['harness'],argv:string[],env
 async function supervise(descriptor:Descriptor,argv:string[]) {
   let session:Awaited<ReturnType<typeof startSession>>|undefined;
   let env=process.env;
-  try {session=await startSession(descriptor,argv,env);({argv,env}=harnessTelemetry(descriptor.harness,argv,env,session,descriptor.captureContent===true));env.AGENT_FARM_TELEMETRY_STORE=descriptor.directory;}
+  try {session=await startSession(descriptor,argv,env);({argv,env}=harnessTelemetry(descriptor.harness,argv,env,session,descriptor.captureContent===true,descriptor.acp?path.join(descriptor.bundle,'codex-otel.mjs'):undefined));env.AGENT_FARM_TELEMETRY_STORE=descriptor.directory;}
   catch {console.error('agent-farm: local telemetry unavailable; continuing session');}
   const artifactSession=process.env.AGENT_FARM_ARTIFACT_SESSION_ID??session?.id;
   if(session&&process.env.AGENT_FARM_ARTIFACT_BUNDLE&&artifactSession)env.AGENT_FARM_ARTIFACT_SESSION_ID=artifactSession;
