@@ -497,7 +497,7 @@ test('greenfield asks planners and reviewers for the worst case at production si
  includesAll(['skills/review/severity-examples.md'],['never states the cost for the largest team in production']);
 });
 
-test('the orchestrator points the orchestrator at the status page and item hub specs, saying when to read them, instead of summarising the page (D-8, D-9)',()=>{
+test('the orchestrator is pointed at the status page and item hub specs, saying when to read them, instead of summarising the page (D-8, D-9)',()=>{
  const paragraph=(file,start)=>{const found=fs.readFileSync(path.join(root,file),'utf8').split(/\n\s*\n/).find(p=>p.startsWith(start));assert.ok(found,`${file}: ${start}`);return found.replace(/\s+/g,' ');};
  instructionsIncludeAll(COORDINATORS,['`orchestrate-sessions`\' `references/status-board.md`','its form in the `page` skill','read both before you first write it in a Session and again before any rewrite','never write it from memory or from this paragraph']);
  for(const profile of COORDINATORS){
