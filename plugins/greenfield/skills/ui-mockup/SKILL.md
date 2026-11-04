@@ -21,8 +21,17 @@ Pick the method that fits, and say which you used:
 - **HTML and CSS**, when exact text, real data, responsive behaviour, or a pixel comparison later matters, and whenever you have no image tool: rebuild the screen from the product's real components, styles, icons and fonts, matching its layout, type, spacing, colours, and density. The result can be opened, resized, and compared against a screenshot.
 - The approved design that `visual` checks are judged against should be exact. If the approved option is a generated image with invented details, either rebuild it in HTML or list which details are illustrative.
 - Ask before using any paid fallback.
-- Produce three distinct options per round and label them 1 to 3. Change only what is in scope and give exact labels. Check the text and look for unintended changes. Share all three as file links and explain any fidelity limits.
+- Produce three distinct options per round and label them 1 to 3. Change only what is in scope and give exact labels. Check the text and look for unintended changes. Share them through the round's index page (below) and explain any fidelity limits.
 - Ask for a favourite, then refine it with their feedback, using it as the next round's starting point. Keep the original screenshots and earlier options.
+
+## The index page and its viewer
+
+Every round is shown on `mockups/index.html`, and every index page has the screen viewer. It is required, not a nicety: the person must be able to open one screen and move through the rest without going back.
+
+- Start the page from [references/mockups-index.html](references/mockups-index.html) and keep its style and script blocks as they are. One section per round, newest first; under it each option with its one-line approach, then one thumbnail per screen, labelled with its option and screen name.
+- Click, or Enter on, any screen to expand it full size in a viewer over the page. ‹ › buttons, the ← → keys and a swipe move to the previous or next screen across that whole round; the viewer shows "n / N" and the screen's option and name; Esc or ✕ closes it; "Open alone" opens the screen by itself.
+- Paste [references/screen-nav.html](references/screen-nav.html) before `</body>` in every HTML screen and fill in its neighbours in the round's order, so a screen opened on its own still offers ‹ › to the next and previous screens and a link back to the index. Inside the viewer it hides itself and passes the keys and swipes on. An image screen is reached through the viewer.
+- Keep the index and every screen it shows in the same `mockups/` folder, linked by bare file names (no `../` or absolute paths), so a host that loads only the page's own folder can show all of them. Everything is inline: no fetched CSS, scripts or fonts, so it works from `file://` and when served.
 
 ## Approval and saving
 
@@ -32,6 +41,14 @@ Pick the method that fits, and say which you used:
 - Record it in the brief under Evidence. When a plan follows, it becomes the design reference on the cover sheet, with the list of screens that must match it.
 - Details that the mock-up invented and nobody discussed are illustrations, not requirements. Say which are which.
 - Check that images and links render, then return their paths or links. If an upload fails, keep the local files and report what is outstanding.
+
+## Before you share a round
+
+1. Every option's screens render, and their text and unchanged regions match what was agreed.
+2. On `mockups/index.html`, clicking a screen expands it; ‹ ›, ← → and a swipe walk through every screen of the round and wrap at the ends; "n / N", the option and the name are right on each; Esc and ✕ close it; "Open alone" opens that screen.
+3. Each HTML screen opened directly shows its ‹ n / N › bar, its arrows reach the right neighbours, and the bar is hidden inside the viewer.
+4. The index and the viewer work from `file://`, at phone width (390px) without sideways scrolling, and in light and dark.
+5. Every screen file is inside `mockups/`, and nothing is fetched from anywhere.
 
 ## Banned
 

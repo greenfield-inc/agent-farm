@@ -12,7 +12,8 @@ Every piece of work has one bundle: a folder holding all the pages written for a
   cover-sheet.html
   trace.html           conversation viewer, present in every bundle
   explainers/<topic>.html
-  mockups/<screen>-v<n>-<option>.html     or .png
+  mockups/index.html   every round's screens, with the screen viewer (ui-mockup)
+  mockups/<screen>-v<n>-<option>.html     or .png, beside mockups/index.html
   evidence/            screenshots and recordings
   bundle.json
 ```
