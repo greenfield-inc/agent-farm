@@ -25,7 +25,7 @@ checksums:
   instructions/glossary.md: 7b71453f005486e686456f32b57fa7bac4bbb9eeecd81fd6f2c9948373b55a52
   instructions/planner-documents.md: 6ad39e2e2a649bd660de49d472b37b816d2ffd79af78a7f46956b1cb62e8fea4
   instructions/planner-identity.md: a184359f32525ff2439224e13ede4068d43903a63bb828d83115493760ed21fe
-  instructions/standing-rules.md: 12a7e569376ccb10a461d2fcc0fa8cf6c1ea55bfcacb4733d874ada82a8c61c8
+  instructions/standing-rules.md: 1cddc12286a5ba7b03d69d214ae8e80dc2f3ddbbdbfef451e063f90c5488e320
   profiles/designer.yaml: b7c18fd49fa3cf084380f0fd0feadcca2b5bfc92612a66cab0e518443ab5c086
   profiles/implementer.yaml: 34921d2f97e5bf8d200f4ee88e30fddb759fd7eabf4f69e29e2ccd8eefa98d21
   profiles/investigator.yaml: d443c206b3bbf5d3311ed26b28664af56fba44a51b26b165d53336f51e2fda07
@@ -96,11 +96,11 @@ checksums:
   skills/investigate/SKILL.md: b0199e594f142eaf17a44c193de78e04463212d7b2cdc9a858796d0d51d1e5e6
   skills/options/SKILL.md: 265e16a8a542d6ba5901a1a55209e5838e7002235d1381873eda4b6feea0787e
   skills/options/references/options-template.md: cd82cdf9f56b4cdaa76c37f273beda59cecca97f46baeb046a2cc14700864579
-  skills/orchestrate/SKILL.md: 4c1ade68cb31dad8f64362d504f3e2a254ec7e237038a180a8576401fbd009bc
+  skills/orchestrate/SKILL.md: 37a53e96a70b65ff6a113d5e7ff277e1ced901e35a5ebb19fe0e41f64797ff79
   skills/orchestrate/references/addendum-template.md: 3a838258c90a02978c89e3f63fc18e58f32eead36989d833a6d1615efaa3f804
   skills/orchestrate/references/host-policy.md: c86e6a045d40aada6354891aa08cf4046a6a97c044068b25b2fc18b45cd9e338
   skills/orchestrate/references/ledger.md: 2a108b1c8c4fc68bc3c2b894a579cce4e00acb6e4f91cb566ba5350c616efa2f
-  skills/orchestrate/references/relay.md: fac46ef068f1a8a79a9b8b1d4177b5f964c4b66315a20d9c6af1290ef319a953
+  skills/orchestrate/references/relay.md: 7659ce914f6b305b04bba7b7e4390be942deeec5cbb63d3e17a7d760529c125a
   skills/plan/SKILL.md: e61a1cbb1f5f2048ceb34ab3a90ed70e7062ddd43e3d6b71acd2b709bfaff842
   skills/plan/references/cover-sheet.md: b6ee23c37605d319f49c007bb0a8ec9e249e855e9d6b4a7e839f44c87a5717db
   skills/prepare-pr/SKILL.md: f42cc79bb7fbcdee32a831189a32a33d9c9e2694c373cfbcb6772573c44a7d1d

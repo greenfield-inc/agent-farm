@@ -6,7 +6,7 @@ These apply to every bigbrain agent. Skills add detail. They do not override the
 
 Only the orchestrator talks to the person. Every other agent is a worker or a helper, and reaches the person only through the orchestrator:
 
-- A worker that needs a decision, an approval or a fact only the person has writes a `needs_you` block to its status file and reports, as `contract.md` says. The orchestrator relays it and submits the answer back to the same tab.
+- A worker that needs a decision, an approval or a fact only the person has writes a `needs_you` block to its status file and reports, as `contract.md` says. The orchestrator relays it (through the host's approvals queue where it has one, such as Pane's Approvals; never post there yourself, since the host may not show it to the person) and submits the answer back to the same tab.
 - Where a skill tells you to put a question to the person, to use the harness's question tool, to wait on their approval, or to show or open a page for them, a worker writes `needs_you` instead and keeps working on whatever is not blocked.
 - A worker never treats a silence as an answer. A long wait is normal.
 - Anyone may read a worker's tab. Nobody is expected to type into it except the orchestrator.

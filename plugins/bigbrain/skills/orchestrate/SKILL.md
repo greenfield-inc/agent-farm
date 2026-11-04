@@ -76,7 +76,7 @@ Branch on `kind` first: a `quiz` skips steps 1, 4 and 5 and shows no recommended
 
 1. Read the status file's `needs_you`. If an approved source already answers a `question` or `choice`, answer from that source, cite it, and tell the person in the map's log instead of interrupting them.
 2. Batch `fyi` items into the map. Interrupt only for blocking items, newest blocking first, one round at a time.
-3. Show the question with the recommended answer first, using structured questions where the host supports them. Open each HTML or image file in `files` beside the person with the host's file-opening mechanism, and link anything else.
+3. Show the question with the recommended answer first, using structured questions where the host supports them. Open each HTML or image file in `files` beside the person with the host's file-opening mechanism, and link anything else. Where the host has an approvals queue (Pane's Approvals), post it there instead, once step 4 passes for an `approval`, as [references/relay.md](references/relay.md) says, so you stay free to talk.
 4. For an `approval`, run `node <documents skill>/scripts/check-bundle.mjs <bundle> --stage approve` first. On failure, do not relay: send `check-bundle: fail — <rule lines>` to the worker and wait for its next report. On pass, show the page, its open `[ASSUMPTION]`s and the check result.
 5. Quote the person's answer back. Take the next unused D-n (from the bundle's `decisions.html` and the ledger). A planner records its own entries; for any other worker, add the ADR-lite entry to `decisions.html` yourself, citing the Q-n.
 6. Submit `answer: Q-n → <answer>. Recorded as D-n.` to the asking worker only, with the host's message mechanism, and confirm it was taken.
