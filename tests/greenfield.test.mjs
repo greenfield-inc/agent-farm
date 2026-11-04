@@ -572,7 +572,10 @@ test('greenfield 0.0.46 tidies the Session as Pane\'s rules say: archive without
  const pane=['"Keep the Session tidy" section of the Session folder\'s AGENTS.md','follow the wrap-up guide that AGENTS.md points to'];
  const archive=['`runpane panes archive --pane <id> --dry-run --json`','archive its Pane right after the merge, in the same turn','Never pass `--force`'];
  instructionsIncludeAll(COORDINATORS,['Archive a feature\'s Pane without asking',...archive,...pane]);
- includesAll(['skills/orchestrate-sessions/SKILL.md'],['Archive a feature\'s Pane without asking or offering',...archive,...pane,'status page\'s Cleanup log','its list goes into /wrap-up\'s one question','so ask nothing separately']);
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['Archive a feature\'s Pane without asking or offering',...archive,...pane,'status page\'s Cleanup log','the sweep\'s list goes into that question','a PR with unreviewed commits is an open work-list item','"Ready" for a PR is a Keep going','Ask nothing separately.']);
+ // Status-page open commands mark the tab as the agent's, so panels close can close it at /wrap-up.
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['--source agent']);
+ for(const file of ['skills/orchestrate-sessions/SKILL.md','skills/orchestrate-sessions/references/status-board.md'])assert.doesNotMatch(flatText(file),/runpane panels open --url <[^>]+>`/,file);
  includesAll(['instructions/standing-rules.md'],['plans, PRs and mock-ups are otherwise linked from the status page, not opened','except the status page, which stays open until the Session wraps up','`runpane panels close --panel <id> --yes --json`','it adds `--force` only for a stuck tab or one the person asked it to close',pane[0]]);
  for(const file of ['instructions/coordination.md','skills/orchestrate-sessions/SKILL.md'])assert.doesNotMatch(flatText(file),/after offering the end-of-Session sweep|you have offered the end-of-Session sweep|Always offer the sweep before/,file);
  const bigbrain=fs.readFileSync(path.join(root,'../bigbrain/skills/orchestrate/SKILL.md'),'utf8').replace(/\s+/g,' ');
