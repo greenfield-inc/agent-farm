@@ -497,7 +497,6 @@ test('greenfield asks planners and reviewers for the worst case at production si
 });
 
 test('greenfield 0.0.42 points the orchestrator at the status page and item hub specs, saying when to read them, instead of summarising the page (D-8, D-9)',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.42$/m);
  const paragraph=(file,start)=>{const found=fs.readFileSync(path.join(root,file),'utf8').split(/\n\s*\n/).find(p=>p.startsWith(start));assert.ok(found,`${file}: ${start}`);return found.replace(/\s+/g,' ');};
  instructionsIncludeAll(COORDINATORS,['`orchestrate-sessions`\' `references/status-board.md`','its form in the `page` skill','read both before you first write it in a Session and again before any rewrite','never write it from memory or from this paragraph']);
  for(const profile of COORDINATORS){
@@ -509,4 +508,15 @@ test('greenfield 0.0.42 points the orchestrator at the status page and item hub 
  assert.doesNotMatch(board,/opens with|one card per item|Needs you \(/);
  const hub=paragraph('skills/orchestrate-sessions/SKILL.md','Every item has a front page');
  for(const rule of ['[references/item-hub.md](references/item-hub.md)','before you write the first hub in a Session, and again before any rewrite, read item-hub.md and load `page`','never write one from memory'])assert.ok(hub.includes(rule),rule);
+});
+
+test('greenfield 0.0.43 relays a worker\'s needs_you through Pane\'s Approvals under Pane, one background notify per Q-n, and falls back on unavailable',()=>{
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.43$/m);
+ includesAll(['skills/orchestrate-sessions/references/relay.md'],['**Under Pane, through Approvals.**','`PANE_ORCHESTRATION_SESSION_ID` is set','exactly once, and stay free to talk','"What waits on the person"','One background `runpane notify ... --json` per Q-n','`run_in_background`','titled `Q-n: <title>`','`files` as `--links` (up to 6','don\'t use the MCP `notify` tool','`runpane inbox ack <id>`','which expires its card','Pane keeps no approvals across a restart','If notify returns `unavailable`','put the round as above']);
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['Under Pane with Approvals on, post it instead as one background `runpane notify` per Q-n','On `unavailable`, relay it as before']);
+ includesAll(['instructions/standing-rules.md'],['under Pane, as a card in Pane\'s Approvals; don\'t call `notify` yourself']);
+ const bigbrain=file=>fs.readFileSync(fileURLToPath(new URL(`../plugins/bigbrain/${file}`,import.meta.url)),'utf8').replace(/\s+/g,' ');
+ for(const rule of ['**Through the host\'s approvals queue.**','post each Q-n there instead of in chat, exactly once, and stay free to talk','`runpane inbox ack <id>`','Pane keeps no approvals across a restart','show the message in chat as above'])assert.ok(bigbrain('skills/orchestrate/references/relay.md').includes(rule),rule);
+ assert.ok(bigbrain('skills/orchestrate/SKILL.md').includes('Where the host has an approvals queue (Pane\'s Approvals), post it there instead'));
+ assert.ok(bigbrain('instructions/standing-rules.md').includes('never post there yourself'));
 });

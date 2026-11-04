@@ -1,6 +1,6 @@
 # Relay
 
-How a worker's `needs_you` (standing rules, Questions for the person) reaches the person, and how the answer goes back. One round at a time, newest blocking question first; batch `fyi` blocks into the map instead.
+How a worker's `needs_you` (standing rules, Questions for the person) reaches the person, and how the answer goes back. One round at a time, newest blocking question first (under Pane, one Approvals card per Q-n, all waiting at once); batch `fyi` blocks into the map instead.
 
 ## To the person
 
@@ -17,6 +17,14 @@ Context: <where the context lives>                    (only when there are no fi
 ```
 
 On Claude, put the questions through the harness question tool (`AskUserQuestion`) once the files are open, the recommended option first; on Codex, use the numbered list above, answered as "1a". Keep the worker's options and wording; add only the label, and the Context line when there are no files, so its Needs you row links the same places.
+
+**Under Pane, through Approvals.** When you run under Pane (`PANE_ORCHESTRATION_SESSION_ID` is set, or you are in a Pane terminal and `runpane` answers), post each Q-n to Pane's Approvals instead, exactly once, and stay free to talk. Pane's orchestrator guide (`runpane docs read --doc skills/pane-orchestration/SKILL.md`, "What waits on the person") is the source; in short:
+
+- One background `runpane notify ... --json` per Q-n (in Claude Code, Bash with `run_in_background`), titled `Q-n: <title>`, with the round in `--context`, the options as `--choices` (recommended first; `--ui approve` for an approval, `--ui ask` for a round of several questions), and `files` as `--links` (up to 6: `{"label":…,"path":…}` for a file, `{"label":…,"url":…}` for a page), which open beside the card. The CLI call waits until the person answers; don't use the MCP `notify` tool, which returns `waiting`, and don't block your turn on `AskUserQuestion`.
+- Once posted, acknowledge the worker's inbox item (`runpane inbox ack <id>`).
+- When the call returns, it carries the answer: send it back as below. Stop the background call of a Q-n that is superseded or no longer needed (TaskStop in Claude Code), which expires its card.
+- When you start, resume or wake, reconcile your open calls against the status files and the map: post what still waits and has no open call, exactly once (Pane keeps no approvals across a restart), and stop what is stale.
+- If notify returns `unavailable` (Approvals is off, or Pane isn't running), put the round as above.
 
 ## Back to the worker
 
