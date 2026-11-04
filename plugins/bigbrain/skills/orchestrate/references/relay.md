@@ -17,7 +17,10 @@ Reply   pick an option, or answer in your own words → recorded as D-n
 
 **Through the host's approvals queue.** Where the host has one, such as Pane's Approvals while it is on (its orchestrator guide, "What waits on the person", has the commands and is the source), post each Q-n there instead of in chat, exactly once, and stay free to talk:
 
-- One post per Q-n, titled with the Q-n, with the message above as its context, the options as choices (recommended first), and `files` as its links, made as a background call that returns the answer (in Pane, `runpane notify ... --json` with `--links`, run in the background; not the MCP `notify` tool, which returns `waiting`). Never block your turn on a structured question tool while it waits.
+- Only you ask the person there. Workers, whatever their profile, reach you through `needs_you`, never the queue (in Pane, a worker's `notify` isn't shown to the person). Answer what the request, the plan or an earlier decision settles, and say which; post only the rest.
+- Keep the map as your running list of what is open and read it again when you start, resume or wake. When the person asks about one thing while other work is open, answer it, then say what else is open and offer the next step.
+- At the end of a turn, have a post waiting that moves the work on, or be done and say so. Ending a turn while workers run and your event wait is armed is fine.
+- One post per Q-n, titled with the Q-n, with the message above as its context (why it needs them and what each option means), the options as choices (recommended first), and `files` as its links, made as a background call that returns the answer (in Pane, `runpane notify ... --json` with `--links`, run in the background; not the MCP `notify` tool, which returns `waiting`). Never block your turn on a structured question tool while it waits.
 - Once posted, acknowledge the worker's report the way the host says (in Pane, `runpane inbox ack <id>`).
 - When the call returns, handle its answer as below. Stop the call of a Q-n that is superseded or no longer needed, which takes it down.
 - When you start, resume or wake, reconcile your open calls against the status files and the map: post what still waits and has no open call, exactly once (Pane keeps no approvals across a restart), and stop what is stale.
