@@ -145,7 +145,7 @@ a:hover { text-decoration: underline; }
 <section class="slide" id="rules"><div class="inner"><p class="kicker">Three rules</p><h2>What carries it.</h2><p class="sub">A second way to run features with Agent Farm, next to greenfield.</p><div class="stage"><div class="statements">
 <div class="statement"><div class="badge">1</div><div><b>One front door.</b><span>You talk only to <code>bigbrain/orchestrator</code>. Questions, approvals and pages to look at all reach you through it.</span></div></div>
 <div class="statement"><div class="badge">2</div><div><b>The plan is the program.</b><span>Every approved cover sheet ships a <code>control-flow.json</code>: what to build, which flows to prove, where review happens.</span></div></div>
-<div class="statement"><div class="badge">3</div><div><b>Reviews are planned or asked for.</b><span>A reviewer runs only at a review step in the control flow, or after you say yes. Implementers never start reviewers.</span></div></div>
+<div class="statement"><div class="badge">3</div><div><b>Every PR is reviewed, sized.</b><span>Before a PR is ready, the orchestrator starts a review sized to the change. In-scope fixes loop back on their own; approach or scope questions, and a loop that goes in circles, come to you.</span></div></div>
 </div></div></div></section>
 
 <section class="slide" id="front-door"><div class="inner"><p class="kicker">The front door</p><h2>Workers never ask you directly.</h2><p class="sub">They write a status file and report. The orchestrator relays the question and sends your answer back.</p><div class="stage"><div class="map"><svg viewBox="0 0 760 500" role="img" aria-labelledby="fd-title fd-desc">
@@ -171,7 +171,7 @@ a:hover { text-decoration: underline; }
 <g>
 <rect x="36" y="232" width="108" height="56" rx="8" class="d-box"/><text x="90" y="256" text-anchor="middle" class="d-b">planner</text><text x="90" y="275" text-anchor="middle" class="d-s">only plans</text>
 <rect x="152" y="232" width="108" height="56" rx="8" class="d-box"/><text x="206" y="256" text-anchor="middle" class="d-b">designer</text><text x="206" y="275" text-anchor="middle" class="d-s">mockup options</text>
-<rect x="268" y="232" width="108" height="56" rx="8" class="d-box"/><text x="322" y="256" text-anchor="middle" class="d-b">implementer</text><text x="322" y="275" text-anchor="middle" class="d-s">the only writer</text>
+<rect x="268" y="232" width="108" height="56" rx="8" class="d-box"/><text x="322" y="256" text-anchor="middle" class="d-b">implementer</text><text x="322" y="275" text-anchor="middle" class="d-s">the one integrator</text>
 <rect x="384" y="232" width="108" height="56" rx="8" class="d-box"/><text x="438" y="256" text-anchor="middle" class="d-b">reviewer</text><text x="438" y="275" text-anchor="middle" class="d-s">no fixes</text>
 <rect x="500" y="232" width="108" height="56" rx="8" class="d-box"/><text x="554" y="256" text-anchor="middle" class="d-b">investigator</text><text x="554" y="275" text-anchor="middle" class="d-s">never fixes</text>
 <rect x="616" y="232" width="108" height="56" rx="8" class="d-box"/><text x="670" y="256" text-anchor="middle" class="d-b">teacher</text><text x="670" y="275" text-anchor="middle" class="d-s">never blocks</text>
@@ -214,11 +214,11 @@ a:hover { text-decoration: underline; }
 <li><div class="bubble"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg></div><div class="n">STEP 3</div><b>Pick</b><span>a design, if any</span></li>
 <li><div class="bubble"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div class="n">STEP 4</div><b>Approve</b><span>the cover sheet</span></li>
 <li><div class="bubble"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/></svg></div><div class="n">STEP 5</div><b>Merge</b><span>nobody does it for you</span></li>
-</ol><p class="note">Also yours: any review the plan does not list (“review now, or continue?”), and the teacher’s quiz if you take it.</p></div></div></section>
+</ol><p class="note">Also yours: review findings that would change the approach or scope, a review loop that goes in circles, any review beyond the automatic ones (“review now, or continue?”), and the teacher’s quiz if you take it.</p></div></div></section>
 
 <section class="slide" id="lifecycle"><div class="inner"><p class="kicker">One feature</p><h2>From idea to merge.</h2><p class="sub">The planner plans, you approve, the implementer runs the control flow step by step.</p><div class="stage"><div class="map"><svg viewBox="0 0 760 750" role="img" aria-labelledby="lc-title lc-desc">
 <title id="lc-title">The lifecycle of one feature</title>
-<desc id="lc-desc">You describe the work and the orchestrator starts a planner. The planner's interview is relayed to you one round at a time and your answers land in decisions.html as D-n. For interface work an optional designer offers mockup options and you pick one. You approve the cover sheet after the orchestrator runs check-bundle. The implementer then runs the control flow: build each package, verify flows, an optional checkpoint review run by the orchestrator, the QA loop for up to max_rounds, then the PR and post-mortem, and the end review. Unplanned reviews are a question to you. The orchestrator offers the teacher once, and you merge.</desc>
+<desc id="lc-desc">You describe the work and the orchestrator starts a planner. The planner's interview is relayed to you one round at a time and your answers land in decisions.html as D-n. For interface work an optional designer offers mockup options and you pick one. You approve the cover sheet after the orchestrator runs check-bundle. The implementer then runs the control flow: build each package, verify flows, an optional checkpoint review run by the orchestrator, the QA loop for up to max_rounds, then the PR and post-mortem, and the end review, sized to the change, whose in-scope fixes loop back on their own. Approach or scope findings, a thrashing fix loop and unplanned reviews are a question to you. The orchestrator offers the teacher once, and you merge.</desc>
 <defs><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-arrow"/></marker></defs>
 
 <rect x="270" y="14" width="220" height="38" rx="19" class="d-gate"/>
@@ -261,7 +261,7 @@ a:hover { text-decoration: underline; }
 <text x="265" y="409" class="d-s">orchestrator starts the implementer</text>
 
 <rect x="20" y="420" width="720" height="232" rx="14" class="d-lane"/>
-<text x="36" y="443" class="d-b">implementer runs control-flow.json · the only writer</text>
+<text x="36" y="443" class="d-b">implementer runs control-flow.json · the one integrator</text>
 <text x="726" y="443" text-anchor="end" class="d-s">Opus 5.5, Astra or Sol, medium</text>
 <g>
 <rect x="35" y="460" width="160" height="72" rx="8" class="d-box"/>
@@ -295,12 +295,12 @@ a:hover { text-decoration: underline; }
 <text x="295" y="605" text-anchor="middle" class="d-m">post-mortem.html</text>
 <rect x="395" y="562" width="160" height="72" rx="8" class="d-orch"/>
 <text x="475" y="585" text-anchor="middle" class="d-ob">end review</text>
-<text x="475" y="605" text-anchor="middle" class="d-os">scope: all · always last</text>
-<text x="475" y="622" text-anchor="middle" class="d-os">waived only on your word</text>
+<text x="475" y="605" text-anchor="middle" class="d-os">scope: all · sized · always last</text>
+<text x="475" y="622" text-anchor="middle" class="d-os">fixes loop back, then ready</text>
 <rect x="575" y="562" width="155" height="72" rx="8" class="d-gate"/>
-<text x="652" y="585" text-anchor="middle" class="d-hb">you, if unplanned</text>
-<text x="652" y="605" text-anchor="middle" class="d-hs">“review now,</text>
-<text x="652" y="622" text-anchor="middle" class="d-hs">or continue?”</text>
+<text x="652" y="585" text-anchor="middle" class="d-hb">you, only for</text>
+<text x="652" y="605" text-anchor="middle" class="d-hs">approach or scope,</text>
+<text x="652" y="622" text-anchor="middle" class="d-hs">or a thrashing loop</text>
 </g>
 <path d="M195,598 H213" class="d-line" marker-end="url(#ah2)"/>
 <path d="M375,598 H393" class="d-line" marker-end="url(#ah2)"/>
@@ -314,23 +314,24 @@ a:hover { text-decoration: underline; }
 <rect x="430" y="680" width="220" height="52" rx="10" class="d-gate"/>
 <text x="540" y="702" text-anchor="middle" class="d-hb">you merge</text>
 <text x="540" y="721" text-anchor="middle" class="d-hs">nobody merges for you</text>
-</svg></div><p class="legend"><i class="y"></i>You act<i class="o"></i>Orchestrator runs it<i class="a"></i>Runs on its own<i class="d"></i>Only when planned or needed</p><p class="note">At a review step the implementer pushes and waits; the orchestrator starts exactly one reviewer for that scope; must-fix items go back, a follow-up checks only those, then <code>continue:</code>. Checkpoints need a <code>reason_kind</code>: irreversible, schema, security or shared-contract. Details: <a href="skills/documents/references/control-flow.md">control-flow.md</a>.</p></div></div></section>
+</svg></div><p class="legend"><i class="y"></i>You act<i class="o"></i>Orchestrator runs it<i class="a"></i>Runs on its own<i class="d"></i>Only when planned or needed</p><p class="note">At a review step the implementer pushes and waits; the orchestrator sizes the change (small, standard or large) and starts exactly one reviewer for that scope; Must-Fix and in-scope Should-Fix items go back, a follow-up checks only those, then <code>continue:</code>. Findings flagged approach/scope go to you, and so does a loop where fixes keep creating new Must-Fix items. Checkpoints need a <code>reason_kind</code>: irreversible, schema, security or shared-contract. Details: <a href="skills/documents/references/control-flow.md">control-flow.md</a>.</p></div></div></section>
 
 <section class="slide" id="profiles"><div class="inner"><p class="kicker">Profiles</p><h2>Who does what.</h2><p class="sub">The first variant is the default. Every worker gets its status file and source document from the orchestrator.</p><div class="stage"><div class="tablewrap wide"><table>
 <thead><tr><th>Profile</th><th>Entry model</th><th>Helpers</th><th>Does</th></tr></thead>
 <tbody>
-<tr><td><code>orchestrator</code></td><td>Opus 5.5 medium</td><td class="m">none</td><td>Talks to you, starts workers, relays every question, runs review and design steps, keeps the workstream map</td></tr>
+<tr><td><code>orchestrator</code></td><td>Opus 5.5 medium</td><td class="m">none</td><td>Talks to you, starts workers, relays every question, reviews every PR (sized) and routes the fixes, runs design steps, keeps the workstream map</td></tr>
 <tr><td><code>planner</code><br><small>:claude / :codex</small></td><td>Opus 5.5 high / Astra high</td><td class="m">explorer, researcher, socrates</td><td>Interview (relayed), explain, brief, options, spike, then the cover sheet and <code>control-flow.json</code>. Only plans</td></tr>
 <tr><td><code>designer</code></td><td>Opus 5.5 high</td><td class="m">none</td><td>Captures screens, writes design notes, three mockup options per round (images when an image tool exists, otherwise HTML/CSS rebuilt from the product’s real components and styles), records the approved design</td></tr>
-<tr><td><code>implementer</code><br><small>:opus / :astra / :sol</small></td><td>Opus 5.5 / Astra / Sol, medium</td><td class="m">explorer, verifier</td><td>Runs the control flow: build, verify, QA loop, PR, post-mortem. The only writer on the branch</td></tr>
-<tr><td><code>reviewer</code><br><small>:codex / :claude</small></td><td>Sol high / Opus 5.5 high</td><td class="m">review-worker</td><td>At a planned step: two-vendor finders, an other-vendor checker per finding, one <code>COMMENT</code> review. No fixes</td></tr>
+<tr><td><code>implementer</code><br><small>:opus / :astra / :sol</small></td><td>Opus 5.5 / Astra / Sol, medium</td><td class="m">explorer, verifier, builder</td><td>Runs the control flow: build (with a cleanup checklist before each commit), verify, QA loop, PR, post-mortem. The one integrator: may split a build step across up to three builders, and alone edits shared files and commits</td></tr>
+<tr><td><code>reviewer</code><br><small>:codex / :claude</small></td><td>Sol high / Opus 5.5 high</td><td class="m">review-worker</td><td>At a review step, or on a PR with no bundle (PR mode): sized two-vendor finders and lanes, an other-vendor checker per finding, one <code>COMMENT</code> review. No fixes</td></tr>
 <tr><td><code>investigator</code><br><small>:claude / :codex</small></td><td>Opus 5.5 high / Sol high</td><td class="m">verifier, explorer</td><td><code>mode=report</code> reproduces a bug and writes a report; <code>mode=sweep</code> hunts an <code>area</code> for issues. Never fixes</td></tr>
 <tr><td><code>teacher</code></td><td>Opus 5.5 high</td><td class="m">explorer</td><td>Quizzes you on a feature’s PRs through the orchestrator and publishes a learning page. Never blocks merging</td></tr>
 </tbody></table></div>
-<h3>The five helpers</h3>
+<h3>The six helpers</h3>
 <div class="tiles">
 <div class="tile"><b>verifier</b><span>Drives the app: QA, mockup fidelity, jank.</span></div>
 <div class="tile"><b>explorer</b><span>One read-only codebase question.</span></div>
+<div class="tile"><b>builder</b><span>One chunk of a build step, on its own files. The only helper that edits.</span></div>
 <div class="tile"><b>researcher</b><span>One web question.</span></div>
 <div class="tile"><b>review-worker</b><span>A finder or a checker for the reviewer.</span></div>
 <div class="tile"><b>socrates</b><span>One challenge before you pick an option.</span></div>
@@ -390,7 +391,7 @@ a:hover { text-decoration: underline; }
 
 <section class="slide" id="quick-fix"><div class="inner"><p class="kicker">Quick fixes</p><h2>Only on your word.</h2><p class="sub">Ask for a simple fix, or approve one in words, and it goes straight to an implementer.</p><div class="stage"><div class="map small"><svg viewBox="0 0 760 210" role="img" aria-labelledby="qf-title qf-desc">
 <title id="qf-title">The quick-fix route</title>
-<desc id="qf-desc">You ask for a simple fix or approve one in words. The orchestrator sends a quick-fix brief straight to an implementer, which commits to the feature branch or a new branch with a draft PR labelled no-plan, verifies its own work and reports what it checked. There is no planner, cover sheet or reviewer. It never happens without your explicit word.</desc>
+<desc id="qf-desc">You ask for a simple fix or approve one in words. The orchestrator sends a quick-fix brief straight to an implementer, which commits to the feature branch or a new branch with a draft PR labelled no-plan, verifies its own work, and checks in for an automatic review sized to the fix before the PR is marked ready. There is no planner, cover sheet or control flow. It never happens without your explicit word.</desc>
 <defs><marker id="ah4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-arrow"/></marker></defs>
 <rect x="30" y="20" width="160" height="72" rx="10" class="d-gate"/>
 <text x="110" y="45" text-anchor="middle" class="d-hb">you ask for a fix</text>
@@ -418,8 +419,7 @@ a:hover { text-decoration: underline; }
 <line x1="265" y1="137" x2="355" y2="137" class="d-line"/>
 <rect x="395" y="122" width="130" height="30" rx="15" class="d-opt"/><text x="460" y="142" text-anchor="middle" class="d-s">no control flow</text>
 <line x1="415" y1="137" x2="505" y2="137" class="d-line"/>
-<rect x="545" y="122" width="110" height="30" rx="15" class="d-opt"/><text x="600" y="142" text-anchor="middle" class="d-s">no reviewer</text>
-<line x1="565" y1="137" x2="635" y2="137" class="d-line"/>
+<rect x="545" y="122" width="150" height="30" rx="15" class="d-orch"/><text x="620" y="142" text-anchor="middle" class="d-os">still reviewed, sized</text>
 </g>
 <text x="380" y="188" text-anchor="middle" class="d-hb">Never without your explicit word.</text>
 </svg></div></div></div></section>

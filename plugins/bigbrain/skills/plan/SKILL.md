@@ -36,7 +36,7 @@ All in the existing bundle, each from its `documents` template:
 - One `build` step per package, in dependency order, each followed by a `verify` step for the checks that package can prove. Name a step's skills only when they differ from the defaults.
 - One `qa` step after the last build, with `spawn: "verifier"`, listing every journey, and `qa` settings: `max_rounds` (3 unless the person chose otherwise), the approved `mockups`, `jank_checklist: true` for any UI change, the viewports and themes the design notes name.
 - A `pr` step, then the end review (`"scope": "all"`).
-- Checkpoints only as agreed with the person in the interview, each with a `reason_kind` and a one-line `reason`. "No review" only on the person's explicit word, as `"review": "none"` with its D-n.
+- Checkpoints only as agreed with the person in the interview, each with a `reason_kind` and a one-line `reason`. Never propose "no review": every PR is reviewed before it is ready, sized to the change. A waiver stays valid only on the person's explicit, unprompted word, as `"review": "none"` with its D-n.
 - A `design` step only when a design decision genuinely cannot be made before the build.
 
 Render the Control flow section on the cover sheet from the JSON (its phase diagram and the step detail), as the reference shows, and put the one-line summary at the top.
