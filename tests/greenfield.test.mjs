@@ -497,7 +497,6 @@ test('greenfield asks planners and reviewers for the worst case at production si
 });
 
 test('greenfield 0.0.42 points the orchestrator at the status page and item hub specs, saying when to read them, instead of summarising the page (D-8, D-9)',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.42$/m);
  const paragraph=(file,start)=>{const found=fs.readFileSync(path.join(root,file),'utf8').split(/\n\s*\n/).find(p=>p.startsWith(start));assert.ok(found,`${file}: ${start}`);return found.replace(/\s+/g,' ');};
  instructionsIncludeAll(COORDINATORS,['`orchestrate-sessions`\' `references/status-board.md`','its form in the `page` skill','read both before you first write it in a Session and again before any rewrite','never write it from memory or from this paragraph']);
  for(const profile of COORDINATORS){
@@ -509,4 +508,20 @@ test('greenfield 0.0.42 points the orchestrator at the status page and item hub 
  assert.doesNotMatch(board,/opens with|one card per item|Needs you \(/);
  const hub=paragraph('skills/orchestrate-sessions/SKILL.md','Every item has a front page');
  for(const rule of ['[references/item-hub.md](references/item-hub.md)','before you write the first hub in a Session, and again before any rewrite, read item-hub.md and load `page`','never write one from memory'])assert.ok(hub.includes(rule),rule);
+});
+
+test('greenfield 0.0.43 makes every ui-mockup index page a screen viewer with prev and next, and every screen link to its neighbours',()=>{
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.43$/m);
+ const skill=fs.readFileSync(path.join(root,'skills/ui-mockup/SKILL.md'),'utf8').replace(/\s+/g,' ');
+ for(const rule of ['every index page has the screen viewer','[references/mockups-index.html](references/mockups-index.html)','[references/screen-nav.html](references/screen-nav.html)','across that whole round','"n / N"','Esc or ✕ closes it','"Open alone"','a host that loads only the page\'s own folder','## Before you share a round','wrap at the ends','at phone width (390px)'])assert.ok(skill.includes(rule),rule);
+ assert.ok(fs.readFileSync(path.join(root,'skills/page/references/bundle.md'),'utf8').includes('mockups/index.html'));
+ for(const file of ['mockups-index.html','screen-nav.html']){
+  const html=fs.readFileSync(path.join(root,'skills/ui-mockup/references',file),'utf8');
+  assert.doesNotMatch(html,/(src|href)="(https?:)?\/\/|@import|<link /,`${file} fetches nothing`);
+  for(const script of html.matchAll(/<script>([\s\S]*?)<\/script>/g))new Function(script[1]);
+ }
+ const index=fs.readFileSync(path.join(root,'skills/ui-mockup/references/mockups-index.html'),'utf8');
+ for(const piece of ["'ArrowRight'","'ArrowLeft'","'Escape'",'touchend',"' / '",'mockupKey','prefers-color-scheme: dark','id="v-alone"'])assert.ok(index.includes(piece),piece);
+ const nav=fs.readFileSync(path.join(root,'skills/ui-mockup/references/screen-nav.html'),'utf8');
+ for(const piece of ['rel="prev"','rel="next"','window.self !== window.top','mockupKey'])assert.ok(nav.includes(piece),piece);
 });
