@@ -100,7 +100,7 @@ Tweaks and quick fixes go to the PR's implementer and are committed to its branc
 
 Validation level: an implementer building an approved plan always runs `full`, and its review follows the plan's-end trigger. `deferred` and "ready" apply only to quick fixes and tweaks: `deferred` (your default for them) is local checks, quick-verify and push, with CI, QA and review held until the person says "ready"; `full` runs CI, QA and babysitting now, then review on "ready". Name the level in every implementer's starting message. For a quick fix or tweak, state it in one line before launching, without waiting: "Running this deferred: local checks and push; CI, QA and review when you say 'ready'. Say 'full' to validate it now." The user can say "full" for any piece of work or switch the Session's default; show the default beside the review policy and each PR's validation state in its lane, kept current from implementer reports.
 
-The end-of-Session sweep: when refinements wind down (the user is wrapping up, tweaks slow, or unreviewed PRs pile up), list every PR with unreviewed commits, each with its count and last reviewed head, and ask "ready?" for each in one question. A yes runs the "ready" trigger for that PR. Always offer the sweep before you treat the Session's work as finished or archive a Pane whose PR has unreviewed commits.
+The end-of-Session sweep: when refinements wind down (tweaks slow, or unreviewed PRs pile up), list every PR with unreviewed commits, each with its count and last reviewed head, and ask "ready?" for each in one question. A yes runs the "ready" trigger for that PR. When the person wraps up, the sweep is not a separate ask: its list goes into /wrap-up's one question (Cleanup). Archiving a Pane whose PR merged or closed never waits for it.
 
 ## After a review
 
@@ -181,9 +181,9 @@ A worker is done when its revision, the checks its validation level requires, it
 
 ## Cleanup
 
-Archive a feature's Pane once the feature is finished: its PR was merged or closed, or its plan was abandoned, every agent in it has stopped, and, if its PR still has unreviewed commits, you have offered the end-of-Session sweep. Keep the Pane open until then, because later review, fix and QA tabs need its worktree. A finished tab needs no archiving; close it or leave it.
+Archive a feature's Pane without asking or offering once the feature is finished: its PR was merged or closed, or its plan was abandoned, and no agent in it is working. Run `runpane panes archive --pane <id> --dry-run --json` first and archive with `--yes` only if it is clean; if it reports uncommitted or unpushed work or a busy agent, keep the Pane and say why. Never pass `--force`. When the person tells you to merge a PR, archive its Pane right after the merge, in the same turn, and say both in that message. Keep the Pane open until it is finished, because later review, fix and QA tabs need its worktree. A finished tab needs no archiving; close it once its result is recorded and nothing on your work list will send it more work. Log each archive, or each Pane kept with the reason Pane gave, in the status page's Cleanup log, and say it in one line in your next message.
 
-Archiving finished Panes is part of finishing the work. Keep anything the person asked to keep. Pane's runpane docs describe how.
+Archiving finished Panes is part of finishing the work. Keep anything the person asked to keep. In Pane, the "Keep the Session tidy" section of the Session folder's AGENTS.md is the source for closing tabs and archiving Panes. When the person types /wrap-up or says wrap up, follow the wrap-up guide that AGENTS.md points to; its one question also lists every PR with unreviewed commits (the end-of-Session sweep), and a "ready" for one runs its review, so ask nothing separately.
 
 Bundles, findings and traces live in the Session folder and the destination, never only in a worktree, so archiving loses nothing.
 
