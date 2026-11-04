@@ -241,6 +241,7 @@ const unbundledMentions={
  'html-explainer -> excalidraw-pr-diagrams':'names editable diagrams as outside its scope',
  'refactor -> cold-read':'the parent runs the cold-read gate with its cold-reader child; a refactor child returns to it there',
  'principled-review -> review':"uses the review skill's context step where bundled, and otherwise reads the PR and issues itself",
+ 'research-and-product-design -> ui-mockup':'the orchestrator runs several features through it; the feature agents it launches draw the UI rounds with ui-mockup',
 };
 
 test('every Greenfield skill and agent is bundled by a profile, and every skill named in bundled text is bundled with it',()=>{
@@ -496,8 +497,7 @@ test('greenfield asks planners and reviewers for the worst case at production si
  includesAll(['skills/review/severity-examples.md'],['never states the cost for the largest team in production']);
 });
 
-test('greenfield 0.0.42 points the orchestrator at the status page and item hub specs, saying when to read them, instead of summarising the page (D-8, D-9)',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.42$/m);
+test('the orchestrator is pointed at the status page and item hub specs, saying when to read them, instead of summarising the page (D-8, D-9)',()=>{
  const paragraph=(file,start)=>{const found=fs.readFileSync(path.join(root,file),'utf8').split(/\n\s*\n/).find(p=>p.startsWith(start));assert.ok(found,`${file}: ${start}`);return found.replace(/\s+/g,' ');};
  instructionsIncludeAll(COORDINATORS,['`orchestrate-sessions`\' `references/status-board.md`','its form in the `page` skill','read both before you first write it in a Session and again before any rewrite','never write it from memory or from this paragraph']);
  for(const profile of COORDINATORS){
@@ -509,4 +509,10 @@ test('greenfield 0.0.42 points the orchestrator at the status page and item hub 
  assert.doesNotMatch(board,/opens with|one card per item|Needs you \(/);
  const hub=paragraph('skills/orchestrate-sessions/SKILL.md','Every item has a front page');
  for(const rule of ['[references/item-hub.md](references/item-hub.md)','before you write the first hub in a Session, and again before any rewrite, read item-hub.md and load `page`','never write one from memory'])assert.ok(hub.includes(rule),rule);
+});
+
+test('greenfield 0.0.43 gives the planners and orchestrators research-and-product-design, and the planner builds a packet before options and the plan',()=>{
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.43$/m);
+ for(const profile of ['planner:claude','planner:codex','orchestrator:claude','orchestrator:codex'])assert.ok(resolveProfile(root,profile).nodes.main.skills.includes('research-and-product-design'),profile);
+ for(const profile of ['planner:claude','planner:codex'])assert.ok(resolveProfile(root,profile).nodes.main.instructions.replace(/\s+/g,' ').includes('Before the options and the plan for a feature with an interface or a system-design choice, build a research packet and design rounds with `research-and-product-design`.'),profile);
 });

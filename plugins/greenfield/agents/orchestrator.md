@@ -12,6 +12,7 @@ skills:
   - session-trace
   - architecture-diagram
   - interview
+  - research-and-product-design
   - pr-understanding-check
   - prepare-pr
   - excalidraw-pr-diagrams
