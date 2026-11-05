@@ -1,6 +1,6 @@
 # Handoff and merge train
 
-When every pick's review loop has closed or waits only on the person, add two sections to the Session's status page, then tell the person once that the batch is ready, with the page's link.
+When every pick's review loop has closed or waits only on the person, write the two sections below as one handoff page in the Session artifact, following `page`. Add a Needs you entry to the Session's status page that asks the person to approve the merge order, with that page in its `files`. Then tell the person once that the batch is ready, with the handoff page's link.
 
 ## Merge order
 

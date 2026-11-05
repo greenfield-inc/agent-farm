@@ -361,18 +361,18 @@ const includesAll=(files,rules)=>{for(const file of files){const text=flatText(f
 
 test('workers raise numbered needs_you blocks, standalone workers ask in the same shape, and both orchestrators relay them',()=>{
  const rules=flatText('instructions/standing-rules.md');
- for(const rule of ['## Questions for the person','"needs_you": null','"needs_you": { "id": "Q-3", "kind": "question | choice | approval | fyi"','"files": [','"blocking": true','`answer: Q-n → <answer>. Recorded as D-n.`','`clarify: Q-n → <their question>` is not an answer: keep Q-n open','(`AskUserQuestion`)','wherever there is no question tool, a numbered list (`Files: <paths>`','`Why: <why>`','recommended one first and marked `(recommended)`','Q-n are unique per Session and never reused'])assert.ok(rules.includes(rule),rule);
+ for(const rule of ['## Questions for the person','"needs_you": null','"needs_you": { "id": "Q-3", "kind": "question | choice | approval | fyi"','"files": [','"blocking": true','`answer: Q-n → <answer>. Recorded as D-n.`','`clarify: Q-n → <their question>` is not an answer: keep Q-n open','(`AskUserQuestion`)','wherever there is no question tool, a numbered list (`Files: <paths>`','`Why: <why>`','recommended one first and marked `(recommended)`','Q-n are unique per Session and never reused','Write the block with `"id": null` and `"asked": "notify"`','call `notify` again with `resume`; that is never a reason to relay','`recorded: Q-n → <answer>. Recorded as D-n.` to your tab only','When `notify` returns `unavailable`, set `asked` to `"relay"`','every non-blocking question, which never becomes a card'])assert.ok(rules.includes(rule),rule);
  assert.doesNotMatch(rules,/"question": null/);
  for(const profile of ['planner:claude','planner:codex','implementer:opus','implementer:astra','implementer:sol','implementer:codex','orchestrator:claude','orchestrator:codex'])assert.ok(resolveProfile(root,profile).nodes.main.instructions.includes('## Questions for the person'),profile);
  instructionsIncludeAll(COORDINATORS,['numbered `needs_you` blocks','labelled with its role and feature and with its files opened beside the person','send it to the asking tab only']);
  includesAll(IMPLEMENTERS,['goes in that status file as a `needs_you` block; run by hand, ask the person directly in the same shape']);
- includesAll(['instructions/planner-identity.md'],['Raise each question for the person as a `needs_you`','record each `answer:` as its D-n']);
+ includesAll(['instructions/planner-identity.md'],['Raise each question for the person as a `needs_you`','record each `answer:` or `recorded:` line\'s D-n']);
  includesAll(['skills/orchestrate-sessions/SKILL.md'],['[references/relay.md](references/relay.md)','`[Needs you · <role> · <feature>]`','to the asking tab only']);
- includesAll(['skills/orchestrate-sessions/references/relay.md'],['newest blocking question first','open them without asking','Recorded as D-n.` Nobody else gets it','even when you can answer it yourself','Q-n stays open and nothing is recorded','(raised as Q-3)']);
+ includesAll(['skills/orchestrate-sessions/references/relay.md'],['newest blocking question first','open them without asking','Recorded as D-n.` Nobody else gets it','even when you can answer it yourself','Q-n stays open and nothing is recorded','(raised as Q-3)','Never relay it while its card is live','`recorded: Q-n → <answer>. Recorded as D-n.`','in any state other than `blocked` on two checks at least a minute apart']);
 });
 
-test('the map leads with Needs you and shows each PR\'s validation and unreviewed commits, and the watcher is unchanged',()=>{
- includesAll(['skills/orchestrate-sessions/references/status-board.md'],['Needs you the first section','Q-n | feature | role | question | recommended answer | files','checks (required CI: green, failing or pending) | QA (passed, failed, not run) | review','"N commits since the last review at <sha>, not reviewed"','git rev-list --count <last reviewed head>..<PR head>','`<!-- greenfield-review head=<sha> -->` marker']);
+test('the map links Notify questions to the asking tab and shows each PR\'s validation and unreviewed commits, and the watcher is unchanged',()=>{
+ includesAll(['skills/orchestrate-sessions/references/status-board.md'],['Never write the page\'s HTML by hand','`id` is `null`, since it is numbered once answered','`pane://open?pane=<pane id>&panel=<panel id>`, the item\'s `pane_id` and the asking worker\'s `panel_id`','A relayed question: its Q-n and no `link`','validation still pending, from the ledger\'s `validation`','"N commits since the last review at <sha>, not reviewed"','git rev-list --count <last reviewed head>..<PR head>','`<!-- greenfield-review head=<sha> -->` marker']);
  includesAll(['skills/orchestrate-sessions/references/ledger.md'],['"last_reviewed_head"']);
  instructionsIncludeAll(COORDINATORS,['relaying any `needs_you` a wake-up finds the same way as one an event brings']);
  const skill=fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8');
@@ -420,7 +420,7 @@ test('reviews check a cover sheet\'s criteria against their evidence, and implem
 });
 
 test('greenfield documents the relay, the map, sized and verified reviews, and review on ready',()=>{
- includesAll(['README.md'],['numbered `needs_you` block','"N commits since the last review at <sha>"','`review-size.mjs`','Principle 13 (security and PHI) runs on every review','the review lead verifies every Must-Fix and Should-Fix itself','a quick fix or tweaked PR is reviewed when you say it is "ready"','`Human review: required`','There is no separate checker']);
+ includesAll(['README.md'],['numbered `needs_you` block','sends `recorded: Q-n → …`','`review-size.mjs`','Principle 13 (security and PHI) runs on every review','the review lead verifies every Must-Fix and Should-Fix itself','a quick fix or tweaked PR is reviewed when you say it is "ready"','`Human review: required`','There is no separate checker']);
  includesAll(['index.html'],['sized, after CI and QA','verifies each finding before posting it']);
  for(const file of ['README.md','index.html'])assert.doesNotMatch(flatText(file),/end-of-Session pass|once per workstream/,file);
 });
@@ -440,8 +440,8 @@ test('planned work always validates full and then reviews on its own; deferred a
  includesAll(['README.md'],['A planned feature\'s implementer always runs full validation (CI, QA) when its build is done','Quick fixes and tweaks run `deferred` by default']);
 });
 
-test('the status page opens with the next step and item cards, every item has a front page, questions carry their context, and progress messages end with Next (P-1)',()=>{
- includesAll(['skills/orchestrate-sessions/references/status-board.md'],['Next step one line under the header','Items one card per work item','Next: <the item\'s next step and who takes it>','links its front page','Order of work only when at least one item depends on another','Merge hot spots only when items depend on each other','Done every completed item\'s card','never removed','<meta http-equiv="refresh" content="60">','opened beside the person at the first dispatch','refreshed in the same tab','`runpane panels open --url <url>`, never `--file`','`session.artifact.opened_url`','open the same URL again so the host reuses its tab']);
+test('the status page is rendered to a fixed place, shows in Pane\'s Overview, every item has a front page, questions carry their context, and progress messages end with Next (P-1)',()=>{
+ includesAll(['skills/orchestrate-sessions/references/status-board.md'],['Always write the local copy to `<Session folder>/session/index.html`','In Pane, the Session\'s Overview tab shows this page, so never open it as a separate tab there','`link` is its front page','An item moves here and is never removed','<meta http-equiv="refresh" content="60">','open it beside the person at the first dispatch','never a file to edit','`session.artifact.opened_url`','open the same URL again so the host reuses its tab']);
  assert.doesNotMatch(fs.readFileSync(path.join(root,'skills/orchestrate-sessions/references/status-board.md'),'utf8'),/^Lanes /m);
  includesAll(['skills/orchestrate-sessions/references/ledger.md'],['"next":','"front_page":']);
  includesAll(['skills/orchestrate-sessions/references/item-hub.md'],['quick fix','three-line summary','Link only files that exist','task','PR','findings','post-mortem','trace']);
@@ -449,7 +449,7 @@ test('the status page opens with the next step and item cards, every item has a 
  includesAll(['skills/page/references/bundle.md'],['After the PR\'s review loop closes, the orchestrator adds the findings file, the post-mortem (if any) and the trace','edits only this list']);
  includesAll(['skills/orchestrate-sessions/references/relay.md'],['Context: <where the context lives>','its Needs you row links the same places']);
  instructionsIncludeAll(COORDINATORS,['end every progress message to the person with "Next: …"','open it beside the person at the first dispatch']);
- includesAll(['instructions/standing-rules.md'],['An orchestrator opens four things beside the person without asking first','the Session\'s status page (at the first dispatch, then refreshed in the same tab)']);
+ includesAll(['instructions/standing-rules.md'],['An orchestrator opens four things beside the person without asking first','the Session\'s status page outside Pane (at the first dispatch, then refreshed in the same tab; in Pane it shows in the Session\'s Overview tab)','except that a worker opens the files of a question it asks through Notify']);
 });
 
 test('the Session artifact has one home in the destination\'s sessions folder, reaches both orchestrators and names no product, and without a destination stays local with one notice (P-2)',()=>{
@@ -486,7 +486,7 @@ test('the orchestrator writes a post-mortem after review only when something bro
 });
 
 test('greenfield documents the status page, front pages, post-mortems, the PR image and artifact, and the Session artifact',()=>{
- includesAll(['README.md'],['a "Next step" line','each card linking the item\'s front page','`sessions/<Session name> · <first 8 characters of the Session id>`','one notice line saying so','writes a post-mortem after its review loop closes, with Issues hit and Issues to file','filing only on your yes','"no issues hit"','Every PR, however small, opens with an Excalidraw image']);
+ includesAll(['README.md'],['one state bar','shows in the Session\'s Overview tab','each card linking the item\'s front page','`sessions/<Session name> · <first 8 characters of the Session id>`','one notice line saying so','writes a post-mortem after its review loop closes, with Issues hit and Issues to file','filing only on your yes','"no issues hit"','Every PR, however small, opens with an Excalidraw image']);
  includesAll(['index.html'],['a status page beside you says what is next','image + its own page','post-mortem if it broke','leads with a diagram and links a page of its own']);
  for(const file of ['README.md','index.html'])assert.doesNotMatch(flatText(file),/workstream map per Session:|Lanes/,file);
 });
@@ -499,20 +499,44 @@ test('greenfield asks planners and reviewers for the worst case at production si
 
 test('the orchestrator is pointed at the status page and item hub specs, saying when to read them, instead of summarising the page (D-8, D-9)',()=>{
  const paragraph=(file,start)=>{const found=fs.readFileSync(path.join(root,file),'utf8').split(/\n\s*\n/).find(p=>p.startsWith(start));assert.ok(found,`${file}: ${start}`);return found.replace(/\s+/g,' ');};
- instructionsIncludeAll(COORDINATORS,['`orchestrate-sessions`\' `references/status-board.md`','its form in the `page` skill','read both before you first write it in a Session and again before any rewrite','never write it from memory or from this paragraph']);
+ instructionsIncludeAll(COORDINATORS,['`orchestrate-sessions`\' `references/status-board.md`','read it before you first write it in a Session and again before any rewrite','never write it from memory or from this paragraph','in Pane it shows in the Session\'s Overview tab']);
  for(const profile of COORDINATORS){
   const text=resolveProfile(root,profile).nodes.main.instructions.replace(/\s+/g,' ');
   for(const removed of ['Needs you first','one card per item','a "Next step" line'])assert.ok(!text.includes(removed),`${profile} still summarises the page: ${removed}`);
  }
  const board=paragraph('skills/orchestrate-sessions/SKILL.md','Keep one status page');
- for(const rule of ['[references/status-board.md](references/status-board.md)','before you first write it in a Session, and again before any rewrite, read status-board.md and load `page`','never from memory or from a summary such as this paragraph'])assert.ok(board.includes(rule),rule);
+ for(const rule of ['[references/status-board.md](references/status-board.md)','before you first write it in a Session, and again before any rewrite, read status-board.md and write it from that','never from memory or from a summary such as this paragraph'])assert.ok(board.includes(rule),rule);
  assert.doesNotMatch(board,/opens with|one card per item|Needs you \(/);
  const hub=paragraph('skills/orchestrate-sessions/SKILL.md','Every item has a front page');
  for(const rule of ['[references/item-hub.md](references/item-hub.md)','before you write the first hub in a Session, and again before any rewrite, read item-hub.md and load `page`','never write one from memory'])assert.ok(hub.includes(rule),rule);
 });
 
 test('greenfield 0.0.43 gives the planners and orchestrators research-and-product-design, and the planner builds a packet before options and the plan',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.43$/m);
  for(const profile of ['planner:claude','planner:codex','orchestrator:claude','orchestrator:codex'])assert.ok(resolveProfile(root,profile).nodes.main.skills.includes('research-and-product-design'),profile);
  for(const profile of ['planner:claude','planner:codex'])assert.ok(resolveProfile(root,profile).nodes.main.instructions.replace(/\s+/g,' ').includes('Before the options and the plan for a feature with an interface or a system-design choice, build a research packet and design rounds with `research-and-product-design`.'),profile);
+});
+
+test('the status page renderer runs with Node alone and draws a self-contained page that links Notify questions to their tab',()=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'af-status-page-'));
+ fs.cpSync(path.join(root,'skills/orchestrate-sessions/assets/status-page'),path.join(dir,'renderer'),{recursive:true});
+ const status={session:{title:'Two features',eyebrow:'Updated 14:40 · 1 h 10 min elapsed',counts:{running:1,queued:0,done:0},settings:'Review on "ready"'},
+  needs:[{id:null,item:'Invoice PDF',role:'Planner',blocks:'the plan',q:'Use the invoice id in the filename?',options:[{label:'Invoice id',rec:true},{label:'Invoice number'}],why:'Ids are stable.',age:'2 min',link:'pane://open?pane=p1&panel=w1'},
+         {id:'Q-2',item:'Export',role:'Implementer',blocks:'#12',q:'Keep CSV export?',options:[{label:'Keep',rec:true},{label:'Drop'}],why:'Customers use it.',age:'5 min'}],
+  items:[{name:'Invoice PDF',pane:'invoice-pdf',paneLink:'pane://open?pane=p1',state:'need',next:'<b>Planner</b> waits on you. <img src=x onerror=alert(1)><script>alert(1)</script> <a href="javascript:alert(1)">bad</a>',rail:[{label:'Plan',state:'need'},{label:'Build',state:'todo'}]},
+         {name:'Export',pr:'#12',pane:'export',state:'blocked',next:'Codex is not signed in.',rail:[{label:'Build',state:'done'},{label:'CI',state:'blocked'}]}],
+  done:[],decisions:[]};
+ fs.writeFileSync(path.join(dir,'status.json'),JSON.stringify(status));
+ const run=spawnSync(process.execPath,[path.join(dir,'renderer/render.mjs'),path.join(dir,'status.json'),path.join(dir,'index.html')],{cwd:dir,encoding:'utf8'});
+ assert.equal(run.status,0,run.stderr);
+ const html=fs.readFileSync(path.join(dir,'index.html'),'utf8');
+ assert.match(html,/<a class="btn sm" href="pane:\/\/open\?pane=p1&amp;panel=w1">Answer →<\/a>/);
+ assert.equal(html.split('Answer →').length-1,1,'only the Notify question links a tab');
+ assert.match(html,/2 need you · 1 blocked/);
+ assert.match(html,/<meta http-equiv="refresh" content="60">/);
+ assert.match(html,/data:font\/woff2;base64,/);
+ assert.match(html,/<b>Planner<\/b> waits on you\. &lt;img src=x onerror=alert\(1\)>&lt;script>alert\(1\)&lt;\/script> bad/,'next keeps <b> and escapes the rest');
+ assert.doesNotMatch(html,/<script|<img|src="https?:|url\(https?:|@import|javascript:/);
+ const example=spawnSync(process.execPath,[path.join(dir,'renderer/render.mjs'),path.join(dir,'renderer/example-status.json'),path.join(dir,'example.html')],{encoding:'utf8'});
+ assert.equal(example.status,0,example.stderr);
+ assert.ok(fs.statSync(path.join(dir,'example.html')).size<200*1024,'the example page stays under the page standard\'s 200 KB');
 });

@@ -14,7 +14,7 @@ Prefer the lowest rung that solves the problem, and state a reason for every run
 
 Go ahead without asking: reading and searching, local tests, lint, type-checks, builds, a local dev server, commits and pushes to your own branch, opening a draft pull request.
 
-Close every browser, simulator, preview server and window you open once you're done; browser-driving QA and tests are welcome. To show the person a page, folder or file, share its path or link and open it for them after they say yes. Headless runs and workers under an orchestrator share links only. An orchestrator opens four things beside the person without asking first, because each belongs to something they are watching or about to decide: the Session's status page (at the first dispatch, then refreshed in the same tab), the files of a question it relays, a PR waiting on their human review, and the screenshots of a visual tweak.
+Close every browser, simulator, preview server and window you open once you're done; browser-driving QA and tests are welcome. To show the person a page, folder or file, share its path or link and open it for them after they say yes. Headless runs and workers under an orchestrator share links only, except that a worker opens the files of a question it asks through Notify. An orchestrator opens four things beside the person without asking first, because each belongs to something they are watching or about to decide: the Session's status page outside Pane (at the first dispatch, then refreshed in the same tab; in Pane it shows in the Session's Overview tab), the files of a question it relays, a PR waiting on their human review, and the screenshots of a visual tweak.
 
 Ask first: migrations, anything that touches production, deleting data or other people's branches, force-pushing a shared branch, changing anything public, spending money, sending messages on someone's behalf, merging a pull request. Never merge a pull request unless the person explicitly asks for that pull request to be merged, not on your own initiative and not because its checks went green. Before merging, tell them its state in one line (draft, CI, review). Never push to a default branch.
 
@@ -54,18 +54,23 @@ When there is a `parent`, keep that JSON file current: at start, at each step, w
 
 A worker that needs a decision, an approval or a fact only the person has asks in one shape, wherever it runs. Routine technical choices stay with the worker; ask only what the plan or the request leaves open.
 
-- **Under an orchestrator** (there is a `parent` status file): write a `needs_you` block to it and report. Set `blocked` when the answer blocks you, and keep working on anything it does not block. The orchestrator relays it and sends the answer to your tab only, as `answer: Q-n → <answer>. Recorded as D-n.` Record it where your skill says (the bundle's decision log, or cite the D-n), clear `needs_you`, set `running` and continue. `clarify: Q-n → <their question>` is not an answer: keep Q-n open, record nothing, add the clarification to `why`, and report the same block again. Never treat silence as an answer; a long wait is normal.
+- **Under an orchestrator** (there is a `parent` status file): write a `needs_you` block to it and report. Set `blocked` when the answer blocks you, and keep working on anything it does not block. Never treat silence as an answer; a long wait is normal.
+  - **Inside Pane, a blocking question goes through Notify.** Write the block with `"id": null` and `"asked": "notify"` and report. Open its files beside the person. Ask each question as its own `options` card (an `approve` card for a plan approval), with the recommended option first, the why in its context, and a title in Notify's usual wording, with no Q-n. When a call returns `waiting`, call `notify` again with `resume`; that is never a reason to relay. Write each result into `needs_you.answers`, set `running`, report and continue: the block counts as answered from then on. The orchestrator then numbers it and sends `recorded: Q-n → <answer>. Recorded as D-n.` to your tab only (one answer and D-n per question); record that D-n where your skill says (the bundle's decision log, or cite the D-n) and clear `needs_you`. When `notify` returns `unavailable`, set `asked` to `"relay"`, report, and the relay below applies.
+  - **Otherwise the orchestrator relays it** (`"asked": "relay"`): outside Pane, with Notify off, and for every non-blocking question, which never becomes a card. The orchestrator sends the answer to your tab only, as `answer: Q-n → <answer>. Recorded as D-n.` Record it where your skill says, clear `needs_you`, set `running` and continue. `clarify: Q-n → <their question>` is not an answer: keep Q-n open, record nothing, add the clarification to `why`, and report the same block again.
 - **Standalone** (no orchestrator): ask the person directly in the same shape: the files to look at first (opened or linked), then each question with its options, the recommended one first, and its why. On Claude, use the harness question tool (`AskUserQuestion`), with the why in the question or the option descriptions; on Codex, or wherever there is no question tool, a numbered list (`Files: <paths>`, then `1. <question>? (<header>)`, `a. <option> (recommended): <consequence>`, `Why: <why>`), answered as "1a". Record the answer in the work's decision log when it has one.
 
 ```json
 "needs_you": { "id": "Q-3", "kind": "question | choice | approval | fyi", "title": "Invoice filename",
+  "asked": "relay | notify",
   "questions": [ { "q": "Use the invoice id or number in the PDF filename?",
                    "why": "Ids are stable; numbers can be reissued",
                    "options": ["Invoice id (recommended)", "Invoice number"] } ],
-  "files": ["/abs/bundle/options.html#decision-2"], "blocking": true }
+  "files": ["/abs/bundle/options.html#decision-2"], "blocking": true, "answers": [] }
 ```
 
-- `id`: the next Q-n not used in the work's decision log or the status files beside yours. Q-n are unique per Session and never reused; when yours clashes, the orchestrator relays it under the next free one and answers `answer: Q-9 (raised as Q-3) → …`.
+- `id`: the next Q-n not used in the work's decision log or the status files beside yours, or `null` when `asked` is `notify`. Q-n are unique per Session and never reused; when yours clashes, the orchestrator relays it under the next free one and answers `answer: Q-9 (raised as Q-3) → …`.
+- `asked`: `notify` when you ask through Notify yourself, `relay` when the orchestrator relays it.
+- `answers`: one entry per question, in order, each the result Notify returned; `[]` until answered, and always `[]` for a relayed question.
 - `kind`: `question` (an open product or design question), `choice` (pick an option on a page), `approval` (approve a page or plan), or `fyi` (no answer needed, never blocking).
 - `questions`: one round of 1 to 4, most consequential first. Each option is short, the recommended one first and marked `(recommended)`; reasons go in `why`.
 - `files`: absolute paths or links, with `#anchor` when useful, that the person should see while answering.
