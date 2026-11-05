@@ -301,29 +301,29 @@
   {
    "label": "PR #1014",
    "link": "https://github.com/example/app/pull/1014",
-   "group": "#1014 env vars"
+   "group": "app #1014"
   },
   {
    "label": "PR #1014 walkthrough",
    "link": "https://example.com/pr-1014",
    "note": "the PR's own artifact",
-   "group": "#1014 env vars"
+   "group": "app #1014"
   },
   {
    "label": "Review on #1241",
    "link": "https://github.com/example/app/pull/1241#pullrequestreview-1",
    "note": "follow-up pending",
-   "group": "#1241 review fixes"
+   "group": "app #1241"
   },
   {
    "label": "Watcher retry backoff Pane",
    "link": "pane://open?pane=pane-1243",
-   "group": "#1243 watcher backoff"
+   "group": "app #1243"
   },
   {
    "label": "Keychain API reference",
    "link": "https://developer.apple.com/documentation/security/keychain_services",
-   "group": "#1014 env vars"
+   "group": "app #1014"
   },
   {
    "label": "Status page with every state",
