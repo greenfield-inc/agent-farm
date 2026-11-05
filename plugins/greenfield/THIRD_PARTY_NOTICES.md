@@ -33,3 +33,10 @@ The `audits`, `business`, `implementer`, `product-researcher`, `qa-and-fix`, `re
 ## ui-polish
 
 `skills/ui-polish/` adapts rules and some wording from MIT and Apache-2.0 projects. Its notices and the full Apache License travel with the skill, in `skills/ui-polish/NOTICE.md` and `skills/ui-polish/LICENSE-APACHE-2.0.txt`.
+
+## orchestrate-sessions status page
+
+`skills/orchestrate-sessions/assets/status-page/` carries two unchanged third-party files, each with its license beside it:
+
+- `rough.mjs` is `bundled/rough.esm.js` from [roughjs](https://github.com/rough-stuff/rough) 4.6.6, MIT License (`LICENSE-roughjs.txt`).
+- `inter-latin-wght-normal.woff2` is the Latin variable-weight subset of [Inter](https://github.com/rsms/inter) from `@fontsource-variable/inter` 5.2.8, SIL Open Font License 1.1 (`OFL-inter.txt`).

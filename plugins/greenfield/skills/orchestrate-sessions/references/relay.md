@@ -2,6 +2,15 @@
 
 How a worker's `needs_you` (standing rules, Questions for the person) reaches the person, and how the answer goes back. One round at a time, newest blocking question first; batch `fyi` blocks into the map instead.
 
+## Asked through Notify
+
+A block with `"asked": "notify"` already reached the person as the worker's own Notify cards. Never relay it while its card is live. Its Needs you row on the status page links the asking tab instead (status-board.md).
+
+- **Answered** (`answers` is not empty): assign the next free Q-n and D-n, record the D-n as for an answer below, and send `recorded: Q-n → <answer>. Recorded as D-n.` to the asking tab only. On the next rewrite its row moves to Decisions.
+- **The card is gone** (a crash, an interrupt or a restart): when `answers` is empty and `runpane sessions overview` shows the worker's agent in any state other than `blocked`, relay the block as below.
+
+Every other block, `"asked": "relay"` or with no `asked`, is relayed.
+
 ## To the person
 
 Open every file in `files` beside the person first, with the host's show-file or show-page mechanism; they belong to the question, so open them without asking. Where the host has none, link them. When `files` is empty, find where the question's context lives (a page and anchor, a PR comment, a file and line, a decision) and add a `Context: <where the context lives>` line to the round instead. The question's Needs you row on the status page links the same places. Then put the round:
