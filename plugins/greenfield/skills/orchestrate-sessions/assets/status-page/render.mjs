@@ -17,7 +17,7 @@ const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').re
 const SAFE_HREF = /^(https?:|file:|pane:|#|\.{0,2}\/|[\w.-]+(\/|\.html|$))/i;
 const rich = s => esc(s)
   .replace(/&lt;(\/?)(b|code)>/g, '<$1$2>')
-  .replace(/&lt;a href=&quot;([^"&<>]*(?:&amp;[^"&<>]*)*)&quot;>(.*?)&lt;\/a>/g, (m, href, text) => SAFE_HREF.test(href.replace(/&amp;/g, '&')) ? `<a href="${href}">${text}</a>` : text);
+  .replace(/&lt;a href=&quot;([^"&<>]*(?:&amp;[^"&<>]*)*)&quot;>(.*?)&lt;\/a>/g, (m, url, text) => SAFE_HREF.test(url.replace(/&amp;/g, '&')) ? `<a href="${url}">${text}</a>` : text);
 
 // ---------- diagrams ----------
 const COLOR = { retried: 'var(--bad)', done: 'var(--ok)', now: 'var(--run)', need: 'var(--warn)', blocked: 'var(--bad)', failed: 'var(--bad)', todo: 'var(--todo)', skipped: 'var(--todo)' };
@@ -131,8 +131,8 @@ const refRow = r => `<div class="rr"><a href="${href(r.link)}">${esc(r.label)}</
 const refSec = (title, list) => {
   if (!list.length) return '';
   const groups = new Map();
-  for (const r of list) { const g = r.group || 'Other'; if (!groups.has(g)) groups.set(g, []); groups.get(g).push(r); }
-  return sec(title, list.length, `<div class="refs">${[...groups].map(([g, rs]) => `<div class="rg"><div class="rgh">${esc(g)}<span class="rgn">${rs.length}</span></div>${rs.map(refRow).join('')}</div>`).join('')}</div>`);
+  for (const r of list) { const name = r.group || 'Other'; if (!groups.has(name)) groups.set(name, []); groups.get(name).push(r); }
+  return sec(title, list.length, `<div class="refs">${[...groups].map(([name, rs]) => `<div class="rg"><div class="rgh">${esc(name)} <span class="rgn">${rs.length}</span></div>${rs.map(refRow).join('')}</div>`).join('')}</div>`);
 };
 
 const itemCard = it => `<div class="card item ${it.state}">
@@ -221,7 +221,7 @@ details{margin-top:14px;font-size:12px;color:var(--muted)}summary{cursor:pointer
 .dmeta{font-size:11px;color:var(--muted);margin-top:6px}
 .refs{display:grid;grid-template-columns:minmax(0,1fr);background:var(--paper);border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .rg{border-top:1px solid var(--line)}.rg:first-child{border-top:0}
-.rgh{padding:8px 14px 2px;overflow-wrap:anywhere;font-size:10.5px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.rgn{margin-left:6px;font-weight:500;opacity:.7}
+.rgh{padding:8px 14px 2px;overflow-wrap:anywhere;font-size:10.5px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.rgn{margin-left:2px;font-weight:500;opacity:.7}
 .rr{display:flex;gap:8px;align-items:baseline;padding:3px 14px 3px 24px;font-size:12.5px;min-width:0}.rg .rr:last-child{padding-bottom:9px}
 .rr a{overflow-wrap:anywhere}.rr .dt{color:var(--muted);flex:1;min-width:0;overflow-wrap:anywhere}
 .needs{background:var(--paper);border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:8px;overflow:hidden}

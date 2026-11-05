@@ -277,7 +277,7 @@
   },
   {
    "label": "Planner brief",
-   "link": "file:///path/to/session/plans/env-vars-brief.md",
+   "link": "plans/env-vars-brief.md",
    "group": "Plan and decisions"
   },
   {
@@ -287,7 +287,7 @@
   },
   {
    "label": "Review findings #1241",
-   "link": "file:///path/to/session/work/findings-pr1241.md",
+   "link": "work/findings-pr1241.md",
    "note": "F-5 waits on you",
    "group": "Reviews"
   },

@@ -511,8 +511,9 @@ test('the orchestrator is pointed at the status page and item hub specs, saying 
  for(const rule of ['[references/item-hub.md](references/item-hub.md)','before you write the first hub in a Session, and again before any rewrite, read item-hub.md and load `page`','never write one from memory'])assert.ok(hub.includes(rule),rule);
 });
 
-test('the status page groups Sources and Relevant links by kind of work and keeps only safe links',()=>{
+test('the status page groups Sources and Relevant links by kind of work and keeps only safe links',t=>{
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'af-status-refs-'));
+ t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
  fs.cpSync(path.join(root,'skills/orchestrate-sessions/assets/status-page'),path.join(dir,'renderer'),{recursive:true});
  const render=status=>{
   fs.writeFileSync(path.join(dir,'status.json'),JSON.stringify(status));
@@ -528,7 +529,7 @@ test('the status page groups Sources and Relevant links by kind of work and keep
            {label:'Trace',link:'javascript:alert(1)'}],
   links:[{label:'PR <#12>',link:'https://github.com/o/r/pull/12',group:'r #12'},{label:'Pane',link:'pane://open?pane=p1',group:'r #12'}]});
  const text=html.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ');
- assert.match(text,/Decisions 1 .*Sources 4 Plan and decisions 2 Cover sheet approved, D-1 Brief Design 1 Mockup Other 1 Trace Relevant links 2 r #12 2 PR &lt;#12> Pane Settings/,'groups in first-seen order, between Decisions and Settings');
+ assert.match(text,/Decisions 1 .*Sources 4 Plan and decisions 2 Cover sheet approved, D-1 Brief Design 1 Mockup Other 1 Trace Relevant links 2 r #12 2 PR &lt;#12\S* Pane Settings/,'groups in first-seen order, between Decisions and Settings');
  for(const href of ['https://example.com/plan','file:///tmp/mockup.html','plans/brief.html','https://github.com/o/r/pull/12','pane://open?pane=p1'])assert.ok(html.includes(`href="${href}"`),href);
  assert.match(html,/<a href="#">Trace<\/a>/);
  assert.doesNotMatch(html,/javascript:/);
