@@ -10,7 +10,7 @@ import rough from './rough.mjs';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const [inPath, outPath] = process.argv.slice(2);
 if (!inPath || !outPath) { console.error('usage: node render.mjs <status.json> <out.html>'); process.exit(2); }
-const d = { needs: [], items: [], done: [], decisions: [], ...JSON.parse(fs.readFileSync(inPath, 'utf8')) };
+const d = { needs: [], items: [], done: [], decisions: [], sources: [], links: [], ...JSON.parse(fs.readFileSync(inPath, 'utf8')) };
 const g = rough.generator();
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 // `next` and `settings` may carry <b>, <code> and <a href> links; everything else in them is escaped.
@@ -125,6 +125,16 @@ const needCard = q => `<details class="need"><summary><span class="qid">${esc(q.
   ${q.why ? `<div class="why">${esc(q.why)}${q.files ? ` <a href="${esc(q.files)}">Options page</a>` : ''}</div>` : ''}</div></details>`;
 const sec = (title, n, body) => `<details class="sec" open><summary><h2>${title}${n != null ? ` <span class="n">${n}</span>` : ''}</h2></summary>${body}</details>`;
 
+// Sources and links: rows grouped under a small heading per `group`, in first-seen order.
+const href = u => SAFE_HREF.test(String(u || '')) ? esc(u) : '#';
+const refRow = r => `<div class="rr"><a href="${href(r.link)}">${esc(r.label)}</a>${r.note ? ` <span class="dt">${esc(r.note)}</span>` : ''}</div>`;
+const refSec = (title, list) => {
+  if (!list.length) return '';
+  const groups = new Map();
+  for (const r of list) { const g = r.group || 'Other'; if (!groups.has(g)) groups.set(g, []); groups.get(g).push(r); }
+  return sec(title, list.length, `<div class="refs">${[...groups].map(([g, rs]) => `<div class="rg"><div class="rgh">${esc(g)}<span class="rgn">${rs.length}</span></div>${rs.map(refRow).join('')}</div>`).join('')}</div>`);
+};
+
 const itemCard = it => `<div class="card item ${it.state}">
   <div class="hd"><a class="name" href="${esc(it.link || '#')}">${esc(it.name)}</a><span class="where">${it.pr ? `<a href="${esc(it.prLink || '#')}">${esc(it.pr)}</a> · ` : ''}${it.paneLink ? `<a href="${esc(it.paneLink)}">open ↗</a>` : esc(it.pane)}</span></div>
   ${it.rail?.length ? diagram({ steps: it.rail }, 'rail', 'bare') : ''}
@@ -209,6 +219,11 @@ details{margin-top:14px;font-size:12px;color:var(--muted)}summary{cursor:pointer
 .dq{font-weight:600;margin-bottom:6px}
 .choice.picked{border-color:var(--ok);color:var(--ok);background:var(--ok-wash);font-weight:600}
 .dmeta{font-size:11px;color:var(--muted);margin-top:6px}
+.refs{display:grid;background:var(--paper);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.rg{border-top:1px solid var(--line)}.rg:first-child{border-top:0}
+.rgh{padding:8px 14px 2px;font-size:10.5px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.rgn{margin-left:6px;font-weight:500;opacity:.7}
+.rr{display:flex;gap:8px;align-items:baseline;padding:3px 14px 3px 24px;font-size:12.5px;min-width:0}.rg .rr:last-child{padding-bottom:9px}
+.rr a{overflow-wrap:anywhere}.rr .dt{color:var(--muted);flex:1;min-width:0}
 .needs{background:var(--paper);border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:8px;overflow:hidden}
 .need{border-top:1px solid var(--line)}.need:first-child{border-top:0}
 .need summary{list-style:none;cursor:pointer;padding:7px 12px 7px 12px;display:flex;gap:10px;align-items:center}
@@ -240,6 +255,8 @@ ${d.decisions.length ? sec('Decisions', d.decisions.length, `<div class="decs">$
   ${x.options ? `<div class="choices">${x.options.map(o => `<span class="choice${o === x.chosen ? ' picked' : ''}">${o === x.chosen ? '✓ ' : ''}${esc(o)}</span>`).join('')}</div>` : ''}
   ${x.note ? `<div class="why">${esc(x.note)}</div>` : ''}
   <div class="dmeta">${esc([x.by && `Answered by ${x.by}`, x.when, x.ref].filter(Boolean).join(' · '))}</div></div></details>`).join('')}</div>`) : ''}
+${refSec('Sources', d.sources)}
+${refSec('Relevant links', d.links)}
 ${sec('Settings', null, `<p class="tn">${rich(d.session.settings)}</p>`).replace(' open>', '>')}
 </div></body></html>
 `;
