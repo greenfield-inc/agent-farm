@@ -13,7 +13,7 @@ node <this skill's directory>/assets/status-page/render.mjs <Session folder>/.ag
 - In Pane, the Session's Overview tab shows this page, so never open it as a separate tab there.
 - Outside Pane, open it beside the person at the first dispatch with the host's show-page mechanism, without asking. Open its URL (the published URL, or a `file://` URL for the local copy), never a file to edit. Record that URL in the ledger's `session.artifact.opened_url`, and after each rewrite open the same URL again so the host reuses its tab.
 - The page carries `<meta http-equiv="refresh" content="60">`, so an open copy reloads itself every minute.
-- The page is self-contained: no script, no network, diagrams drawn at render time, and Inter embedded as a font subset, the one exception to `page`'s system fonts. A Session with a handful of items renders at 90 to 160 KB; each item in flight adds about 10 KB, so keep finished items in `done` and stay under `page`'s 200 KB.
+- The page is self-contained: no script, no network, diagrams drawn at render time, and Inter embedded as a font subset, the one exception to `page`'s system fonts. One item in flight renders at about 90 KB and each further one adds about 12 KB, so the page passes `page`'s 200 KB at about 10 items in flight. Keep finished items in `done`, where each takes one line.
 - The renderer needs only Node: rough.js and the font are vendored beside it, with their licenses. `assets/status-page/example-status.json` is a filled example showing every state.
 
 ## The status JSON
