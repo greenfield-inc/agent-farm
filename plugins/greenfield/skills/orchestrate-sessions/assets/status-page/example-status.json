@@ -261,5 +261,74 @@
    "when": "13:10",
    "ref": "Planner cover sheet"
   }
+ ],
+ "sources": [
+  {
+   "label": "Cover sheet (plan rev 2)",
+   "link": "per-project-env-vars/plan.html",
+   "note": "approved, D-10",
+   "group": "Plan and decisions"
+  },
+  {
+   "label": "Options page",
+   "link": "per-project-env-vars/options.html",
+   "note": "keychain vs env file",
+   "group": "Plan and decisions"
+  },
+  {
+   "label": "Planner brief",
+   "link": "plans/env-vars-brief.md",
+   "group": "Plan and decisions"
+  },
+  {
+   "label": "Approved settings screen mockup",
+   "link": "per-project-env-vars/mockup.html",
+   "group": "Design"
+  },
+  {
+   "label": "Review findings #1241",
+   "link": "work/findings-pr1241.md",
+   "note": "F-5 waits on you",
+   "group": "Reviews"
+  },
+  {
+   "label": "QA record #1243",
+   "link": "https://example.com/qa/1243",
+   "group": "QA"
+  }
+ ],
+ "links": [
+  {
+   "label": "PR #1014",
+   "link": "https://github.com/example/app/pull/1014",
+   "group": "app #1014"
+  },
+  {
+   "label": "PR #1014 walkthrough",
+   "link": "https://example.com/pr-1014",
+   "note": "the PR's own artifact",
+   "group": "app #1014"
+  },
+  {
+   "label": "Review on #1241",
+   "link": "https://github.com/example/app/pull/1241#pullrequestreview-1",
+   "note": "follow-up pending",
+   "group": "app #1241"
+  },
+  {
+   "label": "Watcher retry backoff Pane",
+   "link": "pane://open?pane=pane-1243",
+   "group": "app #1243"
+  },
+  {
+   "label": "Keychain API reference",
+   "link": "https://developer.apple.com/documentation/security/keychain_services",
+   "group": "app #1014"
+  },
+  {
+   "label": "Status page with every state",
+   "link": "https://example.com/status-sample",
+   "group": "Examples"
+  }
  ]
 }

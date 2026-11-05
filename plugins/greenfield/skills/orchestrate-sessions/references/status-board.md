@@ -52,7 +52,9 @@ Every fact comes from the Session's real state: the ledger, the workers' status 
     { "id": "D-4", "item": "item", "answer": "the answer, one line", "by": "You | Planner | Advisor",
       "q": "the question asked", "options": ["option", "option"], "chosen": "exactly one of options",
       "note": "optional one line", "when": "13:10", "ref": "where it came from, e.g. Q-1 from the planner" }
-  ]
+  ],
+  "sources": [ { "label": "Cover sheet (plan rev 2)", "link": "https://… | a relative path in the Session artifact", "note": "optional, e.g. approved, D-10", "group": "Plan and decisions" } ],
+  "links": [ { "label": "PR #1251 walkthrough", "link": "https://…", "note": "optional", "group": "Pane #1251" } ]
 }
 ```
 
@@ -81,6 +83,8 @@ The last reviewed head is the ledger's `last_reviewed_head` for that PR. When th
 **Done.** Every completed item (PR merged or closed, plan abandoned), newest first, linking its front page, with its outcome and "no issues hit" or that a post-mortem exists. An item moves here and is never removed.
 
 **Decisions.** Every D-n, newest first, from the ledger's `decisions`. An addendum is a decision whose `ref` names it and whose `note` lists the work items it was sent to.
+
+**Sources and links.** The page is the one place that points to everything the person may need to see. Add every artifact a worker produces or relies on as soon as it appears, and keep it after the work is done. `sources` are the documents behind the work: cover sheets, briefs, options and decision pages, plans, addenda, mockups, review findings, QA records and traces. `links` are everything else worth opening: PRs, each PR's own artifact (the implementer's `pr_artifact`), reviews, Panes, dashboards and external references. Take them from the workers' status files, the bundles' pages, the findings files and the briefs you wrote. A file that exists only in the Session folder, such as a findings file or a brief, goes into the Session artifact (or its item's bundle) and is linked by its relative path, since a published page cannot open `file://` links; use `file:///…` only when there is no destination and the page stays local. Group entries by kind of work with `group`: in `sources`, "Plan and decisions", "Design", "Reviews", "QA" and one group per follow-up; in `links`, one group per PR named by repository and number (for example "Pane #1251"), then "Examples" or "Other". Groups show in the order they first appear, and an entry without one falls under "Other". The page omits a section whose array is empty, A `link` with a scheme other than `http`, `https`, `file` or `pane` becomes `#`. Write every relative link with a `/` in it (`./report.md#sec`, `work/findings.md`), because a bare file name with `#`, `?`, `%` or a space in it can become `#`.
 
 The cleanup log and the end-of-run summary live in the ledger and your final report, not on the page.
 

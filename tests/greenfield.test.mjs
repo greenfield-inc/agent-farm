@@ -511,6 +511,32 @@ test('the orchestrator is pointed at the status page and item hub specs, saying 
  for(const rule of ['[references/item-hub.md](references/item-hub.md)','before you write the first hub in a Session, and again before any rewrite, read item-hub.md and load `page`','never write one from memory'])assert.ok(hub.includes(rule),rule);
 });
 
+test('the status page groups Sources and Relevant links by kind of work and keeps only safe links',t=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'af-status-refs-'));
+ t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+ fs.cpSync(path.join(root,'skills/orchestrate-sessions/assets/status-page'),path.join(dir,'renderer'),{recursive:true});
+ const render=status=>{
+  fs.writeFileSync(path.join(dir,'status.json'),JSON.stringify(status));
+  const run=spawnSync(process.execPath,[path.join(dir,'renderer/render.mjs'),path.join(dir,'status.json'),path.join(dir,'index.html')],{encoding:'utf8'});
+  assert.equal(run.status,0,run.stderr);
+  return fs.readFileSync(path.join(dir,'index.html'),'utf8');
+ };
+ const session={title:'Refs',eyebrow:'now',counts:{running:0,queued:0,done:1},settings:'x'};
+ const html=render({session,decisions:[{id:'D-1',answer:'Approved'}],
+  sources:[{label:'Cover sheet',link:'https://example.com/plan',note:'approved, D-1',group:'Plan and decisions'},
+           {label:'Mockup',link:'file:///tmp/mockup.html',group:'Design'},
+           {label:'Brief',link:'plans/brief.html',group:'Plan and decisions'},
+           {label:'Trace',link:'javascript:alert(1)'}],
+  links:[{label:'PR <#12>',link:'https://github.com/o/r/pull/12',group:'r #12'},{label:'Pane',link:'pane://open?pane=p1',group:'r #12'}]});
+ const text=html.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ');
+ assert.match(text,/Decisions 1 .*Sources 4 Plan and decisions 2 Cover sheet approved, D-1 Brief Design 1 Mockup Other 1 Trace Relevant links 2 r #12 2 PR &lt;#12\S* Pane Settings/,'groups in first-seen order, between Decisions and Settings');
+ for(const href of ['https://example.com/plan','file:///tmp/mockup.html','plans/brief.html','https://github.com/o/r/pull/12','pane://open?pane=p1'])assert.ok(html.includes(`href="${href}"`),href);
+ assert.match(html,/<a href="#">Trace<\/a>/);
+ assert.doesNotMatch(html,/javascript:/);
+ const bare=render({session});
+ assert.doesNotMatch(bare,/>Sources|>Relevant links/,'empty sections are omitted');
+});
+
 test('greenfield 0.0.43 gives the planners and orchestrators research-and-product-design, and the planner builds a packet before options and the plan',()=>{
  for(const profile of ['planner:claude','planner:codex','orchestrator:claude','orchestrator:codex'])assert.ok(resolveProfile(root,profile).nodes.main.skills.includes('research-and-product-design'),profile);
  for(const profile of ['planner:claude','planner:codex'])assert.ok(resolveProfile(root,profile).nodes.main.instructions.replace(/\s+/g,' ').includes('Before the options and the plan for a feature with an interface or a system-design choice, build a research packet and design rounds with `research-and-product-design`.'),profile);
