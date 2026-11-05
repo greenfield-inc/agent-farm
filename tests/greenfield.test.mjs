@@ -368,7 +368,7 @@ test('workers raise numbered needs_you blocks, standalone workers ask in the sam
  includesAll(IMPLEMENTERS,['goes in that status file as a `needs_you` block; run by hand, ask the person directly in the same shape']);
  includesAll(['instructions/planner-identity.md'],['Raise each question for the person as a `needs_you`','record each `answer:` or `recorded:` line\'s D-n']);
  includesAll(['skills/orchestrate-sessions/SKILL.md'],['[references/relay.md](references/relay.md)','`[Needs you · <role> · <feature>]`','to the asking tab only']);
- includesAll(['skills/orchestrate-sessions/references/relay.md'],['newest blocking question first','open them without asking','Recorded as D-n.` Nobody else gets it','even when you can answer it yourself','Q-n stays open and nothing is recorded','(raised as Q-3)','Never relay it while its card is live','`recorded: Q-n → <answer>. Recorded as D-n.`','in any state other than `blocked`, relay the block']);
+ includesAll(['skills/orchestrate-sessions/references/relay.md'],['newest blocking question first','open them without asking','Recorded as D-n.` Nobody else gets it','even when you can answer it yourself','Q-n stays open and nothing is recorded','(raised as Q-3)','Never relay it while its card is live','`recorded: Q-n → <answer>. Recorded as D-n.`','in any state other than `blocked` on two checks at least a minute apart']);
 });
 
 test('the map links Notify questions to the asking tab and shows each PR\'s validation and unreviewed commits, and the watcher is unchanged',()=>{
@@ -522,7 +522,7 @@ test('the status page renderer runs with Node alone and draws a self-contained p
  const status={session:{title:'Two features',eyebrow:'Updated 14:40 · 1 h 10 min elapsed',counts:{running:1,queued:0,done:0},settings:'Review on "ready"'},
   needs:[{id:null,item:'Invoice PDF',role:'Planner',blocks:'the plan',q:'Use the invoice id in the filename?',options:[{label:'Invoice id',rec:true},{label:'Invoice number'}],why:'Ids are stable.',age:'2 min',link:'pane://open?pane=p1&panel=w1'},
          {id:'Q-2',item:'Export',role:'Implementer',blocks:'#12',q:'Keep CSV export?',options:[{label:'Keep',rec:true},{label:'Drop'}],why:'Customers use it.',age:'5 min'}],
-  items:[{name:'Invoice PDF',pane:'invoice-pdf',paneLink:'pane://open?pane=p1',state:'need',next:'<b>Planner</b> waits on you.',rail:[{label:'Plan',state:'need'},{label:'Build',state:'todo'}]},
+  items:[{name:'Invoice PDF',pane:'invoice-pdf',paneLink:'pane://open?pane=p1',state:'need',next:'<b>Planner</b> waits on you. <img src=x onerror=alert(1)><script>alert(1)</script> <a href="javascript:alert(1)">bad</a>',rail:[{label:'Plan',state:'need'},{label:'Build',state:'todo'}]},
          {name:'Export',pr:'#12',pane:'export',state:'blocked',next:'Codex is not signed in.',rail:[{label:'Build',state:'done'},{label:'CI',state:'blocked'}]}],
   done:[],decisions:[]};
  fs.writeFileSync(path.join(dir,'status.json'),JSON.stringify(status));
@@ -534,7 +534,8 @@ test('the status page renderer runs with Node alone and draws a self-contained p
  assert.match(html,/2 need you · 1 blocked/);
  assert.match(html,/<meta http-equiv="refresh" content="60">/);
  assert.match(html,/data:font\/woff2;base64,/);
- assert.doesNotMatch(html,/<script|src="https?:|url\(https?:|@import/);
+ assert.match(html,/<b>Planner<\/b> waits on you\. &lt;img src=x onerror=alert\(1\)>&lt;script>alert\(1\)&lt;\/script> bad/,'next keeps <b> and escapes the rest');
+ assert.doesNotMatch(html,/<script|<img|src="https?:|url\(https?:|@import|javascript:/);
  const example=spawnSync(process.execPath,[path.join(dir,'renderer/render.mjs'),path.join(dir,'renderer/example-status.json'),path.join(dir,'example.html')],{encoding:'utf8'});
  assert.equal(example.status,0,example.stderr);
  assert.ok(fs.statSync(path.join(dir,'example.html')).size<200*1024,'the example page stays under the page standard\'s 200 KB');

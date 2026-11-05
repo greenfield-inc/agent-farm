@@ -6,8 +6,8 @@ How a worker's `needs_you` (standing rules, Questions for the person) reaches th
 
 A block with `"asked": "notify"` already reached the person as the worker's own Notify cards. Never relay it while its card is live. Its Needs you row on the status page links the asking tab instead (status-board.md).
 
-- **Answered** (`answers` is not empty): assign the next free Q-n and D-n, record the D-n as for an answer below, and send `recorded: Q-n → <answer>. Recorded as D-n.` to the asking tab only. On the next rewrite its row moves to Decisions.
-- **The card is gone** (a crash, an interrupt or a restart): when `answers` is empty and `runpane sessions overview` shows the worker's agent in any state other than `blocked`, relay the block as below.
+- **Answered** (`answers` is not empty): assign the block the next free Q-n and each answer the next free D-n, record them as for an answer below, and send `recorded: Q-n → <answer>. Recorded as D-n.` to the asking tab only, with one `→ <answer>` and one D-n per question in order when the block has several. On the next rewrite its row moves to Decisions.
+- **The card is gone** (a crash, an interrupt or a restart): when `answers` is empty and `runpane sessions overview` shows the worker's agent in any state other than `blocked` on two checks at least a minute apart, relay the block as below. One check is not enough: a worker that got `waiting` runs briefly before it calls `notify` again.
 
 Every other block, `"asked": "relay"` or with no `asked`, is relayed.
 
@@ -29,7 +29,7 @@ On Claude, put the questions through the harness question tool (`AskUserQuestion
 
 ## Back to the worker
 
-- **An answer.** Record it as the next D-n in that work's decision log (the bundle's, with `interview`), or in the map's Decisions log when the work has no bundle. Send one line to the asking tab only: `answer: Q-n → <the answer, quoted exactly when it is free text>. Recorded as D-n.` Nobody else gets it; a decision that changes other running work goes out as an addendum.
+- **An answer.** Record each question's answer as the next D-n in that work's decision log (the bundle's, with `interview`), or in the map's Decisions log when the work has no bundle. Send one line to the asking tab only: `answer: Q-n → <the answer, quoted exactly when it is free text>. Recorded as D-n.` Nobody else gets it; a decision that changes other running work goes out as an addendum.
 - **A question back.** Send `clarify: Q-n → <the person's question>` to the asking tab, even when you can answer it yourself from an approved source (then add your answer and its source after it, and show the person the same), so the worker adds it to `why`. Q-n stays open and nothing is recorded; relay its next report the same way.
 - **A clash.** Q-n are unique per Session. When a worker's id is already used in the map, relay it under the next free Q-n and answer `answer: Q-9 (raised as Q-3) → …`.
 

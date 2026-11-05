@@ -18,7 +18,7 @@ node <this skill's directory>/assets/status-page/render.mjs <Session folder>/.ag
 
 ## The status JSON
 
-Every fact comes from the Session's real state: the ledger, the workers' status files, the host and GitHub. Write "unknown" rather than guess. Say each fact once: a rail, a question row and a `next` line never repeat each other.
+Every fact comes from the Session's real state: the ledger, the workers' status files, the host and GitHub. Write "unknown" rather than guess. Say each fact once: a rail, a question row and a `next` line never repeat each other. The renderer escapes every field, except that `next` and `settings` keep `<b>`, `<code>` and `<a href="…">` links.
 
 ```json
 {

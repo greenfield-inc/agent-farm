@@ -29,7 +29,7 @@ Read [references/page-guide.md](references/page-guide.md) first. It says what th
 4. **Review before publishing.** The page shows every user message in full, including anything pasted (meeting notes, logs, customer text). Only emails and tokens are redacted automatically. Remove or trim anything the page's readers shouldn't see, and ask when unsure.
 5. **Publish to the document destination your workspace instructions name; otherwise keep a local HTML bundle.**
    - Add the page to the task's existing page or bundle and link it from its main page, near the top.
-   - In an orchestrated Session, put each trace in the Session folder of its own repository's destination, and index every trace on the workstream map. The orchestrator's own trace goes with the canonical map.
+   - In an orchestrated Session, put each trace in the Session folder of its own repository's destination, and link every trace from its item's front page, which the workstream map links. The orchestrator's own trace goes with the canonical map.
    - With no existing page, create one in the folder the workspace instructions name, titled for the task.
    - Keep it private. Never create or widen a share. If the destination already shares the page publicly, tell the user the trace will be visible through it before you publish.
 6. **Report** the link, and anything you left out or couldn't capture.

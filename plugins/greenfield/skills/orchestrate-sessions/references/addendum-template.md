@@ -11,4 +11,4 @@ Do            revise your plan or work to match, then report again
 Source        decision log Round {M}
 ```
 
-Deliver it with the host's file-pointer submit, confirm each delivery (taken or queued), and add it to the workstream map's Addenda table.
+Deliver it with the host's file-pointer submit, confirm each delivery (taken or queued), and add it to the status page's Decisions, with the addendum named in its `ref` and the work items it was sent to in its `note`.

@@ -1,4 +1,4 @@
-// Renders the Session status page from a status JSON file (references/status-json.md).
+// Renders the Session status page from a status JSON file (references/status-board.md).
 // usage: node render.mjs <status.json> <out.html>
 // Diagrams are drawn with rough.js at render time; the page itself has no script and fetches nothing.
 // rough.mjs and the Inter font are vendored beside this file, so it needs nothing but Node.
@@ -13,6 +13,11 @@ if (!inPath || !outPath) { console.error('usage: node render.mjs <status.json> <
 const d = { needs: [], items: [], done: [], decisions: [], ...JSON.parse(fs.readFileSync(inPath, 'utf8')) };
 const g = rough.generator();
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+// `next` and `settings` may carry <b>, <code> and <a href> links; everything else in them is escaped.
+const SAFE_HREF = /^(https?:|file:|pane:|#|\.{0,2}\/|[\w.-]+(\/|\.html|$))/i;
+const rich = s => esc(s)
+  .replace(/&lt;(\/?)(b|code)>/g, '<$1$2>')
+  .replace(/&lt;a href=&quot;([^"&<>]*(?:&amp;[^"&<>]*)*)&quot;>(.*?)&lt;\/a>/g, (m, href, text) => SAFE_HREF.test(href.replace(/&amp;/g, '&')) ? `<a href="${href}">${text}</a>` : text);
 
 // ---------- diagrams ----------
 const COLOR = { retried: 'var(--bad)', done: 'var(--ok)', now: 'var(--run)', need: 'var(--warn)', blocked: 'var(--bad)', failed: 'var(--bad)', todo: 'var(--todo)', skipped: 'var(--todo)' };
@@ -95,7 +100,7 @@ function railSvg(spec) {
 }
 function railNow(spec) {
   const s = spec.steps, i = s.findIndex(st => HOT.has(st.state));
-  const cur = i >= 0 ? i : s.findLastIndex(st => st.state === 'done');
+  const cur = i >= 0 ? i : Math.max(0, s.findLastIndex(st => st.state === 'done'));
   const st = s[cur], next = s.slice(cur + 1).find(x => DASHED.has(x.state));
   return `<p class="railnow">Step ${cur + 1} of ${s.length} · ${esc(st.label)}${next ? ` → ${esc(next.label)}` : ''}</p>`;
 }
@@ -116,14 +121,14 @@ const counter = (cls, icon, n, label) => `<div class="ct ${cls}${n ? '' : ' zero
 
 const needCard = q => `<details class="need"><summary><span class="qid">${esc(q.id)}</span><span class="qq">${esc(q.q)}</span><span class="age">${esc(q.age)}</span>${q.link ? `<a class="btn sm" href="${esc(q.link)}">Answer →</a>` : ''}</summary>
   <div class="nbody"><div class="ask-from">${esc(q.item)} · ${esc(q.role)} · blocks ${esc(q.blocks)}</div>
-  <div class="choices">${q.options.map(o => `<span class="choice${o.rec ? ' rec' : ''}"${o.rec ? ' title="Recommended"' : ''}>${o.rec ? '★ ' : ''}${esc(o.label)}</span>`).join('')}</div>
+  <div class="choices">${(q.options || []).map(o => `<span class="choice${o.rec ? ' rec' : ''}"${o.rec ? ' title="Recommended"' : ''}>${o.rec ? '★ ' : ''}${esc(o.label)}</span>`).join('')}</div>
   ${q.why ? `<div class="why">${esc(q.why)}${q.files ? ` <a href="${esc(q.files)}">Options page</a>` : ''}</div>` : ''}</div></details>`;
 const sec = (title, n, body) => `<details class="sec" open><summary><h2>${title}${n != null ? ` <span class="n">${n}</span>` : ''}</h2></summary>${body}</details>`;
 
 const itemCard = it => `<div class="card item ${it.state}">
   <div class="hd"><a class="name" href="${esc(it.link || '#')}">${esc(it.name)}</a><span class="where">${it.pr ? `<a href="${esc(it.prLink || '#')}">${esc(it.pr)}</a> · ` : ''}${it.paneLink ? `<a href="${esc(it.paneLink)}">open ↗</a>` : esc(it.pane)}</span></div>
-  ${diagram({ steps: it.rail }, 'rail', 'bare')}
-  <div class="tn">${it.next}</div></div>`;
+  ${it.rail?.length ? diagram({ steps: it.rail }, 'rail', 'bare') : ''}
+  <div class="tn">${rich(it.next)}</div></div>`;
 
 const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><meta http-equiv="refresh" content="60">
@@ -173,7 +178,7 @@ h2{font-size:10.5px;font-weight:650;letter-spacing:.1em;text-transform:uppercase
 .hd{display:flex;justify-content:space-between;gap:6px 12px;flex-wrap:wrap;align-items:baseline}
 .name{font-size:14.5px;font-weight:650;color:var(--ink);text-decoration:none;letter-spacing:-.01em}
 .where{font-size:11.5px;color:var(--muted)}.where a{color:var(--muted)}
-.tn{font-size:12.5px;color:var(--muted)}
+.tn{font-size:12.5px;color:var(--muted);overflow-wrap:anywhere}
 .pill{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:1px 8px;border-radius:999px;margin-right:6px;vertical-align:1px}
 .pill.now{background:var(--run-wash);color:var(--run)}.pill.need{background:var(--warn-wash);color:var(--warn)}.pill.blocked,.pill.failed{background:var(--bad-wash);color:var(--bad)}.pill.done{background:var(--ok-wash);color:var(--ok)}
 .flow{container-type:inline-size;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
@@ -221,21 +226,21 @@ details{margin-top:14px;font-size:12px;color:var(--muted)}summary{cursor:pointer
 .sec:not([open])>summary h2:before{transform:none}
 .sec>summary:hover h2{color:var(--ink)}
 .sec .n{font-weight:600;background:var(--wash);color:var(--muted);border-radius:999px;padding:0 6px;font-size:10px;letter-spacing:0}
-@media(max-width:640px){.nbody,.dbody{padding-left:14px}.ask{grid-template-columns:1fr}.act{text-align:left}.state .snext{margin-left:0;flex-basis:100%}}
+@media(max-width:640px){.nbody,.dbody{padding-left:14px}.need[open] summary{flex-wrap:wrap}.need[open] .qq{order:1;flex-basis:100%;overflow:visible}.ask{grid-template-columns:1fr}.act{text-align:left}.state .snext{margin-left:0;flex-basis:100%}}
 </style></head><body><div class="wrap">
 <div class="top"><div><div class="eyebrow">${esc(d.session.eyebrow)}</div><h1>${esc(d.session.title)}</h1></div>
 <div class="counts">${counter('run', '', c.running, 'running')}${counter('q', '', c.queued, 'queued')}${counter('done', '✓', c.done, 'done')}</div></div>
 <div class="state ${stateCls}"><span class="sdot"></span>${esc(stateText)}</div>
 ${needs ? sec('Needs you', needs, `<div class="needs">${d.needs.map(needCard).join('')}</div>`) : ''}
 ${sec('In flight', d.items.length, d.items.length ? d.items.map(itemCard).join('') : '<p class="tn">Nothing in flight.</p>')}
-${d.session.flow && d.items.length > 1 ? sec('Order of work', null, diagram(d.session.flow, 'boxes')) : ''}
+${d.session.flow?.steps?.length && d.items.length > 1 ? sec('Order of work', null, diagram(d.session.flow, 'boxes')) : ''}
 ${d.done.length ? sec('Done', d.done.length, `<div class="done-list">${d.done.map(x => `<div><span class="ck">✓</span><a href="${esc(x.link || '#')}">${esc(x.label)}</a> <span class="dt">${esc(x.detail || '')}</span></div>`).join('')}</div>`) : ''}
 ${d.decisions.length ? sec('Decisions', d.decisions.length, `<div class="decs">${d.decisions.map(x => `<details class="dec"><summary><span class="did">${esc(x.id)}</span><span class="dans">${esc(x.answer)}</span></summary><div class="dbody">
   ${x.q ? `<div class="dq">${esc(x.q)}</div>` : ''}
   ${x.options ? `<div class="choices">${x.options.map(o => `<span class="choice${o === x.chosen ? ' picked' : ''}">${o === x.chosen ? '✓ ' : ''}${esc(o)}</span>`).join('')}</div>` : ''}
   ${x.note ? `<div class="why">${esc(x.note)}</div>` : ''}
   <div class="dmeta">${esc([x.by && `Answered by ${x.by}`, x.when, x.ref].filter(Boolean).join(' · '))}</div></div></details>`).join('')}</div>`) : ''}
-${sec('Settings', null, `<p class="tn">${d.session.settings ?? ''}</p>`).replace(' open>', '>')}
+${sec('Settings', null, `<p class="tn">${rich(d.session.settings)}</p>`).replace(' open>', '>')}
 </div></body></html>
 `;
 fs.writeFileSync(outPath, html);
