@@ -173,7 +173,7 @@ test('orchestrated reviewers post one COMMENT review and apply no fixes, and orc
   for(const rule of ['reconciled findings to that file','post exactly one review','event `COMMENT` (never approve or request changes)','Apply no fixes','checks only the listed must-fix items'])assert.ok(instructions.includes(rule),`${profile}: ${rule}`);
  }
  const skill=flat(fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8'));
- for(const rule of ['every agent in it has stopped','1 feature = 1 worktree = 1 branch = 1 Pane','panels create --pane <feature Pane id>','--wait-ready --yes --json','agent-farm run greenfield/<role>:<variant>','Always name the variant','`greenfield/implementer:opus`','whether it explicitly grants conversation capture','a personal fallback workspace grants nothing'])assert.ok(skill.includes(rule),rule);
+ for(const rule of ['no agent in it is working','1 feature = 1 worktree = 1 branch = 1 Pane','panels create --pane <feature Pane id>','--wait-ready --yes --json','agent-farm run greenfield/<role>:<variant>','Always name the variant','`greenfield/implementer:opus`','whether it explicitly grants conversation capture','a personal fallback workspace grants nothing'])assert.ok(skill.includes(rule),rule);
  assert.doesNotMatch(skill,/\[:variant\]/);
  const trace=flat(fs.readFileSync(path.join(root,'skills/session-trace/SKILL.md'),'utf8'));
  for(const rule of ['Naming a document destination is not a grant','trace not authorized','--launch <ID>','`$CODEX_HOME` before `~/.codex`'])assert.ok(trace.includes(rule),rule);
@@ -565,4 +565,21 @@ test('the status page renderer runs with Node alone and draws a self-contained p
  const example=spawnSync(process.execPath,[path.join(dir,'renderer/render.mjs'),path.join(dir,'renderer/example-status.json'),path.join(dir,'example.html')],{encoding:'utf8'});
  assert.equal(example.status,0,example.stderr);
  assert.ok(fs.statSync(path.join(dir,'example.html')).size<200*1024,'the example page stays under the page standard\'s 200 KB');
+});
+
+test('greenfield 0.0.46 tidies the Session as Pane\'s rules say: archive without asking, close what it opened, /wrap-up tells first and leaves the Session open (D-40, D-41, D-49, D-51, D-107)',()=>{
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.46$/m);
+ const pane=['"Keep the Session tidy" section of the Session folder\'s AGENTS.md','follow the wrap-up guide that AGENTS.md points to'];
+ const archive=['`runpane panes archive --pane <id> --dry-run --json`','archive its Pane right after the merge, in the same turn','Never pass `--force`'];
+ instructionsIncludeAll(COORDINATORS,['Archive a feature\'s Pane without asking',...archive,...pane]);
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['Archive a feature\'s Pane without asking or offering',...archive,...pane,'status page\'s Cleanup log','each PR with unreviewed commits goes into that notice','leaves the Session open; archiving the Session is the person\'s action, never yours','Ask nothing separately.']);
+ // D-107: /wrap-up asks no question and never archives the Session.
+ for(const file of ['skills/orchestrate-sessions/SKILL.md','README.md'])assert.doesNotMatch(flatText(file),/Keep going, or stop\?|keep going, or stop\?|"Stop" leaves/,file);
+ // Status-page open commands mark the tab as the agent's, so panels close can close it at /wrap-up.
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['--source agent']);
+ for(const file of ['skills/orchestrate-sessions/SKILL.md','skills/orchestrate-sessions/references/status-board.md'])assert.doesNotMatch(flatText(file),/runpane panels open --url <[^>]+>`/,file);
+ includesAll(['instructions/standing-rules.md'],['plans, PRs and mock-ups are otherwise linked from the status page, not opened','except the status page, which stays open until the Session wraps up','`runpane panels close --panel <id> --yes --json`','it adds `--force` only for a stuck tab or one the person asked it to close',pane[0]]);
+ for(const file of ['instructions/coordination.md','skills/orchestrate-sessions/SKILL.md'])assert.doesNotMatch(flatText(file),/after offering the end-of-Session sweep|you have offered the end-of-Session sweep|Always offer the sweep before/,file);
+ const bigbrain=fs.readFileSync(path.join(root,'../bigbrain/skills/orchestrate/SKILL.md'),'utf8').replace(/\s+/g,' ');
+ for(const rule of ['Archive a feature\'s workspace without asking','`runpane panels close --panel <id> --yes --json`',...pane])assert.ok(bigbrain.includes(rule),rule);
 });
