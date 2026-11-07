@@ -47,20 +47,27 @@ function projectCodexConfigs(directory: string): string[] {
 /** Reads `[mcp_servers.<name>]` tables just far enough to find each server's endpoint. The runtime has no
  *  TOML dependency, so this understands the common shape only: string `command`/`url` and a string `args`
  *  array (which may span lines); inline-table servers are not seen and stay as the project wrote them. */
-function projectCodexServers(file: string): Array<{name:string;command?:string;url?:string;args:string[]}> {
-  const servers: Array<{name:string;command?:string;url?:string;args:string[]}>=[];
+type ProjectServer={name:string;command?:string;url?:string;args?:string[]};
+function projectCodexServers(file: string): ProjectServer[] {
+  const servers: ProjectServer[]=[];
   // An escape JSON does not share (\U0001F600) keeps its raw text; endpoints never contain one.
   const unescape=(text: string)=>{ try { return JSON.parse('"'+text+'"') as string; } catch { return text; } };
   const strings=(text: string)=>[...text.matchAll(/"((?:[^"\\]|\\.)*)"|'([^']*)'/g)].map(m=>m[2]??unescape(m[1]!));
   // Drops a `#` comment, but not a `#` inside a string.
   const uncomment=(text: string)=>text.replace(/("(?:[^"\\]|\\.)*"|'[^']*')|#.*$/g,(all,quoted)=>quoted ?? '');
-  let current: (typeof servers)[number]|undefined, pending: string|undefined;
+  let current: ProjectServer|undefined, pending: string|undefined, multiline: string|undefined;
   for (const raw of fs.readFileSync(file,'utf8').split(/\r?\n/)) {
-    const line=uncomment(raw).replace(/^\s+|\s+$/g,'');
+    // A multiline string (""" or ''') is a value: text in it that looks like a table or field is not one.
+    let text=raw;
+    if (multiline) { if (!text.includes(multiline)) continue; text=text.slice(text.indexOf(multiline)+3); multiline=undefined; }
+    text=text.replace(/"""[\s\S]*?"""|'''[\s\S]*?'''/g,'""');
+    const open=/"""|'''/.exec(text);
+    if (open) { multiline=open[0]; text=text.slice(0,open.index)+'""'; }
+    const line=uncomment(text).replace(/^\s+|\s+$/g,'');
     if (pending!==undefined) { pending+='\n'+line; if (/\]\s*(#.*)?$/.test(line)) { current!.args=strings(pending); pending=undefined; } continue; }
     if (line.startsWith('[')) {
       const header=/^\[\s*mcp_servers\.("(?:[^"\\]|\\.)*"|'[^']*'|[A-Za-z0-9_-]+)\s*\](\s*#.*)?$/.exec(line);
-      current=header ? {name:strings(header[1]!)[0] ?? header[1]!,args:[]} : undefined;
+      current=header ? {name:strings(header[1]!)[0] ?? header[1]!} : undefined;
       if (current) servers.push(current);
       continue;
     }
@@ -74,19 +81,25 @@ function projectCodexServers(file: string): Array<{name:string;command?:string;u
 /** Codex's `-c` splits a key path on every dot and keeps quotes as part of a name, so only a name without a
  *  dot, `=` or quote can be addressed; it is passed as written. Other names are left as the project wrote them. */
 const overridable=(name: string)=>!/[.="']/.test(name);
+/** The built-in history server a launch registers when telemetry access is on; a project server never displaces it. */
+const telemetryServerName='agent_farm_telemetry';
 /** Project Codex MCP servers that reach the same endpoint as one of these connections, with the transport key
  *  the project used. Launches disable them so one service is not started twice, once as the project's own bridge. */
 export function projectCodexDuplicates(directory: string, connections: Record<string,Connection>): Array<{name:string;transport:'command'|'url';value:string}> {
   const endpoints=new Set(Object.values(connections).map(connectionEndpoint).filter(Boolean));
-  const found=new Map<string,{name:string;transport:'command'|'url';value:string}>(),registered=new Set(Object.keys(connections).map(connectionName));
+  const found=new Map<string,{name:string;transport:'command'|'url';value:string}>(),registered=new Set([...Object.keys(connections).map(connectionName),telemetryServerName]);
   if (!endpoints.size) return [];
-  for (const file of projectCodexConfigs(directory)) {
+  // Codex merges a server's fields across layers, the file nearest the launch directory winning, so match
+  // the server it will actually run rather than any one file's version of it.
+  const effective=new Map<string,ProjectServer>();
+  for (const file of projectCodexConfigs(directory).reverse()) {
     let servers; try { servers=projectCodexServers(file); } catch { continue; }
-    for (const server of servers) {
-      const endpoint=server.url!==undefined ? mcpEndpoint(server.url) : server.command!==undefined ? firstUrl(server.args) : undefined;
-      if (!endpoint || !overridable(server.name) || ![...endpoints].some(known=>sameEndpoint(known!,endpoint)) || found.has(server.name) || registered.has(server.name)) continue;
-      found.set(server.name,server.url!==undefined ? {name:server.name,transport:'url',value:server.url} : {name:server.name,transport:'command',value:server.command!});
-    }
+    for (const server of servers) effective.set(server.name,{...effective.get(server.name),...Object.fromEntries(Object.entries(server).filter(([,v])=>v!==undefined))} as ProjectServer);
+  }
+  for (const server of effective.values()) {
+    const endpoint=server.url!==undefined ? mcpEndpoint(server.url) : server.command!==undefined ? firstUrl(server.args ?? []) : undefined;
+    if (!endpoint || !overridable(server.name) || registered.has(server.name) || ![...endpoints].some(known=>sameEndpoint(known!,endpoint))) continue;
+    found.set(server.name,server.url!==undefined ? {name:server.name,transport:'url',value:server.url} : {name:server.name,transport:'command',value:server.command!});
   }
   return [...found.values()].sort((a,b)=>a.name<b.name?-1:a.name>b.name?1:0);
 }
@@ -568,7 +581,7 @@ export function resolveLaunchFor(bundle: string, route: string, options: LaunchO
 }
 /** MCP servers in each harness's own format, keyed by registration name. Secrets stay environment references. */
 function claudeServers(resolved: ResolvedLaunch): Record<string,unknown> {
-  return {...Object.fromEntries(Object.entries(resolved.agent.connections).map(([k,v])=>[connectionName(k),claudeConnection(v)])),...(resolved.access?{agent_farm_telemetry:claudeConnection(resolved.telemetryConnection)}:{})};
+  return {...Object.fromEntries(Object.entries(resolved.agent.connections).map(([k,v])=>[connectionName(k),claudeConnection(v)])),...(resolved.access?{[telemetryServerName]:claudeConnection(resolved.telemetryConnection)}:{})};
 }
 function claudeAgents(resolved: ResolvedLaunch): Record<string,unknown> {
   return Object.fromEntries(resolved.nativeChildren.map(({alias})=>[alias,JSON.parse(fs.readFileSync(path.join(resolved.directory,'native-agents',alias+'.json'),'utf8'))]));
@@ -616,7 +629,7 @@ export function command(bundle: string, route: string, options: LaunchOptions = 
     }
     if (launch.model.speed) argv.push('-c','service_tier='+JSON.stringify(launch.model.speed==='fast' ? 'fast' : 'default'));
     for (const [key,value] of Object.entries(agent.connections)) argv.push('-c',`mcp_servers.${connectionName(key)}=${toml(codexConnection(value))}`);
-    if(resolved.access)argv.push('-c',`mcp_servers.agent_farm_telemetry=${toml(codexConnection(resolved.telemetryConnection))}`);
+    if(resolved.access)argv.push('-c',`mcp_servers.${telemetryServerName}=${toml(codexConnection(resolved.telemetryConnection))}`);
     // The transport key keeps the override valid when Codex does not load the project layer (an untrusted project).
     for (const {name,transport,value} of projectCodexDuplicates(manifest.directory,agent.connections)) argv.push('-c',`mcp_servers.${name}.enabled=false`,'-c',`mcp_servers.${name}.${transport}=${JSON.stringify(value)}`);
   }
@@ -683,7 +696,7 @@ export function acpLaunch(bundle: string, route: string, options: AcpLaunchOptio
     if (launch.model.reasoning) config.model_reasoning_effort=launch.model.reasoning;
     if (resolved.nativeChildren.length) config.agents=Object.fromEntries(resolved.nativeChildren.map(({alias,description})=>[alias,{description,config_file:path.join(directory,'native-agents',alias+'.toml')}]));
     if (launch.model.speed) config.service_tier=launch.model.speed==='fast' ? 'fast' : 'default';
-    const servers: Record<string,unknown>={...Object.fromEntries(Object.entries(agent.connections).map(([k,v])=>[connectionName(k),codexConnection(v)])),...(resolved.access?{agent_farm_telemetry:codexConnection(resolved.telemetryConnection)}:{})};
+    const servers: Record<string,unknown>={...Object.fromEntries(Object.entries(agent.connections).map(([k,v])=>[connectionName(k),codexConnection(v)])),...(resolved.access?{[telemetryServerName]:codexConnection(resolved.telemetryConnection)}:{})};
     for (const {name,transport,value} of projectCodexDuplicates(manifest.directory,agent.connections)) servers[name]={[transport]:value,enabled:false};
     if (Object.keys(servers).length) config.mcp_servers=servers;
     envOverrides.CODEX_CONFIG=JSON.stringify(config);

@@ -263,3 +263,36 @@ test('project server names, comments and escapes are read the way Codex reads th
   assert.deepEqual(state,{'my.server':true,'single q':false,commented_url:true,commented_multiline:true,hash_in_string:false,escaped:false});
  }
 });
+test('project servers are matched on their effective fields across config layers, outside multiline strings',t=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-dedupe-layers-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
+ spawnSync('git',['init','-q',root]);const cwd=path.join(root,'app');
+ fs.mkdirSync(path.join(root,'.codex'));fs.mkdirSync(path.join(cwd,'.codex'),{recursive:true});
+ const dup='https://duplicate.example/mcp';
+ fs.writeFileSync(path.join(root,'.codex/config.toml'),[
+  // F-2: table-looking text inside multiline strings is a value, not configuration.
+  'developer_instructions = """','Example:','[mcp_servers.playwright]',`url = "${dup}"`,'"""',
+  "notes = '''",'[mcp_servers.literal_note]',`url = "${dup}"`,"'''",
+  'inline_note = """[mcp_servers.inline]""" # same line',
+  '[mcp_servers.playwright]','command = "npx"','args = ["@playwright/mcp@latest"]',
+  // F-1: the nearer layer overrides these.
+  '[mcp_servers.shared]',`url = "${dup}"`,
+  '[mcp_servers.partial]','command = "pnpm"',`args = ["dlx", "mcp-remote", "${dup}"]`,
+  '[mcp_servers.becomes_duplicate]','command = "pnpm"','args = ["dlx", "local-tool"]',
+  '[mcp_servers.agent_farm_telemetry]',`url = "${dup}"`,''].join('\n'));
+ fs.writeFileSync(path.join(cwd,'.codex/config.toml'),[
+  '[mcp_servers.shared]','url = "https://project-only.example/mcp"',
+  '[mcp_servers.partial]','args = ["@playwright/mcp@latest"]',
+  '[mcp_servers.becomes_duplicate]',`args = ["dlx", "mcp-remote", "${dup}"]`,''].join('\n'));
+ const found=projectCodexDuplicates(cwd,{dup:{type:'mcp',url:dup,auth:'native'}});
+ // F-3: agent_farm_telemetry is Agent Farm's own history server, never disabled.
+ assert.deepEqual(found,[{name:'becomes_duplicate',transport:'command',value:'pnpm'}]);
+ const home=fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-dedupe-home-'));t.after(()=>fs.rmSync(home,{recursive:true,force:true}));
+ fs.writeFileSync(path.join(home,'config.toml'),[root,cwd].map(d=>`[projects.${JSON.stringify(fs.realpathSync(d))}]\ntrust_level = "trusted"\n`).join(''));
+ const overrides=found.flatMap(({name,transport,value})=>['-c',`mcp_servers.${name}.enabled=false`,'-c',`mcp_servers.${name}.${transport}=${JSON.stringify(value)}`]);
+ const listed=spawnSync('codex',[...overrides,'mcp','list','--json'],{cwd,encoding:'utf8',env:{...process.env,CODEX_HOME:home}});
+ if(!listed.error){
+  assert.equal(listed.status,0,listed.stderr);
+  const state=Object.fromEntries(JSON.parse(listed.stdout).map(s=>[s.name,s.enabled]));
+  assert.deepEqual(state,{agent_farm_telemetry:true,becomes_duplicate:false,partial:true,playwright:true,shared:true});
+ }
+});
