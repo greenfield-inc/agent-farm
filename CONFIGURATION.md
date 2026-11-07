@@ -1129,8 +1129,9 @@ the same entries in `CODEX_CONFIG` for `--print-acp`. A server's endpoint is its
 same way. Endpoints match when scheme, host and path agree, ignoring case in the
 scheme and host, a trailing slash and the query, or when one path extends the other
 by whole segments (`https://mcp.sentry.dev/mcp/<org>` matches
-`https://mcp.sentry.dev/mcp`). Only `[mcp_servers.<name>]` tables are read; servers
-written as inline tables are left alone. Project servers with no matching connection,
+`https://mcp.sentry.dev/mcp`). Only `[mcp_servers.<name>]` tables are read, and
+comments in them are ignored. Servers written as inline tables, and servers whose
+name contains a dot, `=` or a quote (Codex's `-c` cannot address them), are left alone. Project servers with no matching connection,
 and the project files themselves, are unchanged. Claude needs none of this: its
 launches use strict MCP mode, which ignores the project's `.mcp.json`.
 

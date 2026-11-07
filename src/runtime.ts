@@ -49,10 +49,14 @@ function projectCodexConfigs(directory: string): string[] {
  *  array (which may span lines); inline-table servers are not seen and stay as the project wrote them. */
 function projectCodexServers(file: string): Array<{name:string;command?:string;url?:string;args:string[]}> {
   const servers: Array<{name:string;command?:string;url?:string;args:string[]}>=[];
-  const strings=(text: string)=>[...text.matchAll(/"((?:[^"\\]|\\.)*)"|'([^']*)'/g)].map(m=>m[2]??JSON.parse('"'+m[1]+'"') as string);
+  // An escape JSON does not share (\U0001F600) keeps its raw text; endpoints never contain one.
+  const unescape=(text: string)=>{ try { return JSON.parse('"'+text+'"') as string; } catch { return text; } };
+  const strings=(text: string)=>[...text.matchAll(/"((?:[^"\\]|\\.)*)"|'([^']*)'/g)].map(m=>m[2]??unescape(m[1]!));
+  // Drops a `#` comment, but not a `#` inside a string.
+  const uncomment=(text: string)=>text.replace(/("(?:[^"\\]|\\.)*"|'[^']*')|#.*$/g,(all,quoted)=>quoted ?? '');
   let current: (typeof servers)[number]|undefined, pending: string|undefined;
   for (const raw of fs.readFileSync(file,'utf8').split(/\r?\n/)) {
-    const line=raw.replace(/^\s+|\s+$/g,'');
+    const line=uncomment(raw).replace(/^\s+|\s+$/g,'');
     if (pending!==undefined) { pending+='\n'+line; if (/\]\s*(#.*)?$/.test(line)) { current!.args=strings(pending); pending=undefined; } continue; }
     if (line.startsWith('[')) {
       const header=/^\[\s*mcp_servers\.("(?:[^"\\]|\\.)*"|'[^']*'|[A-Za-z0-9_-]+)\s*\](\s*#.*)?$/.exec(line);
@@ -67,6 +71,9 @@ function projectCodexServers(file: string): Array<{name:string;command?:string;u
   }
   return servers;
 }
+/** Codex's `-c` splits a key path on every dot and keeps quotes as part of a name, so only a name without a
+ *  dot, `=` or quote can be addressed; it is passed as written. Other names are left as the project wrote them. */
+const overridable=(name: string)=>!/[.="']/.test(name);
 /** Project Codex MCP servers that reach the same endpoint as one of these connections, with the transport key
  *  the project used. Launches disable them so one service is not started twice, once as the project's own bridge. */
 export function projectCodexDuplicates(directory: string, connections: Record<string,Connection>): Array<{name:string;transport:'command'|'url';value:string}> {
@@ -77,14 +84,12 @@ export function projectCodexDuplicates(directory: string, connections: Record<st
     let servers; try { servers=projectCodexServers(file); } catch { continue; }
     for (const server of servers) {
       const endpoint=server.url!==undefined ? mcpEndpoint(server.url) : server.command!==undefined ? firstUrl(server.args) : undefined;
-      if (!endpoint || ![...endpoints].some(known=>sameEndpoint(known!,endpoint)) || found.has(server.name) || registered.has(server.name)) continue;
+      if (!endpoint || !overridable(server.name) || ![...endpoints].some(known=>sameEndpoint(known!,endpoint)) || found.has(server.name) || registered.has(server.name)) continue;
       found.set(server.name,server.url!==undefined ? {name:server.name,transport:'url',value:server.url} : {name:server.name,transport:'command',value:server.command!});
     }
   }
   return [...found.values()].sort((a,b)=>a.name<b.name?-1:a.name>b.name?1:0);
 }
-/** The TOML key path segment for a server name: bare when Codex allows it, quoted otherwise. */
-const tomlKey=(name: string)=>/^[A-Za-z0-9_-]+$/.test(name) ? name : JSON.stringify(name);
 // TOML values, including quoted environment-map keys; never expand secrets here.
 export function toml(value: unknown): string {
   if (Array.isArray(value)) return '['+value.map(toml).join(', ')+']';
@@ -613,7 +618,7 @@ export function command(bundle: string, route: string, options: LaunchOptions = 
     for (const [key,value] of Object.entries(agent.connections)) argv.push('-c',`mcp_servers.${connectionName(key)}=${toml(codexConnection(value))}`);
     if(resolved.access)argv.push('-c',`mcp_servers.agent_farm_telemetry=${toml(codexConnection(resolved.telemetryConnection))}`);
     // The transport key keeps the override valid when Codex does not load the project layer (an untrusted project).
-    for (const {name,transport,value} of projectCodexDuplicates(manifest.directory,agent.connections)) argv.push('-c',`mcp_servers.${tomlKey(name)}.enabled=false`,'-c',`mcp_servers.${tomlKey(name)}.${transport}=${JSON.stringify(value)}`);
+    for (const {name,transport,value} of projectCodexDuplicates(manifest.directory,agent.connections)) argv.push('-c',`mcp_servers.${name}.enabled=false`,'-c',`mcp_servers.${name}.${transport}=${JSON.stringify(value)}`);
   }
   argv.push(...nativeArgs);
   if (options.message!==undefined) argv.push('--',options.message);

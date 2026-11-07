@@ -233,3 +233,33 @@ test('Codex launch disables duplicate project MCP servers and keeps project-only
  const listed=spawnSync('codex',[...overrides.flatMap(o=>['-c',o]),'mcp','list','--json'],{cwd:os.tmpdir(),encoding:'utf8',env:{...process.env,CODEX_HOME:home}});
  if(!listed.error){assert.equal(listed.status,0,listed.stderr);assert.ok(JSON.parse(listed.stdout).every(s=>s.enabled===false));}
 });
+test('project server names, comments and escapes are read the way Codex reads them',t=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-dedupe-odd-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
+ spawnSync('git',['init','-q',root]);fs.mkdirSync(path.join(root,'.codex'));
+ const url='https://mcp.doozy.example/mcp';
+ fs.writeFileSync(path.join(root,'.codex/config.toml'),[
+  '[mcp_servers."my.server"]',`url = "${url}"`,
+  "[mcp_servers.'single q']",`url = "${url}"`,
+  '[mcp_servers.commented_url]','command = "npx"',`args = ["@playwright/mcp@latest"] # was "${url}"`,
+  '[mcp_servers.commented_multiline]','command = "npx"','args = [','  "@playwright/mcp@latest",',`  # "${url}",`,']',
+  '[mcp_servers.hash_in_string]','command = "npx"',`args = ["#not-a-comment", "${url}"]`,
+  '[mcp_servers.escaped]','command = "pnpm"',`args = ["\\U0001F600", "${url}"]`,''].join('\n'));
+ const connections={doozy:{type:'mcp',url,auth:'native'}};
+ // A dotted name cannot be addressed with -c (Codex splits keys on every dot), so it is left alone.
+ assert.deepEqual(projectCodexDuplicates(root,connections).map(s=>s.name),['escaped','hash_in_string','single q']);
+ const cfg=fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-dedupe-cfg-'));t.after(()=>fs.rmSync(cfg,{recursive:true,force:true}));
+ fs.mkdirSync(path.join(cfg,'agents'));fs.writeFileSync(path.join(cfg,'agents/worker.yaml'),'harness: codex\nmodel: test\n');
+ fs.writeFileSync(path.join(cfg,'workspace.yaml'),`connections:\n  doozy:\n    type: mcp\n    url: ${url}\n    auth: native\n`);
+ const r=command(build(cfg,'worker',root),'main',{prepare:false});
+ const overrides=r.argv.filter((a,i)=>r.argv[i-1]==='-c'&&/^mcp_servers\.(?!orchestra_)/.test(a));
+ assert.ok(overrides.includes('mcp_servers.single q.enabled=false'),overrides.join('\n'));
+ assert.ok(!overrides.some(o=>o.includes('my')),overrides.join('\n'));
+ const home=fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-dedupe-home-'));t.after(()=>fs.rmSync(home,{recursive:true,force:true}));
+ fs.writeFileSync(path.join(home,'config.toml'),`[projects.${JSON.stringify(fs.realpathSync(root))}]\ntrust_level = "trusted"\n`);
+ const listed=spawnSync('codex',[...overrides.flatMap(o=>['-c',o]),'mcp','list','--json'],{cwd:root,encoding:'utf8',env:{...process.env,CODEX_HOME:home}});
+ if(!listed.error){
+  assert.equal(listed.status,0,listed.stderr);
+  const state=Object.fromEntries(JSON.parse(listed.stdout).map(s=>[s.name,s.enabled]));
+  assert.deepEqual(state,{'my.server':true,'single q':false,commented_url:true,commented_multiline:true,hash_in_string:false,escaped:false});
+ }
+});
