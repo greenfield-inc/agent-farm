@@ -6,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {build,resolve} from '../dist/compiler.js';
-import {command,codexHome,fileMap,files,verify} from '../dist/runtime.js';
+import {command,codexHome,fileMap,files,verify,projectCodexDuplicates} from '../dist/runtime.js';
 import {fileIdentity} from './harness.mjs';
 function setup(t) {
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-mcp-'));
@@ -178,4 +178,58 @@ test('Claude native children receive connection descriptions and invalid descrip
  }
  f.put('workspace.yaml','connections:\n  local:\n    type: mcp\n    command: test-server\n    description: "   "\n');
  assert.doesNotMatch(resolve(f.root,'parent',resolveWorkspace(f.root,{directory:f.root})).main.instructions,/# Workspace tools/);
+});
+
+/** A repository whose checked-in Codex config still bridges hosted servers through mcp-remote. */
+function legacyProject(root) {
+ const repo=path.join(root,'one'),cwd=path.join(repo,'packages/app');
+ fs.mkdirSync(path.join(repo,'.codex'),{recursive:true});fs.mkdirSync(path.join(cwd,'.codex'),{recursive:true});
+ spawnSync('git',['init','-q',repo]);
+ fs.writeFileSync(path.join(repo,'.codex/config.toml'),[
+  '# legacy bridges','[mcp_servers.doozy]','command = "pnpm"',
+  'args = [','  "dlx", "mcp-remote@latest",','  "https://API.usedoozy.com/mcp/", "--header", "Authorization:Bearer ${DOOZY_API_KEY}"',']',
+  '[mcp_servers.doozy.env]','NODE_OPTIONS = "https://not-an-endpoint.example/mcp"',
+  '[mcp_servers."linear"]',"url = 'https://mcp.linear.app/mcp'",
+  '[mcp_servers.playwright]','command = "npx"','args = ["@playwright/mcp@latest"]',
+  '[mcp_servers.other]','url = "https://other.example/mcp"',
+  '[mcp_servers.posthog]','url = "https://mcp.posthog.com/mcp/org"',
+  '[mcp_servers.posthog_admin]','url = "https://mcp.posthog.com/mcp-admin"',''].join('\n'));
+ fs.writeFileSync(path.join(cwd,'.codex/config.toml'),'[mcp_servers.sentry]\ncommand = "pnpm"\nargs = ["dlx", "mcp-remote@latest", "https://mcp.sentry.dev/mcp"]\n');
+ // Above the repository root, so Codex never loads it.
+ fs.mkdirSync(path.join(root,'.codex'),{recursive:true});
+ fs.writeFileSync(path.join(root,'.codex/config.toml'),'[mcp_servers.outside]\nurl = "https://mcp.linear.app/mcp"\n');
+ return cwd;
+}
+const legacyConnections={
+ doozy:{type:'mcp',url:'https://api.usedoozy.com/mcp',auth:'bearer_env',env_var:'DOOZY_API_KEY'},
+ linear:{type:'mcp',url:'https://mcp.linear.app/mcp/',auth:'native'},
+ sentry:{type:'mcp',command:'npx',args:['-y','mcp-remote','https://mcp.sentry.dev/mcp/bloom?x=1'],env:{},env_vars:[]},
+ posthog:{type:'mcp',url:'https://mcp.posthog.com/mcp',auth:'native'},
+ local:{type:'mcp',command:'node',args:['server.js'],env:{},env_vars:[]}
+};
+test('project Codex MCP servers match connections by endpoint from the launch directory up to the repository root',t=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-dedupe-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
+ const cwd=legacyProject(root);
+ assert.deepEqual(projectCodexDuplicates(cwd,legacyConnections),[
+  {name:'doozy',transport:'command',value:'pnpm'},
+  {name:'linear',transport:'url',value:'https://mcp.linear.app/mcp'},
+  {name:'posthog',transport:'url',value:'https://mcp.posthog.com/mcp/org'},
+  {name:'sentry',transport:'command',value:'pnpm'}
+ ]);
+ // A server already registered under an Agent Farm name is Agent Farm's own, never disabled.
+ fs.appendFileSync(path.join(cwd,'.codex/config.toml'),'[mcp_servers.orchestra_local]\nurl = "https://mcp.linear.app/mcp"\n');
+ assert.ok(!projectCodexDuplicates(cwd,legacyConnections).some(s=>s.name==='orchestra_local'));
+ assert.deepEqual(projectCodexDuplicates(cwd,{local:legacyConnections.local}),[]);
+ assert.deepEqual(projectCodexDuplicates(path.join(root,'two'),legacyConnections),[]);
+});
+test('Codex launch disables duplicate project MCP servers and keeps project-only ones',t=>{
+ const f=setup(t),cwd=legacyProject(f.root);
+ f.put('workspace.yaml','connections:\n  doozy:\n    type: mcp\n    url: https://api.usedoozy.com/mcp\n    auth: bearer_env\n    env_var: DOOZY_API_KEY\n  linear:\n    type: mcp\n    url: https://mcp.linear.app/mcp\n    auth: native\n');
+ const b=build(f.root,'parent',cwd),r=command(b,'main',{prepare:false});
+ const overrides=r.argv.filter((a,i)=>r.argv[i-1]==='-c'&&/^mcp_servers\.(?!orchestra_)/.test(a));
+ assert.deepEqual(overrides,['mcp_servers.doozy.enabled=false','mcp_servers.doozy.command="pnpm"','mcp_servers.linear.enabled=false','mcp_servers.linear.url="https://mcp.linear.app/mcp"']);
+ // Codex still parses the overrides when it does not load the project layer.
+ const home=fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-dedupe-home-'));t.after(()=>fs.rmSync(home,{recursive:true,force:true}));
+ const listed=spawnSync('codex',[...overrides.flatMap(o=>['-c',o]),'mcp','list','--json'],{cwd:os.tmpdir(),encoding:'utf8',env:{...process.env,CODEX_HOME:home}});
+ if(!listed.error){assert.equal(listed.status,0,listed.stderr);assert.ok(JSON.parse(listed.stdout).every(s=>s.enabled===false));}
 });

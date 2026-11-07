@@ -1117,6 +1117,23 @@ inherit their parent's connections. Process children receive their own generated
 configuration. Workspace `instructions` are prepended to each agent's instructions;
 project/account guidance is context, not an enforced access boundary.
 
+Codex also loads the project's own `.codex/config.toml` files: each one from the
+launch directory up to the nearest `.git` folder or worktree file (only the launch
+directory's own when there is none). A project server there that reaches the same
+endpoint as one of the agent's connections is turned off for that launch, so the
+service does not start twice (for example an old `mcp-remote` bridge that opens a
+browser sign-in on every launch). Agent Farm passes
+`-c mcp_servers.<name>.enabled=false` plus the server's own `command` or `url`, and
+the same entries in `CODEX_CONFIG` for `--print-acp`. A server's endpoint is its
+`url`, or the first `http(s)://` argument of its command; connections are read the
+same way. Endpoints match when scheme, host and path agree, ignoring case in the
+scheme and host, a trailing slash and the query, or when one path extends the other
+by whole segments (`https://mcp.sentry.dev/mcp/<org>` matches
+`https://mcp.sentry.dev/mcp`). Only `[mcp_servers.<name>]` tables are read; servers
+written as inline tables are left alone. Project servers with no matching connection,
+and the project files themselves, are unchanged. Claude needs none of this: its
+launches use strict MCP mode, which ignores the project's `.mcp.json`.
+
 To sign in to a remote OAuth server, use the same workspace and connection name:
 
 ```sh

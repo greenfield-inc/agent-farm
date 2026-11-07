@@ -96,6 +96,18 @@ test('print-acp gives a Codex profile to codex-acp: CODEX_CONFIG with instructio
  });
 });
 
+test('print-acp disables project Codex MCP servers that duplicate a connection endpoint',t=>{
+ const f=fixture(t,'codex');
+ fs.mkdirSync(path.join(f.target,'.git'));fs.mkdirSync(path.join(f.target,'.codex'));
+ fs.writeFileSync(path.join(f.target,'.codex/config.toml'),'[mcp_servers.linear]\ncommand = "pnpm"\nargs = ["dlx", "mcp-remote@latest", "https://LINEAR.example/mcp/"]\n\n[mcp_servers.playwright]\ncommand = "npx"\nargs = ["@playwright/mcp"]\n');
+ const result=f.invoke(['--print-acp','--arg','parent=../status.json']);
+ assert.equal(result.status,0,result.stderr);
+ const config=JSON.parse(JSON.parse(result.stdout).env.CODEX_CONFIG);
+ assert.deepEqual(config.mcp_servers.linear,{command:'pnpm',enabled:false});
+ assert.equal(config.mcp_servers.playwright,undefined);
+ assert.ok(config.mcp_servers.orchestra_linear);
+});
+
 test('print-acp refuses a missing harness rather than letting the adapter use its bundled copy, and rejects terminal-only options',t=>{
  const f=fixture(t,'claude');
  fs.rmSync(path.join(f.bin,process.platform==='win32'?'claude.cmd':'claude'));
