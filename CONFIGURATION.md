@@ -1132,9 +1132,9 @@ agree, ignoring case in the scheme and host, a trailing slash and the query, or
 when one path extends the other by whole segments
 (`https://mcp.sentry.dev/mcp/<org>` matches `https://mcp.sentry.dev/mcp`).
 
-Only `[mcp_servers.<name>]` tables are read. Comments and multiline strings are
-skipped, so an example table inside `developer_instructions = """…"""` is not a
-server. These are left alone: servers written as inline tables, servers whose name
+Only `[mcp_servers.<name>]` tables are read. The reader follows TOML's string and
+comment rules, so text inside a string (such as an example table in
+`developer_instructions = """…"""`) or a comment is never read as a server. These are left alone: servers written as inline tables, servers whose name
 contains a dot, `=` or a quote (Codex's `-c` cannot address them), Agent Farm's own
 server names (`orchestra_<name>` and `agent_farm_telemetry`), project servers with
 no matching connection, and the project files themselves. Claude needs none of

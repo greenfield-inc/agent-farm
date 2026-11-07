@@ -296,3 +296,22 @@ test('project servers are matched on their effective fields across config layers
   assert.deepEqual(state,{agent_farm_telemetry:true,becomes_duplicate:false,partial:true,playwright:true,shared:true});
  }
 });
+test('the project config reader follows TOML string rules: escaped and quoted delimiters, long closing runs, strings in arrays',t=>{
+ const dup='https://mcp.doozy.example/mcp',connections={doozy:{type:'mcp',url:dup,auth:'native'}};
+ const cases={
+  // G-1: an escaped \""" does not end a multiline basic string.
+  escaped:['developer_instructions = """','a \\"""','[mcp_servers.playwright]',`url = "${dup}"`,'"""','[mcp_servers.playwright]','command = "npx"','args = ["@playwright/mcp@latest"]'],
+  // G-2 and G-3: a run of quote characters inside an ordinary string is text.
+  apostrophes:['[mcp_servers.pw]','command = "npx"',`args = ["it'''s", 'a"""b']`,'[mcp_servers.dup]',`url = "${dup}"`],
+  // G-4: """" closes with one quote of content.
+  longclose:[`note = """a"""" # "${dup}"`,'[mcp_servers.dup]',`url = "${dup}"`],
+  // A multiline string inside args is still an argument.
+  inargs:['[mcp_servers.ml]','command = "pnpm"','args = ["dlx", """',`${dup}""", "x"]`]
+ };
+ const expected={escaped:[],apostrophes:['dup'],longclose:['dup'],inargs:['ml']};
+ for(const [name,lines] of Object.entries(cases)){
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-dedupe-toml-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
+  fs.mkdirSync(path.join(root,'.codex'));fs.writeFileSync(path.join(root,'.codex/config.toml'),lines.join('\n')+'\n');
+  assert.deepEqual(projectCodexDuplicates(root,connections).map(s=>s.name),expected[name],name);
+ }
+});

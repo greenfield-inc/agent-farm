@@ -44,36 +44,57 @@ function projectCodexConfigs(directory: string): string[] {
   }
   return chain.map(dir=>path.join(dir,'.codex','config.toml')).filter(file=>fs.statSync(file,{throwIfNoEntry:false})?.isFile());
 }
+/** One pass over a TOML file that follows its string and comment rules: every string (basic, literal and both
+ *  multiline forms) becomes a placeholder `\0<index>\0` holding its value, and comments are dropped. What is left
+ *  is the file's structure, so text inside a string can never read as a table or a field. */
+function tomlSkeleton(source: string): {lines: string[]; values: string[]} {
+  // An escape JSON does not share (\U0001F600, a line-ending backslash) keeps its raw text; endpoints never contain one.
+  const unescape=(text: string)=>{ try { return JSON.parse('"'+text+'"') as string; } catch { return text; } };
+  const values: string[]=[];
+  let out='', i=0;
+  while (i<source.length) {
+    const c=source[i]!;
+    if (c==='#') { while (i<source.length && source[i]!=='\n') i++; continue; }
+    if (c!=='"' && c!=="'") { out+=c; i++; continue; }
+    const multi=source.startsWith(c.repeat(3),i), delim=multi ? c.repeat(3) : c;
+    i+=delim.length;
+    if (multi) { if (source[i]==='\r') i++; if (source[i]==='\n') i++; }
+    let value='';
+    while (i<source.length) {
+      if (c==='"' && source[i]==='\\') { value+=source.slice(i,i+2); i+=2; continue; }
+      if (!multi && source[i]==='\n') break;
+      if (source.startsWith(delim,i)) {
+        // A multiline string may end in up to two content quotes: """"" is two quotes, then the close.
+        let run=0; if (multi) while (source[i+run]===c) run++; else run=1;
+        value+=c.repeat(Math.max(0,Math.min(run-3,2))); i+=run; break;
+      }
+      value+=source[i++];
+    }
+    values.push(c==='"' ? unescape(value) : value);
+    out+='\0'+(values.length-1)+'\0';
+  }
+  return {lines:out.split('\n').map(line=>line.trim()),values};
+}
 /** Reads `[mcp_servers.<name>]` tables just far enough to find each server's endpoint. The runtime has no
  *  TOML dependency, so this understands the common shape only: string `command`/`url` and a string `args`
  *  array (which may span lines); inline-table servers are not seen and stay as the project wrote them. */
 type ProjectServer={name:string;command?:string;url?:string;args?:string[]};
 function projectCodexServers(file: string): ProjectServer[] {
+  const {lines,values}=tomlSkeleton(fs.readFileSync(file,'utf8'));
+  const strings=(text: string)=>[...text.matchAll(/\0(\d+)\0/g)].map(m=>values[Number(m[1])]!);
   const servers: ProjectServer[]=[];
-  // An escape JSON does not share (\U0001F600) keeps its raw text; endpoints never contain one.
-  const unescape=(text: string)=>{ try { return JSON.parse('"'+text+'"') as string; } catch { return text; } };
-  const strings=(text: string)=>[...text.matchAll(/"((?:[^"\\]|\\.)*)"|'([^']*)'/g)].map(m=>m[2]??unescape(m[1]!));
-  // Drops a `#` comment, but not a `#` inside a string.
-  const uncomment=(text: string)=>text.replace(/("(?:[^"\\]|\\.)*"|'[^']*')|#.*$/g,(all,quoted)=>quoted ?? '');
-  let current: ProjectServer|undefined, pending: string|undefined, multiline: string|undefined;
-  for (const raw of fs.readFileSync(file,'utf8').split(/\r?\n/)) {
-    // A multiline string (""" or ''') is a value: text in it that looks like a table or field is not one.
-    let text=raw;
-    if (multiline) { if (!text.includes(multiline)) continue; text=text.slice(text.indexOf(multiline)+3); multiline=undefined; }
-    text=text.replace(/"""[\s\S]*?"""|'''[\s\S]*?'''/g,'""');
-    const open=/"""|'''/.exec(text);
-    if (open) { multiline=open[0]; text=text.slice(0,open.index)+'""'; }
-    const line=uncomment(text).replace(/^\s+|\s+$/g,'');
-    if (pending!==undefined) { pending+='\n'+line; if (/\]\s*(#.*)?$/.test(line)) { current!.args=strings(pending); pending=undefined; } continue; }
+  let current: ProjectServer|undefined, pending: string|undefined;
+  for (const line of lines) {
+    if (pending!==undefined) { pending+='\n'+line; if (line.endsWith(']')) { current!.args=strings(pending); pending=undefined; } continue; }
     if (line.startsWith('[')) {
-      const header=/^\[\s*mcp_servers\.("(?:[^"\\]|\\.)*"|'[^']*'|[A-Za-z0-9_-]+)\s*\](\s*#.*)?$/.exec(line);
+      const header=/^\[\s*mcp_servers\.(\0\d+\0|[A-Za-z0-9_-]+)\s*\]$/.exec(line);
       current=header ? {name:strings(header[1]!)[0] ?? header[1]!} : undefined;
       if (current) servers.push(current);
       continue;
     }
     const field=current && /^(command|url|args)\s*=\s*(.*)$/.exec(line);
     if (!field) continue;
-    if (field[1]==='args') { if (/^\[.*\]\s*(#.*)?$/.test(field[2]!)) current!.args=strings(field[2]!); else pending=field[2]!; }
+    if (field[1]==='args') { if (field[2]!.endsWith(']')) current!.args=strings(field[2]!); else pending=field[2]!; }
     else { const value=strings(field[2]!)[0]; if (value!==undefined) current![field[1] as 'command'|'url']=value; }
   }
   return servers;
