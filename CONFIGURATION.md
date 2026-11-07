@@ -1132,13 +1132,18 @@ agree, ignoring case in the scheme and host, a trailing slash and the query, or
 when one path extends the other by whole segments
 (`https://mcp.sentry.dev/mcp/<org>` matches `https://mcp.sentry.dev/mcp`).
 
-Only `[mcp_servers.<name>]` tables are read. The reader follows TOML's string and
-comment rules, so text inside a string (such as an example table in
-`developer_instructions = """…"""`) or a comment is never read as a server. These are left alone: servers written as inline tables, servers whose name
-contains a dot, `=` or a quote (Codex's `-c` cannot address them), Agent Farm's own
-server names (`orchestra_<name>` and `agent_farm_telemetry`), project servers with
-no matching connection, and the project files themselves. Claude needs none of
-this: its launches use strict MCP mode, which ignores the project's `.mcp.json`.
+Agent Farm reads each `[mcp_servers.<name>]` table's `command`, `url` and `args`,
+following TOML's rules for strings, escapes, comments and quoted or spaced keys, so
+text inside a string (such as an example table in `developer_instructions = """…"""`)
+or a comment is never read as a server. It fails open: a server that any layer
+declares another way (an inline table, dotted keys such as
+`mcp_servers.<name>.url = …`, or a value it cannot decode) is never turned off,
+because an override it cannot read might point that server somewhere else. Also left
+alone: servers whose name contains a dot, `=` or a quote (Codex's `-c` cannot address
+them), Agent Farm's own server names (`orchestra_<name>` and `agent_farm_telemetry`),
+project servers with no matching connection, and the project files themselves.
+Claude needs none of this: its launches use strict MCP mode, which ignores the
+project's `.mcp.json`.
 
 To sign in to a remote OAuth server, use the same workspace and connection name:
 

@@ -44,13 +44,28 @@ function projectCodexConfigs(directory: string): string[] {
   }
   return chain.map(dir=>path.join(dir,'.codex','config.toml')).filter(file=>fs.statSync(file,{throwIfNoEntry:false})?.isFile());
 }
+/** Decodes a TOML basic string's escapes; undefined when one is invalid, so the caller can treat it as unread. */
+function tomlUnescape(text: string, multiline: boolean): string|undefined {
+  let out='';
+  for (let i=0;i<text.length;i++) {
+    if (text[i]!=='\\') { out+=text[i]; continue; }
+    const e=text[++i] ?? '';
+    // A line-ending backslash in a multiline string drops the newline and the whitespace after it.
+    if (multiline && /^[ \t]*\r?\n/.test(text.slice(i))) { while (/[ \t\r\n]/.test(text[i] ?? '')) i++; i--; continue; }
+    const simple=({b:'\b',t:'\t',n:'\n',f:'\f',r:'\r',e:'\x1b','"':'"','\\':'\\'} as Record<string,string>)[e];
+    if (simple!==undefined) { out+=simple; continue; }
+    const length=e==='u' ? 4 : e==='U' ? 8 : e==='x' ? 2 : 0, hex=text.slice(i+1,i+1+length);
+    if (!length || hex.length!==length || !/^[0-9a-fA-F]+$/.test(hex) || parseInt(hex,16)>0x10ffff) return undefined;
+    out+=String.fromCodePoint(parseInt(hex,16)); i+=length;
+  }
+  return out;
+}
 /** One pass over a TOML file that follows its string and comment rules: every string (basic, literal and both
- *  multiline forms) becomes a placeholder `\0<index>\0` holding its value, and comments are dropped. What is left
- *  is the file's structure, so text inside a string can never read as a table or a field. */
-function tomlSkeleton(source: string): {lines: string[]; values: string[]} {
-  // An escape JSON does not share (\U0001F600, a line-ending backslash) keeps its raw text; endpoints never contain one.
-  const unescape=(text: string)=>{ try { return JSON.parse('"'+text+'"') as string; } catch { return text; } };
-  const values: string[]=[];
+ *  multiline forms) becomes a placeholder `\0<index>\0` holding its value (undefined if it cannot be decoded),
+ *  and comments are dropped. What is left is the file's structure, so text inside a string never reads as a
+ *  table or a field. */
+function tomlSkeleton(source: string): {lines: string[]; values: Array<string|undefined>} {
+  const values: Array<string|undefined>=[];
   let out='', i=0;
   while (i<source.length) {
     const c=source[i]!;
@@ -70,34 +85,63 @@ function tomlSkeleton(source: string): {lines: string[]; values: string[]} {
       }
       value+=source[i++];
     }
-    values.push(c==='"' ? unescape(value) : value);
+    values.push(c==='"' ? tomlUnescape(value,multi) : value);
     out+='\0'+(values.length-1)+'\0';
   }
   return {lines:out.split('\n').map(line=>line.trim()),values};
 }
-/** Reads `[mcp_servers.<name>]` tables just far enough to find each server's endpoint. The runtime has no
- *  TOML dependency, so this understands the common shape only: string `command`/`url` and a string `args`
- *  array (which may span lines); inline-table servers are not seen and stay as the project wrote them. */
+/** Reads each `[mcp_servers.<name>]` table's `command`, `url` and `args` (keys and headers may be quoted or
+ *  spaced). The runtime has no TOML dependency, so a server written any other way (an inline table, dotted
+ *  keys, a value that does not decode) is reported as `unread` rather than guessed at; `all` means the file
+ *  declares servers in a form whose names cannot be told apart. */
 type ProjectServer={name:string;command?:string;url?:string;args?:string[]};
-function projectCodexServers(file: string): ProjectServer[] {
+function projectCodexServers(file: string): {servers: ProjectServer[]; unread: Set<string>; all: boolean} {
   const {lines,values}=tomlSkeleton(fs.readFileSync(file,'utf8'));
-  const strings=(text: string)=>[...text.matchAll(/\0(\d+)\0/g)].map(m=>values[Number(m[1])]!);
-  const servers: ProjectServer[]=[];
-  let current: ProjectServer|undefined, pending: string|undefined;
+  const servers: ProjectServer[]=[], unread=new Set<string>();
+  let all=false;
+  // Every quoted value in this text, or undefined when one did not decode.
+  const strings=(text: string)=>{ const found=[...text.matchAll(/\0(\d+)\0/g)].map(m=>values[Number(m[1])]); return found.every(v=>v!==undefined) ? found as string[] : undefined; };
+  // A dotted key path with bare or quoted segments, or undefined for anything else.
+  const keyPath=(text: string)=>{
+    const path=text.split('.').map(part=>part.trim()).map(part=>/^[A-Za-z0-9_-]+$/.test(part) ? part : /^\0\d+\0$/.test(part) ? strings(part)?.[0] : undefined);
+    return path.every(part=>part!==undefined) ? path as string[] : undefined;
+  };
+  let section: 'root'|'servers'|'server'|'other'='root', current: ProjectServer|undefined, pending: string|undefined;
+  const unsure=(name?: string)=>{ if (name===undefined) all=true; else unread.add(name); };
   for (const line of lines) {
-    if (pending!==undefined) { pending+='\n'+line; if (line.endsWith(']')) { current!.args=strings(pending); pending=undefined; } continue; }
-    if (line.startsWith('[')) {
-      const header=/^\[\s*mcp_servers\.(\0\d+\0|[A-Za-z0-9_-]+)\s*\]$/.exec(line);
-      current=header ? {name:strings(header[1]!)[0] ?? header[1]!} : undefined;
-      if (current) servers.push(current);
+    if (pending!==undefined) {
+      pending+='\n'+line;
+      if (line.endsWith(']')) { const args=strings(pending); if (args) current!.args=args; else unsure(current!.name); pending=undefined; }
       continue;
     }
-    const field=current && /^(command|url|args)\s*=\s*(.*)$/.exec(line);
-    if (!field) continue;
-    if (field[1]==='args') { if (field[2]!.endsWith(']')) current!.args=strings(field[2]!); else pending=field[2]!; }
-    else { const value=strings(field[2]!)[0]; if (value!==undefined) current![field[1] as 'command'|'url']=value; }
+    if (!line) continue;
+    if (line.startsWith('[')) {
+      const array=line.startsWith('[['), inner=line.slice(array ? 2 : 1,line.lastIndexOf(array ? ']]' : ']'));
+      const path=keyPath(inner);
+      current=undefined; section='other';
+      if (!path) { if (inner.includes('mcp_servers')) unsure(); continue; }
+      if (path[0]!=='mcp_servers') continue;
+      if (array) { unsure(path[1]); continue; }
+      if (path.length===1) section='servers';
+      else if (path.length===2) { section='server'; current={name:path[1]!}; servers.push(current); }
+      continue;
+    }
+    const assignment=/^([^=]+?)\s*=\s*(.*)$/.exec(line);
+    if (!assignment) continue;
+    const path=keyPath(assignment[1]!), value=assignment[2]!;
+    if (section==='root') { if (!path) { if (assignment[1]!.includes('mcp_servers')) unsure(); } else if (path[0]==='mcp_servers') unsure(path[1]); continue; }
+    if (section==='servers') { unsure(path?.[0]); continue; }
+    if (section!=='server') continue;
+    if (!path) { unsure(current!.name); continue; }
+    if (!['command','url','args'].includes(path[0]!)) continue;
+    if (path.length>1) { unsure(current!.name); continue; }
+    if (path[0]==='args') {
+      if (!value.startsWith('[')) unsure(current!.name);
+      else if (value.endsWith(']')) { const args=strings(value); if (args) current!.args=args; else unsure(current!.name); }
+      else pending=value;
+    } else { const decoded=strings(value); if (decoded?.length===1) current![path[0] as 'command'|'url']=decoded[0]; else unsure(current!.name); }
   }
-  return servers;
+  return {servers,unread,all};
 }
 /** Codex's `-c` splits a key path on every dot and keeps quotes as part of a name, so only a name without a
  *  dot, `=` or quote can be addressed; it is passed as written. Other names are left as the project wrote them. */
@@ -112,14 +156,18 @@ export function projectCodexDuplicates(directory: string, connections: Record<st
   if (!endpoints.size) return [];
   // Codex merges a server's fields across layers, the file nearest the launch directory winning, so match
   // the server it will actually run rather than any one file's version of it.
-  const effective=new Map<string,ProjectServer>();
+  // A server any layer declares in a form not fully read could be overridden in a way not seen here, so it
+  // fails open: it is never disabled.
+  const effective=new Map<string,ProjectServer>(), unread=new Set<string>();
   for (const file of projectCodexConfigs(directory).reverse()) {
-    let servers; try { servers=projectCodexServers(file); } catch { continue; }
-    for (const server of servers) effective.set(server.name,{...effective.get(server.name),...Object.fromEntries(Object.entries(server).filter(([,v])=>v!==undefined))} as ProjectServer);
+    let read; try { read=projectCodexServers(file); } catch { return []; }
+    if (read.all) return [];
+    for (const name of read.unread) unread.add(name);
+    for (const server of read.servers) effective.set(server.name,{...effective.get(server.name),...Object.fromEntries(Object.entries(server).filter(([,v])=>v!==undefined))} as ProjectServer);
   }
   for (const server of effective.values()) {
     const endpoint=server.url!==undefined ? mcpEndpoint(server.url) : server.command!==undefined ? firstUrl(server.args ?? []) : undefined;
-    if (!endpoint || !overridable(server.name) || registered.has(server.name) || ![...endpoints].some(known=>sameEndpoint(known!,endpoint))) continue;
+    if (!endpoint || !overridable(server.name) || registered.has(server.name) || unread.has(server.name) || ![...endpoints].some(known=>sameEndpoint(known!,endpoint))) continue;
     found.set(server.name,server.url!==undefined ? {name:server.name,transport:'url',value:server.url} : {name:server.name,transport:'command',value:server.command!});
   }
   return [...found.values()].sort((a,b)=>a.name<b.name?-1:a.name>b.name?1:0);

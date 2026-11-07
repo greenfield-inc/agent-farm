@@ -315,3 +315,26 @@ test('the project config reader follows TOML string rules: escaped and quoted de
   assert.deepEqual(projectCodexDuplicates(root,connections).map(s=>s.name),expected[name],name);
  }
 });
+test('a server declared in a form the reader does not fully read is never disabled (fail open)',t=>{
+ const dup='https://duplicate.example/mcp',other='https://project-only.example/mcp',connections={dup:{type:'mcp',url:dup,auth:'native'}};
+ const layered=(name,nearer,root=['[mcp_servers.shared]',`url = "${dup}"`])=>{
+  const base=fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-dedupe-open-'));t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
+  spawnSync('git',['init','-q',base]);const cwd=path.join(base,'app');
+  fs.mkdirSync(path.join(base,'.codex'));fs.mkdirSync(path.join(cwd,'.codex'),{recursive:true});
+  fs.writeFileSync(path.join(base,'.codex/config.toml'),root.join('\n')+'\n');
+  fs.writeFileSync(path.join(cwd,'.codex/config.toml'),nearer.join('\n')+'\n');
+  return projectCodexDuplicates(cwd,connections).map(s=>s.name);
+ };
+ // Review 2's three repros: each nearer override points `shared` at a project-only URL.
+ assert.deepEqual(layered('quoted key',['[mcp_servers.shared]',`"url" = "${other}"`]),[]);
+ assert.deepEqual(layered('spaced header',['[mcp_servers . shared]',`url = "${other}"`]),[]);
+ assert.deepEqual(layered('inline table',['[mcp_servers]',`shared = { url = "${other}" }`]),[]);
+ // Other forms the reader does not read: dotted keys, a root-level inline table of servers.
+ assert.deepEqual(layered('dotted under table',['[mcp_servers]',`shared.url = "${other}"`]),[]);
+ assert.deepEqual(layered('dotted at root',[`mcp_servers.shared.url = "${other}"`]),[]);
+ assert.deepEqual(layered('inline at root',[`mcp_servers = { shared = { url = "${other}" } }`]),[]);
+ // Forms it now reads exactly: a spaced header or quoted key that keeps the duplicate still disables it,
+ // and TOML escapes (\U, a line-ending backslash) decode to the real endpoint.
+ assert.deepEqual(layered('spaced dup',['[ mcp_servers . "shared" ]',`"url" = "${dup}"`]),['shared']);
+ assert.deepEqual(layered('escapes',['[mcp_servers.shared]','url = """https://duplicate.\\','    example/mcp"""'],['[mcp_servers.shared]','url = "https://elsewhere.example/\\U0001F600"']),['shared']);
+});
