@@ -6,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {build,resolve} from '../dist/compiler.js';
-import {command,codexHome,fileMap,files,verify} from '../dist/runtime.js';
+import {command,codexHome,fileMap,files,verify,projectCodexDuplicates} from '../dist/runtime.js';
 import {fileIdentity} from './harness.mjs';
 function setup(t) {
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-mcp-'));
@@ -178,4 +178,163 @@ test('Claude native children receive connection descriptions and invalid descrip
  }
  f.put('workspace.yaml','connections:\n  local:\n    type: mcp\n    command: test-server\n    description: "   "\n');
  assert.doesNotMatch(resolve(f.root,'parent',resolveWorkspace(f.root,{directory:f.root})).main.instructions,/# Workspace tools/);
+});
+
+/** A repository whose checked-in Codex config still bridges hosted servers through mcp-remote. */
+function legacyProject(root) {
+ const repo=path.join(root,'one'),cwd=path.join(repo,'packages/app');
+ fs.mkdirSync(path.join(repo,'.codex'),{recursive:true});fs.mkdirSync(path.join(cwd,'.codex'),{recursive:true});
+ spawnSync('git',['init','-q',repo]);
+ fs.writeFileSync(path.join(repo,'.codex/config.toml'),[
+  '# legacy bridges','[mcp_servers.doozy]','command = "pnpm"',
+  'args = [','  "dlx", "mcp-remote@latest",','  "https://API.usedoozy.com/mcp/", "--header", "Authorization:Bearer ${DOOZY_API_KEY}"',']',
+  '[mcp_servers.doozy.env]','NODE_OPTIONS = "https://not-an-endpoint.example/mcp"',
+  '[mcp_servers."linear"]',"url = 'https://mcp.linear.app/mcp'",
+  '[mcp_servers.playwright]','command = "npx"','args = ["@playwright/mcp@latest"]',
+  '[mcp_servers.other]','url = "https://other.example/mcp"',
+  '[mcp_servers.posthog]','url = "https://mcp.posthog.com/mcp/org"',
+  '[mcp_servers.posthog_admin]','url = "https://mcp.posthog.com/mcp-admin"',''].join('\n'));
+ fs.writeFileSync(path.join(cwd,'.codex/config.toml'),'[mcp_servers.sentry]\ncommand = "pnpm"\nargs = ["dlx", "mcp-remote@latest", "https://mcp.sentry.dev/mcp"]\n');
+ // Above the repository root, so Codex never loads it.
+ fs.mkdirSync(path.join(root,'.codex'),{recursive:true});
+ fs.writeFileSync(path.join(root,'.codex/config.toml'),'[mcp_servers.outside]\nurl = "https://mcp.linear.app/mcp"\n');
+ return cwd;
+}
+const legacyConnections={
+ doozy:{type:'mcp',url:'https://api.usedoozy.com/mcp',auth:'bearer_env',env_var:'DOOZY_API_KEY'},
+ linear:{type:'mcp',url:'https://mcp.linear.app/mcp/',auth:'native'},
+ sentry:{type:'mcp',command:'npx',args:['-y','mcp-remote','https://mcp.sentry.dev/mcp/bloom?x=1'],env:{},env_vars:[]},
+ posthog:{type:'mcp',url:'https://mcp.posthog.com/mcp',auth:'native'},
+ local:{type:'mcp',command:'node',args:['server.js'],env:{},env_vars:[]}
+};
+test('project Codex MCP servers match connections by endpoint from the launch directory up to the repository root',t=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-dedupe-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
+ const cwd=legacyProject(root);
+ assert.deepEqual(projectCodexDuplicates(cwd,legacyConnections),[
+  {name:'doozy',transport:'command',value:'pnpm'},
+  {name:'linear',transport:'url',value:'https://mcp.linear.app/mcp'},
+  {name:'posthog',transport:'url',value:'https://mcp.posthog.com/mcp/org'},
+  {name:'sentry',transport:'command',value:'pnpm'}
+ ]);
+ // A server already registered under an Agent Farm name is Agent Farm's own, never disabled.
+ fs.appendFileSync(path.join(cwd,'.codex/config.toml'),'[mcp_servers.orchestra_local]\nurl = "https://mcp.linear.app/mcp"\n');
+ assert.ok(!projectCodexDuplicates(cwd,legacyConnections).some(s=>s.name==='orchestra_local'));
+ assert.deepEqual(projectCodexDuplicates(cwd,{local:legacyConnections.local}),[]);
+ assert.deepEqual(projectCodexDuplicates(path.join(root,'two'),legacyConnections),[]);
+});
+test('Codex launch disables duplicate project MCP servers and keeps project-only ones',t=>{
+ const f=setup(t),cwd=legacyProject(f.root);
+ f.put('workspace.yaml','connections:\n  doozy:\n    type: mcp\n    url: https://api.usedoozy.com/mcp\n    auth: bearer_env\n    env_var: DOOZY_API_KEY\n  linear:\n    type: mcp\n    url: https://mcp.linear.app/mcp\n    auth: native\n');
+ const b=build(f.root,'parent',cwd),r=command(b,'main',{prepare:false});
+ const overrides=r.argv.filter((a,i)=>r.argv[i-1]==='-c'&&/^mcp_servers\.(?!orchestra_)/.test(a));
+ assert.deepEqual(overrides,['mcp_servers.doozy.enabled=false','mcp_servers.doozy.command="pnpm"','mcp_servers.linear.enabled=false','mcp_servers.linear.url="https://mcp.linear.app/mcp"']);
+ // Codex still parses the overrides when it does not load the project layer.
+ const home=fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-dedupe-home-'));t.after(()=>fs.rmSync(home,{recursive:true,force:true}));
+ const listed=spawnSync('codex',[...overrides.flatMap(o=>['-c',o]),'mcp','list','--json'],{cwd:os.tmpdir(),encoding:'utf8',env:{...process.env,CODEX_HOME:home}});
+ if(!listed.error){assert.equal(listed.status,0,listed.stderr);assert.ok(JSON.parse(listed.stdout).every(s=>s.enabled===false));}
+});
+test('project server names, comments and escapes are read the way Codex reads them',t=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-dedupe-odd-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
+ spawnSync('git',['init','-q',root]);fs.mkdirSync(path.join(root,'.codex'));
+ const url='https://mcp.doozy.example/mcp';
+ fs.writeFileSync(path.join(root,'.codex/config.toml'),[
+  '[mcp_servers."my.server"]',`url = "${url}"`,
+  "[mcp_servers.'single q']",`url = "${url}"`,
+  '[mcp_servers.commented_url]','command = "npx"',`args = ["@playwright/mcp@latest"] # was "${url}"`,
+  '[mcp_servers.commented_multiline]','command = "npx"','args = [','  "@playwright/mcp@latest",',`  # "${url}",`,']',
+  '[mcp_servers.hash_in_string]','command = "npx"',`args = ["#not-a-comment", "${url}"]`,
+  '[mcp_servers.escaped]','command = "pnpm"',`args = ["\\U0001F600", "${url}"]`,''].join('\n'));
+ const connections={doozy:{type:'mcp',url,auth:'native'}};
+ // A dotted name cannot be addressed with -c (Codex splits keys on every dot), so it is left alone.
+ assert.deepEqual(projectCodexDuplicates(root,connections).map(s=>s.name),['escaped','hash_in_string','single q']);
+ const cfg=fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-dedupe-cfg-'));t.after(()=>fs.rmSync(cfg,{recursive:true,force:true}));
+ fs.mkdirSync(path.join(cfg,'agents'));fs.writeFileSync(path.join(cfg,'agents/worker.yaml'),'harness: codex\nmodel: test\n');
+ fs.writeFileSync(path.join(cfg,'workspace.yaml'),`connections:\n  doozy:\n    type: mcp\n    url: ${url}\n    auth: native\n`);
+ const r=command(build(cfg,'worker',root),'main',{prepare:false});
+ const overrides=r.argv.filter((a,i)=>r.argv[i-1]==='-c'&&/^mcp_servers\.(?!orchestra_)/.test(a));
+ assert.ok(overrides.includes('mcp_servers.single q.enabled=false'),overrides.join('\n'));
+ assert.ok(!overrides.some(o=>o.includes('my')),overrides.join('\n'));
+ const home=fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-dedupe-home-'));t.after(()=>fs.rmSync(home,{recursive:true,force:true}));
+ fs.writeFileSync(path.join(home,'config.toml'),`[projects.${JSON.stringify(fs.realpathSync(root))}]\ntrust_level = "trusted"\n`);
+ const listed=spawnSync('codex',[...overrides.flatMap(o=>['-c',o]),'mcp','list','--json'],{cwd:root,encoding:'utf8',env:{...process.env,CODEX_HOME:home}});
+ if(!listed.error){
+  assert.equal(listed.status,0,listed.stderr);
+  const state=Object.fromEntries(JSON.parse(listed.stdout).map(s=>[s.name,s.enabled]));
+  assert.deepEqual(state,{'my.server':true,'single q':false,commented_url:true,commented_multiline:true,hash_in_string:false,escaped:false});
+ }
+});
+test('project servers are matched on their effective fields across config layers, outside multiline strings',t=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-dedupe-layers-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
+ spawnSync('git',['init','-q',root]);const cwd=path.join(root,'app');
+ fs.mkdirSync(path.join(root,'.codex'));fs.mkdirSync(path.join(cwd,'.codex'),{recursive:true});
+ const dup='https://duplicate.example/mcp';
+ fs.writeFileSync(path.join(root,'.codex/config.toml'),[
+  // F-2: table-looking text inside multiline strings is a value, not configuration.
+  'developer_instructions = """','Example:','[mcp_servers.playwright]',`url = "${dup}"`,'"""',
+  "notes = '''",'[mcp_servers.literal_note]',`url = "${dup}"`,"'''",
+  'inline_note = """[mcp_servers.inline]""" # same line',
+  '[mcp_servers.playwright]','command = "npx"','args = ["@playwright/mcp@latest"]',
+  // F-1: the nearer layer overrides these.
+  '[mcp_servers.shared]',`url = "${dup}"`,
+  '[mcp_servers.partial]','command = "pnpm"',`args = ["dlx", "mcp-remote", "${dup}"]`,
+  '[mcp_servers.becomes_duplicate]','command = "pnpm"','args = ["dlx", "local-tool"]',
+  '[mcp_servers.agent_farm_telemetry]',`url = "${dup}"`,''].join('\n'));
+ fs.writeFileSync(path.join(cwd,'.codex/config.toml'),[
+  '[mcp_servers.shared]','url = "https://project-only.example/mcp"',
+  '[mcp_servers.partial]','args = ["@playwright/mcp@latest"]',
+  '[mcp_servers.becomes_duplicate]',`args = ["dlx", "mcp-remote", "${dup}"]`,''].join('\n'));
+ const found=projectCodexDuplicates(cwd,{dup:{type:'mcp',url:dup,auth:'native'}});
+ // F-3: agent_farm_telemetry is Agent Farm's own history server, never disabled.
+ assert.deepEqual(found,[{name:'becomes_duplicate',transport:'command',value:'pnpm'}]);
+ const home=fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-dedupe-home-'));t.after(()=>fs.rmSync(home,{recursive:true,force:true}));
+ fs.writeFileSync(path.join(home,'config.toml'),[root,cwd].map(d=>`[projects.${JSON.stringify(fs.realpathSync(d))}]\ntrust_level = "trusted"\n`).join(''));
+ const overrides=found.flatMap(({name,transport,value})=>['-c',`mcp_servers.${name}.enabled=false`,'-c',`mcp_servers.${name}.${transport}=${JSON.stringify(value)}`]);
+ const listed=spawnSync('codex',[...overrides,'mcp','list','--json'],{cwd,encoding:'utf8',env:{...process.env,CODEX_HOME:home}});
+ if(!listed.error){
+  assert.equal(listed.status,0,listed.stderr);
+  const state=Object.fromEntries(JSON.parse(listed.stdout).map(s=>[s.name,s.enabled]));
+  assert.deepEqual(state,{agent_farm_telemetry:true,becomes_duplicate:false,partial:true,playwright:true,shared:true});
+ }
+});
+test('the project config reader follows TOML string rules: escaped and quoted delimiters, long closing runs, strings in arrays',t=>{
+ const dup='https://mcp.doozy.example/mcp',connections={doozy:{type:'mcp',url:dup,auth:'native'}};
+ const cases={
+  // G-1: an escaped \""" does not end a multiline basic string.
+  escaped:['developer_instructions = """','a \\"""','[mcp_servers.playwright]',`url = "${dup}"`,'"""','[mcp_servers.playwright]','command = "npx"','args = ["@playwright/mcp@latest"]'],
+  // G-2 and G-3: a run of quote characters inside an ordinary string is text.
+  apostrophes:['[mcp_servers.pw]','command = "npx"',`args = ["it'''s", 'a"""b']`,'[mcp_servers.dup]',`url = "${dup}"`],
+  // G-4: """" closes with one quote of content.
+  longclose:[`note = """a"""" # "${dup}"`,'[mcp_servers.dup]',`url = "${dup}"`],
+  // A multiline string inside args is still an argument.
+  inargs:['[mcp_servers.ml]','command = "pnpm"','args = ["dlx", """',`${dup}""", "x"]`]
+ };
+ const expected={escaped:[],apostrophes:['dup'],longclose:['dup'],inargs:['ml']};
+ for(const [name,lines] of Object.entries(cases)){
+  const root=fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-dedupe-toml-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
+  fs.mkdirSync(path.join(root,'.codex'));fs.writeFileSync(path.join(root,'.codex/config.toml'),lines.join('\n')+'\n');
+  assert.deepEqual(projectCodexDuplicates(root,connections).map(s=>s.name),expected[name],name);
+ }
+});
+test('a server declared in a form the reader does not fully read is never disabled (fail open)',t=>{
+ const dup='https://duplicate.example/mcp',other='https://project-only.example/mcp',connections={dup:{type:'mcp',url:dup,auth:'native'}};
+ const layered=(name,nearer,root=['[mcp_servers.shared]',`url = "${dup}"`])=>{
+  const base=fs.mkdtempSync(path.join(os.tmpdir(),'agent-farm-dedupe-open-'));t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
+  spawnSync('git',['init','-q',base]);const cwd=path.join(base,'app');
+  fs.mkdirSync(path.join(base,'.codex'));fs.mkdirSync(path.join(cwd,'.codex'),{recursive:true});
+  fs.writeFileSync(path.join(base,'.codex/config.toml'),root.join('\n')+'\n');
+  fs.writeFileSync(path.join(cwd,'.codex/config.toml'),nearer.join('\n')+'\n');
+  return projectCodexDuplicates(cwd,connections).map(s=>s.name);
+ };
+ // Review 2's three repros: each nearer override points `shared` at a project-only URL.
+ assert.deepEqual(layered('quoted key',['[mcp_servers.shared]',`"url" = "${other}"`]),[]);
+ assert.deepEqual(layered('spaced header',['[mcp_servers . shared]',`url = "${other}"`]),[]);
+ assert.deepEqual(layered('inline table',['[mcp_servers]',`shared = { url = "${other}" }`]),[]);
+ // Other forms the reader does not read: dotted keys, a root-level inline table of servers.
+ assert.deepEqual(layered('dotted under table',['[mcp_servers]',`shared.url = "${other}"`]),[]);
+ assert.deepEqual(layered('dotted at root',[`mcp_servers.shared.url = "${other}"`]),[]);
+ assert.deepEqual(layered('inline at root',[`mcp_servers = { shared = { url = "${other}" } }`]),[]);
+ // Forms it now reads exactly: a spaced header or quoted key that keeps the duplicate still disables it,
+ // and TOML escapes (\U, a line-ending backslash) decode to the real endpoint.
+ assert.deepEqual(layered('spaced dup',['[ mcp_servers . "shared" ]',`"url" = "${dup}"`]),['shared']);
+ assert.deepEqual(layered('escapes',['[mcp_servers.shared]','url = """https://duplicate.\\','    example/mcp"""'],['[mcp_servers.shared]','url = "https://elsewhere.example/\\U0001F600"']),['shared']);
 });

@@ -1117,6 +1117,34 @@ inherit their parent's connections. Process children receive their own generated
 configuration. Workspace `instructions` are prepended to each agent's instructions;
 project/account guidance is context, not an enforced access boundary.
 
+Codex also loads the project's own `.codex/config.toml` files: each one from the
+launch directory up to the nearest `.git` folder or worktree file (only the launch
+directory's own when there is none). It merges a server's fields across those files,
+the one nearest the launch directory winning, and Agent Farm reads them the same
+way. A project server whose merged endpoint matches one of the agent's connections
+is turned off for that launch, so the service does not start twice (for example an
+old `mcp-remote` bridge that opens a browser sign-in on every launch). Agent Farm
+passes `-c mcp_servers.<name>.enabled=false` plus the server's own `command` or
+`url`, and the same entries in `CODEX_CONFIG` for `--print-acp`. A server's
+endpoint is its `url`, or the first `http(s)://` argument of its command;
+connections are read the same way. Endpoints match when scheme, host and path
+agree, ignoring case in the scheme and host, a trailing slash and the query, or
+when one path extends the other by whole segments
+(`https://mcp.sentry.dev/mcp/<org>` matches `https://mcp.sentry.dev/mcp`).
+
+Agent Farm reads each `[mcp_servers.<name>]` table's `command`, `url` and `args`,
+following TOML's rules for strings, escapes, comments and quoted or spaced keys, so
+text inside a string (such as an example table in `developer_instructions = """…"""`)
+or a comment is never read as a server. It fails open: a server that any layer
+declares another way (an inline table, dotted keys such as
+`mcp_servers.<name>.url = …`, or a value it cannot decode) is never turned off,
+because an override it cannot read might point that server somewhere else. Also left
+alone: servers whose name contains a dot, `=` or a quote (Codex's `-c` cannot address
+them), Agent Farm's own server names (`orchestra_<name>` and `agent_farm_telemetry`),
+project servers with no matching connection, and the project files themselves.
+Claude needs none of this: its launches use strict MCP mode, which ignores the
+project's `.mcp.json`.
+
 To sign in to a remote OAuth server, use the same workspace and connection name:
 
 ```sh

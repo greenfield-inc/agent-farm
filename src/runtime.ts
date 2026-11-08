@@ -24,6 +24,154 @@ export function codexConnection(value: Connection): Record<string,unknown> {
     ...(value.auth==='bearer_env' ? {bearer_token_env_var:value.env_var} : {})}
     : {command:value.command,args:value.args,env:value.env,env_vars:value.env_vars};
 }
+/** An MCP endpoint compared loosely: scheme, host (both lower-cased by URL) and path without a trailing slash or query. */
+function mcpEndpoint(text: string): string|undefined {
+  try { const url=new URL(text); return url.protocol+'//'+url.host+url.pathname.replace(/\/+$/,''); } catch { return undefined; }
+}
+/** Same service: equal endpoints, or one extends the other by whole path segments (Sentry's scoped `/mcp/<org>`). */
+const sameEndpoint=(a: string, b: string)=>a===b || a.startsWith(b+'/') || b.startsWith(a+'/');
+const firstUrl=(values: string[])=>values.map(v=>/^https?:\/\//i.test(v)?mcpEndpoint(v):undefined).find(Boolean);
+/** The endpoint an Agent Farm connection reaches: its URL, or the first URL in a bridge command's arguments. */
+const connectionEndpoint=(value: Connection)=>'url' in value ? mcpEndpoint(value.url) : firstUrl(value.args);
+/** The `.codex/config.toml` files Codex layers for a launch directory: each one from the directory up to
+ *  the nearest `.git` (a folder, or a worktree's file); without one, only the directory's own. */
+function projectCodexConfigs(directory: string): string[] {
+  const chain: string[]=[];
+  for (let dir=path.resolve(directory);;dir=path.dirname(dir)) {
+    chain.push(dir);
+    if (fs.existsSync(path.join(dir,'.git'))) break;
+    if (path.dirname(dir)===dir) { chain.splice(1); break; }
+  }
+  return chain.map(dir=>path.join(dir,'.codex','config.toml')).filter(file=>fs.statSync(file,{throwIfNoEntry:false})?.isFile());
+}
+/** Decodes a TOML basic string's escapes; undefined when one is invalid, so the caller can treat it as unread. */
+function tomlUnescape(text: string, multiline: boolean): string|undefined {
+  let out='';
+  for (let i=0;i<text.length;i++) {
+    if (text[i]!=='\\') { out+=text[i]; continue; }
+    const e=text[++i] ?? '';
+    // A line-ending backslash in a multiline string drops the newline and the whitespace after it.
+    if (multiline && /^[ \t]*\r?\n/.test(text.slice(i))) { while (/[ \t\r\n]/.test(text[i] ?? '')) i++; i--; continue; }
+    const simple=({b:'\b',t:'\t',n:'\n',f:'\f',r:'\r',e:'\x1b','"':'"','\\':'\\'} as Record<string,string>)[e];
+    if (simple!==undefined) { out+=simple; continue; }
+    const length=e==='u' ? 4 : e==='U' ? 8 : e==='x' ? 2 : 0, hex=text.slice(i+1,i+1+length);
+    if (!length || hex.length!==length || !/^[0-9a-fA-F]+$/.test(hex) || parseInt(hex,16)>0x10ffff) return undefined;
+    out+=String.fromCodePoint(parseInt(hex,16)); i+=length;
+  }
+  return out;
+}
+/** One pass over a TOML file that follows its string and comment rules: every string (basic, literal and both
+ *  multiline forms) becomes a placeholder `\0<index>\0` holding its value (undefined if it cannot be decoded),
+ *  and comments are dropped. What is left is the file's structure, so text inside a string never reads as a
+ *  table or a field. */
+function tomlSkeleton(source: string): {lines: string[]; values: Array<string|undefined>} {
+  const values: Array<string|undefined>=[];
+  let out='', i=0;
+  while (i<source.length) {
+    const c=source[i]!;
+    if (c==='#') { while (i<source.length && source[i]!=='\n') i++; continue; }
+    if (c!=='"' && c!=="'") { out+=c; i++; continue; }
+    const multi=source.startsWith(c.repeat(3),i), delim=multi ? c.repeat(3) : c;
+    i+=delim.length;
+    if (multi) { if (source[i]==='\r') i++; if (source[i]==='\n') i++; }
+    let value='';
+    while (i<source.length) {
+      if (c==='"' && source[i]==='\\') { value+=source.slice(i,i+2); i+=2; continue; }
+      if (!multi && source[i]==='\n') break;
+      if (source.startsWith(delim,i)) {
+        // A multiline string may end in up to two content quotes: """"" is two quotes, then the close.
+        let run=0; if (multi) while (source[i+run]===c) run++; else run=1;
+        value+=c.repeat(Math.max(0,Math.min(run-3,2))); i+=run; break;
+      }
+      value+=source[i++];
+    }
+    values.push(c==='"' ? tomlUnescape(value,multi) : value);
+    out+='\0'+(values.length-1)+'\0';
+  }
+  return {lines:out.split('\n').map(line=>line.trim()),values};
+}
+/** Reads each `[mcp_servers.<name>]` table's `command`, `url` and `args` (keys and headers may be quoted or
+ *  spaced). The runtime has no TOML dependency, so a server written any other way (an inline table, dotted
+ *  keys, a value that does not decode) is reported as `unread` rather than guessed at; `all` means the file
+ *  declares servers in a form whose names cannot be told apart. */
+type ProjectServer={name:string;command?:string;url?:string;args?:string[]};
+function projectCodexServers(file: string): {servers: ProjectServer[]; unread: Set<string>; all: boolean} {
+  const {lines,values}=tomlSkeleton(fs.readFileSync(file,'utf8'));
+  const servers: ProjectServer[]=[], unread=new Set<string>();
+  let all=false;
+  // Every quoted value in this text, or undefined when one did not decode.
+  const strings=(text: string)=>{ const found=[...text.matchAll(/\0(\d+)\0/g)].map(m=>values[Number(m[1])]); return found.every(v=>v!==undefined) ? found as string[] : undefined; };
+  // A dotted key path with bare or quoted segments, or undefined for anything else.
+  const keyPath=(text: string)=>{
+    const path=text.split('.').map(part=>part.trim()).map(part=>/^[A-Za-z0-9_-]+$/.test(part) ? part : /^\0\d+\0$/.test(part) ? strings(part)?.[0] : undefined);
+    return path.every(part=>part!==undefined) ? path as string[] : undefined;
+  };
+  let section: 'root'|'servers'|'server'|'other'='root', current: ProjectServer|undefined, pending: string|undefined;
+  const unsure=(name?: string)=>{ if (name===undefined) all=true; else unread.add(name); };
+  for (const line of lines) {
+    if (pending!==undefined) {
+      pending+='\n'+line;
+      if (line.endsWith(']')) { const args=strings(pending); if (args) current!.args=args; else unsure(current!.name); pending=undefined; }
+      continue;
+    }
+    if (!line) continue;
+    if (line.startsWith('[')) {
+      const array=line.startsWith('[['), inner=line.slice(array ? 2 : 1,line.lastIndexOf(array ? ']]' : ']'));
+      const path=keyPath(inner);
+      current=undefined; section='other';
+      if (!path) { if (inner.includes('mcp_servers')) unsure(); continue; }
+      if (path[0]!=='mcp_servers') continue;
+      if (array) { unsure(path[1]); continue; }
+      if (path.length===1) section='servers';
+      else if (path.length===2) { section='server'; current={name:path[1]!}; servers.push(current); }
+      continue;
+    }
+    const assignment=/^([^=]+?)\s*=\s*(.*)$/.exec(line);
+    if (!assignment) continue;
+    const path=keyPath(assignment[1]!), value=assignment[2]!;
+    if (section==='root') { if (!path) { if (assignment[1]!.includes('mcp_servers')) unsure(); } else if (path[0]==='mcp_servers') unsure(path[1]); continue; }
+    if (section==='servers') { unsure(path?.[0]); continue; }
+    if (section!=='server') continue;
+    if (!path) { unsure(current!.name); continue; }
+    if (!['command','url','args'].includes(path[0]!)) continue;
+    if (path.length>1) { unsure(current!.name); continue; }
+    if (path[0]==='args') {
+      if (!value.startsWith('[')) unsure(current!.name);
+      else if (value.endsWith(']')) { const args=strings(value); if (args) current!.args=args; else unsure(current!.name); }
+      else pending=value;
+    } else { const decoded=strings(value); if (decoded?.length===1) current![path[0] as 'command'|'url']=decoded[0]; else unsure(current!.name); }
+  }
+  return {servers,unread,all};
+}
+/** Codex's `-c` splits a key path on every dot and keeps quotes as part of a name, so only a name without a
+ *  dot, `=` or quote can be addressed; it is passed as written. Other names are left as the project wrote them. */
+const overridable=(name: string)=>!/[.="']/.test(name);
+/** The built-in history server a launch registers when telemetry access is on; a project server never displaces it. */
+const telemetryServerName='agent_farm_telemetry';
+/** Project Codex MCP servers that reach the same endpoint as one of these connections, with the transport key
+ *  the project used. Launches disable them so one service is not started twice, once as the project's own bridge. */
+export function projectCodexDuplicates(directory: string, connections: Record<string,Connection>): Array<{name:string;transport:'command'|'url';value:string}> {
+  const endpoints=new Set(Object.values(connections).map(connectionEndpoint).filter(Boolean));
+  const found=new Map<string,{name:string;transport:'command'|'url';value:string}>(),registered=new Set([...Object.keys(connections).map(connectionName),telemetryServerName]);
+  if (!endpoints.size) return [];
+  // Codex merges a server's fields across layers, the file nearest the launch directory winning, so match
+  // the server it will actually run rather than any one file's version of it.
+  // A server any layer declares in a form not fully read could be overridden in a way not seen here, so it
+  // fails open: it is never disabled.
+  const effective=new Map<string,ProjectServer>(), unread=new Set<string>();
+  for (const file of projectCodexConfigs(directory).reverse()) {
+    let read; try { read=projectCodexServers(file); } catch { return []; }
+    if (read.all) return [];
+    for (const name of read.unread) unread.add(name);
+    for (const server of read.servers) effective.set(server.name,{...effective.get(server.name),...Object.fromEntries(Object.entries(server).filter(([,v])=>v!==undefined))} as ProjectServer);
+  }
+  for (const server of effective.values()) {
+    const endpoint=server.url!==undefined ? mcpEndpoint(server.url) : server.command!==undefined ? firstUrl(server.args ?? []) : undefined;
+    if (!endpoint || !overridable(server.name) || registered.has(server.name) || unread.has(server.name) || ![...endpoints].some(known=>sameEndpoint(known!,endpoint))) continue;
+    found.set(server.name,server.url!==undefined ? {name:server.name,transport:'url',value:server.url} : {name:server.name,transport:'command',value:server.command!});
+  }
+  return [...found.values()].sort((a,b)=>a.name<b.name?-1:a.name>b.name?1:0);
+}
 // TOML values, including quoted environment-map keys; never expand secrets here.
 export function toml(value: unknown): string {
   if (Array.isArray(value)) return '['+value.map(toml).join(', ')+']';
@@ -502,7 +650,7 @@ export function resolveLaunchFor(bundle: string, route: string, options: LaunchO
 }
 /** MCP servers in each harness's own format, keyed by registration name. Secrets stay environment references. */
 function claudeServers(resolved: ResolvedLaunch): Record<string,unknown> {
-  return {...Object.fromEntries(Object.entries(resolved.agent.connections).map(([k,v])=>[connectionName(k),claudeConnection(v)])),...(resolved.access?{agent_farm_telemetry:claudeConnection(resolved.telemetryConnection)}:{})};
+  return {...Object.fromEntries(Object.entries(resolved.agent.connections).map(([k,v])=>[connectionName(k),claudeConnection(v)])),...(resolved.access?{[telemetryServerName]:claudeConnection(resolved.telemetryConnection)}:{})};
 }
 function claudeAgents(resolved: ResolvedLaunch): Record<string,unknown> {
   return Object.fromEntries(resolved.nativeChildren.map(({alias})=>[alias,JSON.parse(fs.readFileSync(path.join(resolved.directory,'native-agents',alias+'.json'),'utf8'))]));
@@ -550,7 +698,9 @@ export function command(bundle: string, route: string, options: LaunchOptions = 
     }
     if (launch.model.speed) argv.push('-c','service_tier='+JSON.stringify(launch.model.speed==='fast' ? 'fast' : 'default'));
     for (const [key,value] of Object.entries(agent.connections)) argv.push('-c',`mcp_servers.${connectionName(key)}=${toml(codexConnection(value))}`);
-    if(resolved.access)argv.push('-c',`mcp_servers.agent_farm_telemetry=${toml(codexConnection(resolved.telemetryConnection))}`);
+    if(resolved.access)argv.push('-c',`mcp_servers.${telemetryServerName}=${toml(codexConnection(resolved.telemetryConnection))}`);
+    // The transport key keeps the override valid when Codex does not load the project layer (an untrusted project).
+    for (const {name,transport,value} of projectCodexDuplicates(manifest.directory,agent.connections)) argv.push('-c',`mcp_servers.${name}.enabled=false`,'-c',`mcp_servers.${name}.${transport}=${JSON.stringify(value)}`);
   }
   argv.push(...nativeArgs);
   if (options.message!==undefined) argv.push('--',options.message);
@@ -615,7 +765,8 @@ export function acpLaunch(bundle: string, route: string, options: AcpLaunchOptio
     if (launch.model.reasoning) config.model_reasoning_effort=launch.model.reasoning;
     if (resolved.nativeChildren.length) config.agents=Object.fromEntries(resolved.nativeChildren.map(({alias,description})=>[alias,{description,config_file:path.join(directory,'native-agents',alias+'.toml')}]));
     if (launch.model.speed) config.service_tier=launch.model.speed==='fast' ? 'fast' : 'default';
-    const servers={...Object.fromEntries(Object.entries(agent.connections).map(([k,v])=>[connectionName(k),codexConnection(v)])),...(resolved.access?{agent_farm_telemetry:codexConnection(resolved.telemetryConnection)}:{})};
+    const servers: Record<string,unknown>={...Object.fromEntries(Object.entries(agent.connections).map(([k,v])=>[connectionName(k),codexConnection(v)])),...(resolved.access?{[telemetryServerName]:codexConnection(resolved.telemetryConnection)}:{})};
+    for (const {name,transport,value} of projectCodexDuplicates(manifest.directory,agent.connections)) servers[name]={[transport]:value,enabled:false};
     if (Object.keys(servers).length) config.mcp_servers=servers;
     envOverrides.CODEX_CONFIG=JSON.stringify(config);
   }

@@ -9,9 +9,9 @@ import http from 'node:http';
 import {spawnSync,execFileSync} from 'node:child_process';
 import {TelemetryStore,telemetryProject} from '../dist/telemetry-query.js';
 import {startTelemetryUI} from '../dist/telemetry-ui.js';
-import {validateTelemetry,mergeTelemetry,telemetryAccess,resolveTelemetry,command,verify} from '../dist/runtime.js';
+import {validateTelemetry,mergeTelemetry,telemetryAccess,resolveTelemetry,command,acpLaunch,verify} from '../dist/runtime.js';
 import {build} from '../dist/compiler.js';
-import {writeLink} from './harness.mjs';
+import {writeLink,writeHarness} from './harness.mjs';
 
 function fixture(t){
   const base=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'farm-query-')));t.after(()=>fs.rmSync(base,{recursive:true,force:true}));
@@ -100,4 +100,24 @@ for(const harness of ['claude','codex'])test(`${harness}: policy selects launch 
     if(expected&&harness==='claude'){const server=JSON.parse(result.argv[result.argv.indexOf('--mcp-config')+1]).mcpServers.agent_farm_telemetry;assert.equal(server.env.AGENT_FARM_SESSION_ID,'');const child=spawnSync(server.command,server.args,{input:'{"jsonrpc":"2.0","id":1,"method":"initialize"}\n',encoding:'utf8',timeout:5000});assert.equal(child.status,0,child.stderr);assert.equal(JSON.parse(child.stdout).result.serverInfo.name,'agent-farm-telemetry');}
   }
   fs.writeFileSync(path.join(root,'settings.json'),JSON.stringify({telemetry:{agent_access:{enabled:true,scope:'machine'}}}));assert.equal(resolveTelemetry(root,undefined,env,f.base).agent_access.scope,'machine');
+});
+test('codex: a project server named like the history server never displaces it when access is on',t=>{
+  const f=fixture(t),root=path.join(f.base,'config'),bin=path.join(f.base,'bin'),url='https://dup.example/mcp';
+  for(const d of [path.join(root,'agents'),path.join(f.base,'.codex'),bin,path.join(f.options.projectDirectory,'.codex')])fs.mkdirSync(d,{recursive:true});
+  fs.writeFileSync(path.join(root,'agents/main.yaml'),`harness: codex\nmodel: test\nskills: []\nconnections:\n  dup: {type: mcp, url: "${url}", auth: native}\n`);
+  fs.writeFileSync(path.join(root,'settings.json'),JSON.stringify({telemetry:{agent_access:{enabled:true}}}));
+  fs.writeFileSync(path.join(f.options.projectDirectory,'.codex/config.toml'),`[mcp_servers.agent_farm_telemetry]\nurl = "${url}"\n[mcp_servers.bridge]\nurl = "${url}"\n`);
+  writeHarness(bin,'codex','process.exit(0);\n');
+  const bundle=build(root,'main',f.options.projectDirectory),env={...process.env,AGENT_FARM_TELEMETRY:'off',CODEX_HOME:path.join(f.base,'.codex'),AGENT_FARM_NATIVE_CODEX_HOME:path.join(f.base,'.codex'),PATH:bin+path.delimiter+process.env.PATH};
+  const result=command(bundle,'main',{configRoot:root,env,prepare:true,home:f.base});
+  assert.equal(result.telemetry_access,true);
+  const overrides=result.argv.filter((a,i)=>result.argv[i-1]==='-c'&&a.startsWith('mcp_servers.'));
+  assert.ok(overrides.some(o=>o.startsWith('mcp_servers.agent_farm_telemetry=')&&o.includes('telemetry-mcp.mjs')));
+  assert.ok(overrides.includes('mcp_servers.bridge.enabled=false'));
+  assert.ok(!overrides.some(o=>o.startsWith('mcp_servers.agent_farm_telemetry.')),overrides.join('\n'));
+  const acp=acpLaunch(bundle,'main',{configRoot:root,env,home:f.base}),servers=JSON.parse(acp.env.CODEX_CONFIG).mcp_servers;
+  assert.equal(acp.telemetry_access,true);
+  assert.deepEqual(servers.bridge,{url,enabled:false});
+  assert.ok(JSON.stringify(servers.agent_farm_telemetry.args).includes('telemetry-mcp.mjs'));
+  assert.equal(servers.agent_farm_telemetry.enabled,undefined);
 });
