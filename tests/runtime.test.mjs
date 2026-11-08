@@ -399,7 +399,7 @@ test('Claude passthrough keeps strict MCP and caller streaming, resume, hooks an
  const native=['-p','--output-format','stream-json','--verbose','--resume','session id','--settings','hooks with spaces.json','--max-turns','3','--max-budget-usd','2'];
  const result=f.invoke(['--print-launch','--message',message,'--',...native]);
  assert.equal(result.status,0,result.stderr);const launch=JSON.parse(result.stdout);
- assert.deepEqual(launch.env,{AGENT_FARM_CONFIG_ROOT:f.root});assert.ok(launch.argv.includes('--strict-mcp-config'));
+ assert.deepEqual(launch.env,{AGENT_FARM_CONFIG_ROOT:f.root,AGENT_FARM_HEADLESS:'1'});assert.ok(launch.argv.includes('--strict-mcp-config'));
  assert.deepEqual(launch.argv.slice(-native.length-2),[...native,'--',message]);
  assert.equal(launch.argv.filter(a=>a==='--output-format').length,1);assert.equal(launch.argv.includes('--print'),false);
  assert.equal(fs.existsSync(f.record),false);

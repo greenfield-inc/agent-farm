@@ -635,6 +635,9 @@ export function resolveLaunchFor(bundle: string, route: string, options: LaunchO
   const context=['LAUNCH CONTEXT',`headless: ${launch.headless}`,...Object.entries(launch.arguments).map(([key,value])=>`${key}: ${value}`)].join('\n');
   instructions=[instructions,context].filter(Boolean).join('\n\n');
   if (agent.harness==='claude') {
+    // A headless Claude (a process child, --exec) inherits its caller's PANE_PANEL_ID but is not that panel's
+    // conversation, so the plugin's Pane SessionStart hook skips it.
+    if (launch.headless) envOverrides.AGENT_FARM_HEADLESS='1';
     if (provider) {
       envOverrides.ANTHROPIC_BASE_URL=provider.base_url;
       envOverrides.ANTHROPIC_AUTH_TOKEN='${'+provider.api_key_env+'}';

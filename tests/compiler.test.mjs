@@ -235,3 +235,45 @@ test('inspection reports resolved sources and child settings without generating 
  assert.equal(list.status,0,list.stderr);assert.match(list.stdout,/entry -> planner/);
  assert.equal(fs.existsSync(path.join(f.target,'.agent-farm')),false);
 });
+const paneHook=b=>path.join(b,'main/hooks/pane-session-start');
+function runHook(t,b,env,input='{"session_id":"s-1","source":"startup","hook_event_name":"SessionStart"}'){
+ const clean=Object.fromEntries(Object.entries(process.env).filter(([k])=>!k.startsWith('PANE_')));
+ const started=Date.now(),r=spawnSync(paneHook(b),[],{input,env:{...clean,...env},encoding:'utf8',timeout:20000});
+ return {...r,elapsed:Date.now()-started};
+}
+test('Claude plugins register a SessionStart hook that reports the conversation to Pane; Codex gets none',t=>{
+ const f=fixture(t),b=f.build();
+ const hooks=JSON.parse(fs.readFileSync(path.join(b,'main/hooks/hooks.json'),'utf8'));
+ assert.deepEqual(hooks,{hooks:{SessionStart:[{hooks:[{type:'command',command:'"${CLAUDE_PLUGIN_ROOT}/hooks/pane-session-start"',timeout:5}]}]}});
+ const script=fs.readFileSync(paneHook(b),'utf8');
+ assert.match(script,/^#!\/bin\/sh\n/);assert.match(script,/"\$PANE_RUNPANE_BIN" panels conversation --hook/);
+ if(process.platform!=='win32')assert.equal(fs.statSync(paneHook(b)).mode&0o111,0o111);
+ assert.equal(fs.existsSync(path.join(b,'main/children/worker/hooks')),false);
+ verify(b);
+});
+test('the Pane hook is silent outside Pane and on any runpane failure',{skip:process.platform==='win32'&&'POSIX sh hook'},t=>{
+ const f=fixture(t),b=f.build(),bin=path.join(f.base,'bin');fs.mkdirSync(bin);
+ const stub=(name,body)=>{const p=path.join(bin,name);fs.writeFileSync(p,'#!/bin/sh\n'+body+'\n',{mode:0o755});return p;};
+ const silent=(r,label)=>{assert.equal(r.status,0,label);assert.equal(r.stdout,'',label);assert.equal(r.stderr,'',label);};
+ const record=path.join(f.base,'record');
+ const recorder=stub('record','echo "$@" > "'+record+'.args"; cat > "'+record+'"; echo noise; echo noise >&2; exit 3');
+ // Outside Pane: no panel, or no runpane path, runs nothing.
+ silent(runHook(t,b,{PANE_RUNPANE_BIN:recorder}),'no PANE_PANEL_ID');assert.equal(fs.existsSync(record),false);
+ silent(runHook(t,b,{PANE_PANEL_ID:'panel-1'}),'no PANE_RUNPANE_BIN');
+ silent(runHook(t,b,{PANE_PANEL_ID:'panel-1',PANE_RUNPANE_BIN:path.join(bin,'missing')}),'missing runpane');
+ silent(runHook(t,b,{PANE_PANEL_ID:'panel-1',PANE_RUNPANE_BIN:stub('fail','exit 1')}),'failing runpane');
+ // Headless Claudes (process children, --exec) share the panel's environment but are not its conversation.
+ silent(runHook(t,b,{PANE_PANEL_ID:'panel-1',PANE_RUNPANE_BIN:recorder,AGENT_FARM_HEADLESS:'1'}),'headless');assert.equal(fs.existsSync(record),false);
+ // Inside Pane: runpane gets the hook input, its output and exit status are discarded.
+ silent(runHook(t,b,{PANE_PANEL_ID:'panel-1',PANE_RUNPANE_BIN:recorder}),'noisy runpane');
+ assert.equal(fs.readFileSync(record+'.args','utf8'),'panels conversation --hook\n');
+ assert.equal(JSON.parse(fs.readFileSync(record,'utf8')).session_id,'s-1');
+ // A hung runpane is stopped well inside Claude's 5 s hook timeout.
+ const hung=runHook(t,b,{PANE_PANEL_ID:'panel-1',PANE_RUNPANE_BIN:stub('hang','exec sleep 30')});
+ silent(hung,'hung runpane');assert.ok(hung.elapsed<4500,`hook took ${hung.elapsed} ms`);
+});
+test('only headless Claude launches are marked AGENT_FARM_HEADLESS, so their hook stays quiet',t=>{
+ const f=fixture(t),b=f.build();
+ assert.equal(command(b,'main',{headless:true,prepare:false}).envOverrides.AGENT_FARM_HEADLESS,'1');
+ assert.equal(command(b,'main',{prepare:false}).envOverrides.AGENT_FARM_HEADLESS,undefined);
+});
