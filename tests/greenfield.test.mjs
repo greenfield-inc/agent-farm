@@ -619,7 +619,6 @@ test('greenfield 0.0.48 draws a PR diagram as one layout twice on a canvas at mo
 });
 
 test('greenfield 0.0.49 renders the status page from the first working turn, re-renders a stale one on each wake-up, keeps the local file canonical, and shows the goal with no workers (P6)',t=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.49$/m);
  includesAll(['skills/orchestrate-sessions/references/status-board.md'],['Write it at the Session\'s first working turn, even when nothing will be dispatched, and again after every ledger write','That file is the canonical page and the one Pane\'s Overview tab shows','never instead of the local file','**Session with no workers.**']);
  includesAll(['skills/orchestrate-sessions/SKILL.md'],['if the ledger or any in-flight worker\'s status file is newer than session/index.html, re-render the status page, and say so in this wake-up\'s one-line log','at the Session\'s first working turn, even when nothing will be dispatched, and again after every ledger write','always with the renderer, never by hand','never instead of the local file','The status page\'s canonical copy is always the local `<Session folder>/session/index.html`']);
  for(const file of ['skills/orchestrate-sessions/references/status-board.md','instructions/coordination.md'])assert.doesNotMatch(flatText(file),/Write it at the first dispatch/,file);
@@ -644,4 +643,16 @@ test('greenfield 0.0.49 renders the status page from the first working turn, re-
  assert.equal(busy.split('Goal: two items').length-1,1,'with the diagram drawn, the caption shows once, under it');
  assert.match(busy,/<p class="flowcap">Goal: two items<\/p>/);
  assert.doesNotMatch(busy,/class="goal"|No workers yet/);
+});
+
+test('greenfield 0.0.50 names the exact wrap-up steps: the orchestrator exports workers by launch, reviews are checked through the PR comments endpoint, and PR images roll to the next pr-assets release (setup-fixes P4, Q-90, Q-93)',()=>{
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.50$/m);
+ assert.ok(flatText('skills/orchestrate-sessions/SKILL.md').includes('`agent-farm telemetry export --bundle <item bundle> --launch <id> --require-finished`, then republish the bundle. Workers never export their own.'));
+ const bundle=flatText('skills/page/references/bundle.md');
+ for(const rule of ['never write it by hand','workers do not export their own'])assert.ok(bundle.includes(rule),rule);
+ assert.ok(flatText('skills/review/SKILL.md').includes('`gh api repos/<owner>/<repo>/pulls/<n>/comments --paginate`, filtered by `pull_request_review_id`'));
+ for(const agent of ['codex','claude'])assert.ok(flatText(`agents/${agent}-pr-reviewer.md`).includes('`git worktree add --detach <dir> <sha>`'),agent);
+ const ex=flatText('skills/excalidraw-pr-diagrams/SKILL.md');
+ for(const rule of ['highest-numbered one that has room','990 or more','without asking, and say so in your report'])assert.ok(ex.includes(rule),rule);
+ assert.ok(flatText('skills/prepare-pr/SKILL.md').includes('highest-numbered `pr-assets` release with room'));
 });

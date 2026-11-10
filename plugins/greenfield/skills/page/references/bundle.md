@@ -75,16 +75,18 @@ collection and export instructions. Include only sessions associated with this
 work and their relevant descendants.
 Keep the evidence under `evidence/telemetry/`, preserve its provenance and
 completeness metadata in `bundle.json`, and publish it with the other bundle files
-to the same existing container.
+to the same existing container. The export command writes the telemetry record
+in `bundle.json`; never write it by hand. In an orchestrated Session the
+orchestrator exports its workers' telemetry after they exit; workers do not
+export their own.
 
 Collection, export commands, provider configuration, and destination-specific
 upload procedures come from the project's workspace instructions.
 Conversation content requires explicit authorization; even metadata can contain
 private paths or tool arguments. Preserve the artifact's audience.
 
-A running session's evidence is a live snapshot. Arrange for
-the parent or orchestrator to refresh the evidence and the published bundle after
-the associated sessions finish. Distinguish local export from successful upload,
+A running session's evidence is a live snapshot, so the orchestrator
+exports each worker after it finishes and republishes the bundle. Distinguish local export from successful upload,
 verify the published evidence, and report incomplete snapshots or failures plainly.
 
 ## Post-mortem

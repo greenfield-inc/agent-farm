@@ -33,11 +33,14 @@ instructions: |
   folder, private, after the redaction review in session-trace. Outside one,
   conversation capture/export requires explicit permission.
 
-  Export only this work's sessions (descendants are included):
-    agent-farm telemetry export --bundle <dir> --session current
-  Set AGENT_FARM_ARTIFACT_BUNDLE=<absolute-dir> before launching workers.
-  After they exit, the parent exports with --require-finished and republishes
-  the same artifact. A running session is only a snapshot; local export is not upload.
+  Telemetry: workers never export it. In an orchestrated Session, when a
+  workstream ends, the orchestrator exports each worker by the launch id in its
+  ledger, then republishes the item's bundle:
+    agent-farm telemetry export --bundle <item bundle> --launch <id> --require-finished
+  Outside a Session, a session exports itself at its end
+  (agent-farm telemetry export --bundle <dir> --session current). The export
+  writes bundle.json's telemetry record; never write it by hand. Local export is
+  not upload.
 
 connections:
   grain:
