@@ -24,7 +24,7 @@ function fixture(t,harness='codex') {
  fs.writeFileSync(path.join(root,'skills/proof/SKILL.md'),'Proof skill');
  fs.writeFileSync(path.join(home,'.codex/auth.json'),'AUTH-SECRET-FIXTURE');
  fs.writeFileSync(path.join(home,'.codex/config.toml'),'');
- const script=`#!${process.execPath}\nconst fs=require('node:fs');fs.writeFileSync(process.env.RECORD,JSON.stringify({args:process.argv.slice(2),cwd:process.cwd(),home:process.env.CODEX_HOME,key:process.env.LINEAR_API_KEY}));process.stdout.write(${JSON.stringify(stdout)});process.stderr.write(${JSON.stringify(stderr)});process.exit(7);\n`;
+ const script=`#!${process.execPath}\nconst fs=require('node:fs');fs.writeFileSync(process.env.RECORD,JSON.stringify({args:process.argv.slice(2),cwd:process.cwd(),home:process.env.CODEX_HOME,key:process.env.LINEAR_API_KEY,headless:process.env.AGENT_FARM_HEADLESS??null}));process.stdout.write(${JSON.stringify(stdout)});process.stderr.write(${JSON.stringify(stderr)});process.exit(7);\n`;
  for(const name of ['codex','claude'])writeHarness(bin,name,script);
  // These regression cases exercise the original exec path. telemetry.test.mjs
  // exercises the default supervised path, including providers and dispatch.
@@ -394,12 +394,24 @@ test('explain keeps runtime home unprepared',t=>{
  assert.equal(fs.existsSync(f.record),false);
 });
 
+test('a native print-mode Claude run through passthrough is marked headless, so its Pane hook stays quiet (review F-1)',t=>{
+ const f=fixture(t,'claude');
+ for(const native of [['--print'],['-p'],['-pc'],['--output-format','json','-p']]){
+  fs.rmSync(f.record,{force:true});
+  f.invoke(['--',...native,'hello']);
+  assert.equal(JSON.parse(fs.readFileSync(f.record,'utf8')).headless,'1',native.join(' '));
+ }
+ fs.rmSync(f.record,{force:true});
+ f.invoke(['--','--permission-mode','plan']);
+ assert.equal(JSON.parse(fs.readFileSync(f.record,'utf8')).headless,null,'interactive passthrough');
+});
+
 test('Claude passthrough keeps strict MCP and caller streaming, resume, hooks and limits before the literal message',t=>{
  const f=fixture(t,'claude'),message='$(touch NEVER) `echo no`\n"quoted"';
  const native=['-p','--output-format','stream-json','--verbose','--resume','session id','--settings','hooks with spaces.json','--max-turns','3','--max-budget-usd','2'];
  const result=f.invoke(['--print-launch','--message',message,'--',...native]);
  assert.equal(result.status,0,result.stderr);const launch=JSON.parse(result.stdout);
- assert.deepEqual(launch.env,{AGENT_FARM_CONFIG_ROOT:f.root});assert.ok(launch.argv.includes('--strict-mcp-config'));
+ assert.deepEqual(launch.env,{AGENT_FARM_CONFIG_ROOT:f.root,AGENT_FARM_HEADLESS:'1'});assert.ok(launch.argv.includes('--strict-mcp-config'));
  assert.deepEqual(launch.argv.slice(-native.length-2),[...native,'--',message]);
  assert.equal(launch.argv.filter(a=>a==='--output-format').length,1);assert.equal(launch.argv.includes('--print'),false);
  assert.equal(fs.existsSync(f.record),false);

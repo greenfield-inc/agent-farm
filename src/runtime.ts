@@ -635,6 +635,9 @@ export function resolveLaunchFor(bundle: string, route: string, options: LaunchO
   const context=['LAUNCH CONTEXT',`headless: ${launch.headless}`,...Object.entries(launch.arguments).map(([key,value])=>`${key}: ${value}`)].join('\n');
   instructions=[instructions,context].filter(Boolean).join('\n\n');
   if (agent.harness==='claude') {
+    // A headless Claude (a process child, --exec, or native `-- --print`/`-p`) inherits its caller's PANE_PANEL_ID
+    // but is not that panel's conversation, so the plugin's Pane SessionStart hook skips it.
+    if (launch.headless || claudePrintMode(options.nativeArgs)) envOverrides.AGENT_FARM_HEADLESS='1';
     if (provider) {
       envOverrides.ANTHROPIC_BASE_URL=provider.base_url;
       envOverrides.ANTHROPIC_AUTH_TOKEN='${'+provider.api_key_env+'}';
@@ -647,6 +650,10 @@ export function resolveLaunchFor(bundle: string, route: string, options: LaunchO
   }
   const nativeChildren=Object.entries(agent.children).filter(([,r])=>manifest.nodes[r]!.mode==='native').map(([alias,childRoute])=>({alias,route:childRoute,description:manifest.nodes[childRoute]!.description ?? alias}));
   return {manifest,agent,route,bundle,directory,launch,env,envOverrides,provider,telemetry,access,telemetryConnection,instructions,nativeChildren};
+}
+/** Native Claude arguments that run it non-interactively: `--print`, `-p`, or a short-flag cluster with p (`-pc`). */
+export function claudePrintMode(nativeArgs: string[] = []): boolean {
+  return nativeArgs.some(arg => arg==='--print' || /^-[A-Za-z]*p[A-Za-z]*$/.test(arg));
 }
 /** MCP servers in each harness's own format, keyed by registration name. Secrets stay environment references. */
 function claudeServers(resolved: ResolvedLaunch): Record<string,unknown> {
