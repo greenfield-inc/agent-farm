@@ -568,7 +568,7 @@ test('the status page renderer runs with Node alone and draws a self-contained p
 });
 
 test('greenfield 0.0.46 tidies the Session as Pane\'s rules say: archive without asking, close what it opened, /wrap-up tells first and leaves the Session open (D-40, D-41, D-49, D-51, D-107)',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.46$/m);
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.47$/m);
  const pane=['"Keep the Session tidy" section of the Session folder\'s AGENTS.md','follow the wrap-up guide that AGENTS.md points to'];
  const archive=['`runpane panes archive --pane <id> --dry-run --json`','archive its Pane right after the merge, in the same turn','Never pass `--force`'];
  instructionsIncludeAll(COORDINATORS,['Archive a feature\'s Pane without asking',...archive,...pane]);
