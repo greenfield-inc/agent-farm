@@ -46,7 +46,7 @@ Write short element skeletons. The renderer fills in ids, seeds, bindings and te
    "backgroundColor": "#fed7aa", "strokeColor": "#c2410c", "label": {"text": "Browser sends\nPOST /orders", "fontSize": 20}},
   {"type": "diamond", "id": "gate", "x": 320, "y": 70, "width": 180, "height": 100,
    "backgroundColor": "#fef3c7", "strokeColor": "#b45309", "label": {"text": "token valid?", "fontSize": 20}},
-  {"type": "arrow", "x": 200, "y": 120, "width": 120, "height": 0, "start": {"id": "client"}, "end": {"id": "gate"}, "label": {"text": "1"}},
+  {"type": "arrow", "x": 200, "y": 120, "width": 120, "height": 0, "start": {"id": "client"}, "end": {"id": "gate"}, "label": {"text": "1", "fontSize": 20}},
   {"type": "line", "x": 0, "y": 200, "points": [[0, 0], [820, 0]], "strokeStyle": "dashed", "strokeColor": "#64748b"},
   {"type": "ellipse", "x": 0, "y": 230, "width": 14, "height": 14, "backgroundColor": "#3b82f6", "strokeColor": "#3b82f6"}
 ]}
@@ -56,7 +56,7 @@ Write short element skeletons. The renderer fills in ids, seeds, bindings and te
 - Bind an arrow to rectangles and ellipses with `start`/`end` ids. For a diamond, leave the arrow unbound and give its `points`, so it leaves from the edge you choose.
 - With `start`/`end` set, the arrow's ends snap to the shapes; still give `x`, `y` and `points` as a starting route.
 - Size text with monospace at about 0.6 × font size per character, plus 24 px of padding inside a box. A badge is a small rectangle with a 14 px label, for example `NEW` at 60 × 26.
-- A label inside a shape is 16 px and takes the shape's stroke colour; set `label.fontSize` and `label.strokeColor` to change them. Where an arrow label would cross another line, use free-floating text beside the arrow instead.
+- A label on a shape or an arrow is 16 px and takes its stroke colour; set `label.fontSize` and `label.strokeColor` to change them. Where an arrow label would cross another line, use free-floating text beside the arrow instead.
 - The defaults are clean edges (`roughness: 0`), rounded rectangles, a monospace font (`fontFamily: 3`) and `strokeWidth: 2`. Set `roughness: 1` only for a sketchy look.
 - Add `"strokeStyle": "dashed"` for an inactive or removed path, and `"roundness": null` for square corners.
 
