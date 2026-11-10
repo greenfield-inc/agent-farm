@@ -41,7 +41,7 @@ Write short element skeletons. The renderer fills in ids, seeds, bindings and te
 
 ```json
 {"type": "excalidraw", "version": 2, "elements": [
-  {"type": "text", "x": 0, "y": 0, "text": "After: the token is checked before the write", "fontSize": 26, "strokeColor": "#1e40af"},
+  {"type": "text", "x": 0, "y": 0, "text": "After: the token is checked before the write", "fontSize": 28, "strokeColor": "#1e40af"},
   {"type": "rectangle", "id": "client", "x": 0, "y": 80, "width": 200, "height": 80,
    "backgroundColor": "#fed7aa", "strokeColor": "#c2410c", "label": {"text": "Browser sends\nPOST /orders"}},
   {"type": "diamond", "id": "gate", "x": 320, "y": 70, "width": 180, "height": 100,
@@ -76,7 +76,7 @@ Text colours: title `#1e40af`, subtitle `#3b82f6`, detail `#64748b`. Colour supp
 
 ## Layout and text
 
-- **Draw for the width GitHub shows:** a PR image is displayed about 900 px wide. Keep the canvas at most 1200 px wide and let it grow downward instead, with a 40 px outer margin and 40 px between regions.
+- **Draw for the width GitHub shows:** a PR image is displayed about 900 px wide. Keep the canvas at most 1200 px wide and let it grow downward instead, with 40 px between regions. The renderer adds the outer margin.
 - Title 28 px and under about 50 characters; region headings 20–22 px; every other text 16 px or larger, which shows at 12 px. When something doesn't fit, cut words, never the font size.
 - At most three short lines per shape, with line breaks written in. A label names the thing or the step; the explanation stays in the PR text.
 - Leave most text free-floating, with font size and colour as hierarchy; box something only when it's a focal point, a "thing" in the system, or an arrow end.
