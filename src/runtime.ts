@@ -691,6 +691,8 @@ export function command(bundle: string, route: string, options: LaunchOptions = 
     else if (options.sessionId) argv.push('--session-id',options.sessionId);
   } else {
     argv=['codex',...(defaultHeadless ? ['exec','--skip-git-repo-check','--json'] : []),...(options.resume ? ['resume',options.resume] : []),'--yolo','--cd',manifest.directory,'--model',launch.model.name];
+    // No "Update available" screen: Codex is updated outside Agent Farm (for example with Homebrew).
+    argv.push('-c','check_for_update_on_startup=false');
     if (instructions) argv.push('-c','developer_instructions='+JSON.stringify(instructions));
     if (launch.model.reasoning) argv.push('-c','model_reasoning_effort='+JSON.stringify(launch.model.reasoning));
     for (const {alias,description} of resolved.nativeChildren) {

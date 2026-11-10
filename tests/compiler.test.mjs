@@ -71,6 +71,16 @@ test('interactive and headless launches bypass permissions for both harnesses',t
   }
  }
 });
+test('every Codex launch skips the startup update check',t=>{
+ const f=fixture(t);
+ f.put('agents/planner.yaml','harness: codex\nmodel: test\nskills: [proof]\n');
+ const b=f.build();
+ for(const options of [{headless:false},{headless:true},{resume:'019a0000-0000-7000-8000-000000000000'}]) {
+  const {argv}=command(b,'main',{...options,prepare:false});
+  const at=argv.indexOf('check_for_update_on_startup=false');
+  assert.ok(at>0 && argv[at-1]==='-c',JSON.stringify(options));
+ }
+});
 test('Codex references native auth without copying payloads',t=>{
  const f=fixture(t),b=f.build(),home=path.join(f.base,'home'),original=path.join(home,'.codex');fs.mkdirSync(original,{recursive:true});
  fs.writeFileSync(path.join(original,'auth.json'),'SECRET-FIXTURE');fs.writeFileSync(path.join(original,'config.toml'),'');

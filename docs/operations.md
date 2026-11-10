@@ -12,6 +12,11 @@ children. There is no setting to turn this off. Codex bypasses approval prompts
 and sandboxing; Claude bypasses permission checks. Agent Farm does not modify
 native global permission settings.
 
+Codex launches also pass `-c check_for_update_on_startup=false`, so a Codex tab
+never opens on Codex's "Update available" screen. Update Codex yourself, for
+example with Homebrew. ACP launches start Codex's app server, which shows no
+update screen.
+
 Existing sessions and previously generated standalone child launchers keep the
 configuration they were built with. Launch again through Agent Farm to generate
 a bundle with the current behavior.
