@@ -25,17 +25,19 @@ UI panels, and JavaScript conventions are not requirements for other projects.
 Sections 1 to 6 are a checklist of what to look for. Their category never sets a finding's severity: a race condition can be a Suggestion and a TypeScript gap can be Must-Fix. Grade every finding by its consequence, answering three questions:
 
 - **Harm:** what goes wrong when it happens. High: a wrong answer, data lost or damaged, a security hole, or something silently stuck. Medium: stale or misleading output, or an action blocked that should work. Low: cosmetic, a confusing message, or a clear error.
-- **Reach:** who hits it. High: the normal path, every user or every orchestrator. Medium: a common but not default path. Low: needs a rare timing, platform or setup.
+- **Reach:** who hits it, in practice. High: the normal path, every user or every orchestrator. Medium: a common but not default path, including a failed external call (a provider error or timeout) on a path every request takes, since those happen routinely in production. Low: needs a rare timing, platform, setup or input. Name what reaches it: a real caller, config or input in the repo or the product, with its file and line, or a normal use of a feature the product documents (a nearer config overriding a shared one, a supported flow). If the only trigger is an input you made up, or an unusual way of writing a supported one, Reach is low.
 - **Recovery:** what happens next. Silent: nobody notices, or there is no workaround. Visible: the failure shows and an obvious workaround exists.
 
 Then pick the level:
 
-- **Must-Fix (blocks merge):** high harm and (high reach or silent). Also, whatever the reach: any security issue, any PHI exposure (PHI reaching a log, error, analytics or telemetry event, cache, URL, third party or client storage without a control), any data loss, and any broken promise in a public contract: machine-readable output other programs parse, such as JSON fields, exit codes and error codes.
-- **Should-Fix (fix in this PR unless the author explains why not):** high harm that is rare and visible, or medium harm on the normal path. A promise stated only in human-readable text or docs, even a small one.
-- **Suggestion:** low harm, or a convention or style point that lint doesn't enforce.
+- **Must-Fix (blocks merge):** high harm with reach medium or high. Also, whatever the reach: any security issue, any PHI exposure (PHI reaching a log, error, analytics or telemetry event, cache, URL, third party or client storage without a control), any data loss, any broken promise in a public contract (machine-readable output other programs parse, such as JSON fields, exit codes and error codes), and a failing required check.
+- **Should-Fix:** high harm with low reach (mark it `rare`, silent or not), medium harm on the normal path, or a promise stated only in human-readable text or docs, even a small one. Whether it is fixed in this PR is decided by Fix or let go below.
+- **Suggestion:** low harm, or a convention or style point that lint doesn't enforce. Never fixed in a review round.
 - **Don't raise:** anything lint, typecheck or CI already enforces. Report a failing gate as a gate failure instead.
 
-Otherwise: Should-Fix if any answer is high or silent, else Suggestion.
+Otherwise: Should-Fix if harm is high or medium, else Suggestion.
+
+A repo's or plan's own rule wins over this list. When one makes something blocking at any reach ("any misbilling blocks merge"), grade it Must-Fix and name the rule in the grading line.
 
 Use only these level names. No P0/P1/P2, "critical", "nit" or other labels.
 
@@ -43,9 +45,25 @@ Every finding states its grading in one line, so a reader can disagree with a sp
 
 ```text
 Harm: high (orchestrator trusts a dead worker) · Reach: high (any agent that exits) · Recovery: silent → Must-Fix
+Harm: high (a tool silently disappears) · Reach: low (config forms nobody writes) · Recovery: silent → Should-Fix (rare)
 ```
 
 Calibrate against the worked examples in [severity-examples.md](severity-examples.md).
+
+## Fix or let go
+
+The level says how bad a problem is. Whether to fix it in this PR also depends on what the fix costs. Before you write a Must-Fix's or Should-Fix's fix:
+
+1. **Size the fix.** Small: it adds no new abstraction, parser, state, option or dependency, and is roughly 50 lines or fewer with its test. Large: anything else, including any fix that needs the approach rethought.
+2. **List the options, cheapest safe one first.** The cheapest safe fix is often one of these: fail safe (when unsure, skip the risky action and keep today's behaviour), a clear error message, a documented limitation, or a follow-up issue. Then the full fix, if it differs.
+3. **Decide, and say which:**
+   - **Fix:** the problem is common, or it is rare and the fix is small and adds no complexity.
+   - **Mitigate:** rare, the full fix is large, and a small safe option exists. Recommend that option.
+   - **Let go:** rare, and the only fixes are large. Write it as a known limitation in one line the PR can carry. If its harm is high, mark `Approach/scope: yes` so the person decides; otherwise it goes on the PR's notes.
+
+Security, PHI, data loss and public-contract problems are always fixed; their cheapest safe fix still comes first.
+
+**Fix the class once.** When one problem has many examples (several unusual inputs that all break the same parser), name the class and fix the class once. Failing safe for the whole class beats a patch per example. A later example of a class already fixed is not a new finding.
 
 ---
 
@@ -131,10 +149,12 @@ under a misplaced surface is usually right and reusable; say so.
 
 ## 7. Routing
 
-Every Must-Fix and Should-Fix carries two routing answers, set when it is found and re-checked when you verify it. An orchestrator routes on them; run by hand, they tell the person what the fix would take.
+Every Must-Fix and Should-Fix carries two routing answers (and the Pre-existing tag when it applies), set when it is found and re-checked when you verify it. An orchestrator routes on them; run by hand, they tell the person what the fix would take.
 
 - **Scope: in | out.** In when the fix stays inside what this PR changes or the plan's packages; out when it lies elsewhere (code the PR does not touch, another item's work, a follow-up).
 - **Approach/scope: no | yes.** Yes when fixing it would need a different approach or a change to the work's scope: a broken premise, a missing package, a plan-level gap (or, without a plan, work the linked issue did not ask for). Say in one line what plan change it would need.
+
+- **Pre-existing: yes**, only when the PR did not introduce the problem. A Pre-existing finding never goes to the implementer: it is listed for a follow-up issue, unless it is a security or PHI problem, which goes to the person.
 
 When your verification and the finder disagree on a routing answer, keep the one that sends the finding to the person (scope out, flag yes) and say why.
 

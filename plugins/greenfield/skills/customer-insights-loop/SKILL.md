@@ -47,7 +47,7 @@ With `interview`, settle in one sitting: the directions page's decisions, which 
 
 Hand each pick to `orchestrate-sessions` as one work item. Its starting message links its direction card and the D-n that apply. Under fully automatic, the starting message records the person's pre-approval of plans and `Human review: none` as their explicit choice, and the planner writes that review line on the cover sheet; under the other levels, the normal approval gates stand.
 
-**Quiet until handoff.** Under fully automatic, message the person only for a blocking question, a health failure the run cannot recover from (the host still down after three wake-ups, or too little disk to launch any pick), and the handoff. Start the watcher without asking. Everything else `orchestrate-sessions` would bring to the person (out-of-scope and approach/scope findings, thrash pauses, post-mortem issues, the `pr-understanding-check` offer) waits for the handoff with its recommended answer, and the PR it belongs to counts as waiting on the person. The status page stays current throughout.
+**Quiet until handoff.** Under fully automatic, message the person only for a blocking question, a health failure the run cannot recover from (the host still down after three wake-ups, or too little disk to launch any pick), and the handoff. Start the watcher without asking. Everything else `orchestrate-sessions` would bring to the person (out-of-scope and approach/scope findings, budget stops, post-mortem issues, the `pr-understanding-check` offer) waits for the handoff with its recommended answer, and the PR it belongs to counts as waiting on the person. The status page stays current throughout.
 
 ## 6. Handoff
 

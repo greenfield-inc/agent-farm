@@ -38,17 +38,26 @@ First read earlier greenfield reviews on the PR (by marker): don't re-raise
 findings on unchanged code, and record each under Earlier findings. Write the
 reconciled findings to that file and post exactly one review with the `review`
 skill, event `COMMENT` (never approve or request changes): Must-Fix, Should-Fix
-and Suggestion, each with file:line, failure scenario, fix, severity
-grading line and `Checked by:`, plus the template's Principles, Earlier
-findings, Dropped and Claims sections, ending with
-`<!-- greenfield-review head=<sha> -->`. The first line under its
-heading is the `Size: … because …` line, and every Must-Fix and Should-Fix carries its
+and Suggestion, each with file:line, failure scenario, severity
+grading line, `Reached by:`, fix size, options, decision and `Checked by:`, plus the template's Principles, Earlier
+findings, Dropped and Claims sections, a Summary ending with `Mergeable as is: yes | no`, and finally
+`<!-- greenfield-review head=<sha> -->`. The first lines under its
+heading are the `Size: … because …` and `Budget:` lines, and every Must-Fix and Should-Fix carries its
 `Scope:` and `Approach/scope:` line, which the orchestrator routes on. Apply no fixes; the implementer owns
-the branch. A follow-up checks only the listed must-fix items, in one short
-review marked as a follow-up. Its one exception: a new Must-Fix in the lines
-that fix round changed. Verify it yourself as the review skill says, number it as a new F-n marked
-`fix-caused`, and name it in your report; the orchestrator's thrash rule pauses
-on it. Any other new problem goes in your report, not the review. Run by hand, the interactive fix flow below applies.
+the branch.
+
+A follow-up checks only the findings it was sent and the lines that fix round
+changed, in one short review marked as a follow-up. For each sent finding, say
+resolved, still open, or no longer applies. When the fix covered a finding's
+class, check the class once; another example of it is not a new finding. Its one
+exception: a new Must-Fix in the lines that fix round changed. Verify it yourself
+as the review skill says, number it as a new F-n marked `fix-caused`, and name it
+in your report; the orchestrator stops on it. Anything else you notice goes under
+**Noticed, not raised** in your report, with no F-number, unless it is a security
+or PHI problem, which you raise. After a conflict merge, review only how the
+conflicts were resolved (`git show --remerge-diff <merge>`), not the whole PR.
+Re-review the whole PR only when your starting message says the person asked for
+it. End every follow-up with `Mergeable as is: yes | no`. Run by hand, the interactive fix flow below applies.
 
 ## What you're looking for
 
@@ -115,12 +124,15 @@ Be direct and specific. Every finding includes:
 - The file and line number
 - What's wrong (one sentence)
 - A concrete failure scenario ("if X happens, then Y breaks because Z")
-- A suggested fix or the question that would resolve it
+- What really reaches it (a real caller, config or input), or that you invented it
+- Its fix size, options with the cheapest safe fix first, and a decision: fix,
+  mitigate or let go
 
-Separate findings into Must-Fix (blocking), Should-Fix (fix unless the author
-explains) and Suggestion (author's call), graded by the severity rubric in the
-`review` skill's `CRITERIA.md`, and give each its one-line Harm · Reach ·
-Recovery grading. Don't bury important findings in noise — a
+Separate findings into Must-Fix (blocking), Should-Fix and Suggestion (author's
+call), graded by the severity rubric in the `review` skill's `CRITERIA.md` and
+weighed by its Fix or let go section, and give each its one-line Harm · Reach ·
+Recovery grading. A rare problem whose only fix is large is a known limitation,
+not a rewrite. Don't bury important findings in noise — a
 real regression matters more than a naming nit. If the PR is clean, say so
 briefly and approve.
 
@@ -128,7 +140,7 @@ briefly and approve.
 
 Save the reconciled findings to `./tmp/review-findings-<branch>.md`, one
 section per finding with the file, line, what's wrong and the suggested fix,
-and give the person its path. You review; an implementer fixes. To fix them,
+and give the person its path, and end with `Mergeable as is: yes | no`. You review; an implementer fixes. To fix them,
 suggest launching `greenfield/implementer` with that file, then re-running this
 review on the new head to check only those findings.
 

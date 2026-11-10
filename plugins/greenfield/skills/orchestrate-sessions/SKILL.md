@@ -33,7 +33,7 @@ Every piece of work follows the same three roles, each a fresh agent in that wor
 | Clearly straightforward, authorized fix | `greenfield/implementer` directly, with the original task and a `no-plan` label |
 | Implementer done, when the user turned on the simplify checkpoint | `greenfield/simplify-and-refactor:sol` on that PR's branch, before QA and review (see Review policy) |
 | A PR the person calls "ready", a plan's end, or a human review cleared | `greenfield/reviewer:codex`, one per review, one `COMMENT` review, no fixes (see Review policy) |
-| Review findings | routed by After a review: in-scope fixes to the PR's implementer, approach/scope and out-of-scope findings to the person |
+| Review findings | routed by After a review: Must-Fix to the PR's implementer within its fix-round budget, approach/scope and out-of-scope findings to the person |
 
 Under an orchestrator, planners only plan; they never take the small-fix route. Implementation needs the user's approval of the actual source revision; record it before moving on, unless existing authorization explicitly covers that step. A finished planning document is ready for review, nothing more. Relay open decisions to the user and let the planner write the plan.
 
@@ -94,7 +94,7 @@ A review starts on one of three triggers, and never on a tweak or a quick fix:
 - **A plan's end.** A planned feature's implementer always runs `full` when its build is done (CI, QA, babysitting until green) and then reports done. When its cover sheet says `Human review: none`, start its review straight away; it needs no "ready".
 - **Human review: required.** When the cover sheet says so, the implementer still runs `full` first; then open the PR beside the person instead, say it waits for their look, and start no reviewer until they say "ready".
 
-Launch one `greenfield/reviewer:codex` agent per review as a new tab in the Pane that owns that PR's branch. When it stops on a content filter or policy refusal, relaunch that review on `greenfield/reviewer:claude` and note the swap on the PR's card. Its starting message names the PR, the range, a findings file in the Session folder and the cover sheet when there is one, and says: write the findings file, post one reconciled `COMMENT` review, apply no fixes. The reviewer sizes the range itself; show the Size line it reports in the PR's lane, and never compute it. When the review or a follow-up posts, record the head it covered as the PR's `last_reviewed_head`.
+Launch one `greenfield/reviewer:codex` agent per review as a new tab in the Pane that owns that PR's branch. When it stops on a content filter or policy refusal, relaunch that review on `greenfield/reviewer:claude` and note the swap on the PR's card. Its starting message names the PR, the range, a findings file in the Session folder and the cover sheet when there is one, and says: write the findings file, post one reconciled `COMMENT` review, apply no fixes. The reviewer sizes the range itself; show the Size line it reports in the PR's lane, and never compute it. The `Budget:` line under it sets the PR's fix rounds for this trigger (see The round budget). When the review or a follow-up posts, record the head it covered as the PR's `last_reviewed_head`.
 
 Tweaks and quick fixes go to the PR's implementer and are committed to its branch: an existing PR, or a new draft PR labelled `no-plan`. The implementer quick-verifies each one; when the change is visual, open its screenshots beside the person. No reviewer starts, and the PR's lane shows its unreviewed commits. Never mark a PR ready, or say it can merge, while it has commits since its last review: say "N commits not reviewed; say 'ready' to review them" instead.
 
@@ -104,27 +104,28 @@ The end-of-Session sweep: when refinements wind down (tweaks slow, or unreviewed
 
 ## After a review
 
-Read the findings file. Every Must-Fix and Should-Fix carries `Scope: in | out` and `Approach/scope: no | yes` (the reviewer's CRITERIA.md, section 7). Route each finding once:
+Read the findings file. Every Must-Fix and Should-Fix carries `Scope: in | out`, `Approach/scope: no | yes`, a `Fix size:` and a `Decision:` (the reviewer's CRITERIA.md, Fix or let go and section 7). Route each finding once:
 
 | Finding | Goes to |
 | --- | --- |
 | Approach/scope: yes, at any level | the person, never the implementer: re-plan it (a new revision through the planner), fix it in this PR anyway, or accept it as is |
 | Must-Fix, not flagged | the PR's implementer, with no question |
-| Should-Fix, scope in, not flagged | the PR's implementer, with no question |
+| Should-Fix, scope in, Decision: fix, Fix size: small | the PR's implementer, but only inside a fix round a Must-Fix already opened; otherwise the PR's notes and card |
+| Decision: mitigate or let go, not flagged | the PR's notes and card (the mitigation rides along if a fix round is open) |
 | Should-Fix, scope out | the person: re-plan it as follow-up work, fix it here anyway, or accept it |
+| Pre-existing | the card, as a proposed follow-up issue (security or PHI: the person) |
 | Suggestion | the map only |
 
-Send the implementer's share in one message, resumed in its tab or, once that tab has stopped, as a new implementer tab in the same Pane: `review: fix F-… (findings: <path>)`. Put the person's share to them as one relay message ([references/relay.md](references/relay.md)), each finding with its file:line and, for a flagged one, the plan change it would need; record their answers as D-n. A finding they send back to be fixed goes to the implementer in the next message, and a re-plan goes to the planner.
+Send the implementer's share in one message, resumed in its tab or, once that tab has stopped, as a new implementer tab in the same Pane: `review: fix F-… (findings: <path>)`. Put the person's share to them as one relay message ([references/relay.md](references/relay.md)), each finding with its file:line and, for a flagged one, the plan change it would need; record their answers as D-n. A finding they send back to be fixed goes to the implementer in the next message, and a re-plan goes to the planner. The person can say "fix them" to send the Should-Fixes on the card too.
 
-The fix loop: when the implementer reports its fixes done, launch a follow-up reviewer, again as a new tab in that Pane, that checks only the F-n it was sent, plus any new Must-Fix in the lines that fix round changed, which it marks `fix-caused`. Its starting message names the F-n, the fix round's commit range and that exception. A follow-up is not sized again. Route any F-n still open the same way. The loop ends when no Must-Fix is open and every finding sent to the person has its answer; a Must-Fix the person accepted counts as closed. Run another full round only when the user asks.
+The fix loop: when the implementer reports its fixes done, launch a follow-up reviewer, again as a new tab in that Pane, that checks only the F-n it was sent and the lines that fix round changed, plus any new Must-Fix in the lines that fix round changed, which it marks `fix-caused`. Its starting message names the F-n, the fix round's commit range and that exception. A follow-up is not sized again. What it notices outside that scope comes back under "Noticed, not raised" with no F-number: put it on the card, never to the implementer. After a conflict merge, a follow-up reviews only the conflict resolution. Route any F-n still open the same way. The loop ends when the latest review says `Mergeable as is: yes` (no Must-Fix open) and every finding sent to the person has its answer; a Must-Fix the person accepted counts as closed. Start a whole-PR review again only for a new trigger ("ready", a plan's end) or on the person's word.
 
-The thrash rule: stop sending fixes and ask the person when any of these happens on one PR's review:
+The round budget: each review gives its PR a budget of fix rounds, printed under its Size line: small 1, standard 2, large 3. A fix round is one batch of fixes sent to the implementer, for QA or review findings, plus its re-check; the first QA pass and the first review are free. QA rounds the implementer reports in its status file's `fix_rounds` count too. Keep `fix_rounds: {budget, used}` per PR in the ledger, adding QA and review rounds together, and show "Fix rounds 1 of 2" on its card. Before the PR's first review, take the budget from the implementer's `fix_rounds`, which sizes the PR the same way. A new review trigger opens a fresh budget for its range. Stop, send the implementer nothing more, and ask the person when:
 
-- a follow-up confirms a new Must-Fix in lines the last fix round changed (the reviewer marks it fix-caused);
-- an F-n is still open after two fix rounds;
-- a third fix round would start.
+- the budget is used and a Must-Fix is still open, or
+- a follow-up confirms a fix-caused Must-Fix.
 
-Send the implementer nothing more. Put one question to the person naming the cycle (which F-n, which rounds, what each fix broke), with three options: more fix rounds (how many), re-plan, or accept as is.
+Put one question to the person naming the findings, the rounds and what each fix changed, with three options: more fix rounds (how many), re-plan, or accept as is.
 
 The simplify checkpoint is optional and off by default. When the user turns it on, launch one `greenfield/simplify-and-refactor:sol` agent per PR as a new tab in that PR's Pane after its implementer reports done and has stopped, before QA and review, since it may write the branch. Its starting message names the PR and says: plan, then wait for the user's approval of the merged plan. Relay the plan to the user; it applies only on their approval. When it reports done, the head has changed: QA and review run on the new head, and the implementer owns the branch again.
 
@@ -132,7 +133,9 @@ The user can skip review, add checkpoints (including the simplify checkpoint), o
 
 ## Post-mortems
 
-When a PR's review loop closes, or the PR merges or closes unreviewed, check whether anything went wrong on it: the workers' `failure` and `attempts` fields, your own events for it (a timeout, a dead tab, a crash, a missing permission, a thrash pause) and its traces. When something did, write the post-mortem as `page`'s post-mortem reference says, into the PR's own artifact (the implementer's `pr_artifact`, which is a local folder when there is no destination; never a page of your own instead), and link it from the item's front page and card. Then put one question listing each proposed GitHub issue with its repository and title, the recommended answer first. A yes files that one issue, with private paths, customer text and session content removed, in the repository that owns the failing piece (the tool's own repository or the project's), never guessed silently: when you can't tell which, say so in the question. Nothing is filed without a yes. When nothing went wrong, write no post-mortem; write the words "no issues hit" on the item's card and on its front page, creating its hub first if it has none.
+When a PR's review loop closes, record how it went. Write `Outcome: fixed | mitigated | let go | accepted | wrong | didn't matter` beside each finding in its findings file, and add one line to its card and front page: fix rounds used of budget, and lines added from the head that first entered QA or review (the ledger's `first_checked_head`) to the final head (`git diff --shortstat <first checked head>..<final head>`).
+
+Then, and when the PR merges or closes unreviewed, check whether anything went wrong on it: the workers' `failure` and `attempts` fields, your own events for it (a timeout, a dead tab, a crash, a missing permission, a budget stop) and its traces. When something did, write the post-mortem as `page`'s post-mortem reference says, into the PR's own artifact (the implementer's `pr_artifact`, which is a local folder when there is no destination; never a page of your own instead), and link it from the item's front page and card. Then put one question listing each proposed GitHub issue with its repository and title, the recommended answer first. A yes files that one issue, with private paths, customer text and session content removed, in the repository that owns the failing piece (the tool's own repository or the project's), never guessed silently: when you can't tell which, say so in the question. Nothing is filed without a yes. When nothing went wrong, write no post-mortem; write the words "no issues hit" on the item's card and on its front page, creating its hub first if it has none.
 
 ## Events, then a watcher
 

@@ -37,6 +37,8 @@ Use host durable state when available; otherwise `.agent/ledger.json`. Keep one 
       "pr": null,
       "pr_head": null,
       "last_reviewed_head": "sha of the head the last full or follow-up review covered, or null",
+      "first_checked_head": "sha of the head that first entered QA or review, for the lines-added line, or null",
+      "fix_rounds": { "budget": "1 | 2 | 3, from the latest review's Budget line", "used": "QA and review fix rounds since that review's trigger" },
       "checks": "green | failing | pending | null",
       "qa": "passed | failed | not run",
       "findings": null,

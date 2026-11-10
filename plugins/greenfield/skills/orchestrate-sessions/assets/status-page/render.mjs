@@ -135,8 +135,10 @@ const refSec = (title, list) => {
   return sec(title, list.length, `<div class="refs">${[...groups].map(([name, rs]) => `<div class="rg"><div class="rgh">${esc(name)} <span class="rgn">${rs.length}</span></div>${rs.map(refRow).join('')}</div>`).join('')}</div>`);
 };
 
+// A PR's fix rounds used of its budget (QA and review together); marked once the budget is spent.
+const rounds = r => r && Number.isFinite(r.used) && Number.isFinite(r.budget) ? ` · <span class="rounds${r.used >= r.budget ? ' spent' : ''}">Fix rounds ${esc(r.used)} of ${esc(r.budget)}</span>` : '';
 const itemCard = it => `<div class="card item ${it.state}">
-  <div class="hd"><a class="name" href="${esc(it.link || '#')}">${esc(it.name)}</a><span class="where">${it.pr ? `<a href="${esc(it.prLink || '#')}">${esc(it.pr)}</a> · ` : ''}${it.paneLink ? `<a href="${esc(it.paneLink)}">open ↗</a>` : esc(it.pane)}</span></div>
+  <div class="hd"><a class="name" href="${esc(it.link || '#')}">${esc(it.name)}</a><span class="where">${it.pr ? `<a href="${esc(it.prLink || '#')}">${esc(it.pr)}</a> · ` : ''}${it.paneLink ? `<a href="${esc(it.paneLink)}">open ↗</a>` : esc(it.pane)}${rounds(it.fixRounds)}</span></div>
   ${it.rail?.length ? diagram({ steps: it.rail }, 'rail', 'bare') : ''}
   <div class="tn">${rich(it.next)}</div></div>`;
 
@@ -188,6 +190,7 @@ h2{font-size:10.5px;font-weight:650;letter-spacing:.1em;text-transform:uppercase
 .hd{display:flex;justify-content:space-between;gap:6px 12px;flex-wrap:wrap;align-items:baseline}
 .name{font-size:14.5px;font-weight:650;color:var(--ink);text-decoration:none;letter-spacing:-.01em}
 .where{font-size:11.5px;color:var(--muted)}.where a{color:var(--muted)}
+.rounds.spent{color:var(--warn);font-weight:650}
 .tn{font-size:12.5px;color:var(--muted);overflow-wrap:anywhere}
 .pill{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:1px 8px;border-radius:999px;margin-right:6px;vertical-align:1px}
 .pill.now{background:var(--run-wash);color:var(--run)}.pill.need{background:var(--warn-wash);color:var(--warn)}.pill.blocked,.pill.failed{background:var(--bad-wash);color:var(--bad)}.pill.done{background:var(--ok-wash);color:var(--ok)}
