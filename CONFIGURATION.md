@@ -519,16 +519,36 @@ document bundle (a directory containing `bundle.json`):
 ```sh
 agent-farm telemetry export --bundle tmp/greenfield/my-work --session current
 agent-farm telemetry export --bundle tmp/greenfield/my-work --session SESSION_ID --require-finished
+agent-farm telemetry export --bundle tmp/greenfield/my-work --launch LAUNCH_ID --require-finished
 ```
 
-Repeat `--session` for additional roots. Subsequent exports can omit it to reuse
-the roots recorded in `bundle.json`. Exports are always project-scoped; use
-`--project DIR` from outside the project. `--directory STORE` selects local storage;
-inside a launched session the export command inherits its collector store.
-The command copies `session.json` and available raw OTLP JSONL signals into
-`evidence/telemetry/<session-id>/`, preserving unrelated manifest fields, including
-the existing published artifact identity. It records roots, included sessions,
-export time, completeness, and `publication: pending` under `telemetry`.
+Repeat `--session` for additional roots. `--launch` takes the ID an interactive
+`agent-farm run` launch reports (`PANE_AGENT_SESSION_ID`, the ID `--resume`
+takes) and exports every session recorded under it, one per run, so a resumed
+launch exports all of them. This is how an orchestrator exports a worker after
+it exits. Subsequent exports can omit both to reuse the roots recorded in
+`bundle.json`. Exports are always project-scoped; use `--project DIR` from
+outside the project. `--directory STORE` selects local storage; inside a
+launched session the export command inherits its collector store.
+
+An export keeps the record of what happened, by one rule for every harness: the
+log events for prompts, model requests and responses (with tokens and cost),
+tool decisions and results, skills, subagent and agent messages, errors, session
+start and compaction, plus `metrics.jsonl` and `session.json` (start, end and
+exit). It writes them to `evidence/telemetry/<session-id>/`. Timing traces
+(`traces.jsonl`) and other events, such as hook and startup housekeeping,
+credential lookups and any kind a harness adds later, are left out. String
+fields longer than 4,096 characters are shortened. The local store still keeps
+everything.
+
+The command preserves unrelated manifest fields, including the existing
+published artifact identity. Under `telemetry` it records roots, included
+sessions, any launch IDs, export time, completeness, `publication: pending`,
+and what it kept and left out: `contents: "events"`, `events.kept` and
+`events.left_out` (counts per event kind), `shortened_fields` and
+`traces_left_out_bytes`. The command writes this record; a `telemetry` key it
+didn't write (a path, or an object without `version`) is replaced, with a note
+on stderr.
 
 To refresh the local bundle automatically after a launched harness exits, set
 `AGENT_FARM_ARTIFACT_BUNDLE` to the absolute bundle directory before launch. The
@@ -536,14 +556,17 @@ bundle must exist by exit. Export failures are reported without changing the
 harness's exit status. This does not upload anything: the parent/orchestrator
 must refresh the existing artifact using the destination's publishing tools after
 the process exits. `--require-finished` refuses a snapshot if a selected session
-or known descendant has not recorded completion. A crash may leave sessions
+or known descendant has not recorded completion. A session that runs it on
+itself is told that its orchestrator exports it after it exits. A crash may leave sessions
 unfinished indefinitely; do not label those snapshots complete.
 
 Captured conversation content requires `--include-content` to export, or explicit
 `AGENT_FARM_EXPORT_CONTENT=on` for post-exit exports. Metadata itself can contain
 private paths or tool arguments. Keep artifact access private and never bundle the
 whole machine store. Exports reject symlink files/directories and are bounded to
-100 roots, 500 sessions, 64 MiB per signal, and 256 MiB total. Concurrent exports
+100 roots, 500 sessions, 48 MiB per exported file, and 200 MiB total, below
+Grain's limits of 50 MiB per file and 250 MiB per revision, so an exported
+bundle publishes as is. Concurrent exports
 to one bundle fail with a lock error; retry after the active export finishes.
 
 Project workspace instructions own provider-specific upload commands and audience

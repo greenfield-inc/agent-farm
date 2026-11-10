@@ -514,7 +514,9 @@ export function codexHome(bundle: string, route: string, env: NodeJS.ProcessEnv,
 export function referencesNote(directory: string): string {
   return `Bundled references: ${directory}. A path written as \`.references/<path>\` in your instructions or skills means ${path.join(directory,'<path>')}; read it from there, not from the repository.`;
 }
-export interface LaunchOptions { headless?: boolean; nativeArgs?: string[]; message?: string; prepare?: boolean; env?: NodeJS.ProcessEnv; home?: string; configRoot?: string; model?: string; reasoning?: string; speed?: string; args?: string[]; resume?: string; sessionId?: string }
+export interface LaunchOptions { headless?: boolean; nativeArgs?: string[]; message?: string; prepare?: boolean; env?: NodeJS.ProcessEnv; home?: string; configRoot?: string; model?: string; reasoning?: string; speed?: string; args?: string[]; resume?: string; sessionId?: string;
+  /** The `agent-farm run` launch ID, recorded on the telemetry session so `telemetry export --launch` finds it. */
+  launchId?: string }
 
 /** What an interactive launch used, so `--resume <id>` can reopen the same native session without asking again. */
 export interface LaunchRecord { id: string; profile: string; variant?: string; harness: 'claude'|'codex'; directory: string; started_at: string; codex_home?: string; native_session_id?: string }
@@ -656,7 +658,7 @@ function claudeAgents(resolved: ResolvedLaunch): Record<string,unknown> {
   return Object.fromEntries(resolved.nativeChildren.map(({alias})=>[alias,JSON.parse(fs.readFileSync(path.join(resolved.directory,'native-agents',alias+'.json'),'utf8'))]));
 }
 /** Wraps a prepared launch the way every consumer must spawn it: provider secrets resolve in the child, then telemetry. */
-function wrapLaunch(resolved: ResolvedLaunch, argv: string[], acp?: {adapter: string}): string[] {
+function wrapLaunch(resolved: ResolvedLaunch, argv: string[], acp?: {adapter: string}, launchId?: string): string[] {
   const {provider,agent,bundle,telemetry}=resolved;
   if (provider && agent.harness==='claude') {
     // Claude treats AUTH_TOKEN literally. Resolve only inside the launched child,
@@ -667,7 +669,7 @@ function wrapLaunch(resolved: ResolvedLaunch, argv: string[], acp?: {adapter: st
   if (telemetry.enabled) {
     // The receiver starts only when this command executes, including when a
     // consumer spawns --print-launch or --print-acp output. No ports or session IDs at build time.
-    const descriptor={directory:telemetry.directory,bundle,route:resolved.route,harness:agent.harness,launch:resolved.launch,captureContent:telemetry.capture_content===true,...(acp?{acp}:{})};
+    const descriptor={directory:telemetry.directory,bundle,route:resolved.route,harness:agent.harness,launch:resolved.launch,captureContent:telemetry.capture_content===true,...(acp?{acp}:{}),...(launchId?{launchId}:{})};
     argv=[process.execPath,path.join(bundle,'telemetry.mjs'),JSON.stringify(descriptor),'--',...argv];
   }
   return argv;
@@ -705,7 +707,7 @@ export function command(bundle: string, route: string, options: LaunchOptions = 
   argv.push(...nativeArgs);
   if (options.message!==undefined) argv.push('--',options.message);
   Object.assign(env,envOverrides);
-  argv=wrapLaunch(resolved,argv);
+  argv=wrapLaunch(resolved,argv,undefined,options.launchId);
   return {argv,env,envOverrides,cwd:manifest.directory,launch,telemetry:resolved.telemetry,telemetry_access:resolved.access};
 }
 /** The ACP adapters and versions this output was verified against. Clients install and pin them. */
@@ -807,10 +809,10 @@ export function execute(argv: string[], cwd: string, environment: NodeJS.Process
   throw new Error('Native exec unexpectedly returned');
 }
 /** Chooses the native session for an interactive launch: a new recorded one, or the one `--resume <id>` names. */
-export interface LaunchSession { resume?: string; sessionId?: string; report?: string; record?: LaunchRecord }
+export interface LaunchSession { resume?: string; sessionId?: string; report?: string; record?: LaunchRecord; launch?: string }
 export function launchSession(manifest: Manifest, harness: 'claude'|'codex', resume: string|undefined, context: {interactive: boolean; nativeArgs: string[]; env?: NodeJS.ProcessEnv; home?: string}): LaunchSession {
   const env=context.env ?? process.env,home=context.home ?? os.homedir();
-  const fresh=(id:string=randomUUID()):LaunchSession=>({report:id,...(harness==='claude'?{sessionId:id}:{}),record:{id,profile:manifest.profile,...(manifest.variant?{variant:manifest.variant}:{}),harness,directory:manifest.directory,started_at:new Date().toISOString()}});
+  const fresh=(id:string=randomUUID()):LaunchSession=>({report:id,launch:id,...(harness==='claude'?{sessionId:id}:{}),record:{id,profile:manifest.profile,...(manifest.variant?{variant:manifest.variant}:{}),harness,directory:manifest.directory,started_at:new Date().toISOString()}});
   if (resume===undefined) return context.interactive && !nativeResume(context.nativeArgs) ? fresh() : {};
   if (!context.interactive) throw new Error('--resume reopens an interactive session; it cannot be combined with --exec or --print-launch');
   if (nativeResume(context.nativeArgs)) throw new Error('Use either --resume or native resume arguments, not both');
@@ -825,7 +827,7 @@ export function launchSession(manifest: Manifest, harness: 'claude'|'codex', res
     console.error(`agent-farm: no saved conversation for ${resume}; starting a new one`);
     return {...fresh(record.id),record:{...record,started_at:new Date().toISOString()}};
   }
-  return {resume:native,report:resume,record:record.native_session_id ? undefined : {...record,native_session_id:native}};
+  return {resume:native,report:resume,launch:record.id,record:record.native_session_id ? undefined : {...record,native_session_id:native}};
 }
 export function run(bundle: string, route: string, args: string[], launchCommand: typeof command = command, configRoot?: string): ChildProcess | undefined {
   const {values,tokens}=parseArgs({args,options:{exec:{type:'boolean'},message:{type:'string'},explain:{type:'boolean'},'print-launch':{type:'boolean'},'print-acp':{type:'boolean'},'acp-adapter':{type:'string'},'native-arg':{type:'string',multiple:true},model:{type:'string'},reasoning:{type:'string'},speed:{type:'string'},arg:{type:'string',multiple:true},resume:{type:'string'}},strict:true,allowPositionals:true,tokens:true});
@@ -848,7 +850,7 @@ export function run(bundle: string, route: string, args: string[], launchCommand
   }
   const nativeArgs=[...(values['native-arg'] ?? []),...args.slice(separator+1)];
   const session=launchSession(manifest,selected.harness,values.resume,{interactive:!requested.headless && !values.explain,nativeArgs});
-  const launch=launchCommand(bundle,route,{...requested,nativeArgs,message:values.message,prepare:!values.explain,configRoot,resume:session.resume,sessionId:session.sessionId});
+  const launch=launchCommand(bundle,route,{...requested,nativeArgs,message:values.message,prepare:!values.explain,configRoot,resume:session.resume,sessionId:session.sessionId,launchId:session.launch});
   if (session.record && !values.explain) {
     if (session.record.harness==='codex') session.record.codex_home=launch.env.CODEX_HOME;
     writeLaunchRecord(session.record);

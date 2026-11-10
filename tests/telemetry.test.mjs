@@ -32,7 +32,7 @@ const fs=require('node:fs');
    }
    const item={resource:{attributes:[{key:'service.name',value:{stringValue:'fake-harness'}}]}};
    if(signal==='traces')item.scopeSpans=[{scope:{name:'fake'},spans:[{traceId:'a'.repeat(32),spanId:'b'.repeat(16),name:'native.tool',kind:1,startTimeUnixNano:'1',endTimeUnixNano:'2'}]}];
-   if(signal==='logs')item.scopeLogs=[{logRecords:[{body:{stringValue:'tool event'}}]}];
+   if(signal==='logs')item.scopeLogs=[{logRecords:[{eventName:'tool_result',body:{stringValue:'tool event'}}]}];
    if(signal==='metrics')item.scopeMetrics=[{metrics:[]}];
    const response=await fetch(endpoint,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({[key]:[item]})});
    if(!response.ok)throw new Error('export failed: '+response.status);
@@ -68,7 +68,8 @@ for(const harness of ['claude','codex'])test(`${harness}: post-exit artifact exp
  assert.equal(manifest.telemetry.complete,true);assert.equal(manifest.published.id,'existing');
  const exported=path.join(bundle,'evidence/telemetry',s.id);
  assert.equal(JSON.parse(fs.readFileSync(path.join(exported,'session.json'))).exitCode,7);
- assert.match(fs.readFileSync(path.join(exported,'traces.jsonl'),'utf8'),/agent_farm.session/);
+ assert.match(fs.readFileSync(path.join(exported,'logs.jsonl'),'utf8'),/tool event/);
+ assert.equal(fs.existsSync(path.join(exported,'traces.jsonl')),false);assert.equal(manifest.telemetry.events.kept.tool_result,1);
  assert.match(r.stderr,/publication pending/);
  f.env.AGENT_FARM_ARTIFACT_BUNDLE=path.join(f.base,'missing');
  const failed=f.invoke(['--exec']);assert.equal(failed.status,7);assert.match(failed.stderr,/artifact telemetry export failed/);
@@ -251,4 +252,17 @@ test('a workspace-selected directory collects parent and child telemetry outside
   assert.equal(s.attributes['agent_farm.workspace.trust'],'personal');assert.equal(lines(s,'traces').length,2);
  }
  const fresh=f.invoke(['--print-launch']);assert.equal(fresh.status,0,fresh.stderr);assert.equal(JSON.parse(fresh.stdout).argv[0],'claude');
+});
+
+for(const harness of ['claude','codex'])test(`${harness}: an orchestrator exports a finished worker by its launch ID, resumes included`,t=>{
+ const f=fixture(t,harness),bundle=path.join(f.base,'artifact');fs.mkdirSync(bundle);fs.writeFileSync(path.join(bundle,'bundle.json'),'{}');
+ f.env.PANE_PANEL_ID='panel-under-test';
+ const first=f.invoke([]);assert.equal(first.status,0,first.stderr);
+ const launch=/^PANE_AGENT_SESSION_ID=(\S+)$/m.exec(first.stderr)[1];
+ const again=f.invoke(['--resume',launch]);assert.equal(again.status,0,again.stderr);
+ const sessions=f.sessions();assert.equal(sessions.length,2);
+ for(const s of sessions)assert.equal(s.attributes['agent_farm.launch.id'],launch);
+ const r=spawnSync(process.execPath,[cli,'telemetry','export','--bundle',bundle,'--launch',launch,'--require-finished','--project',f.cwd,'--directory',f.directory],{env:f.env,encoding:'utf8'});
+ assert.equal(r.status,0,r.stderr);const result=JSON.parse(r.stdout);
+ assert.equal(result.complete,true);assert.deepEqual(new Set(result.exported_session_ids),new Set(sessions.map(s=>s.id)));
 });
