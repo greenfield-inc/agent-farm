@@ -1,6 +1,6 @@
 # Session status page
 
-One HTML page per Session for the person (the workstream map), published as the Session's hub. You fill a status JSON from the Session's real state, and the renderer beside this skill draws the page from it. Never write the page's HTML by hand.
+One HTML page per Session for the person (the workstream map), kept locally in the Session folder and, when a destination resolves, also published as the Session's hub. You fill a status JSON from the Session's real state, and the renderer beside this skill draws the page from it. Never write the page's HTML by hand.
 
 ## Write it
 
@@ -8,8 +8,8 @@ One HTML page per Session for the person (the workstream map), published as the 
 node <this skill's directory>/assets/status-page/render.mjs <Session folder>/.agent/status.json <Session folder>/session/index.html
 ```
 
-- Always write the local copy to `<Session folder>/session/index.html`, the ledger's `session.artifact.local`. When a document destination resolves, also publish it as the Session artifact's front page.
-- Write it at the first dispatch, again at each material change (a worker report, a decision, a PR opened, reviewed or merged) and when the person asks. Each rewrite replaces the same file and the same published artifact.
+- Always write the local copy to `<Session folder>/session/index.html`, the ledger's `session.artifact.local`. That file is the canonical page and the one Pane's Overview tab shows. When a document destination resolves, you may also publish a copy as the Session artifact's front page, at material changes, but never instead of the local file.
+- Write it at the Session's first working turn, even when nothing will be dispatched, and again after every ledger write and when the person asks. Each rewrite replaces the same file and, when there is one, the same published copy.
 - In Pane, the Session's Overview tab shows this page, so never open it as a separate tab there.
 - Outside Pane, open it beside the person at the first dispatch with the host's show-page mechanism, without asking. Open its URL (the published URL, or a `file://` URL for the local copy), never a file to edit. Record that URL in the ledger's `session.artifact.opened_url`, and after each rewrite open the same URL again so the host reuses its tab.
 - The page carries `<meta http-equiv="refresh" content="60">`, so an open copy reloads itself every minute.
@@ -61,7 +61,19 @@ Every fact comes from the Session's real state: the ledger, the workers' status 
 
 Keep the JSON at `<Session folder>/.agent/status.json` and update it in place, so each rewrite starts from the last one.
 
-**Session.** `eyebrow` is the local time of the newest evidence you read and the time elapsed since the Session started, with no cost. `counts` are workers running now, items waiting to start, and items finished. Give `flow` when items depend on each other (`depends_on` in the ledger) or run in sequence: one step per item or wave, in the order of work. The page shows it only with 2 or more items in flight. Shared ledgers and stub hubs in other destinations are links in `settings`.
+**Session with no workers.** A Session that only talks still gets its page from the first working turn: the title, what the Session is about as the flow's caption (shown under the title when no diagram is drawn), any open questions and decisions, and empty items, which the page shows as "No workers yet."
+
+```json
+{
+  "session": { "title": "Release questions", "eyebrow": "Updated 09:12 · 4 min elapsed",
+    "counts": { "running": 0, "queued": 0, "done": 0 }, "settings": "Review on ready; validation deferred",
+    "flow": { "caption": "Goal: decide whether 0.3 ships this week", "steps": [] } },
+  "needs": [], "items": [], "done": [],
+  "decisions": [ { "id": "D-1", "answer": "Ship after the docs fix", "by": "You", "when": "09:10" } ]
+}
+```
+
+**Session.** `eyebrow` is the local time of the newest evidence you read and the time elapsed since the Session started, with no cost. `counts` are workers running now, items waiting to start, and items finished. Always give `flow.caption`, the Session's goal in one line. Give its `steps` when items depend on each other (`depends_on` in the ledger) or run in sequence: one step per item or wave, in the order of work. The page draws the steps only with 2 or more items in flight, and otherwise shows the caption alone under the title. Shared ledgers and stub hubs in other destinations are links in `settings`.
 
 **Needs you.** One entry per open question, approval or finding waiting on the person, newest blocking first; `[]` when there are none.
 

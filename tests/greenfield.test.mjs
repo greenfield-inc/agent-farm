@@ -615,6 +615,33 @@ test('greenfield 0.0.47 lets rare bugs stop blocking merge, weighs every fix by 
 });
 
 test('greenfield 0.0.48 draws a PR diagram as one layout twice on a canvas at most 1600 px wide, with argument text at 20 px and details at 14 to 16 px',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.48$/m);
  includesAll(['skills/excalidraw-pr-diagrams/SKILL.md'],['Keep the canvas at most 1600 px wide','are 20 px or larger','are 14–16 px, and badges 14 px','defaults to 16 px, the detail size','set `label.fontSize: 20` on the skeleton\'s labels']);
+});
+
+test('greenfield 0.0.49 renders the status page from the first working turn, re-renders a stale one on each wake-up, keeps the local file canonical, and shows the goal with no workers (P6)',t=>{
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.49$/m);
+ includesAll(['skills/orchestrate-sessions/references/status-board.md'],['Write it at the Session\'s first working turn, even when nothing will be dispatched, and again after every ledger write','That file is the canonical page and the one Pane\'s Overview tab shows','never instead of the local file','**Session with no workers.**']);
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['if the ledger or any in-flight worker\'s status file is newer than session/index.html, re-render the status page, and say so in this wake-up\'s one-line log','at the Session\'s first working turn, even when nothing will be dispatched, and again after every ledger write','always with the renderer, never by hand','never instead of the local file','The status page\'s canonical copy is always the local `<Session folder>/session/index.html`']);
+ for(const file of ['skills/orchestrate-sessions/references/status-board.md','instructions/coordination.md'])assert.doesNotMatch(flatText(file),/Write it at the first dispatch/,file);
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'af-status-empty-'));
+ t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+ fs.cpSync(path.join(root,'skills/orchestrate-sessions/assets/status-page'),path.join(dir,'renderer'),{recursive:true});
+ const render=status=>{
+  fs.writeFileSync(path.join(dir,'status.json'),JSON.stringify(status));
+  const run=spawnSync(process.execPath,[path.join(dir,'renderer/render.mjs'),path.join(dir,'status.json'),path.join(dir,'index.html')],{encoding:'utf8'});
+  assert.equal(run.status,0,run.stderr);
+  return fs.readFileSync(path.join(dir,'index.html'),'utf8');
+ };
+ const session={title:'Release questions',eyebrow:'Updated 09:12',counts:{running:0,queued:0,done:0},settings:'x',flow:{caption:'Goal: decide whether <0.3> ships',steps:[]}};
+ const empty=render({session,decisions:[{id:'D-1',answer:'Ship after the docs fix'}]});
+ assert.match(empty,/<h1>Release questions<\/h1><p class="goal">Goal: decide whether &lt;0\.3> ships<\/p>/,'the goal shows under the title with no flow steps');
+ assert.match(empty,/No workers yet\./);
+ assert.match(empty,/Ship after the docs fix/);
+ assert.doesNotMatch(empty,/Order of work/);
+ const steps=[{label:'A',state:'now'},{label:'B',state:'todo'}];
+ const item={name:'A',pane:'a',state:'now',next:'x'};
+ const busy=render({session:{...session,flow:{caption:'Goal: two items',steps}},items:[item,{...item,name:'B'}]});
+ assert.equal(busy.split('Goal: two items').length-1,1,'with the diagram drawn, the caption shows once, under it');
+ assert.match(busy,/<p class="flowcap">Goal: two items<\/p>/);
+ assert.doesNotMatch(busy,/class="goal"|No workers yet/);
 });
