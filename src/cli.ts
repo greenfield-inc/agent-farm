@@ -7,8 +7,9 @@ import os from 'node:os';
 import {parseArgs} from 'node:util';
 import {resolveWorkspace,resolveInteractiveWorkspace,trustWorkspace,untrustWorkspace,showWorkspace} from './workspaces.js';
 import {build,variantCommands,variantLabel,resolveProfile,splitVariant} from './compiler.js';
-import {run,execute,readLaunchRecord} from './runtime.js';
-import {loginCommand} from './mcp-auth.js';
+import {run,execute,nativeCommand,readLaunchRecord} from './runtime.js';
+import {spawnSync} from 'node:child_process';
+import {loginCommand,loginPlan} from './mcp-auth.js';
 import {loadWorkspace,unloadWorkspace,loadedWorkspaces} from './user-workspaces.js';
 import {inspectProfile,listProfiles} from './inspect.js';
 import {loadProfile,unloadProfile,loadedProfiles,globalSkills,globalSkillWarning,saveGlobalSkills} from './user-skills.js';
@@ -171,10 +172,24 @@ try {
       } else console.log('No provider to clear.');
     } else throw new Error('Use: agent-farm provider set|show|clear');
   } else if (positionals[0]==='mcp') {
-    if (positionals.length!==3 || positionals[1]!=='login' || !['claude','codex'].includes(values.harness ?? '')) throw new Error('Use: agent-farm mcp login CONNECTION [--directory PATH] --harness claude|codex');
+    if (positionals.length!==3 || positionals[1]!=='login' || (values.harness!==undefined && !['claude','codex'].includes(values.harness))) throw new Error('Use: agent-farm mcp login CONNECTION [--directory PATH] [--harness claude|codex]');
     if (values.message!==undefined || values.build || values.exec || values.explain) throw new Error('MCP login does not accept launch options');
-    const launch=loginCommand(path.resolve(values['config-root']!),path.resolve(values.directory!),positionals[2]!,values.harness as 'claude'|'codex',{noWorkspace:values['no-workspace']});
-    execute(launch.argv,launch.cwd,launch.env);
+    const root=path.resolve(values['config-root']!),directory=path.resolve(values.directory!),connection=positionals[2]!,options={noWorkspace:values['no-workspace']};
+    if (values.harness) {
+      const launch=loginCommand(root,directory,connection,values.harness as 'claude'|'codex',options);
+      execute(launch.argv,launch.cwd,launch.env);
+    } else {
+      // Sign in once per service: every installed harness that holds no sign-in for it yet.
+      const plan=loginPlan(root,directory,connection,options);
+      if (!plan.length) throw new Error('Neither claude nor codex is installed; install one, or pass --harness');
+      for (const {harness,state,login} of plan) {
+        if (!login) { console.log(`${harness}: already signed in to ${connection}`); continue; }
+        console.log(`${harness}: ${state==='missing' ? 'signing in' : 'could not confirm a sign-in; signing in'} to ${connection}`);
+        const [file,...args]=nativeCommand(login.argv,login.env);
+        const result=spawnSync(file!,args,{cwd:login.cwd,env:login.env,stdio:'inherit'});
+        if (result.error || result.status!==0) { console.error(`error: ${harness} login for ${connection} did not finish${result.error ? ': '+result.error.message : ''}`); process.exitCode=1; }
+      }
+    }
   } else if (positionals[0]==='plugin') {
     const operation=positionals[1];
     if (operation==='validate' && positionals.length===3) console.log(JSON.stringify(validatePlugin(path.resolve(positionals[2]!),path.resolve(values['config-root']!)),null,2));

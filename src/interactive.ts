@@ -7,7 +7,8 @@ import * as p from '@clack/prompts';
 import {listProfiles, inspectProfile} from './inspect.js';
 import {build,modelSummary,orderedVariants,resolveProfile,splitVariant} from './compiler.js';
 import type {ResolvedWorkspace} from './workspaces.js';
-import {nativeCommand,run} from './runtime.js';
+import {nativeCommand,run,type SignInCheck} from './runtime.js';
+import {signInGaps} from './mcp-auth.js';
 import {installPlugin} from './plugins.js';
 import {fileURLToPath} from 'node:url';
 import {stringify} from 'yaml';
@@ -522,7 +523,7 @@ export async function initCommand(configRoot: string, directory: string, full = 
 
 import {commands as commandDefs, findCommand, groupLabels, groupOrder} from './commands.js';
 
-export function doctorCommand(configRoot: string) {
+export function doctorCommand(configRoot: string, directory = process.cwd(), check?: SignInCheck) {
   const nodeVersion = process.versions.node;
   const nodeMajor = parseInt(nodeVersion.split('.')[0]!, 10);
   const nodeMinor = parseInt(nodeVersion.split('.')[1]!, 10);
@@ -568,7 +569,26 @@ export function doctorCommand(configRoot: string) {
   // Skills
   const skills = listSkills(configRoot);
   console.log(`    ${green('✓')} ${skills.length} skill(s)`);
+  console.log('');
 
+  // MCP sign-ins for this directory's workspace: the same check every launch makes.
+  console.log(`  ${bold('MCP sign-ins')}  ${dim(directory)}`);
+  try {
+    const gaps = signInGaps(configRoot, directory, {check});
+    if (!gaps.connections.length) console.log(`    ${green('✓')} No auth: native connections in this workspace`);
+    else if (!gaps.harnesses.length) console.log(`    ${yellow('–')} No harness installed to check ${gaps.connections.join(', ')}`);
+    else {
+      for (const connection of gaps.connections) {
+        const missing = gaps.missing.filter(gap => gap.connection === connection), unknown = gaps.unknown.filter(gap => gap.connection === connection);
+        if (missing.length) console.log(`    ${yellow('✗')} ${connection}: not signed in for ${missing.map(gap => gap.harness).join(' and ')}. Run: ${bold(missing[0]!.login)}`);
+        else if (unknown.length) console.log(`    ${yellow('?')} ${connection}: could not check ${unknown.map(gap => gap.harness).join(' and ')}; launches keep it`);
+        else console.log(`    ${green('✓')} ${connection}: signed in`);
+      }
+      if (!gaps.missing.length) console.log(`    ${green('✓')} No missing sign-ins`);
+    }
+  } catch (e) {
+    console.log(`    ${yellow('✗')} ${e instanceof Error ? e.message : e}`);
+  }
   console.log('');
 }
 

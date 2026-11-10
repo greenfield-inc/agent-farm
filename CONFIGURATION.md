@@ -1184,14 +1184,19 @@ project's `.mcp.json`.
 To sign in to a remote OAuth server, use the same workspace and connection name:
 
 ```sh
-agent-farm mcp login remote-service --directory /path/to/repo --harness codex
-agent-farm mcp login remote-service --directory /path/to/repo --harness claude
+agent-farm mcp login remote-service --directory /path/to/repo
 ```
 
-The command runs the native client's login flow. Complete the browser consent in
-an interactive terminal. Claude and Codex keep separate native credentials; a
-first login can be required for each. Stable server names and URLs reuse credentials
-across repositories. Changing an endpoint or connection name can require another
+The command runs the native client's login flow for each installed harness
+(Claude, Codex) that does not already hold a sign-in for the connection, one after
+the other. Complete each browser consent in an interactive terminal. Claude and
+Codex keep separate native credentials, so the first login usually opens one
+browser sign-in per harness. Add `--harness claude` or `--harness codex` to sign in
+for one harness only, without checking first. Launches check these sign-ins first
+and leave out a connection that is not signed in; see
+[operations](docs/operations.md#mcp-sign-ins-before-launch).
+`agent-farm doctor` lists the missing ones for the current directory's workspace.
+Stable server names and URLs reuse credentials across repositories. Changing an endpoint or connection name can require another
 login. Refresh failures, revoked access, and provider policy can also require login.
 
 Claude login uses a small private configuration under
@@ -1276,7 +1281,7 @@ remove it only after confirming no workspace operation is still running.
 
 Authentication remains native. Environment-variable references remain references;
 Agent Farm does not resolve secret values into configuration. Remote login still
-uses `agent-farm mcp login CONNECTION --directory /path/to/repo --harness HARNESS`.
+uses `agent-farm mcp login CONNECTION --directory /path/to/repo [--harness HARNESS]`.
 Unload removes configuration, not credentials. Start fresh native sessions to
 observe changes. Project-level native settings can override global configuration.
 Claude Agent Farm `run` uses `--strict-mcp-config`; scoped launches use their
