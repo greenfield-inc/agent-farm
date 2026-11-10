@@ -276,4 +276,6 @@ test('only headless Claude launches are marked AGENT_FARM_HEADLESS, so their hoo
  const f=fixture(t),b=f.build();
  assert.equal(command(b,'main',{headless:true,prepare:false}).envOverrides.AGENT_FARM_HEADLESS,'1');
  assert.equal(command(b,'main',{prepare:false}).envOverrides.AGENT_FARM_HEADLESS,undefined);
+ for(const nativeArgs of [['--print'],['-p'],['-pc'],['--verbose','-p']])assert.equal(command(b,'main',{nativeArgs,prepare:false}).envOverrides.AGENT_FARM_HEADLESS,'1',nativeArgs.join(' '));
+ for(const nativeArgs of [['--permission-mode','plan'],['--verbose'],['--resume','abc']])assert.equal(command(b,'main',{nativeArgs,prepare:false}).envOverrides.AGENT_FARM_HEADLESS,undefined,nativeArgs.join(' '));
 });

@@ -403,7 +403,8 @@ are set, the script runs `"$PANE_RUNPANE_BIN" panels conversation --hook` with
 the hook's input, so Pane knows which conversation the panel is on after a
 `/clear` or `/resume` inside Claude. Otherwise it exits at once. It never
 prints anything, always exits 0, and stops runpane after 3 seconds. Headless
-Claude launches (`--exec`, `--print-launch`, process children) set
+Claude launches (`--exec`, `--print-launch`, process children, and native
+`-- --print` or `-p`) set
 `AGENT_FARM_HEADLESS=1`, and the hook skips them: they inherit the caller's
 `PANE_PANEL_ID` but are not that panel's conversation. Codex launches have no
 hook.

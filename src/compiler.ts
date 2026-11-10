@@ -78,7 +78,7 @@ export function modelSummary(model:{name:string;reasoning?:string;speed?:string}
 export function variantLabel(profile:{variants?:string[];default_variant?:string;variant_models?:Record<string,{name:string;reasoning?:string;speed?:string}>}):string{if(!profile.variants)return '';return ` (${orderedVariants(profile.variants,profile.default_variant).map(v=>profile.variant_models?.[v]?`${v}: ${modelSummary(profile.variant_models[v]!)}`:v).join(' · ')})`;}
 
 /** Claude Code SessionStart hook (startup, resume, clear, compact) telling Pane which conversation its terminal is on.
- *  Outside Pane, and in headless launches (AGENT_FARM_HEADLESS, set by runtime.ts), it exits at once. Inside, runpane
+ *  Outside Pane, and in headless launches (AGENT_FARM_HEADLESS, set by runtime.ts for --exec, --print-launch and native --print/-p), it exits at once. Inside, runpane
  *  gets the hook input; nothing is printed (SessionStart stdout becomes Claude's context), and runpane is stopped
  *  after 3 s so the hook never blocks or fails Claude. */
 const paneHookScript='hooks/pane-session-start';
