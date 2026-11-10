@@ -25,7 +25,7 @@ UI panels, and JavaScript conventions are not requirements for other projects.
 Sections 1 to 6 are a checklist of what to look for. Their category never sets a finding's severity: a race condition can be a Suggestion and a TypeScript gap can be Must-Fix. Grade every finding by its consequence, answering three questions:
 
 - **Harm:** what goes wrong when it happens. High: a wrong answer, data lost or damaged, a security hole, or something silently stuck. Medium: stale or misleading output, or an action blocked that should work. Low: cosmetic, a confusing message, or a clear error.
-- **Reach:** who hits it, in practice. High: the normal path, every user or every orchestrator. Medium: a common but not default path. Low: needs a rare timing, platform, setup or input. Name what reaches it: a real caller, config or input in the repo or the product, with its file and line. If the only trigger is an input you made up, Reach is low.
+- **Reach:** who hits it, in practice. High: the normal path, every user or every orchestrator. Medium: a common but not default path, including a failed external call (a provider error or timeout) on a path every request takes, since those happen routinely in production. Low: needs a rare timing, platform, setup or input. Name what reaches it: a real caller, config or input in the repo or the product, with its file and line, or a normal use of a feature the product documents (a nearer config overriding a shared one, a supported flow). If the only trigger is an input you made up, or an unusual way of writing a supported one, Reach is low.
 - **Recovery:** what happens next. Silent: nobody notices, or there is no workaround. Visible: the failure shows and an obvious workaround exists.
 
 Then pick the level:

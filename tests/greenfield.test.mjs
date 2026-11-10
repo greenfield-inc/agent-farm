@@ -602,12 +602,12 @@ test('greenfield 0.0.46 tidies the Session as Pane\'s rules say: archive without
 
 test('greenfield 0.0.47 lets rare bugs stop blocking merge, weighs every fix by its cost, and gives each PR one fix-round budget QA and review share',()=>{
  assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.47$/m);
- includesAll(['skills/review/CRITERIA.md'],['**Must-Fix (blocks merge):** high harm with reach medium or high','high harm with low reach (mark it `rare`, silent or not)','If the only trigger is an input you made up, Reach is low','## Fix or let go','cheapest safe one first','**Mitigate:**','**Let go:**','**Fix the class once.**','A repo\'s or plan\'s own rule wins over this list','**Pre-existing: yes**']);
+ includesAll(['skills/review/CRITERIA.md'],['**Must-Fix (blocks merge):** high harm with reach medium or high','high harm with low reach (mark it `rare`, silent or not)','If the only trigger is an input you made up, or an unusual way of writing a supported one, Reach is low','a normal use of a feature the product documents','## Fix or let go','cheapest safe one first','**Mitigate:**','**Let go:**','**Fix the class once.**','A repo\'s or plan\'s own rule wins over this list','**Pre-existing: yes**']);
  includesAll(['skills/review/SKILL.md'],['`Budget: N fix rounds`','**Budget:** [1|2|3] fix rounds','Reached by:','Fix size: small | large','Decision: fix | mitigate (option 1) | let go','Mergeable as is: yes | no','defined only in `CRITERIA.md`\'s Severity section']);
  includesAll(['instructions/standing-rules.md'],['## Fixing what review and QA find','1 for a small PR, 2 for standard, 3 for large','the first QA pass and the first review are free','"fix_rounds": null','within the PR\'s fix-round budget']);
  includesAll(['agents/pr-qa.md'],['Harm · Reach · Recovery line','or that you invented it','Your parent decides what gets fixed']);
  includesAll(['agents/qa-lead.md','agents/qa-lead-codex.md'],['or the PR\'s fix-round budget is spent','a break-it case you invented is rare']);
- includesAll(['skills/orchestrate-sessions/SKILL.md'],['`Outcome: fixed | mitigated | let go | accepted | wrong | didn\'t matter`','`first_checked_head`']);
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['`Outcome: fixed | mitigated | let go | accepted | wrong | didn\'t matter`','`first_checked_head`','Before the PR\'s first review, take the budget from the implementer\'s `fix_rounds`']);
  // One home for the severity definitions: no other greenfield file restates the old Must-Fix line.
  for(const file of fs.readdirSync(root,{recursive:true}).map(String).filter(f=>/\.(md|html)$/.test(f))){
   const text=flatText(file);
