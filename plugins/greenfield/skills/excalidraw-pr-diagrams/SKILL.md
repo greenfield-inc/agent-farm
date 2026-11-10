@@ -22,14 +22,14 @@ A diagram argues; it doesn't display. Its shape should carry the meaning, so a r
    | fans out, converges, or transforms | radial arrows, a funnel, or input → process → output |
 
    Give each major concept its own pattern. Two PRs that fix different kinds of problems get different layouts.
-2. **Gather the real details.** Use the actual endpoint paths, event names, fields and example payloads from the code or spec. Concrete artifacts teach: a dark code box with the real query or command, a mock of the real menu or dialog built from nested rectangles, or bars on a time axis for states over time. Tag the pieces the PR adds or changes with small `NEW`, `CHANGED` or `REUSED` badges.
+2. **Gather the real details.** Use the actual endpoint paths, event names, fields and example payloads from the code or spec. Concrete artifacts teach: a dark code box with the real query or command, a mock of the real menu or dialog built from nested rectangles, or bars on a time axis for states over time. Tag the pieces the PR adds or changes with small `NEW`, `CHANGED` or `REUSED` badges, and say once what each badge means.
 3. **Write the file** in a working folder outside the repository, such as `/tmp/pr-diagrams/<repo>-<pr>/overview.excalidraw`, using the format below. Build a large diagram one region per edit, or generate repeated pieces (timeline rows, badges) with a short script. For a PR whose diff is mostly generated files, list it with `gh pr diff --name-only` and read only the files that matter.
 4. **Render and look** (below), fix what you see, and repeat until the checks at the end pass, usually 2–4 rounds.
 
 A PR visual overview always has:
-- a **Before** path, where the old system failed or was fragile;
-- an **After** path, through the new route or control point;
-- at least one structure (boundary, timeline, loop, funnel, state machine, swimlane, queue, fan-out or layers);
+- **one skeleton, drawn twice:** Before above After, with the same structure (the same columns, lanes, rows or time axis) in the same positions in both, so the change is the one part that differs and a reader finds it by position;
+- a **Before** path, where the old system failed or was fragile. When the old system worked for one case and failed for another, show both, so the contrast locates the failure;
+- an **After** path through the new route or control point, with the same cases as Before;
 - one short **truth statement** in plain language;
 - a small **term explainer** for any protocol word a reviewer may not know (header, preflight, origin, token, cookie, cache key…): define it in a few plain words, then keep the official term in parentheses, for example `permission check (CORS preflight)`. Show who acts: `Browser asks`, `API answers`.
 
@@ -55,7 +55,7 @@ Write short element skeletons. The renderer fills in ids, seeds, bindings and te
 - Types: `rectangle` (an action or component), `ellipse` (a start, an end, or a 10–20 px timeline dot), `diamond` (a decision), `arrow` (a relationship), `line` (timelines, trees, dividers), `text`.
 - Bind an arrow to rectangles and ellipses with `start`/`end` ids. For a diamond, leave the arrow unbound and give its `points`, so it leaves from the edge you choose.
 - With `start`/`end` set, the arrow's ends snap to the shapes; still give `x`, `y` and `points` as a starting route.
-- Size text with monospace at about 0.6 × font size per character, plus 24 px of padding inside a box. A badge is a small rectangle with a 12 px label, for example `NEW` at 56 × 24.
+- Size text with monospace at about 0.6 × font size per character, plus 24 px of padding inside a box. A badge is a small rectangle with a 14 px label, for example `NEW` at 60 × 26.
 - A label inside a shape takes the shape's stroke colour; set `label.strokeColor` to change it. Where an arrow label would cross another line, use free-floating text beside the arrow instead.
 - The defaults are clean edges (`roughness: 0`), rounded rectangles, a monospace font (`fontFamily: 3`) and `strokeWidth: 2`. Set `roughness: 1` only for a sketchy look.
 - Add `"strokeStyle": "dashed"` for an inactive or removed path, and `"roundness": null` for square corners.
@@ -76,10 +76,11 @@ Text colours: title `#1e40af`, subtitle `#3b82f6`, detail `#64748b`. Colour supp
 
 ## Layout and text
 
-- Plan for about 1600–2200 px wide and 900–1400 px tall, with two or three clear regions, 80 px outer margin and 50 px between regions.
-- Titles 24–30 px and under about 55 characters; labels 14–18 px; at most four short lines per shape, with line breaks written in.
+- **Draw for the width GitHub shows:** a PR image is displayed about 900 px wide. Keep the canvas at most 1200 px wide and let it grow downward instead, with a 40 px outer margin and 40 px between regions.
+- Title 28 px and under about 50 characters; region headings 20–22 px; every other text 16 px or larger, which shows at 12 px. When something doesn't fit, cut words, never the font size.
+- At most three short lines per shape, with line breaks written in. A label names the thing or the step; the explanation stays in the PR text.
 - Leave most text free-floating, with font size and colour as hierarchy; box something only when it's a focal point, a "thing" in the system, or an arrow end.
-- Give the most important element the most space. Every relationship gets an arrow; route loops around the outside of boxes.
+- Give the most important element the most space. Every relationship gets an arrow. Arrows run horizontally or vertically; for a turn, give three points that make a right angle. Route them through the gaps, around boxes and text.
 
 ## Render and check
 
@@ -94,7 +95,7 @@ node <skill-directory>/references/render.mjs /tmp/pr-diagrams/<repo>-<pr>/overvi
 Look at the PNG with your image-reading tool (for example the Read tool), then check:
 - **The argument:** without the prose, the image still shows the before/after difference through structure, and isn't just the PR text in red and green boxes.
 - **The fit:** no text is clipped or overlapping, arrows land on the right element without crossing others, spacing is even, and the title doesn't dominate.
-- **The size:** it reads at the width GitHub shows in a PR. If it's too wide or wordy, stack regions vertically and cut prose.
+- **The size:** the canvas is at most 1200 px wide and no text is under 16 px (badges 14 px). If it's too wide or wordy, stack regions vertically and cut prose.
 
 ## Publishing on a PR
 
