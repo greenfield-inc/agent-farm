@@ -80,6 +80,7 @@
    "name": "Per-project env vars (keychain)",
    "pr": "#1014",
    "pane": "pr-1014",
+   "fixRounds": { "used": 1, "budget": 1 },
    "state": "need",
    "stateLabel": "Needs you",
    "next": "<b>Implementer</b> waits on your answer.",
@@ -165,6 +166,7 @@
   {
    "name": "#1012 follow-up: review fixes",
    "pr": "#1241",
+   "fixRounds": { "used": 1, "budget": 2 },
    "pane": "pr-1012",
    "state": "now",
    "stateLabel": "In review",

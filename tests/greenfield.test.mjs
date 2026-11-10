@@ -44,7 +44,7 @@ test('the reviewer is the former dcouple reviewer, with its Codex variant on Sol
   const text=fs.readFileSync(path.join(root,'agents',agent+'.md'),'utf8');
   assert.match(text,/## Launched by an orchestrator/);assert.doesNotMatch(text,/dcouple/);
   const orchestrated=/## Launched by an orchestrator\n([\s\S]*?)\n## /.exec(text)[1];
-  for(const phrase of [/exactly one review/,/event `COMMENT`/,/never approve or request changes/,/<!-- greenfield-review head=<sha> -->/,/earlier greenfield reviews/,/Apply no fixes/,/only the listed must-fix items/])assert.match(orchestrated,phrase,agent);
+  for(const phrase of [/exactly one review/,/event `COMMENT`/,/never approve or request changes/,/<!-- greenfield-review head=<sha> -->/,/earlier greenfield reviews/,/Apply no fixes/,/checks only the findings it was sent and the lines that fix round\s+changed/,/Noticed, not raised/,/--remerge-diff/,/Mergeable as is: yes \| no/])assert.match(orchestrated,phrase,agent);
  }
 });
 
@@ -170,7 +170,7 @@ test('orchestrated reviewers post one COMMENT review and apply no fixes, and orc
   const launch=command(build(root,profile,target),'main',{prepare:false});
   const codex=launch.argv.find(v=>v.startsWith('developer_instructions='));
   const instructions=flat(codex ? JSON.parse(codex.slice('developer_instructions='.length)) : launch.argv[launch.argv.indexOf('--append-system-prompt')+1]);
-  for(const rule of ['reconciled findings to that file','post exactly one review','event `COMMENT` (never approve or request changes)','Apply no fixes','checks only the listed must-fix items'])assert.ok(instructions.includes(rule),`${profile}: ${rule}`);
+  for(const rule of ['reconciled findings to that file','post exactly one review','event `COMMENT` (never approve or request changes)','Apply no fixes','checks only the findings it was sent and the lines that fix round changed'])assert.ok(instructions.includes(rule),`${profile}: ${rule}`);
  }
  const skill=flat(fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8'));
  for(const rule of ['no agent in it is working','1 feature = 1 worktree = 1 branch = 1 Pane','panels create --pane <feature Pane id>','--wait-ready --yes --json','agent-farm run greenfield/<role>:<variant>','Always name the variant','`greenfield/implementer:opus`','whether it explicitly grants conversation capture','a personal fallback workspace grants nothing'])assert.ok(skill.includes(rule),rule);
@@ -391,7 +391,7 @@ test('reviewers size every review with the bundled script, run security and PHI 
   const script=fs.readdirSync(bundle,{recursive:true}).find(file=>String(file).endsWith(path.join('review','scripts','review-size.mjs')));
   assert.ok(script,`${profile} bundles review-size.mjs`);
  }
- includesAll(REVIEWERS,['and run the principles for that size, with principle 13 (security and PHI) on every review','Verify each Must-Fix and Should-Fix yourself as the review skill says','`Size: … because …` line','`Scope:` and `Approach/scope:` line']);
+ includesAll(REVIEWERS,['and run the principles for that size, with principle 13 (security and PHI) on every review','Verify each Must-Fix and Should-Fix yourself as the review skill says','`Size: … because …` and `Budget:` lines','`Scope:` and `Approach/scope:` line']);
  includesAll(['skills/review/SKILL.md'],['scripts/review-size.mjs','Never lower it.','### Verify each finding','verify every Must-Fix and Should-Fix candidate yourself','Post one you can\'t verify as Should-Fix marked "unverified"','**Size:** [small|standard|large] because','Scope: in | out ([why]) · Approach/scope: no | yes','Source: [where the value comes from] → Sink: [where it ends up] → Missing control:']);
  includesAll(['skills/principled-review/SKILL.md'],['| small | 4, 5 and 13;','Principle 13 (security and PHI) runs at every size','### Principle 13: Security Boundaries & PHI','missing control redaction','### Principle 9: Query, Data & Hot-Path Cost','names the hot path, the scale and an estimate']);
  includesAll(['skills/review/CRITERIA.md'],['any PHI exposure','## 7. Routing','keep the one that sends the finding to the person']);
@@ -400,11 +400,11 @@ test('reviewers size every review with the bundled script, run security and PHI 
  assert.equal(resolveProfile(root,'orchestrator').nodes.main.instructions.includes('review-size'),false,'the orchestrator never sizes');
 });
 
-test('reviews start on ready, a plan\'s end or a cleared human review, never on tweaks, and findings route by scope with a thrash pause',()=>{
+test('reviews start on ready, a plan\'s end or a cleared human review, never on tweaks, and findings route by scope within a fix-round budget',()=>{
  const skill=flatText('skills/orchestrate-sessions/SKILL.md');
- for(const rule of ['A review starts on one of three triggers, and never on a tweak or a quick fix','**"ready".**','**A plan\'s end.**','**Human review: required.**','`<last reviewed head>...HEAD`','The reviewer sizes the range itself','No reviewer starts, and the PR\'s lane shows its unreviewed commits','Never mark a PR ready, or say it can merge, while it has commits since its last review','The end-of-Session sweep','## After a review','| Approach/scope: yes, at any level | the person, never the implementer','| Must-Fix, not flagged | the PR\'s implementer, with no question |','| Should-Fix, scope out | the person: re-plan it as follow-up work, fix it here anyway, or accept it |','checks only the F-n it was sent','an F-n is still open after two fix rounds','a third fix round would start','more fix rounds (how many), re-plan, or accept as is'])assert.ok(skill.includes(rule),rule);
- assert.doesNotMatch(skill,/Fix the N must-fix items now|end-of-Session pass/);
- instructionsIncludeAll(COORDINATORS,['Tweaks and quick fixes start no reviewer','Never say a PR can merge while it has unreviewed commits','in-scope Must-Fix and Should-Fix go to the PR\'s implementer with no question','the loop pauses on the thrash rule']);
+ for(const rule of ['A review starts on one of three triggers, and never on a tweak or a quick fix','**"ready".**','**A plan\'s end.**','**Human review: required.**','`<last reviewed head>...HEAD`','The reviewer sizes the range itself','No reviewer starts, and the PR\'s lane shows its unreviewed commits','Never mark a PR ready, or say it can merge, while it has commits since its last review','The end-of-Session sweep','## After a review','| Approach/scope: yes, at any level | the person, never the implementer','| Must-Fix, not flagged | the PR\'s implementer, with no question |','| Should-Fix, scope out | the person: re-plan it as follow-up work, fix it here anyway, or accept it |','checks only the F-n it was sent','| Should-Fix, scope in, Decision: fix, Fix size: small | the PR\'s implementer, but only inside a fix round a Must-Fix already opened','| Pre-existing | the card','the budget is used and a Must-Fix is still open','a follow-up confirms a fix-caused Must-Fix','small 1, standard 2, large 3','QA rounds the implementer reports in its status file\'s `fix_rounds` count too','`Mergeable as is: yes`','more fix rounds (how many), re-plan, or accept as is'])assert.ok(skill.includes(rule),rule);
+ assert.doesNotMatch(skill,/Fix the N must-fix items now|end-of-Session pass|thrash|two fix rounds|third fix round/);
+ instructionsIncludeAll(COORDINATORS,['Tweaks and quick fixes start no reviewer','Never say a PR can merge while it has unreviewed commits','Must-Fix goes to the PR\'s implementer with no question','the loop stops at the PR\'s fix-round budget']);
  for(const profile of COORDINATORS)assert.doesNotMatch(resolveProfile(root,profile).nodes.main.instructions,/fix now \(recommended\)|end-of-Session pass/,profile);
  includesAll(IMPLEMENTERS,['quick-verified, with screenshots of each changed screen when it is visual','start no reviewer for it']);
  includesAll(['instructions/standing-rules.md'],['CI, QA and review wait until the person says "ready"','"Ready" runs `full` on the same branch']);
@@ -567,8 +567,24 @@ test('the status page renderer runs with Node alone and draws a self-contained p
  assert.ok(fs.statSync(path.join(dir,'example.html')).size<200*1024,'the example page stays under the page standard\'s 200 KB');
 });
 
+test('the status page shows a PR\'s fix rounds of its budget, marked when spent, and old status files without them still render',t=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'af-status-rounds-'));
+ t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+ fs.cpSync(path.join(root,'skills/orchestrate-sessions/assets/status-page'),path.join(dir,'renderer'),{recursive:true});
+ const render=items=>{
+  fs.writeFileSync(path.join(dir,'status.json'),JSON.stringify({session:{title:'Rounds',eyebrow:'now',counts:{running:1,queued:0,done:0},settings:'x'},items}));
+  const run=spawnSync(process.execPath,[path.join(dir,'renderer/render.mjs'),path.join(dir,'status.json'),path.join(dir,'index.html')],{encoding:'utf8'});
+  assert.equal(run.status,0,run.stderr);
+  return fs.readFileSync(path.join(dir,'index.html'),'utf8');
+ };
+ const html=render([{name:'Spent',pr:'#194',pane:'p',state:'need',next:'Waits on you.',fixRounds:{used:1,budget:1}},{name:'Open',pr:'#12',pane:'q',state:'now',next:'x',fixRounds:{used:1,budget:2}},{name:'Old',pane:'r',state:'now',next:'y'}]);
+ assert.match(html,/<span class="rounds spent">Fix rounds 1 of 1<\/span>/);
+ assert.match(html,/<span class="rounds">Fix rounds 1 of 2<\/span>/);
+ assert.equal(html.split('Fix rounds').length-1,2,'an item without fixRounds shows no counter');
+ assert.match(html,/\.rounds\.spent\{[^}]*var\(--warn\)/);
+});
+
 test('greenfield 0.0.46 tidies the Session as Pane\'s rules say: archive without asking, close what it opened, /wrap-up tells first and leaves the Session open (D-40, D-41, D-49, D-51, D-107)',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.46$/m);
  const pane=['"Keep the Session tidy" section of the Session folder\'s AGENTS.md','follow the wrap-up guide that AGENTS.md points to'];
  const archive=['`runpane panes archive --pane <id> --dry-run --json`','archive its Pane right after the merge, in the same turn','Never pass `--force`'];
  instructionsIncludeAll(COORDINATORS,['Archive a feature\'s Pane without asking',...archive,...pane]);
@@ -582,4 +598,19 @@ test('greenfield 0.0.46 tidies the Session as Pane\'s rules say: archive without
  for(const file of ['instructions/coordination.md','skills/orchestrate-sessions/SKILL.md'])assert.doesNotMatch(flatText(file),/after offering the end-of-Session sweep|you have offered the end-of-Session sweep|Always offer the sweep before/,file);
  const bigbrain=fs.readFileSync(path.join(root,'../bigbrain/skills/orchestrate/SKILL.md'),'utf8').replace(/\s+/g,' ');
  for(const rule of ['Archive a feature\'s workspace without asking','`runpane panels close --panel <id> --yes --json`',...pane])assert.ok(bigbrain.includes(rule),rule);
+});
+
+test('greenfield 0.0.47 lets rare bugs stop blocking merge, weighs every fix by its cost, and gives each PR one fix-round budget QA and review share',()=>{
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.47$/m);
+ includesAll(['skills/review/CRITERIA.md'],['**Must-Fix (blocks merge):** high harm with reach medium or high','high harm with low reach (mark it `rare`, silent or not)','If the only trigger is an input you made up, Reach is low','## Fix or let go','cheapest safe one first','**Mitigate:**','**Let go:**','**Fix the class once.**','A repo\'s or plan\'s own rule wins over this list','**Pre-existing: yes**']);
+ includesAll(['skills/review/SKILL.md'],['`Budget: N fix rounds`','**Budget:** [1|2|3] fix rounds','Reached by:','Fix size: small | large','Decision: fix | mitigate (option 1) | let go','Mergeable as is: yes | no','defined only in `CRITERIA.md`\'s Severity section']);
+ includesAll(['instructions/standing-rules.md'],['## Fixing what review and QA find','1 for a small PR, 2 for standard, 3 for large','the first QA pass and the first review are free','"fix_rounds": null','within the PR\'s fix-round budget']);
+ includesAll(['agents/pr-qa.md'],['Harm · Reach · Recovery line','or that you invented it','Your parent decides what gets fixed']);
+ includesAll(['agents/qa-lead.md','agents/qa-lead-codex.md'],['or the PR\'s fix-round budget is spent','a break-it case you invented is rare']);
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['`Outcome: fixed | mitigated | let go | accepted | wrong | didn\'t matter`','`first_checked_head`']);
+ // One home for the severity definitions: no other greenfield file restates the old Must-Fix line.
+ for(const file of fs.readdirSync(root,{recursive:true}).map(String).filter(f=>/\.(md|html)$/.test(f))){
+  const text=flatText(file);
+  assert.doesNotMatch(text,/high reach or silent|high harm and \(high reach or silent\)|still open after two fix rounds|thrash rule/i,file);
+ }
 });

@@ -44,6 +44,7 @@ Every fact comes from the Session's real state: the ledger, the workers' status 
     { "name": "item name", "link": "its front page", "pr": "#1234", "prLink": "https://github.com/…",
       "pane": "Pane name", "paneLink": "pane://open?pane=<pane id>",
       "state": "now | need | blocked | failed | done", "stateLabel": "short",
+      "fixRounds": { "used": 1, "budget": 2 },
       "next": "one sentence: who does what next; <b> and <code> allowed",
       "rail": [ { "label": "1-2 words", "state": "done | retried | now | need | blocked | failed | todo | skipped" } ] }
   ],
@@ -69,6 +70,8 @@ Keep the JSON at `<Session folder>/.agent/status.json` and update it in place, s
 - Review findings waiting on the person: the F-n, with no `link`.
 
 **Items.** One per work item still in flight, in the order of work. `link` is its front page: its brief when it has a bundle, otherwise its hub ([item-hub.md](item-hub.md)). In Pane, `paneLink` opens its Pane. `state` is `need` when it waits on the person, `blocked` or `failed` when a worker is stuck; the state bar counts those, and `next` says what is missing or the failure in one line.
+
+`fixRounds` is the ledger's `fix_rounds` for the PR (QA and review rounds together, of the budget its latest review set); the card shows "Fix rounds 1 of 2" and marks it once the budget is spent. Leave it out before the first review or QA fix round.
 
 The rail is the path the work actually took, then what is still ahead: one dot per real step (Plan, Plan rev 2, Approved, Build, CI, Fix 1, CI again, QA, Review, Fix F-1–F-3, Follow-up review, Merge). A past failure that was retried is `retried`; the current step is `now`, `need`, `blocked` or `failed`; steps still ahead are `todo`. Keep labels to 1 or 2 words and rails to about 10 dots.
 
