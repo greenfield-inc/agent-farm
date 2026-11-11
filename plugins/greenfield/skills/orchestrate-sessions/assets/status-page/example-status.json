@@ -2,335 +2,126 @@
  "session": {
   "title": "Get PRs in (example)",
   "eyebrow": "Example · updated 14:40 · 2 h 05 min elapsed",
-  "counts": {
-   "running": 2,
-   "queued": 1,
-   "done": 4
-  },
+  "summary": "Landing four queued PRs and the per-project env-var feature today. Four fixes have merged; the env-var build waits on one answer and the watcher fix is retrying CI.",
+  "nextStep": "answer Q-7 so the env-var implementer can finish its build, then say <b>ready</b> for #1250.",
+  "approvals": "pane://open?pane=pane-1014&panel=panel-impl",
   "settings": "Review on \"ready\" or at a plan's end · validation default deferred",
   "flow": {
    "caption": "Goal: land the four queued PRs and the env-var feature today",
    "steps": [
-    {
-     "label": "Quick fixes",
-     "state": "done"
-    },
-    {
-     "label": "Review fixes",
-     "state": "done"
-    },
-    {
-     "label": "Env vars plan",
-     "state": "done"
-    },
-    {
-     "label": "Env vars build",
-     "state": "need",
-     "tag": "WAITING ON YOU"
-    },
-    {
-     "label": "Your review",
-     "state": "todo"
-    }
+    {"label": "Quick fixes", "state": "done"},
+    {"label": "Review fixes", "state": "done"},
+    {"label": "Env vars plan", "state": "done"},
+    {"label": "Env vars build", "state": "need", "tag": "WAITING ON YOU"},
+    {"label": "Your review", "state": "todo"}
    ]
   }
  },
  "needs": [
-  {
-   "id": null,
-   "item": "Per-project env vars",
-   "role": "Implementer",
-   "blocks": "#1014",
+  {"id": "Q-7", "item": "env-vars", "link": "pane://open?pane=pane-1014&panel=panel-impl",
    "q": "Should env vars be stored per project or per worktree?",
-   "options": [
-    {
-     "label": "Per project",
-     "rec": true
-    },
-    {
-     "label": "Per worktree"
-    }
-   ],
-   "why": "Ids stay stable across worktrees, and the plan already keys secrets by project.",
-   "age": "4 min",
-   "link": "pane://open?pane=pane-1014&panel=panel-impl"
-  },
-  {
-   "id": "F-5",
-   "item": "#1012 follow-up",
-   "role": "Reviewer",
-   "blocks": "nothing (out of scope)",
+   "options": [{"label": "Per project", "rec": true}, {"label": "Per worktree"}],
+   "why": "Ids stay stable across worktrees, and the plan already keys secrets by project."},
+  {"id": "Q-8", "item": "review-fixes-1241", "link": "pane://open?pane=pane-orch&panel=panel-orch",
    "q": "Move the retry logic into the shared client now, or file it?",
-   "options": [
-    {
-     "label": "File a follow-up",
-     "rec": true
-    },
-    {
-     "label": "Fix in #1241"
-    }
-   ],
-   "why": "The change touches 6 callers outside this PR. Relayed in the orchestrator's terminal.",
-   "age": "12 min",
-   "link": null
-  }
+   "options": [{"label": "File a follow-up", "rec": true}, {"label": "Fix in #1241"}],
+   "why": "The change touches 6 callers outside this PR."}
  ],
  "items": [
-  {
-   "name": "Per-project env vars (keychain)",
-   "pr": "#1014",
-   "pane": "pr-1014",
-   "fixRounds": { "used": 1, "budget": 1 },
-   "state": "need",
-   "stateLabel": "Needs you",
-   "next": "<b>Implementer</b> waits on your answer.",
-   "rail": [
-    {
-     "label": "Plan",
-     "state": "done"
-    },
-    {
-     "label": "Plan rev 2",
-     "state": "done"
-    },
-    {
-     "label": "Approved",
-     "state": "done"
-    },
-    {
-     "label": "Build 3/5",
-     "state": "need"
-    },
-    {
-     "label": "CI",
-     "state": "todo"
-    },
-    {
-     "label": "QA",
-     "state": "todo"
-    },
-    {
-     "label": "Review",
-     "state": "todo"
-    },
-    {
-     "label": "Merge",
-     "state": "todo"
-    }
-   ],
-   "paneLink": "pane://open?pane=pane-1014"
-  },
-  {
-   "name": "Watcher retry backoff",
-   "pr": "#1243",
-   "pane": "pr-1243",
-   "state": "failed",
-   "stateLabel": "CI failing",
-   "next": "<b>Implementer</b> is fixing <code>remotePaneClient.spec</code>, attempt 2.",
-   "rail": [
-    {
-     "label": "Plan",
-     "state": "done"
-    },
-    {
-     "label": "Build",
-     "state": "done"
-    },
-    {
-     "label": "CI",
-     "state": "retried"
-    },
-    {
-     "label": "Fix 1",
-     "state": "done"
-    },
-    {
-     "label": "CI again",
-     "state": "failed"
-    },
-    {
-     "label": "QA",
-     "state": "todo"
-    },
-    {
-     "label": "Review",
-     "state": "todo"
-    },
-    {
-     "label": "Merge",
-     "state": "todo"
-    }
-   ],
-   "paneLink": "pane://open?pane=pane-1243"
-  },
-  {
-   "name": "#1012 follow-up: review fixes",
-   "pr": "#1241",
-   "fixRounds": { "used": 1, "budget": 2 },
-   "pane": "pr-1012",
-   "state": "now",
-   "stateLabel": "In review",
-   "next": "<b>Reviewer</b> checks 3 commits since <code>a1b2c3d</code>.",
-   "rail": [
-    {
-     "label": "Build",
-     "state": "done"
-    },
-    {
-     "label": "CI",
-     "state": "done"
-    },
-    {
-     "label": "QA",
-     "state": "done"
-    },
-    {
-     "label": "Review",
-     "state": "done"
-    },
-    {
-     "label": "Fix F-1–F-4",
-     "state": "done"
-    },
-    {
-     "label": "Follow-up review",
-     "state": "now"
-    },
-    {
-     "label": "Merge",
-     "state": "todo"
-    }
-   ],
-   "paneLink": "pane://open?pane=pane-1012"
-  },
-  {
-   "name": "Codex sign-in for reviewer",
-   "pane": "codex-auth",
-   "state": "blocked",
-   "stateLabel": "Blocked",
-   "next": "Reviewer can't start: Codex is not signed in on this Mac. Run <code>codex login</code>.",
-   "rail": [
-    {
-     "label": "Queued",
-     "state": "done"
-    },
-    {
-     "label": "Launch",
-     "state": "blocked"
-    },
-    {
-     "label": "Review",
-     "state": "todo"
-    }
-   ],
-   "paneLink": "pane://open?pane=pane-auth"
-  }
+  {"id": "env-vars", "group": "Env vars", "kind": "planned", "short": "#1014",
+   "name": "Per-project env vars (keychain)", "pr": "#1014", "prLink": "https://github.com/example/app/pull/1014",
+   "pane": "pr-1014", "paneLink": "pane://open?pane=pane-1014", "fixRounds": {"used": 1, "budget": 1},
+   "state": "need", "stateLabel": "Waits on Q-7", "next": "<b>Implementer</b> waits on your answer.",
+   "asked": "“Let each project keep its own env vars, stored in the keychain.”",
+   "changes": "Env vars move from one global file to the keychain, keyed by project; the settings screen edits them per project.",
+   "rail": [{"label":"Plan","state":"done"},{"label":"Plan rev 2","state":"done"},{"label":"Approved","state":"done"},{"label":"Build 3/5","state":"need"},{"label":"CI","state":"todo"},{"label":"QA","state":"todo"},{"label":"Review","state":"todo"},{"label":"Merge","state":"todo"}],
+   "refs": {
+    "plan": [{"label": "Cover sheet, revision 2", "link": "per-project-env-vars/cover-sheet.html", "note": "approved, D-10"}, {"label": "Brief", "link": "per-project-env-vars/index.html"}],
+    "pr": {"label": "app #1014", "link": "https://github.com/example/app/pull/1014", "note": "draft · CI not run yet"},
+    "qa": {"note": "not yet: runs when the build is done"},
+    "review": {"note": "not yet: at the plan's end"},
+    "worker": {"label": "Implementer tab", "link": "pane://open?pane=pane-1014&panel=panel-impl"},
+    "trace": {"note": "not yet: exported when the implementer finishes"},
+    "postmortem": {"note": "not yet: written when the review loop closes"}
+   }},
+  {"id": "watcher-backoff", "group": "Queued PRs", "kind": "quick fix", "short": "#1243",
+   "name": "Watcher retry backoff", "pr": "#1243", "prLink": "https://github.com/example/app/pull/1243",
+   "pane": "pr-1243", "paneLink": "pane://open?pane=pane-1243",
+   "state": "failed", "stateLabel": "CI failing", "next": "<b>Implementer</b> is fixing <code>remotePaneClient.spec</code>, attempt 2.",
+   "asked": "“The watcher hammers GitHub when it is rate-limited; back off.”",
+   "changes": "The watcher waits 1, 2, 4… up to 60 seconds between retries after a 403 or 429.",
+   "rail": [{"label":"Build","state":"done"},{"label":"CI","state":"retried"},{"label":"Fix 1","state":"done"},{"label":"CI again","state":"failed"},{"label":"QA","state":"todo"},{"label":"Review","state":"todo"},{"label":"Merge","state":"todo"}],
+   "refs": {
+    "task": {"label": "Starting message", "link": "work/watcher-backoff.md"},
+    "pr": {"label": "app #1243", "link": "https://github.com/example/app/pull/1243", "note": "CI 6/7, remotePaneClient.spec failing"},
+    "qa": {"note": "not yet: waits for green CI"},
+    "review": {"note": "not yet: starts when you say “ready”"},
+    "worker": {"label": "Implementer tab", "link": "pane://open?pane=pane-1243&panel=panel-impl"},
+    "trace": {"note": "not yet"},
+    "postmortem": {"note": "not yet"}
+   }},
+  {"id": "review-fixes-1241", "group": "Queued PRs", "kind": "picked-up PR", "short": "#1241",
+   "name": "#1012 follow-up: review fixes", "pr": "#1241", "prLink": "https://github.com/example/app/pull/1241",
+   "pane": "pr-1012", "paneLink": "pane://open?pane=pane-1012", "fixRounds": {"used": 1, "budget": 2},
+   "state": "now", "stateLabel": "In review", "next": "<b>Reviewer</b> checks 3 commits since <code>a1b2c3d</code>.",
+   "asked": "“Pick up #1241 and get it through review.”",
+   "changes": "The four review findings on #1012 (F-1 to F-4), fixed in a follow-up PR.",
+   "rail": [{"label":"Build","state":"done"},{"label":"CI","state":"done"},{"label":"QA","state":"done"},{"label":"Review","state":"done"},{"label":"Fix F-1–F-4","state":"done"},{"label":"Follow-up review","state":"now"},{"label":"Merge","state":"todo"}],
+   "refs": {
+    "task": {"label": "Picked up from the PR list", "note": "no plan"},
+    "pr": {"label": "app #1241", "link": "https://github.com/example/app/pull/1241", "note": "CI 7/7 green"},
+    "qa": {"label": "QA record", "link": "work/qa-1241.md", "note": "passed"},
+    "review": [{"label": "Review on #1241", "link": "https://github.com/example/app/pull/1241#pullrequestreview-1", "note": "4 Must-Fix"}, {"label": "Findings", "link": "work/findings-1241.md", "note": "follow-up running"}],
+    "worker": {"label": "Reviewer tab", "link": "pane://open?pane=pane-1012&panel=panel-review"},
+    "trace": {"note": "not yet"},
+    "postmortem": {"note": "not yet"}
+   }},
+  {"id": "sidebar-copy", "group": "Queued PRs", "kind": "tweak", "short": "#1250",
+   "name": "Sidebar empty-state copy", "pr": "#1250", "prLink": "https://github.com/example/app/pull/1250",
+   "pane": "pr-1240", "paneLink": "pane://open?pane=pane-1240",
+   "state": "need", "stateLabel": "Say ready", "next": "Validation deferred: CI, QA and review wait for your 'ready'.",
+   "asked": "“The empty sidebar should say how to add a project.”",
+   "changes": "One line of copy and a link to Add project.",
+   "rail": [{"label":"Build","state":"done"},{"label":"Local checks","state":"done"},{"label":"CI","state":"todo"},{"label":"QA","state":"todo"},{"label":"Merge","state":"todo"}],
+   "refs": {
+    "task": {"label": "Your message at 14:02", "note": "tweak on #1240's Pane"},
+    "pr": {"label": "app #1250", "link": "https://github.com/example/app/pull/1250", "note": "draft"},
+    "qa": {"note": "waits for “ready”"},
+    "review": {"note": "none: tweaks start no review"},
+    "worker": {"label": "Implementer tab", "link": "pane://open?pane=pane-1240&panel=panel-tweak"},
+    "evidence": {"label": "Before and after screenshots", "link": "work/sidebar-copy/"}
+   }},
+  {"id": "codex-sign-in", "kind": "quick fix",
+   "name": "Codex sign-in for reviewer", "pane": "codex-auth", "paneLink": "pane://open?pane=pane-auth",
+   "state": "blocked", "stateLabel": "Blocked", "next": "Reviewer can't start: Codex is not signed in on this Mac. Run <code>codex login</code>.",
+   "asked": "Found by the orchestrator: the reviewer for #1241 could not launch.",
+   "changes": "Nothing in code: Codex needs signing in on this Mac.",
+   "rail": [{"label":"Queued","state":"done"},{"label":"Launch","state":"blocked"},{"label":"Review","state":"todo"}],
+   "refs": {"task": {"note": "orchestrator's own finding"}, "pr": {"note": "none: no code change"}, "qa": {"note": "none"}, "review": {"note": "none"},
+    "worker": {"note": "none yet: launches after sign-in"}, "trace": {"note": "none"}, "postmortem": {"note": "none"}}}
  ],
  "done": [
-  {
-   "label": "#1240 Fix the sidebar scroll jump",
-   "detail": "merged 14:31 · no issues hit"
-  },
-  {
-   "label": "#1234 Clarify GitHub watcher credential errors",
-   "detail": "merged 13:02"
-  },
-  {
-   "label": "#1235 Fix panel fields in the workspace state contract",
-   "detail": "merged 13:20"
-  },
-  {
-   "label": "#1013 runpane repos get/update + MCP",
-   "detail": "merged 13:41"
-  },
-  {
-   "label": "#1012 OpenCode in Pane Chat and Sessions",
-   "detail": "merged 13:55"
-  }
+  {"id": "sidebar-scroll", "group": "Queued PRs", "kind": "quick fix", "short": "#1240", "name": "#1240 Fix the sidebar scroll jump", "pr": "#1240", "prLink": "https://github.com/example/app/pull/1240",
+   "detail": "merged 14:31 · no issues hit", "stateLabel": "Merged",
+   "asked": "“The sidebar jumps to the top when a session ends.”", "changes": "The sidebar keeps its scroll position across session updates.",
+   "rail": [{"label":"Build","state":"done"},{"label":"CI","state":"done"},{"label":"QA","state":"done"},{"label":"Review","state":"done"},{"label":"Merge","state":"done"}],
+   "refs": {"task": {"label": "Starting message", "link": "work/sidebar-scroll.md"}, "pr": {"label": "app #1240", "link": "https://github.com/example/app/pull/1240", "note": "merged 14:31"},
+    "qa": {"label": "QA record", "link": "work/qa-1240.md", "note": "passed"}, "review": {"label": "Findings", "link": "work/findings-1240.md", "note": "Mergeable as is: yes"},
+    "worker": {"note": "closed"}, "trace": {"label": "Trace", "link": "traces/sidebar-scroll.html"}, "postmortem": {"note": "no issues hit"}}},
+  {"label": "#1234 Clarify GitHub watcher credential errors", "detail": "merged 13:02 (before item pages)", "link": "https://github.com/example/app/pull/1234"}
  ],
  "decisions": [
-  {
-   "id": "D-10",
-   "item": "#1014",
-   "answer": "Plan rev 2 approved",
-   "by": "You",
-   "q": "Approve the per-project env vars plan, revision 2?",
-   "options": [
-    "Approve",
-    "Request changes"
-   ],
-   "chosen": "Approve",
-   "when": "13:10",
-   "ref": "Planner cover sheet"
-  }
+  {"id": "D-10", "item": "env-vars", "answer": "Plan rev 2 approved", "by": "You", "q": "Approve the per-project env vars plan, revision 2?", "options": ["Approve", "Request changes"], "chosen": "Approve", "when": "13:10", "ref": "Planner cover sheet"},
+  {"id": "D-9", "item": "env-vars", "answer": "Keychain, not an env file", "by": "You", "q": "Where do per-project env vars live?", "options": ["Keychain", "Env file"], "chosen": "Keychain", "when": "12:40", "ref": "Q-3 from the planner"}
  ],
  "sources": [
-  {
-   "label": "Cover sheet (plan rev 2)",
-   "link": "per-project-env-vars/plan.html",
-   "note": "approved, D-10",
-   "group": "Plan and decisions"
-  },
-  {
-   "label": "Options page",
-   "link": "per-project-env-vars/options.html",
-   "note": "keychain vs env file",
-   "group": "Plan and decisions"
-  },
-  {
-   "label": "Planner brief",
-   "link": "plans/env-vars-brief.md",
-   "group": "Plan and decisions"
-  },
-  {
-   "label": "Approved settings screen mockup",
-   "link": "per-project-env-vars/mockup.html",
-   "group": "Design"
-  },
-  {
-   "label": "Review findings #1241",
-   "link": "work/findings-pr1241.md",
-   "note": "F-5 waits on you",
-   "group": "Reviews"
-  },
-  {
-   "label": "QA record #1243",
-   "link": "https://example.com/qa/1243",
-   "group": "QA"
-  }
+  {"label": "Cover sheet (plan rev 2)", "link": "per-project-env-vars/cover-sheet.html", "note": "approved, D-10", "group": "Plan and decisions"},
+  {"label": "Options page", "link": "per-project-env-vars/options.html", "note": "keychain vs env file", "group": "Plan and decisions"},
+  {"label": "Findings for #1241", "link": "work/findings-1241.md", "group": "Reviews"}
  ],
  "links": [
-  {
-   "label": "PR #1014",
-   "link": "https://github.com/example/app/pull/1014",
-   "group": "app #1014"
-  },
-  {
-   "label": "PR #1014 walkthrough",
-   "link": "https://example.com/pr-1014",
-   "note": "the PR's own artifact",
-   "group": "app #1014"
-  },
-  {
-   "label": "Review on #1241",
-   "link": "https://github.com/example/app/pull/1241#pullrequestreview-1",
-   "note": "follow-up pending",
-   "group": "app #1241"
-  },
-  {
-   "label": "Watcher retry backoff Pane",
-   "link": "pane://open?pane=pane-1243",
-   "group": "app #1243"
-  },
-  {
-   "label": "Keychain API reference",
-   "link": "https://developer.apple.com/documentation/security/keychain_services",
-   "group": "app #1014"
-  },
-  {
-   "label": "Status page with every state",
-   "link": "https://example.com/status-sample",
-   "group": "Examples"
-  }
+  {"label": "PR #1014", "link": "https://github.com/example/app/pull/1014", "group": "app #1014"},
+  {"label": "PR #1014 walkthrough", "link": "https://example.com/pr-1014", "note": "the PR's own artifact", "group": "app #1014"},
+  {"label": "Review on #1241", "link": "https://github.com/example/app/pull/1241#pullrequestreview-1", "note": "follow-up pending", "group": "app #1241"}
  ]
 }

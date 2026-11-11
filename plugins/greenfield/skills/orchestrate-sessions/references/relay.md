@@ -4,7 +4,7 @@ How a worker's `needs_you` (standing rules, Questions for the person) reaches th
 
 ## Asked through Notify
 
-A block with `"asked": "notify"` already reached the person as the worker's own Notify cards. Never relay it while its card is live. Its Needs you row on the status page links the asking tab instead (status-board.md).
+A block with `"asked": "notify"` already reached the person as the worker's own Notify cards. Never relay it while its card is live. The status pages show it only by count, and on its item page as a Waiting row that links the asking tab (status-board.md).
 
 - **Answered** (`answers` is not empty): assign the block the next free Q-n and each answer the next free D-n, record them as for an answer below, and send `recorded: Q-n → <answer>. Recorded as D-n.` to the asking tab only, with one `→ <answer>` and one D-n per question in order when the block has several. On the next rewrite its row moves to Decisions.
 - **The card is gone** (a crash, an interrupt or a restart): when `answers` is empty and `runpane sessions overview` shows the worker's agent in any state other than `blocked` on two checks at least a minute apart, relay the block as below. One check is not enough: a worker that got `waiting` runs briefly before it calls `notify` again.
@@ -17,7 +17,7 @@ In a Pane Session, a worker's blocked report is already an answerable card in Ap
 
 ## To the person
 
-Open every file in `files` beside the person first, with the host's show-file or show-page mechanism; they belong to the question, so open them without asking. Where the host has none, link them. When `files` is empty, find where the question's context lives (a page and anchor, a PR comment, a file and line, a decision) and add a `Context: <where the context lives>` line to the round instead. The question's Needs you row on the status page links the same places. Then put the round:
+Open every file in `files` beside the person first, with the host's show-file or show-page mechanism; they belong to the question, so open them without asking. Where the host has none, link them. When `files` is empty, find where the question's context lives (a page and anchor, a PR comment, a file and line, a decision) and add a `Context: <where the context lives>` line to the round instead. The status pages never show a question's wording: only its Q-id, in the overview's pointer and its item page's Waiting row. Then put the round:
 
 ```text
 [Needs you · <role> · <feature>] Q-n <title>
@@ -29,7 +29,7 @@ Files   <each file, opened beside you>
 Context: <where the context lives>                    (only when there are no files)
 ```
 
-On Claude, put the questions through the harness question tool (`AskUserQuestion`) once the files are open, the recommended option first; on Codex, use the numbered list above, answered as "1a". Keep the worker's options and wording; add only the label, and the Context line when there are no files, so its Needs you row links the same places.
+On Claude, put the questions through the harness question tool (`AskUserQuestion`) once the files are open, the recommended option first; on Codex, use the numbered list above, answered as "1a". Keep the worker's options and wording; add only the label, and the Context line when there are no files.
 
 ## Back to the worker
 

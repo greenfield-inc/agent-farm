@@ -1,6 +1,6 @@
 # Session status page
 
-One HTML page per Session for the person (the workstream map), kept locally in the Session folder and, when a destination resolves, also published as the Session's hub. You fill a status JSON from the Session's real state, and the renderer beside this skill draws the page from it. Never write the page's HTML by hand.
+One overview page per Session for the person (the workstream map), plus one page per work item, kept locally in the Session folder and, when a destination resolves, also published as the Session's hub. You fill a status JSON from the Session's real state, and the renderer beside this skill draws the overview and every item page from it in one run. Never write the page's HTML by hand, nor an item page's.
 
 ## Write it
 
@@ -8,24 +8,27 @@ One HTML page per Session for the person (the workstream map), kept locally in t
 node <this skill's directory>/assets/status-page/render.mjs <Session folder>/.agent/status.json <Session folder>/session/index.html
 ```
 
-- Always write the local copy to `<Session folder>/session/index.html`, the ledger's `session.artifact.local`. That file is the canonical page and the one Pane's Overview tab shows. When a document destination resolves, you may also publish a copy as the Session artifact's front page, at material changes, but never instead of the local file.
-- Write it at the Session's first working turn, even when nothing will be dispatched, and again after every ledger write and when the person asks. Each rewrite replaces the same file and, when there is one, the same published copy.
-- In Pane, the Session's Overview tab shows this page, so never open it as a separate tab there.
+- Always write the local copy to `<Session folder>/session/index.html`, the ledger's `session.artifact.local`. That file is the canonical page and the one Pane's Overview tab shows. The same run writes `<Session folder>/session/items/<id>.html` for every item, linked from its card. When a document destination resolves, you may also publish a copy as the Session artifact's front page, `index.html` and `items/` together with their relative links, at material changes, but never instead of the local file.
+- Write it at the Session's first working turn, even when nothing will be dispatched, and again after every ledger write and when the person asks. The overview and the item pages are always re-rendered together. Each rewrite replaces the same files and, when there is one, the same published copy.
+- In Pane, the Session's Overview tab shows this page, so never open it as a separate tab there. A click on a card opens its item page as a browser tab beside the chat, and that tab's links move within it.
 - Outside Pane, open it beside the person at the first dispatch with the host's show-page mechanism, without asking. Open its URL (the published URL, or a `file://` URL for the local copy), never a file to edit. Record that URL in the ledger's `session.artifact.opened_url`, and after each rewrite open the same URL again so the host reuses its tab.
-- The page carries `<meta http-equiv="refresh" content="60">`, so an open copy reloads itself every minute.
-- The page is self-contained: no script, no network, diagrams drawn at render time, and Inter embedded as a font subset, the one exception to `page`'s system fonts. One item in flight renders at about 90 KB and each further one adds about 12 KB, so the page passes `page`'s 200 KB at about 10 items in flight. Keep finished items in `done`, where each takes one line.
-- The renderer needs only Node: rough.js and the font are vendored beside it, with their licenses. `assets/status-page/example-status.json` is a filled example showing every state.
+- The pages carry `<meta http-equiv="refresh" content="60">`, so an open copy reloads itself every minute.
+- The pages are self-contained: no script (a `script-src 'none'` policy), no network, diagrams drawn at render time, and Inter embedded as a font subset, the one exception to `page`'s system fonts. Each item page is about 90 KB. The overview with one item in flight is about 90 KB and each further one adds about 12 KB, so it passes `page`'s 200 KB at about 10 items in flight. Keep finished items in `done`, where each takes one line.
+- The renderer needs only Node: rough.js and the font are vendored beside it, with their licenses. `assets/status-page/example-status.json` is a filled example showing every state and every kind of item.
+- The renderer checks every item's `id` before it writes anything. A missing, repeated or unsafe id stops it with a message naming the item, and nothing is written: fix the JSON from the ledger and render again. A status JSON from before item pages has no ids, so the first render after an upgrade fails until you add them.
 
 ## The status JSON
 
-Every fact comes from the Session's real state: the ledger, the workers' status files, the host and GitHub. Write "unknown" rather than guess. Say each fact once: a rail, a question row and a `next` line never repeat each other. The renderer escapes every field, except that `next` and `settings` keep `<b>`, `<code>` and `<a href="…">` links.
+Every fact comes from the Session's real state: the ledger, the workers' status files, the host and GitHub. Write "unknown" rather than guess. Say each fact once: a rail, an Everything row and a `next` line never repeat each other. The renderer escapes every field, except that `next`, `settings`, `summary`, `nextStep`, `asked` and `changes` keep `<b>`, `<code>` and `<a href="…">` links.
 
 ```json
 {
   "session": {
     "title": "the Session's name, as a short human title",
     "eyebrow": "Updated 14:40 · 2 h 05 min elapsed",
-    "counts": { "running": 0, "queued": 0, "done": 0 },
+    "summary": "one to three sentences: what the Session is doing and where it stands",
+    "nextStep": "what happens next and who does it; the overview shows it after \"Next step:\"",
+    "approvals": "pane://open?pane=<pane id>&panel=<panel id>, the tab of the oldest question's card; only in Pane",
     "settings": "one line: review policy (any override, who gave it and when), validation default; links allowed",
     "flow": {
       "caption": "Goal: one line",
@@ -33,24 +36,29 @@ Every fact comes from the Session's real state: the ledger, the workers' status 
     }
   },
   "needs": [
-    { "id": "Q-3 | F-2 | null", "item": "item name", "role": "Planner | Implementer | Reviewer | Orchestrator",
-      "blocks": "what waits on it", "q": "the question, one sentence",
-      "options": [ { "label": "short", "rec": true }, { "label": "short" } ],
-      "why": "one or two sentences", "age": "4 min",
-      "link": "pane://open?pane=<pane id>&panel=<panel id>, only for a question asked through Notify",
-      "files": "optional link to the page to read" }
+    { "id": "Q-3 | F-2 | null", "item": "the id of the item it blocks",
+      "link": "pane://open?pane=<pane id>&panel=<panel id> of the tab holding its card; only in Pane" }
   ],
   "items": [
-    { "name": "item name", "link": "its front page", "pr": "#1234", "prLink": "https://github.com/…",
-      "pane": "Pane name", "paneLink": "pane://open?pane=<pane id>",
-      "state": "now | need | blocked | failed | done", "stateLabel": "short",
+    { "id": "env-vars", "name": "item name", "group": "optional: the plan or batch it belongs to",
+      "kind": "planned | quick fix | tweak | picked-up PR", "short": "optional chip label, e.g. #1014 or P5",
+      "pr": "#1234", "prLink": "https://github.com/…", "pane": "Pane name", "paneLink": "pane://open?pane=<pane id>",
+      "state": "queued | now | need | blocked | failed | done", "stateLabel": "short",
       "fixRounds": { "used": 1, "budget": 2 },
       "next": "one sentence: who does what next; <b> and <code> allowed",
-      "rail": [ { "label": "1-2 words", "state": "done | retried | now | need | blocked | failed | todo | skipped" } ] }
+      "asked": "what the person asked for, in their words",
+      "changes": "what the work changes, in one or two sentences",
+      "rail": [ { "label": "1-2 words", "state": "done | retried | now | need | blocked | failed | todo | skipped" } ],
+      "refs": {
+        "plan": [ { "label": "Cover sheet, revision 2", "link": "env-vars/cover-sheet.html", "note": "approved, D-10" }, { "label": "Brief", "link": "env-vars/index.html" } ],
+        "pr": { "label": "app #1234", "link": "https://github.com/…", "note": "CI 7/7 green" },
+        "qa": { "note": "not yet: runs when the build is done" },
+        "review": { "note": "none: D-30" }
+      } }
   ],
-  "done": [ { "label": "#1234 what it did", "link": "its front page", "detail": "merged 13:02 · no issues hit" } ],
+  "done": [ { "id": "sidebar-scroll", "name": "#1240 what it did", "detail": "merged 13:02 · no issues hit", "…": "the item's other fields, kept as they were" } ],
   "decisions": [
-    { "id": "D-4", "item": "item", "answer": "the answer, one line", "by": "You | Planner | Advisor",
+    { "id": "D-4", "item": "the id of the item it is about, or a short name", "answer": "the answer, one line", "by": "You | Planner | Advisor",
       "q": "the question asked", "options": ["option", "option"], "chosen": "exactly one of options",
       "note": "optional one line", "when": "13:10", "ref": "where it came from, e.g. Q-1 from the planner" }
   ],
@@ -66,22 +74,25 @@ Keep the JSON at `<Session folder>/.agent/status.json` and update it in place, s
 ```json
 {
   "session": { "title": "Release questions", "eyebrow": "Updated 09:12 · 4 min elapsed",
-    "counts": { "running": 0, "queued": 0, "done": 0 }, "settings": "Review on ready; validation deferred",
+    "summary": "Deciding whether 0.3 ships this week.", "nextStep": "you answer Q-1.", "settings": "Review on ready; validation deferred",
     "flow": { "caption": "Goal: decide whether 0.3 ships this week", "steps": [] } },
   "needs": [], "items": [], "done": [],
   "decisions": [ { "id": "D-1", "answer": "Ship after the docs fix", "by": "You", "when": "09:10" } ]
 }
 ```
 
-**Session.** `eyebrow` is the local time of the newest evidence you read and the time elapsed since the Session started, with no cost. `counts` are workers running now, items waiting to start, and items finished. Always give `flow.caption`, the Session's goal in one line. Give its `steps` when items depend on each other (`depends_on` in the ledger) or run in sequence: one step per item or wave, in the order of work. The page draws the steps only with 2 or more items in flight, and otherwise shows the caption alone under the title. Shared ledgers and stub hubs in other destinations are links in `settings`.
+**Session.** `eyebrow` is the local time of the newest evidence you read and the time elapsed since the Session started, with no cost. `summary` says, in plain words, what the Session is for and where it stands; `nextStep` names the next action and who takes it, the same "Next: …" your progress messages end with. Always give `flow.caption`, the Session's goal in one line. Give its `steps` when items depend on each other (`depends_on` in the ledger) or run in sequence: one step per item or wave, in the order of work. The page draws the steps only with 2 or more items in flight, and otherwise shows the caption alone under the title. Shared ledgers and stub hubs in other destinations are links in `settings`.
 
-**Needs you.** One entry per open question, approval or finding waiting on the person, newest blocking first; `[]` when there are none.
+The overview's tiles (work items, done, in progress, waiting on you, blocked, and queued when any item is) and its progress bar are counted by the renderer from the items' states, so they always agree with the cards.
 
-- A worker's question asked through Notify (`"asked": "notify"` with empty `answers`): `id` is `null`, since it is numbered once answered, and `link` is `pane://open?pane=<pane id>&panel=<panel id>`, the item's `pane_id` and the asking worker's `panel_id` from the ledger. The person clicks it to open that tab with its card docked.
-- A relayed question: its Q-n and no `link`, since the person answers it in your relay. Link its files in `files`, or its Context.
-- Review findings waiting on the person: the F-n, with no `link`.
+**Questions.** No page shows a question's wording, options or reasons: questions live only in Approvals in Pane, and in your chat elsewhere. `needs` holds one entry per open question, approval or finding waiting on the person, oldest first, `[]` when there are none, with only its `id`, the `item` id it blocks and, in Pane, its `link`; the renderer ignores any other field. The overview shows one pointer with the count, each Q-id and its item ("2 questions wait for you in Approvals: Q-7 (#1014) and Q-8 (#1241)"), and the item page of each blocked item shows a Waiting row first.
 
-**Items.** One per work item still in flight, in the order of work. `link` is its front page: its brief when it has a bundle, otherwise its hub ([item-hub.md](item-hub.md)). In Pane, `paneLink` opens its Pane. `state` is `need` when it waits on the person, `blocked` or `failed` when a worker is stuck; the state bar counts those, and `next` says what is missing or the failure in one line.
+- In Pane, every question has a card in Approvals. `link` is `pane://open?pane=<pane id>&panel=<panel id>` of the tab that holds its card: the asking worker's for a question asked through Notify (`"asked": "notify"`), yours for one you relayed. Pane opens Approvals on that card. Set `session.approvals` to the oldest one's link; "Open Approvals →" opens it.
+- A question asked through Notify has no Q-n until it is answered: give `id: null`, and the page shows it as "a new question".
+- Outside Pane, give no `link` and no `session.approvals`: the pointer says the questions wait in the orchestrator's chat.
+- Review findings waiting on the person: the F-n, with the item id.
+
+**Items.** One per work item still in flight, in the order of work. Every item has an `id` that names its page, `items/<id>.html`: lower-case letters, digits and hyphens, unique across `items` and `done`, set once when the item enters the ledger (its `page_id`) and never changed, even when the item is renamed or finishes. Items sharing a `group` (a plan's packages, a batch of picked-up PRs) are siblings on their pages, in JSON order; ungrouped items form one group. In Pane, `paneLink` opens its Pane. `state` is `need` when it waits on the person, `blocked` or `failed` when a worker is stuck, `queued` before it starts; the tiles count those, and `next` says what is missing or the failure in one line. `asked` is what the person asked for in their own words, from the starting message or request; `changes` is what the plan package or PR changes.
 
 `fixRounds` is the ledger's `fix_rounds` for the PR (QA and review rounds together, of the budget its latest review set); the card shows "Fix rounds 1 of 2" and marks it once the budget is spent. Leave it out before the first review or QA fix round.
 
@@ -95,11 +106,23 @@ The rail is the path the work actually took, then what is still ahead: one dot p
 
 The last reviewed head is the ledger's `last_reviewed_head` for that PR. When the ledger has lost it, use the head in the newest `<!-- greenfield-review head=<sha> -->` marker on the PR's reviews, and record it.
 
-**Done.** Every completed item (PR merged or closed, plan abandoned), newest first, linking its front page, with its outcome and "no issues hit" or that a post-mortem exists. An item moves here and is never removed.
+**Everything for this item.** `refs` fills the item page's table, one key per row: `refs.plan`, `refs.task`, `refs.pr`, `refs.qa`, `refs.review`, `refs.decisions`, `refs.depends`, `refs.worker`, `refs.trace`, `refs.evidence`, `refs.postmortem`. Each is one entry or a list of them, `{ "label", "link", "note" }`, with a link when the file or page exists and a short reason in `note` when it does not ("none: D-30", "not yet: written when the review loop closes"). The rows Plan (for a planned item) or Task (for any other), Pull request, QA, Review, Worker, Trace and Post-mortem always show; one you leave empty shows "Not recorded", so a gap looks like a gap. Fill them from the workers' status files, the findings files, the traces and the post-mortems:
 
-**Decisions.** Every D-n, newest first, from the ledger's `decisions`. An addendum is a decision whose `ref` names it and whose `note` lists the work items it was sent to.
+- `refs.plan`: a planned item's cover sheet (its package's section) and its brief. The item page links them; it never copies them.
+- `refs.task`: the starting message or request a quick fix, tweak or picked-up PR came from.
+- `refs.pr`: the pull request, its branch or checks line, and the PR's own artifact (the implementer's `pr_artifact`).
+- `refs.qa`, `refs.review`: the QA record and the review or findings file, with the outcome, or why there is none.
+- `refs.worker`: the worker's tab (`pane://open?pane=…&panel=…`) while it runs.
+- `refs.trace`, `refs.postmortem`: added when the review loop closes; "no issues hit" when it closed cleanly.
+- `refs.decisions`: the renderer adds every decision whose `item` is this id; use the key only for anything else.
 
-**Sources and links.** The page is the one place that points to everything the person may need to see. Add every artifact a worker produces or relies on as soon as it appears, and keep it after the work is done. `sources` are the documents behind the work: cover sheets, briefs, options and decision pages, plans, addenda, mockups, review findings, QA records and traces. `links` are everything else worth opening: PRs, each PR's own artifact (the implementer's `pr_artifact`), reviews, Panes, dashboards and external references. Take them from the workers' status files, the bundles' pages, the findings files and the briefs you wrote. A file that exists only in the Session folder, such as a findings file or a brief, goes into the Session artifact (or its item's bundle) and is linked by its relative path, since a published page cannot open `file://` links; use `file:///…` only when there is no destination and the page stays local. Group entries by kind of work with `group`: in `sources`, "Plan and decisions", "Design", "Reviews", "QA" and one group per follow-up; in `links`, one group per PR named by repository and number (for example "Pane #1251"), then "Examples" or "Other". Groups show in the order they first appear, and an entry without one falls under "Other". The page omits a section whose array is empty, A `link` with a scheme other than `http`, `https`, `file` or `pane` becomes `#`. Write every relative link with a `/` in it (`./report.md#sec`, `work/findings.md`), because a bare file name with `#`, `?`, `%` or a space in it can become `#`.
+Write relative links relative to the overview (`env-vars/cover-sheet.html`, `work/findings.md`); the renderer rebases them for the item pages one folder down.
+
+**Done.** Every completed item (PR merged or closed, plan abandoned), newest first, with its outcome in `detail` and "no issues hit" or that a post-mortem exists. An item moves here and is never removed; it keeps its `id`, `group`, `refs` and other fields, and its page. A finished entry from before item pages may have no `id`; it then links its `link` and gets no page.
+
+**Decisions.** Every D-n, newest first, from the ledger's `decisions`. Give `item` the id of the item a decision is about, so its page lists it. An addendum is a decision whose `ref` names it and whose `note` lists the work items it was sent to.
+
+**Sources and links.** The overview is the one place that points to everything the person may need to see. Add every artifact a worker produces or relies on as soon as it appears, and keep it after the work is done. `sources` are the documents behind the work: cover sheets, briefs, options and decision pages, plans, addenda, mockups, review findings, QA records and traces. `links` are everything else worth opening: PRs, each PR's own artifact (the implementer's `pr_artifact`), reviews, Panes, dashboards and external references. Take them from the workers' status files, the bundles' pages, the findings files and the briefs you wrote. A file that exists only in the Session folder, such as a findings file or a brief, goes into the Session artifact (or its item's bundle) and is linked by its relative path, since a published page cannot open `file://` links; use `file:///…` only when there is no destination and the page stays local. Group entries by kind of work with `group`: in `sources`, "Plan and decisions", "Design", "Reviews", "QA" and one group per follow-up; in `links`, one group per PR named by repository and number (for example "Pane #1251"), then "Examples" or "Other". Groups show in the order they first appear, and an entry without one falls under "Other". The page omits a section whose array is empty. A `link` with a scheme other than `http`, `https`, `file` or `pane` becomes `#`. Write every relative link with a `/` in it (`./report.md#sec`, `work/findings.md`), because a bare file name with `#`, `?`, `%` or a space in it can become `#`.
 
 The cleanup log and the end-of-run summary live in the ledger and your final report, not on the page.
 
