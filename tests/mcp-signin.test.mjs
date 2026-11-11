@@ -94,3 +94,11 @@ test('mcp login without --harness signs in only where a harness holds no sign-in
  assert.deepEqual(loginPlan(f.root,f.project,'remote',{home:f.home,env:f.env,check:()=>({remote:'unknown'})}).map(p=>[p.harness,!!p.login]),[['claude',true]]);
  assert.throws(()=>loginPlan(f.root,f.project,'local',{home:f.home,env:f.env}),/local servers use their own login/);
 });
+
+test('the login hint quotes a path only when it must, without doubling backslashes',async()=>{
+ const {loginHint}=await import('../dist/runtime.js');
+ const home=path.join(os.tmpdir(),'hint-home');
+ assert.equal(loginHint('linear',path.join(os.tmpdir(),'a b'),undefined,home),`agent-farm mcp login linear --directory "${path.join(os.tmpdir(),'a b')}"`);
+ assert.equal(loginHint('linear','/srv/repo',undefined,home),'agent-farm mcp login linear --directory /srv/repo');
+ if(process.platform==='win32')assert.equal(loginHint('linear','C:\\Users\\me\\repo',undefined,home),'agent-farm mcp login linear --directory C:\\Users\\me\\repo');
+});

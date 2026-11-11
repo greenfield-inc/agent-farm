@@ -566,7 +566,9 @@ export const nativeSignIns: SignInCheck=(harness,connections,env,home)=>{
 };
 /** The command a person runs to sign in to a workspace connection for every harness that needs it. */
 export function loginHint(key: string, directory: string, configRoot?: string, home=os.homedir()): string {
-  const quote=(text: string)=>/^[\w@%+=:,./~-]+$/.test(text) ? text : JSON.stringify(text);
+  // Plain double quotes work in POSIX shells, cmd and PowerShell; JSON escaping would double Windows backslashes.
+  const safe=process.platform==='win32' ? /^[\w@%+=:,./~\\-]+$/ : /^[\w@%+=:,./~-]+$/;
+  const quote=(text: string)=>safe.test(text) ? text : '"'+text.replace(/"/g,'\\"')+'"';
   const custom=configRoot!==undefined && path.resolve(configRoot)!==path.join(home,'.config/agent-farm');
   return `agent-farm mcp login ${key} --directory ${quote(directory)}${custom ? ' --config-root '+quote(configRoot!) : ''}`;
 }
