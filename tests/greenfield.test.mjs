@@ -601,7 +601,6 @@ test('greenfield 0.0.46 tidies the Session as Pane\'s rules say: archive without
 });
 
 test('greenfield 0.0.47 lets rare bugs stop blocking merge, weighs every fix by its cost, and gives each PR one fix-round budget QA and review share',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.47$/m);
  includesAll(['skills/review/CRITERIA.md'],['**Must-Fix (blocks merge):** high harm with reach medium or high','high harm with low reach (mark it `rare`, silent or not)','If the only trigger is an input you made up, or an unusual way of writing a supported one, Reach is low','a normal use of a feature the product documents','## Fix or let go','cheapest safe one first','**Mitigate:**','**Let go:**','**Fix the class once.**','A repo\'s or plan\'s own rule wins over this list','**Pre-existing: yes**']);
  includesAll(['skills/review/SKILL.md'],['`Budget: N fix rounds`','**Budget:** [1|2|3] fix rounds','Reached by:','Fix size: small | large','Decision: fix | mitigate (option 1) | let go','Mergeable as is: yes | no','defined only in `CRITERIA.md`\'s Severity section']);
  includesAll(['instructions/standing-rules.md'],['## Fixing what review and QA find','1 for a small PR, 2 for standard, 3 for large','the first QA pass and the first review are free','"fix_rounds": null','within the PR\'s fix-round budget']);
@@ -613,4 +612,9 @@ test('greenfield 0.0.47 lets rare bugs stop blocking merge, weighs every fix by 
   const text=flatText(file);
   assert.doesNotMatch(text,/high reach or silent|high harm and \(high reach or silent\)|still open after two fix rounds|thrash rule/i,file);
  }
+});
+
+test('greenfield 0.0.48 draws a PR diagram as one layout twice on a canvas at most 1600 px wide, with argument text at 20 px and details at 14 to 16 px',()=>{
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.48$/m);
+ includesAll(['skills/excalidraw-pr-diagrams/SKILL.md'],['Keep the canvas at most 1600 px wide','are 20 px or larger','are 14–16 px, and badges 14 px','defaults to 16 px, the detail size','set `label.fontSize: 20` on the skeleton\'s labels']);
 });
