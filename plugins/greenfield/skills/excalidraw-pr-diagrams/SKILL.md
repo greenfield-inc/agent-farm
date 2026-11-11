@@ -56,7 +56,7 @@ Write short element skeletons. The renderer fills in ids, seeds, bindings and te
 - Bind an arrow to rectangles and ellipses with `start`/`end` ids. For a diamond, leave the arrow unbound and give its `points`, so it leaves from the edge you choose.
 - With `start`/`end` set, the arrow's ends snap to the shapes; still give `x`, `y` and `points` as a starting route.
 - Size text with monospace at about 0.6 × font size per character, plus 24 px of padding inside a box. A badge is a small rectangle with a 14 px label, for example `NEW` at 60 × 26.
-- A label on a shape or an arrow is 16 px and takes its stroke colour; set `label.fontSize` and `label.strokeColor` to change them. Where an arrow label would cross another line, use free-floating text beside the arrow instead.
+- A label on a shape or an arrow defaults to 16 px, the detail size, and takes its stroke colour; set `label.fontSize: 20` on the skeleton's labels, and `label.strokeColor` to change the colour. Where an arrow label would cross another line, use free-floating text beside the arrow instead.
 - The defaults are clean edges (`roughness: 0`), rounded rectangles, a monospace font (`fontFamily: 3`) and `strokeWidth: 2`. Set `roughness: 1` only for a sketchy look.
 - Add `"strokeStyle": "dashed"` for an inactive or removed path, and `"roundness": null` for square corners.
 
