@@ -233,8 +233,10 @@ test('a full scan of a planted home folder finds the planted problems and prints
 test('runs save a 0600 baseline, --diff shows only changes, and the exit status flags new FAILs',unix,t=>{
  const home=tmp(t,'msc-home-'),state=path.join(home,'state');
  put(home,'.zshrc','export PATH=/usr/bin\n');
- const run=(...args)=>spawnSync('bash',[script,'--offline',...args],{encoding:'utf8',env:{PATH:process.env.PATH,HOME:home,MSC_STATE_DIR:state,MSC_ROOTS:path.join(home,'repos'),MSC_ALLOWLIST:path.join(home,'allow.tsv')}});
- // Every section, so the baseline is a real full run; on macOS this reads (never changes) the machine's settings.
+ // A fixed Software Update cache: the machine's own one changes whenever Software Update runs, as it does mid-test on CI runners.
+ const sup=put(home,'SoftwareUpdate.plist','<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0"><dict><key>AutomaticCheckEnabled</key><true/><key>RecommendedUpdates</key><array/></dict></plist>\n');
+ const run=(...args)=>spawnSync('bash',[script,'--offline',...args],{encoding:'utf8',env:{PATH:process.env.PATH,HOME:home,MSC_STATE_DIR:state,MSC_ROOTS:path.join(home,'repos'),MSC_ALLOWLIST:path.join(home,'allow.tsv'),MSC_SUPDATE_PLIST:sup}});
+ // Every section, so the baseline is a real full run; on macOS this reads (never changes) the machine's other settings.
  const first=run('--budget','120');
  assert.ok([0,1].includes(first.status),first.stderr);
  const baseline=path.join(state,'last-fast.ndjson');
