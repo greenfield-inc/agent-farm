@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import {execFileSync} from 'node:child_process';
-import {sizeReview,parseNumstat} from '../plugins/greenfield/skills/review/scripts/review-size.mjs';
+import {sizeReview,parseNumstat,BUDGETS} from '../plugins/greenfield/skills/review/scripts/review-size.mjs';
 
 const script=path.resolve('plugins/greenfield/skills/review/scripts/review-size.mjs');
 // n files under src/, splitting `lines` changed lines between them.
@@ -59,6 +59,13 @@ test('auth, secrets, public contracts and irreversible changes are risk triggers
  assert.deepEqual(kind('src/components/Button.tsx'),[]);
 });
 
+test('each size carries its fix-round budget: small 1, standard 2, large 3',()=>{
+ assert.deepEqual(BUDGETS,{small:1,standard:2,large:3});
+ assert.equal(sizeReview(files(4,38)).budget,1);
+ assert.equal(sizeReview(files(14,600)).budget,2);
+ assert.equal(sizeReview(files(8,1001)).budget,3);
+});
+
 test('one file and one line read in the singular',()=>{
  assert.equal(sizeReview([{path:'src/a.ts',added:1,deleted:0}]).reason,'1 file, 1 line');
 });
@@ -98,7 +105,8 @@ test('the command sizes a real git range, prints the size line, and rejects bad 
  const out=JSON.parse(execFileSync(process.execPath,[script,'main~1...main','--repo',dir,'--json']).toString());
  assert.equal(out.size,'large');
  assert.deepEqual([out.files,out.lines],[2,2]);
- assert.equal(execFileSync(process.execPath,[script,'main~1...main','--repo',dir]).toString(),'Size: large because 2 files, 2 lines; risk trigger schema (migrations/001.sql)\n');
+ assert.equal(execFileSync(process.execPath,[script,'main~1...main','--repo',dir]).toString(),'Size: large because 2 files, 2 lines; risk trigger schema (migrations/001.sql)\nBudget: 3 fix rounds\n');
+ assert.equal(out.budget,3);
  assert.throws(()=>execFileSync(process.execPath,[script],{stdio:'pipe'}),e=>e.status===2);
  assert.throws(()=>execFileSync(process.execPath,[script,'nope...main','--repo',dir],{stdio:'pipe'}),e=>e.status===2);
 });

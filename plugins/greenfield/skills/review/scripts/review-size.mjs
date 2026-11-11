@@ -7,13 +7,15 @@
 // Counts hand-written files and changed lines (lockfiles, generated and vendored files excluded) and
 // looks for path-based risk triggers. The rule is the review skill's size table: small is at most
 // 10 files and 300 lines with no trigger; large is over 1,000 lines or 30 files, or any trigger;
-// standard otherwise. The reviewer may raise the result, never lower it.
+// standard otherwise. The reviewer may raise the result, never lower it. Each size also sets the PR's
+// fix-round budget (small 1, standard 2, large 3), which QA and review fix rounds share.
 // Exit 0 with the size, 2 on bad usage or a git failure.
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 
 export const SIZES=['small','standard','large'];
+export const BUDGETS={small:1,standard:2,large:3};
 export const LIMITS={small:{files:10,lines:300},large:{files:30,lines:1000}};
 const EXCLUDED=[
  /(^|\/)(pnpm-lock\.yaml|package-lock\.json|npm-shrinkwrap\.json|yarn\.lock|bun\.lockb?|Cargo\.lock|Gemfile\.lock|poetry\.lock|uv\.lock|Pipfile\.lock|composer\.lock|go\.sum|flake\.lock)$/,
@@ -56,7 +58,7 @@ export function sizeReview(changes){
  if(lines>LIMITS.large.lines)why.push(`over ${LIMITS.large.lines.toLocaleString('en-US')} lines`);
  for(const t of triggers)why.push(`risk trigger ${t.kind} (${t.path})`);
  if(why.length>1)size='large';
- return {size,reason:why.join('; '),files,lines,excluded:changes.length-files,triggers};
+ return {size,reason:why.join('; '),budget:BUDGETS[size],files,lines,excluded:changes.length-files,triggers};
 }
 
 function main(argv){
@@ -68,7 +70,7 @@ function main(argv){
  try{numstat=execFileSync('git',['diff','--numstat','-z','-M',args[0]],{cwd:repo,maxBuffer:64*1024*1024}).toString();}
  catch(error){process.stderr.write(`git diff failed: ${error.message}\n`);return 2;}
  const result=sizeReview(parseNumstat(numstat));
- process.stdout.write(json?JSON.stringify(result,null,2)+'\n':`Size: ${result.size} because ${result.reason}\n`);
+ process.stdout.write(json?JSON.stringify(result,null,2)+'\n':`Size: ${result.size} because ${result.reason}\nBudget: ${result.budget} fix round${result.budget===1?'':'s'}\n`);
  return 0;
 }
 
