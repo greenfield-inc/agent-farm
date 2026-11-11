@@ -11,6 +11,10 @@ A block with `"asked": "notify"` already reached the person as the worker's own 
 
 Every other block, `"asked": "relay"` or with no `asked`, is relayed.
 
+## A worker's report card in a Pane Session
+
+In a Pane Session, a worker's blocked report is already an answerable card in Approvals. Never put the same question to the person a second way: relay that card with `runpane notify --relays <item>` (its choices from the block's options, its why as context, its files as links), then record the answer with `runpane inbox ack <item> --decision <D-n>` and send the line under Back to the worker. Pane's orchestration guide has the mechanics.
+
 ## To the person
 
 Open every file in `files` beside the person first, with the host's show-file or show-page mechanism; they belong to the question, so open them without asking. Where the host has none, link them. When `files` is empty, find where the question's context lives (a page and anchor, a PR comment, a file and line, a decision) and add a `Context: <where the context lives>` line to the round instead. The question's Needs you row on the status page links the same places. Then put the round:
