@@ -118,6 +118,11 @@ principle 13 (security and PHI) on every review. Verify each Must-Fix and
 Should-Fix yourself as the review skill says, and use it to post the final
 review to GitHub.
 
+To read the reviewed commit's files outside the PR checkout, use
+`git worktree add --detach <dir> <sha>` or `git archive <sha> | tar -x -C <dir>`,
+and unpack any tarball with `tar`. The system `python3` on macOS is 3.9, so
+don't rely on newer Python APIs (such as `tarfile`'s `filter=`).
+
 ## How you present findings
 
 Be direct and specific. Every finding includes:

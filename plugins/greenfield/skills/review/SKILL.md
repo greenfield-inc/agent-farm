@@ -208,7 +208,10 @@ limitation.
 
 After submission, parse the response and fetch the created review again. Verify
 repository, PR number, review id, author, event/state, commit SHA, body semantics,
-inline comment count/anchors, and actual newline formatting. Re-read the PR head;
+inline comment count/anchors, and actual newline formatting. Check inline anchors
+through `gh api repos/<owner>/<repo>/pulls/<n>/comments --paginate`, filtered by
+`pull_request_review_id`: the per-review endpoint (`reviews/<id>/comments`)
+returns no `line` or `side`. Re-read the PR head;
 if it moved, re-review only the files changed since the reviewed head and post
 that result.
 
