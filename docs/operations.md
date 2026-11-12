@@ -57,7 +57,12 @@ token:
 A connection the harness reports as not signed in is left out of that launch. The
 agent's instructions say it is unavailable and not to sign in, and the launch
 prints one line on stderr with the command that signs in, for example
-`agent-farm mcp login linear --directory /path/to/repo`. The check fails open: if
+`agent-farm mcp login linear --directory /path/to/repo`. Each path in that
+command is quoted so that pasting it runs nothing inside the path; on Windows, a
+path that cmd or PowerShell would expand is shown as a placeholder to fill in.
+`mcp login` finds only workspace connections, so for a connection set in an agent
+definition, use the harness's own MCP login. A connection left out still turns off
+the project's `mcp-remote` bridge for the same server. The check fails open: if
 the harness is missing, errors, or does not answer within a few seconds, the
 connection stays in and nothing is printed. Set `AGENT_FARM_SIGNIN_CHECK=off` to
 skip the check, for example on an offline machine. Codex native subagents read

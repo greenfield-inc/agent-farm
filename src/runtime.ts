@@ -566,11 +566,15 @@ export const nativeSignIns: SignInCheck=(harness,connections,env,home)=>{
 };
 /** The command a person runs to sign in to a workspace connection for every harness that needs it. */
 export function loginHint(key: string, directory: string, configRoot?: string, home=os.homedir()): string {
-  // Plain double quotes work in POSIX shells, cmd and PowerShell; JSON escaping would double Windows backslashes.
-  const safe=process.platform==='win32' ? /^[\w@%+=:,./~\\-]+$/ : /^[\w@%+=:,./~-]+$/;
-  const quote=(text: string)=>safe.test(text) ? text : '"'+text.replace(/"/g,'\\"')+'"';
   const custom=configRoot!==undefined && path.resolve(configRoot)!==path.join(home,'.config/agent-farm');
-  return `agent-farm mcp login ${key} --directory ${quote(directory)}${custom ? ' --config-root '+quote(configRoot!) : ''}`;
+  return `agent-farm mcp login ${key} --directory ${shellArgument(directory,'<this repository>')}${custom ? ' --config-root '+shellArgument(configRoot!,'<your config root>') : ''}`;
+}
+/** A path as one literal argument for the person's shell, so pasting a printed command never runs anything inside it. */
+export function shellArgument(text: string, placeholder: string, platform=process.platform): string {
+  if (platform!=='win32') return /^[\w@%+=:,./~-]+$/.test(text) ? text : "'"+text.replace(/'/g,"'\\''")+"'";
+  // cmd and PowerShell share no literal quoting, so a path with characters either expands is shown as a placeholder.
+  if (/^[\w@+=:,./~\\-]+$/.test(text)) return text;
+  return /["%!$`]/.test(text) ? placeholder : '"'+text+'"';
 }
 /** A connection a launch left out because the harness holds no sign-in for it. */
 export interface UnavailableConnection { connection: string; harness: 'claude'|'codex'; login: string }
@@ -791,7 +795,7 @@ export function command(bundle: string, route: string, options: LaunchOptions = 
     for (const [key,value] of Object.entries(agent.connections)) argv.push('-c',`mcp_servers.${connectionName(key)}=${toml(codexConnection(value))}`);
     if(resolved.access)argv.push('-c',`mcp_servers.${telemetryServerName}=${toml(codexConnection(resolved.telemetryConnection))}`);
     // The transport key keeps the override valid when Codex does not load the project layer (an untrusted project).
-    for (const {name,transport,value} of projectCodexDuplicates(manifest.directory,agent.connections)) argv.push('-c',`mcp_servers.${name}.enabled=false`,'-c',`mcp_servers.${name}.${transport}=${JSON.stringify(value)}`);
+    for (const {name,transport,value} of projectCodexDuplicates(manifest.directory,manifest.nodes[resolved.route]!.connections)) argv.push('-c',`mcp_servers.${name}.enabled=false`,'-c',`mcp_servers.${name}.${transport}=${JSON.stringify(value)}`);
   }
   argv.push(...nativeArgs);
   if (options.message!==undefined) argv.push('--',options.message);
@@ -857,7 +861,7 @@ export function acpLaunch(bundle: string, route: string, options: AcpLaunchOptio
     if (resolved.nativeChildren.length) config.agents=Object.fromEntries(resolved.nativeChildren.map(({alias,description})=>[alias,{description,config_file:path.join(directory,'native-agents',alias+'.toml')}]));
     if (launch.model.speed) config.service_tier=launch.model.speed==='fast' ? 'fast' : 'default';
     const servers: Record<string,unknown>={...Object.fromEntries(Object.entries(agent.connections).map(([k,v])=>[connectionName(k),codexConnection(v)])),...(resolved.access?{[telemetryServerName]:codexConnection(resolved.telemetryConnection)}:{})};
-    for (const {name,transport,value} of projectCodexDuplicates(manifest.directory,agent.connections)) servers[name]={[transport]:value,enabled:false};
+    for (const {name,transport,value} of projectCodexDuplicates(manifest.directory,manifest.nodes[resolved.route]!.connections)) servers[name]={[transport]:value,enabled:false};
     if (Object.keys(servers).length) config.mcp_servers=servers;
     envOverrides.CODEX_CONFIG=JSON.stringify(config);
   }
@@ -920,7 +924,7 @@ export function launchSession(manifest: Manifest, harness: 'claude'|'codex', res
 }
 /** One line on stderr per connection a launch left out, with the command that signs in. */
 function reportUnavailable(unavailable: UnavailableConnection[]): void {
-  for (const {connection,harness,login} of unavailable) console.error(`agent-farm: ${connection} is not signed in for ${harness}, so this session starts without it; sign in with: ${login}`);
+  for (const {connection,harness,login} of unavailable) console.error(`agent-farm: ${connection} is not signed in for ${harness}, so this session starts without it; sign in with: ${login} (for a connection set in an agent definition rather than the workspace, use ${harness}'s own MCP login instead)`);
 }
 export function run(bundle: string, route: string, args: string[], launchCommand: typeof command = command, configRoot?: string): ChildProcess | undefined {
   const {values,tokens}=parseArgs({args,options:{exec:{type:'boolean'},message:{type:'string'},explain:{type:'boolean'},'print-launch':{type:'boolean'},'print-acp':{type:'boolean'},'acp-adapter':{type:'string'},'native-arg':{type:'string',multiple:true},model:{type:'string'},reasoning:{type:'string'},speed:{type:'string'},arg:{type:'string',multiple:true},resume:{type:'string'}},strict:true,allowPositionals:true,tokens:true});

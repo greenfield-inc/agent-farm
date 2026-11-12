@@ -6,7 +6,7 @@ import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {build} from '../dist/compiler.js';
-import {command,acpLaunch} from '../dist/runtime.js';
+import {command,acpLaunch,loginHint,shellArgument} from '../dist/runtime.js';
 import {loginPlan} from '../dist/mcp-auth.js';
 import {writeHarness} from './harness.mjs';
 
@@ -69,7 +69,7 @@ test('J7: --print-launch asks the native harness and prints the login command on
  const printed=JSON.parse(r.stdout);
  assert.ok(!printed.argv.some(a=>a.startsWith('mcp_servers.orchestra_remote')));
  assert.ok(printed.argv.some(a=>a.startsWith('mcp_servers.orchestra_signed=')));
- assert.equal(r.stderr.trim(),`agent-farm: remote is not signed in for codex, so this session starts without it; sign in with: agent-farm mcp login remote --directory ${f.project}`);
+ assert.equal(r.stderr.trim(),`agent-farm: remote is not signed in for codex, so this session starts without it; sign in with: agent-farm mcp login remote --directory ${f.project} (for a connection set in an agent definition rather than the workspace, use codex's own MCP login instead)`);
 });
 test('J8: doctor lists each missing sign-in with its login command, then none once signed in',t=>{
  const f=setup(t);writeHarness(f.bin,'codex',fakeCodex);
@@ -95,10 +95,30 @@ test('mcp login without --harness signs in only where a harness holds no sign-in
  assert.throws(()=>loginPlan(f.root,f.project,'local',{home:f.home,env:f.env}),/local servers use their own login/);
 });
 
-test('the login hint quotes a path only when it must, without doubling backslashes',async()=>{
- const {loginHint}=await import('../dist/runtime.js');
+test('the login hint passes each path as one literal shell argument, so pasting it runs nothing',{skip:process.platform==='win32'},()=>{
  const home=path.join(os.tmpdir(),'hint-home');
- assert.equal(loginHint('linear',path.join(os.tmpdir(),'a b'),undefined,home),`agent-farm mcp login linear --directory "${path.join(os.tmpdir(),'a b')}"`);
+ for(const directory of ['/srv/repo','/tmp/a b','/tmp/repo-$(printf INJECTED)','/tmp/`id`',"/tmp/it's","/tmp/x'$(id)'y",'/tmp/semi;colon&&$HOME']){
+  const hint=loginHint('linear',directory,'/tmp/root $(id)',home);
+  // Ask a real shell how it splits the printed command: the path must come back byte for byte.
+  const echoed=spawnSync('/bin/sh',['-c',`set -- ${hint.slice('agent-farm '.length)}; printf '%s\\n' "$@"`],{encoding:'utf8'});
+  assert.deepEqual(echoed.stdout.split('\n').slice(0,-1),['mcp','login','linear','--directory',directory,'--config-root','/tmp/root $(id)'],hint);
+ }
  assert.equal(loginHint('linear','/srv/repo',undefined,home),'agent-farm mcp login linear --directory /srv/repo');
- if(process.platform==='win32')assert.equal(loginHint('linear','C:\\Users\\me\\repo',undefined,home),'agent-farm mcp login linear --directory C:\\Users\\me\\repo');
+});
+test('on Windows the login hint double-quotes a plain path and shows a placeholder for one cmd or PowerShell would expand',()=>{
+ assert.equal(shellArgument('C:\\Users\\me\\repo','<p>','win32'),'C:\\Users\\me\\repo');
+ assert.equal(shellArgument('C:\\Users\\me\\my repo','<p>','win32'),'"C:\\Users\\me\\my repo"');
+ for(const text of ['C:\\repo-$(calc)','C:\\%PATH%','C:\\a`b','C:\\a"b','C:\\a!b'])assert.equal(shellArgument(text,'<this repository>','win32'),'<this repository>');
+});
+test('J7: an omitted connection still turns off the project bridge it replaces',t=>{
+ const f=setup(t);
+ fs.mkdirSync(path.join(f.project,'.codex'));
+ fs.writeFileSync(path.join(f.project,'.codex/config.toml'),'[mcp_servers.remote_bridge]\ncommand = "npx"\nargs = ["-y", "mcp-remote", "https://mcp.example.invalid/mcp"]\n');
+ const bundle=build(f.root,'main',f.project),signIns=stub({remote:'missing'});
+ const r=command(bundle,'main',{configRoot:f.root,env:f.env,home:f.home,signIns});
+ assert.ok(r.argv.includes('mcp_servers.remote_bridge.enabled=false'),r.argv.join('\n'));
+ assert.ok(!r.argv.some(a=>a.startsWith('mcp_servers.orchestra_remote')));
+ writeHarness(f.bin,'codex','process.exit(0);\n');
+ const servers=JSON.parse(acpLaunch(bundle,'main',{configRoot:f.root,env:f.env,home:f.home,signIns}).env.CODEX_CONFIG).mcp_servers;
+ assert.equal(servers.remote_bridge?.enabled,false);assert.equal(servers.orchestra_remote,undefined);
 });
