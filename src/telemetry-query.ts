@@ -9,6 +9,51 @@ type ObjectMap=Record<string,any>;
 const object=(v:unknown):v is ObjectMap=>!!v&&typeof v==='object'&&!Array.isArray(v);
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const maxSessions=5000,maxSignalBytes=32*1024*1024,maxRows=10000;
+/** Below Grain's content limits (50 MiB per file, 250 MiB per revision), so an exported bundle publishes as is. */
+export const exportLimits={file:48*1024*1024,total:200*1024*1024};
+/** The one rule for what an export keeps: log events that record what happened, by native name, for every harness.
+ *  Anything else (timing traces, hook and startup housekeeping, credential lookups, kinds a harness adds later) is
+ *  counted as left out, never silently kept. */
+export const exportedEvents=new Set([
+  // Prompts
+  'user_prompt','codex.user_prompt',
+  // Model requests and responses, with tokens and cost
+  'api_request','assistant_response','codex.api_request','codex.websocket_request','codex.sse_event',
+  // Tool decisions and results, including skills
+  'tool_decision','tool_result','skill_activated','codex.tool_decision','codex.tool_result','codex.skill_invocation',
+  // Subagents and agent messages
+  'subagent_completed','codex.agent_communication',
+  // Errors
+  'api_error','api_retries_exhausted','internal_error',
+  // Session start and context compaction (session.json records start, end and exit)
+  'codex.conversation_starts','compaction'
+]);
+/** Longer string fields are cut to this many characters in an export. */
+const exportFieldLength=4096;
+function eventKind(record:unknown,scope:ObjectMap):string {
+  const name=object(record)?attrs(record.attributes)['event.name']??record.eventName:undefined;
+  // Codex writes plain log lines (eventName "event <file>:<line>") beside its named events.
+  return typeof name==='string'&&!name.startsWith('event ')?name:'log:'+(typeof scope.scope?.name==='string'?scope.scope.name:'unknown');
+}
+function shorten(record:ObjectMap):number {
+  let count=0;
+  const cut=(value:unknown)=>{if(object(value)&&typeof value.stringValue==='string'&&value.stringValue.length>exportFieldLength){value.stringValue=value.stringValue.slice(0,exportFieldLength)+`… [${value.stringValue.length-exportFieldLength} more characters left out]`;count++;}};
+  if(Array.isArray(record.attributes))for(const a of record.attributes)if(object(a))cut(a.value);
+  cut(record.body);
+  return count;
+}
+/** Complete lines of a file as it stood when this started; a final line still being written is skipped. */
+function* lines(fd:number):Generator<string> {
+  const size=fs.fstatSync(fd).size,chunk=Buffer.alloc(1024*1024);let position=0,pending:Buffer[]=[];
+  while(position<size){
+    const n=fs.readSync(fd,chunk,0,Math.min(chunk.length,size-position),position);if(!n)throw Error('Telemetry changed while exporting');
+    let start=0;
+    for(let i=0;i<n;i++)if(chunk[i]===10){pending.push(Buffer.from(chunk.subarray(start,i)));const line=Buffer.concat(pending).toString('utf8');pending=[];start=i+1;if(line.trim())yield line;}
+    if(start<n)pending.push(Buffer.from(chunk.subarray(start,n)));
+    if(pending.reduce((sum,b)=>sum+b.length,0)>64*1024*1024)throw Error('Telemetry export found an oversized record');
+    position+=n;
+  }
+}
 
 // Match linked worktrees without depending on ambient GIT_DIR/GIT_WORK_TREE.
 export function telemetryProject(directory:string):{id:string;workingDirectory:string;git:boolean} {
@@ -103,7 +148,7 @@ export class TelemetryStore {
   }
   private view(s:ObjectMap){
     const a=Object.fromEntries(Object.entries(s.attributes as ObjectMap).map(([key,value])=>[key,typeof value==='string'?value.slice(0,512):undefined])),finished=s.state==='finished';
-    return {id:s.id,parent_session_id:a['agent_farm.parent.session.id'],trace_id:s.traceId,span_id:s.spanId,parent_span_id:s.parentSpanId,started_at:new Date(Number(BigInt(s.startTimeUnixNano)/1000000n)).toISOString(),duration_ms:duration(s.startTimeUnixNano,s.endTimeUnixNano),status:finished?(s.exitCode===0&&!s.signal&&!s.error?'success':'failed'):'unfinished',completion_recorded:finished,harness:a['agent_farm.harness'],profile:a['agent_farm.profile'],variant:a['agent_farm.profile.variant'],model:a['gen_ai.request.model'],user:a['process.owner'],project:a['agent_farm.project.directory']??a['process.working_directory'],worktree:a['vcs.worktree']??a['process.working_directory'],exit_code:s.exitCode,signal:s.signal};
+    return {id:s.id,parent_session_id:a['agent_farm.parent.session.id'],launch_id:a['agent_farm.launch.id'],trace_id:s.traceId,span_id:s.spanId,parent_span_id:s.parentSpanId,started_at:new Date(Number(BigInt(s.startTimeUnixNano)/1000000n)).toISOString(),duration_ms:duration(s.startTimeUnixNano,s.endTimeUnixNano),status:finished?(s.exitCode===0&&!s.signal&&!s.error?'success':'failed'):'unfinished',completion_recorded:finished,harness:a['agent_farm.harness'],profile:a['agent_farm.profile'],variant:a['agent_farm.profile.variant'],model:a['gen_ai.request.model'],user:a['process.owner'],project:a['agent_farm.project.directory']??a['process.working_directory'],worktree:a['vcs.worktree']??a['process.working_directory'],exit_code:s.exitCode,signal:s.signal};
   }
   private sessions(a:ObjectMap){
     const warnings:string[]=[],sessions:ReturnType<TelemetryStore['view']>[]= [];
@@ -128,26 +173,53 @@ export class TelemetryStore {
     if(typeof id!=='string'||!uuid.test(id))throw new Error('No valid session ID; current is available only when this session is recorded');
     return id;
   }
-  /** Raw, scoped snapshot for artifact export; never exposed as an MCP query. */
+  /** Sessions recorded under an interactive launch ID (`agent-farm run`; a resumed launch adds one per run). */
+  launchSessions(launch:string):string[] {
+    const scan=this.sessions({});if(scan.partial||scan.warnings.length)throw Error('Cannot safely enumerate sessions: '+scan.warnings.join(' '));
+    const ids=scan.sessions.filter(s=>s.launch_id===launch).map(s=>s.id);
+    if(!ids.length)throw Error('No recorded sessions for launch '+launch+' in this project');
+    return ids;
+  }
+  /** Scoped "what happened" snapshot for artifact export: session.json, the event log filtered by `exportedEvents`,
+   *  and metrics. Never exposed as an MCP query. */
   exportSnapshot(roots:string[],includeContent=false,requireFinished=false){
     if(!roots.length||roots.length>100)throw Error('Export requires 1–100 explicit session IDs');
     const selected=new Set(roots.map(id=>this.sessionId(id)));
     for(const id of selected)this.read(id);
+    const own=this.options.currentSession;
+    if(requireFinished&&own&&selected.has(own)&&this.read(own).state!=='finished')throw Error('This is your own session, still running, so it cannot be finished yet. Don\'t export it: your orchestrator exports it after you exit (agent-farm telemetry export --launch <id> --require-finished).');
     const scan=this.sessions({});if(scan.partial||scan.warnings.length)throw Error('Cannot safely enumerate descendants: '+scan.warnings.join(' '));
     let changed=true;while(changed){changed=false;for(const s of scan.sessions)if(s.parent_session_id&&selected.has(s.parent_session_id)&&!selected.has(s.id)){selected.add(s.id);changed=true;}}
     if(selected.size>500)throw Error('Export exceeds 500 sessions');
     let bytes=0;
+    const add=(files:Record<string,Buffer>,name:string,data:Buffer)=>{
+      if(data.length>exportLimits.file||bytes+data.length>exportLimits.total)throw Error('Telemetry export exceeds byte limits');
+      files[name]=data;bytes+=data.length;
+    };
     return [...selected].map(id=>{
       const metadata=this.read(id);
       if(metadata.attributes['agent_farm.capture_content']===true&&!includeContent)throw Error('Session '+id+' captured conversation content; explicitly use --include-content to export it');
       if(requireFinished&&metadata.state!=='finished')throw Error('Session '+id+' has not finished');
-      const files:Record<string,Buffer>={'session.json':Buffer.from(JSON.stringify(metadata,null,2)+'\n')};bytes+=files['session.json']!.length;
-      if(bytes>256*1024*1024)throw Error('Telemetry export exceeds byte limits');
-      for(const name of ['traces.jsonl','logs.jsonl','metrics.jsonl']){
-        let fd:number;try{fd=this.open(id,name);}catch(e){if((e as NodeJS.ErrnoException).code==='ENOENT')continue;throw e;}
-        try{const size=fs.fstatSync(fd).size;if(size>64*1024*1024||bytes+size>256*1024*1024)throw Error('Telemetry export exceeds byte limits');const data=Buffer.alloc(size);let read=0;while(read<size){const n=fs.readSync(fd,data,read,size-read,read);if(!n)throw Error('Telemetry changed while exporting');read+=n;}files[name]=data;bytes+=size;}finally{fs.closeSync(fd);}
-      }
-      return {id,finished:metadata.state==='finished',files};
+      const files:Record<string,Buffer>={},left_out:Record<string,number>={},kept:Record<string,number>={};let shortened=0,traces_bytes=0;
+      add(files,'session.json',Buffer.from(JSON.stringify(metadata,null,2)+'\n'));
+      const signal=(name:string,each:(line:string)=>string|undefined)=>{
+        let fd:number;try{fd=this.open(id,name);}catch(e){if((e as NodeJS.ErrnoException).code==='ENOENT')return;throw e;}
+        try{const out:string[]=[];let size=0;for(const line of lines(fd)){const kept=each(line);if(kept===undefined)continue;out.push(kept);size+=Buffer.byteLength(kept)+1;if(size>exportLimits.file)throw Error('Telemetry export exceeds byte limits');}add(files,name,Buffer.from(out.map(l=>l+'\n').join('')));}
+        finally{fs.closeSync(fd);}
+      };
+      try{const fd=this.open(id,'traces.jsonl');traces_bytes=fs.fstatSync(fd).size;fs.closeSync(fd);}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}
+      signal('logs.jsonl',line=>{
+        let payload:ObjectMap|undefined;try{payload=JSON.parse(line);}catch{/* counted below */}
+        if(!object(payload)||!Array.isArray(payload.resourceLogs)){left_out.malformed=(left_out.malformed??0)+1;return;}
+        const resources=payload.resourceLogs.filter(object).map((resource:ObjectMap)=>({...resource,scopeLogs:(Array.isArray(resource.scopeLogs)?resource.scopeLogs:[]).filter(object).map((scope:ObjectMap)=>({...scope,logRecords:(Array.isArray(scope.logRecords)?scope.logRecords:[]).filter((record:unknown)=>{
+          const kind=eventKind(record,scope);
+          if(!object(record)||!exportedEvents.has(kind)){left_out[kind]=(left_out[kind]??0)+1;return false;}
+          kept[kind]=(kept[kind]??0)+1;shortened+=shorten(record);return true;
+        })})).filter((scope:ObjectMap)=>scope.logRecords.length)})).filter((resource:ObjectMap)=>resource.scopeLogs.length);
+        return resources.length?JSON.stringify({...payload,resourceLogs:resources}):undefined;
+      });
+      signal('metrics.jsonl',line=>line);
+      return {id,finished:metadata.state==='finished',files,events:{kept,left_out},shortened_fields:shortened,traces_left_out_bytes:traces_bytes};
     });
   }
   private async rows(id:string,signal:'traces'|'logs',byteLimit=maxSignalBytes,rowLimit=maxRows){
