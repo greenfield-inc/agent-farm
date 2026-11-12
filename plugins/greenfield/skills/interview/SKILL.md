@@ -14,7 +14,8 @@ You surface the open questions, ask them, and record the answers, so the person 
 ## Ask
 
 - **Show first.** Share the page the question is about (open it when the person has asked for that).
-- **Ask in rounds.** Ask 1 to 4 questions per round, most consequential first, in the format in [references/question-format.md](references/question-format.md). Use the harness's structured question tool.
+- **Ask in rounds.** Ask 1 to 4 questions per round, most consequential first, in the format in [references/question-format.md](references/question-format.md). Use the harness's structured question tool, except in Pane.
+- **In Pane, pick the card the way the `pane` skill says** (its "Asking the person in Pane" section): an interview round whose answers go in the decision log is an approval card, never `AskUserQuestion`; a quick clarification that only steers your next step may use Claude's own card. Under an orchestrator, every round is a `needs_you` (standing rules, Questions for the person).
 - **Recommend.** Each question has 2 to 4 real options. The recommended one goes first, marked "(Recommended)", and each option gets a one-line consequence.
 - **Open-ended last.** Ask for names, numbers, dates and credentials as plain text at the end of a round.
 - **Clarify on confusion.** When an answer is a question or conflicts with an earlier decision, explain the trade-off and ask again. The person makes every product choice.
