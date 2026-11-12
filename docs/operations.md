@@ -65,9 +65,11 @@ definition, use the harness's own MCP login. A connection left out still turns o
 the project's `mcp-remote` bridge for the same server. The check fails open: if
 the harness is missing, errors, or does not answer within a few seconds, the
 connection stays in and nothing is printed. Set `AGENT_FARM_SIGNIN_CHECK=off` to
-skip the check, for example on an offline machine. Codex native subagents read
-their connections from the bundle's generated files, so they still list a
-connection the parent left out.
+skip the check, for example on an offline machine. Native Codex subagents are
+checked with the launch, including connections only they declare; when one is
+left out, the subagent gets a copy of its config without it, under
+`~/.cache/agent-farm/native-children/`. Native Claude subagents share the
+parent's servers and get the same note.
 
 `agent-farm doctor` runs the same check for the current directory's workspace and
 lists each missing sign-in with its login command. `agent-farm inspect` reports

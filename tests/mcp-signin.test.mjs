@@ -122,3 +122,28 @@ test('J7: an omitted connection still turns off the project bridge it replaces',
  const servers=JSON.parse(acpLaunch(bundle,'main',{configRoot:f.root,env:f.env,home:f.home,signIns}).env.CODEX_CONFIG).mcp_servers;
  assert.equal(servers.remote_bridge?.enabled,false);assert.equal(servers.orchestra_remote,undefined);
 });
+test('J7: a native Codex child gets this launch\'s config without the left-out connections, child-only ones included, and the bundle stays as built',t=>{
+ const f=setup(t);
+ fs.writeFileSync(path.join(f.root,'agents/main.yaml'),'harness: codex\nmodel: test\nsubagents:\n  helper: {agent: helper, mode: native}\n');
+ fs.writeFileSync(path.join(f.root,'agents/helper.yaml'),'harness: codex\nmodel: test\ninstructions: Help.\nconnections:\n  child_only:\n    type: mcp\n    url: https://child.example.invalid/mcp\n    auth: native\n');
+ const bundle=build(f.root,'main',f.project),built=path.join(bundle,'main/native-agents/helper.toml'),before=fs.readFileSync(built,'utf8');
+ const asked=[];
+ const signIns=(harness,connections,...rest)=>{asked.push(...Object.keys(connections));return stub({remote:'missing',child_only:'missing'})(harness,connections,...rest);};
+ const r=command(bundle,'main',{configRoot:f.root,env:f.env,home:f.home,signIns});
+ assert.ok(asked.includes('child_only'),'child-only connections are checked');
+ const file=JSON.parse(r.argv.find(a=>a.startsWith('agents.helper.config_file=')).slice('agents.helper.config_file='.length));
+ assert.ok(file.startsWith(path.join(f.home,'.cache/agent-farm/native-children')),file);
+ const child=fs.readFileSync(file,'utf8');
+ assert.ok(!child.includes('[mcp_servers.orchestra_remote]')&&!child.includes('[mcp_servers.orchestra_child_only]'),child);
+ assert.ok(child.includes('[mcp_servers.orchestra_signed]'));
+ assert.match(child,/Unavailable connections: remote \(orchestra_remote\), child_only \(orchestra_child_only\)\. Codex holds no sign-in for them/);
+ assert.equal(fs.readFileSync(built,'utf8'),before);
+ // The parent's note names only its own connections; the person hears about both.
+ assert.match(r.argv.find(a=>a.startsWith('developer_instructions=')),/Unavailable connections: remote \(orchestra_remote\)\. Codex/);
+ assert.deepEqual(r.unavailable.map(u=>u.connection).sort(),['child_only','remote']);
+ writeHarness(f.bin,'codex','process.exit(0);\n');
+ assert.equal(JSON.parse(acpLaunch(bundle,'main',{configRoot:f.root,env:f.env,home:f.home,signIns}).env.CODEX_CONFIG).agents.helper.config_file,file);
+ // With every sign-in in place, the child uses the bundle's own file.
+ const signed=command(bundle,'main',{configRoot:f.root,env:f.env,home:f.home,signIns:stub({})});
+ assert.ok(signed.argv.includes(`agents.helper.config_file=${JSON.stringify(built)}`));
+});
