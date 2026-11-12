@@ -117,6 +117,9 @@ const needs = d.needs.length;
 const stateCls = blocked ? 'blocked' : needs ? 'need' : 'ok';
 const stateText = [needs ? `${needs} need${needs === 1 ? 's' : ''} you` : null, blocked ? `${blocked} blocked` : null].filter(Boolean).join(' · ') || 'Nothing needs you';
 const c = d.session.counts;
+// The flow's caption says what the Session is about; it sits in the Order of work diagram, or under the title when that is not drawn.
+const showFlow = d.session.flow?.steps?.length && d.items.length > 1;
+const goal = !showFlow && d.session.flow?.caption ? `<p class="goal">${esc(d.session.flow.caption)}</p>` : '';
 const counter = (cls, icon, n, label) => `<div class="ct ${cls}${n ? '' : ' zero'}"><span class="ic">${icon}</span><b>${n}</b><span class="lb">${label}</span></div>`;
 
 const needCard = q => `<details class="need"><summary><span class="qid">${esc(q.id)}</span><span class="qq">${esc(q.q)}</span><span class="age">${esc(q.age)}</span>${q.link ? `<a class="btn sm" href="${esc(q.link)}">Answer →</a>` : ''}</summary>
@@ -160,6 +163,7 @@ code{font:.9em ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:v
 .eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:6px}
 .eyebrow:before{content:"";width:6px;height:6px;border-radius:50%;background:var(--run)}
 h1{font-size:clamp(19px,2.6vw,23px);font-weight:700;letter-spacing:-.025em;line-height:1.15;margin:4px 0 0}
+.goal{margin:4px 0 0;font-size:13px;color:var(--muted)}
 h2{font-size:10.5px;font-weight:650;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:22px 0 8px}
 .counts{display:flex;gap:6px}
 .ct{display:grid;grid-template-columns:auto auto;column-gap:7px;align-items:center;padding:4px 10px 4px 7px;border-radius:10px;background:var(--paper);border:1px solid var(--line)}
@@ -246,12 +250,12 @@ details{margin-top:14px;font-size:12px;color:var(--muted)}summary{cursor:pointer
 .sec .n{font-weight:600;background:var(--wash);color:var(--muted);border-radius:999px;padding:0 6px;font-size:10px;letter-spacing:0}
 @media(max-width:640px){.nbody,.dbody{padding-left:14px}.need[open] summary{flex-wrap:wrap}.need[open] .qq{order:1;flex-basis:100%;overflow:visible}.ask{grid-template-columns:1fr}.act{text-align:left}.state .snext{margin-left:0;flex-basis:100%}}
 </style></head><body><div class="wrap">
-<div class="top"><div><div class="eyebrow">${esc(d.session.eyebrow)}</div><h1>${esc(d.session.title)}</h1></div>
+<div class="top"><div><div class="eyebrow">${esc(d.session.eyebrow)}</div><h1>${esc(d.session.title)}</h1>${goal}</div>
 <div class="counts">${counter('run', '', c.running, 'running')}${counter('q', '', c.queued, 'queued')}${counter('done', '✓', c.done, 'done')}</div></div>
 <div class="state ${stateCls}"><span class="sdot"></span>${esc(stateText)}</div>
 ${needs ? sec('Needs you', needs, `<div class="needs">${d.needs.map(needCard).join('')}</div>`) : ''}
-${sec('In flight', d.items.length, d.items.length ? d.items.map(itemCard).join('') : '<p class="tn">Nothing in flight.</p>')}
-${d.session.flow?.steps?.length && d.items.length > 1 ? sec('Order of work', null, diagram(d.session.flow, 'boxes')) : ''}
+${sec('In flight', d.items.length, d.items.length ? d.items.map(itemCard).join('') : `<p class="tn">${d.done.length ? 'Nothing in flight.' : 'No workers yet.'}</p>`)}
+${showFlow ? sec('Order of work', null, diagram(d.session.flow, 'boxes')) : ''}
 ${d.done.length ? sec('Done', d.done.length, `<div class="done-list">${d.done.map(x => `<div><span class="ck">✓</span><a href="${esc(x.link || '#')}">${esc(x.label)}</a> <span class="dt">${esc(x.detail || '')}</span></div>`).join('')}</div>`) : ''}
 ${d.decisions.length ? sec('Decisions', d.decisions.length, `<div class="decs">${d.decisions.map(x => `<details class="dec"><summary><span class="did">${esc(x.id)}</span><span class="dans">${esc(x.answer)}</span></summary><div class="dbody">
   ${x.q ? `<div class="dq">${esc(x.q)}</div>` : ''}
