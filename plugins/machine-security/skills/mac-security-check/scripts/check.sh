@@ -369,7 +369,8 @@ servers | .value as $s | select($s | type == "object") |
 
 check_os() {
   mac_only os.version || return 0
-  local v b sup=/Library/Preferences/com.apple.SoftwareUpdate.plist k val fv out
+  # MSC_SUPDATE_PLIST is a test hook: the system file changes whenever Software Update runs.
+  local v b sup=${MSC_SUPDATE_PLIST:-/Library/Preferences/com.apple.SoftwareUpdate.plist} k val fv out
   v=$(sw_vers -productVersion 2>/dev/null); b=$(sw_vers -buildVersion 2>/dev/null)
   OS_MAJOR=${v%%.*}
   emit INFO os.version "" "macOS $v ($b)"

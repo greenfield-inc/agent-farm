@@ -372,7 +372,7 @@ test('workers raise numbered needs_you blocks, standalone workers ask in the sam
 });
 
 test('the map links Notify questions to the asking tab and shows each PR\'s validation and unreviewed commits, and the watcher is unchanged',()=>{
- includesAll(['skills/orchestrate-sessions/references/status-board.md'],['Never write the page\'s HTML by hand','`id` is `null`, since it is numbered once answered','`pane://open?pane=<pane id>&panel=<panel id>`, the item\'s `pane_id` and the asking worker\'s `panel_id`','A relayed question: its Q-n and no `link`','validation still pending, from the ledger\'s `validation`','"N commits since the last review at <sha>, not reviewed"','git rev-list --count <last reviewed head>..<PR head>','`<!-- greenfield-review head=<sha> -->` marker']);
+ includesAll(['skills/orchestrate-sessions/references/status-board.md'],['Never write the page\'s HTML by hand','give `id: null`, and the page shows it as "a new question"','`pane://open?pane=<pane id>&panel=<panel id>` of the tab that holds its card','the asking worker\'s for a question asked through Notify','Outside Pane, give no `link`','validation still pending, from the ledger\'s `validation`','"N commits since the last review at <sha>, not reviewed"','git rev-list --count <last reviewed head>..<PR head>','`<!-- greenfield-review head=<sha> -->` marker']);
  includesAll(['skills/orchestrate-sessions/references/ledger.md'],['"last_reviewed_head"']);
  instructionsIncludeAll(COORDINATORS,['relaying any `needs_you` a wake-up finds the same way as one an event brings']);
  const skill=fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8');
@@ -441,13 +441,16 @@ test('planned work always validates full and then reviews on its own; deferred a
 });
 
 test('the status page is rendered to a fixed place, shows in Pane\'s Overview, every item has a front page, questions carry their context, and progress messages end with Next (P-1)',()=>{
- includesAll(['skills/orchestrate-sessions/references/status-board.md'],['Always write the local copy to `<Session folder>/session/index.html`','In Pane, the Session\'s Overview tab shows this page, so never open it as a separate tab there','`link` is its front page','An item moves here and is never removed','<meta http-equiv="refresh" content="60">','open it beside the person at the first dispatch','never a file to edit','`session.artifact.opened_url`','open the same URL again so the host reuses its tab']);
+ includesAll(['skills/orchestrate-sessions/references/status-board.md'],['Always write the local copy to `<Session folder>/session/index.html`','In Pane, the Session\'s Overview tab shows this page, so never open it as a separate tab there','names its page, `items/<id>.html`','An item moves here and is never removed','<meta http-equiv="refresh" content="60">','open it beside the person at the first dispatch','never a file to edit','`session.artifact.opened_url`','open the same URL again so the host reuses its tab']);
  assert.doesNotMatch(fs.readFileSync(path.join(root,'skills/orchestrate-sessions/references/status-board.md'),'utf8'),/^Lanes /m);
  includesAll(['skills/orchestrate-sessions/references/ledger.md'],['"next":','"front_page":']);
- includesAll(['skills/orchestrate-sessions/references/item-hub.md'],['quick fix','three-line summary','Link only files that exist','task','PR','findings','post-mortem','trace']);
- includesAll(['skills/orchestrate-sessions/SKILL.md'],['[references/item-hub.md](references/item-hub.md)','[references/status-board.md](references/status-board.md)','Every progress message to the person ends with "Next: …"','adds the findings file, the post-mortem (if any) and the trace']);
- includesAll(['skills/page/references/bundle.md'],['After the PR\'s review loop closes, the orchestrator adds the findings file, the post-mortem (if any) and the trace','edits only this list']);
- includesAll(['skills/orchestrate-sessions/references/relay.md'],['Context: <where the context lives>','its Needs you row links the same places']);
+ includesAll(['skills/orchestrate-sessions/references/item-hub.md'],['Every work item\'s front page','quick fix','Never hand-write it','link only files that exist','Plan or Task','Pull request','Trace, Post-mortem','"Not recorded"']);
+ assert.doesNotMatch(flatText('skills/orchestrate-sessions/references/item-hub.md'),/three-line summary/);
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['[references/item-hub.md](references/item-hub.md)','[references/status-board.md](references/status-board.md)','Every progress message to the person ends with "Next: …"','add the findings file, the post-mortem (if any) and the trace to its item page\'s `refs`, not to the brief']);
+ includesAll(['skills/page/references/bundle.md'],['carries the findings file, the post-mortem (if any) and the trace once the PR\'s review loop closes','the orchestrator adds nothing to the brief']);
+ assert.doesNotMatch(flatText('skills/page/references/bundle.md'),/the orchestrator adds the findings file/);
+ includesAll(['skills/orchestrate-sessions/references/relay.md'],['Context: <where the context lives>','The status pages never show a question\'s wording']);
+ assert.doesNotMatch(flatText('skills/orchestrate-sessions/references/relay.md'),/Needs you row/);
  instructionsIncludeAll(COORDINATORS,['end every progress message to the person with "Next: …"','open it beside the person at the first dispatch']);
  includesAll(['instructions/standing-rules.md'],['An orchestrator opens four things beside the person without asking first','the Session\'s status page outside Pane (at the first dispatch, then refreshed in the same tab; in Pane it shows in the Session\'s Overview tab)','except that a worker opens the files of a question it asks through Notify']);
 });
@@ -473,7 +476,7 @@ test('every PR, however small, opens with its Excalidraw image from the pr-asset
 
 test('the orchestrator writes a post-mortem after review only when something broke, into the PR\'s own artifact, and offers GitHub issues that it files only on a yes (P-3, D-72)',()=>{
  includesAll(['skills/page/references/post-mortem.md'],['The orchestrator writes it','after the PR\'s review loop closes, or when the PR merges or closes unreviewed','only when something went wrong','the PR\'s own artifact','**Issues hit:**','**Issues to file:**','repository and title','files nothing without the person\'s yes','Standalone, with no orchestrator, the implementer writes it the same way']);
- includesAll(['skills/orchestrate-sessions/SKILL.md'],['## Post-mortems','the workers\' `failure` and `attempts` fields','a timeout, a dead tab, a crash','into the PR\'s own artifact','one question listing each proposed GitHub issue with its repository and title','A yes files that one issue, with private paths, customer text and session content removed','never guessed silently','write the words "no issues hit" on the item\'s card and on its front page, creating its hub first if it has none','the implementer\'s `pr_artifact`','never a page of your own instead']);
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['## Post-mortems','the workers\' `failure` and `attempts` fields','a timeout, a dead tab, a crash','into the PR\'s own artifact','one question listing each proposed GitHub issue with its repository and title','A yes files that one issue, with private paths, customer text and session content removed','never guessed silently','write the words "no issues hit" on the item\'s card and on its front page, its item page','the implementer\'s `pr_artifact`','never a page of your own instead']);
  includesAll(['instructions/standing-rules.md'],['`failure`: what got in the way','`attempts`: what was tried for each problem','"pr_artifact": null','`pr_artifact`: where the PR\'s own artifact is']);
  includesAll(['skills/prepare-pr/SKILL.md'],['record where the PR\'s artifact is in your status file\'s `pr_artifact`','the path belongs there and not in the PR body']);
  includesAll(['skills/orchestrate-sessions/references/ledger.md'],['"pr_artifact":']);
@@ -486,7 +489,7 @@ test('the orchestrator writes a post-mortem after review only when something bro
 });
 
 test('greenfield documents the status page, front pages, post-mortems, the PR image and artifact, and the Session artifact',()=>{
- includesAll(['README.md'],['one state bar','shows in the Session\'s Overview tab','each card linking the item\'s front page','`sessions/<Session name> · <first 8 characters of the Session id>`','one notice line saying so','writes a post-mortem after its review loop closes, with Issues hit and Issues to file','filing only on your yes','"no issues hit"','Every PR, however small, opens with an Excalidraw image']);
+ includesAll(['README.md'],['never their wording','shows in the Session\'s Overview tab','clicking a card opens that item\'s own page','`sessions/<Session name> · <first 8 characters of the Session id>`','one notice line saying so','writes a post-mortem after its review loop closes, with Issues hit and Issues to file','filing only on your yes','"no issues hit"','Every PR, however small, opens with an Excalidraw image']);
  includesAll(['index.html'],['a status page beside you says what is next','image + its own page','post-mortem if it broke','leads with a diagram and links a page of its own']);
  for(const file of ['README.md','index.html'])assert.doesNotMatch(flatText(file),/workstream map per Session:|Lanes/,file);
 });
@@ -508,7 +511,7 @@ test('the orchestrator is pointed at the status page and item hub specs, saying 
  for(const rule of ['[references/status-board.md](references/status-board.md)','before you first write it in a Session, and again before any rewrite, read status-board.md and write it from that','never from memory or from a summary such as this paragraph'])assert.ok(board.includes(rule),rule);
  assert.doesNotMatch(board,/opens with|one card per item|Needs you \(/);
  const hub=paragraph('skills/orchestrate-sessions/SKILL.md','Every item has a front page');
- for(const rule of ['[references/item-hub.md](references/item-hub.md)','before you write the first hub in a Session, and again before any rewrite, read item-hub.md and load `page`','never write one from memory'])assert.ok(hub.includes(rule),rule);
+ for(const rule of ['[references/item-hub.md](references/item-hub.md)','Before you first fill an item\'s page fields in a Session, and again before any rewrite, read item-hub.md','never write one from memory or by hand'])assert.ok(hub.includes(rule),rule);
 });
 
 test('the status page groups Sources and Relevant links by kind of work and keeps only safe links',t=>{
@@ -542,22 +545,22 @@ test('greenfield 0.0.43 gives the planners and orchestrators research-and-produc
  for(const profile of ['planner:claude','planner:codex'])assert.ok(resolveProfile(root,profile).nodes.main.instructions.replace(/\s+/g,' ').includes('Before the options and the plan for a feature with an interface or a system-design choice, build a research packet and design rounds with `research-and-product-design`.'),profile);
 });
 
-test('the status page renderer runs with Node alone and draws a self-contained page that links Notify questions to their tab',()=>{
+test('the status page renderer runs with Node alone and draws a self-contained page that links Notify questions to their tab, by count and Q-id only',()=>{
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'af-status-page-'));
  fs.cpSync(path.join(root,'skills/orchestrate-sessions/assets/status-page'),path.join(dir,'renderer'),{recursive:true});
  const status={session:{title:'Two features',eyebrow:'Updated 14:40 · 1 h 10 min elapsed',counts:{running:1,queued:0,done:0},settings:'Review on "ready"'},
-  needs:[{id:null,item:'Invoice PDF',role:'Planner',blocks:'the plan',q:'Use the invoice id in the filename?',options:[{label:'Invoice id',rec:true},{label:'Invoice number'}],why:'Ids are stable.',age:'2 min',link:'pane://open?pane=p1&panel=w1'},
-         {id:'Q-2',item:'Export',role:'Implementer',blocks:'#12',q:'Keep CSV export?',options:[{label:'Keep',rec:true},{label:'Drop'}],why:'Customers use it.',age:'5 min'}],
-  items:[{name:'Invoice PDF',pane:'invoice-pdf',paneLink:'pane://open?pane=p1',state:'need',next:'<b>Planner</b> waits on you. <img src=x onerror=alert(1)><script>alert(1)</script> <a href="javascript:alert(1)">bad</a>',rail:[{label:'Plan',state:'need'},{label:'Build',state:'todo'}]},
-         {name:'Export',pr:'#12',pane:'export',state:'blocked',next:'Codex is not signed in.',rail:[{label:'Build',state:'done'},{label:'CI',state:'blocked'}]}],
+  needs:[{id:null,item:'invoice-pdf',role:'Planner',blocks:'the plan',q:'Use the invoice id in the filename?',options:[{label:'Invoice id',rec:true},{label:'Invoice number'}],why:'Ids are stable.',age:'2 min',link:'pane://open?pane=p1&panel=w1'},
+         {id:'Q-2',item:'export',role:'Implementer',blocks:'#12',q:'Keep CSV export?',options:[{label:'Keep',rec:true},{label:'Drop'}],why:'Customers use it.',age:'5 min'}],
+  items:[{id:'invoice-pdf',name:'Invoice PDF',pane:'invoice-pdf',paneLink:'pane://open?pane=p1',state:'need',next:'<b>Planner</b> waits on you. <img src=x onerror=alert(1)><script>alert(1)</script> <a href="javascript:alert(1)">bad</a>',rail:[{label:'Plan',state:'need'},{label:'Build',state:'todo'}]},
+         {id:'export',name:'Export',pr:'#12',pane:'export',state:'blocked',next:'Codex is not signed in.',rail:[{label:'Build',state:'done'},{label:'CI',state:'blocked'}]}],
   done:[],decisions:[]};
  fs.writeFileSync(path.join(dir,'status.json'),JSON.stringify(status));
  const run=spawnSync(process.execPath,[path.join(dir,'renderer/render.mjs'),path.join(dir,'status.json'),path.join(dir,'index.html')],{cwd:dir,encoding:'utf8'});
  assert.equal(run.status,0,run.stderr);
  const html=fs.readFileSync(path.join(dir,'index.html'),'utf8');
- assert.match(html,/<a class="btn sm" href="pane:\/\/open\?pane=p1&amp;panel=w1">Answer →<\/a>/);
- assert.equal(html.split('Answer →').length-1,1,'only the Notify question links a tab');
- assert.match(html,/2 need you · 1 blocked/);
+ assert.match(html,/<a href="pane:\/\/open\?pane=p1&amp;panel=w1">a new question<\/a> \(Invoice PDF\) and Q-2 \(#12\)/,'the Notify question links its tab; the relayed one is a bare Q-id');
+ assert.match(html,/<a class="btn sm" href="pane:\/\/open\?pane=p1&amp;panel=w1">Open Approvals →<\/a>/);
+ for(const leaked of ['Use the invoice id in the filename?','Keep CSV export?','Ids are stable.','Customers use it.'])assert.ok(!html.includes(leaked),leaked);
  assert.match(html,/<meta http-equiv="refresh" content="60">/);
  assert.match(html,/data:font\/woff2;base64,/);
  assert.match(html,/<b>Planner<\/b> waits on you\. &lt;img src=x onerror=alert\(1\)>&lt;script>alert\(1\)&lt;\/script> bad/,'next keeps <b> and escapes the rest');
@@ -577,7 +580,7 @@ test('the status page shows a PR\'s fix rounds of its budget, marked when spent,
   assert.equal(run.status,0,run.stderr);
   return fs.readFileSync(path.join(dir,'index.html'),'utf8');
  };
- const html=render([{name:'Spent',pr:'#194',pane:'p',state:'need',next:'Waits on you.',fixRounds:{used:1,budget:1}},{name:'Open',pr:'#12',pane:'q',state:'now',next:'x',fixRounds:{used:1,budget:2}},{name:'Old',pane:'r',state:'now',next:'y'}]);
+ const html=render([{id:'spent',name:'Spent',pr:'#194',pane:'p',state:'need',next:'Waits on you.',fixRounds:{used:1,budget:1}},{id:'open',name:'Open',pr:'#12',pane:'q',state:'now',next:'x',fixRounds:{used:1,budget:2}},{id:'old',name:'Old',pane:'r',state:'now',next:'y'}]);
  assert.match(html,/<span class="rounds spent">Fix rounds 1 of 1<\/span>/);
  assert.match(html,/<span class="rounds">Fix rounds 1 of 2<\/span>/);
  assert.equal(html.split('Fix rounds').length-1,2,'an item without fixRounds shows no counter');
@@ -638,15 +641,14 @@ test('greenfield 0.0.49 renders the status page from the first working turn, re-
  assert.match(empty,/Ship after the docs fix/);
  assert.doesNotMatch(empty,/Order of work/);
  const steps=[{label:'A',state:'now'},{label:'B',state:'todo'}];
- const item={name:'A',pane:'a',state:'now',next:'x'};
- const busy=render({session:{...session,flow:{caption:'Goal: two items',steps}},items:[item,{...item,name:'B'}]});
+ const item={id:'a',name:'A',pane:'a',state:'now',next:'x'};
+ const busy=render({session:{...session,flow:{caption:'Goal: two items',steps}},items:[item,{...item,id:'b',name:'B'}]});
  assert.equal(busy.split('Goal: two items').length-1,1,'with the diagram drawn, the caption shows once, under it');
  assert.match(busy,/<p class="flowcap">Goal: two items<\/p>/);
  assert.doesNotMatch(busy,/class="goal"|No workers yet/);
 });
 
 test('greenfield 0.0.50 names the exact wrap-up steps: the orchestrator exports workers by launch, reviews are checked through the PR comments endpoint, and PR images roll to the next pr-assets release (setup-fixes P4, Q-90, Q-93)',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.50$/m);
  assert.ok(flatText('skills/orchestrate-sessions/SKILL.md').includes('`agent-farm telemetry export --bundle <item bundle> --launch <id> --require-finished`, then republish the bundle. Workers never export their own.'));
  const bundle=flatText('skills/page/references/bundle.md');
  for(const rule of ['never write it by hand','workers do not export their own'])assert.ok(bundle.includes(rule),rule);
@@ -655,4 +657,149 @@ test('greenfield 0.0.50 names the exact wrap-up steps: the orchestrator exports 
  const ex=flatText('skills/excalidraw-pr-diagrams/SKILL.md');
  for(const rule of ['highest-numbered one that has room','990 or more','without asking, and say so in your report'])assert.ok(ex.includes(rule),rule);
  assert.ok(flatText('skills/prepare-pr/SKILL.md').includes('highest-numbered `pr-assets` release with room'));
+});
+
+// Renders a status JSON with a fresh copy of the renderer; returns the exit status, stderr, the overview and every item page.
+const renderSession=(t,status,{example=false}={})=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'af-session-pages-'));
+ t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+ fs.cpSync(path.join(root,'skills/orchestrate-sessions/assets/status-page'),path.join(dir,'renderer'),{recursive:true});
+ const input=example?path.join(dir,'renderer/example-status.json'):path.join(dir,'status.json');
+ if(!example)fs.writeFileSync(input,JSON.stringify(status));
+ const out=path.join(dir,'session/index.html');fs.mkdirSync(path.dirname(out));
+ const run=spawnSync(process.execPath,[path.join(dir,'renderer/render.mjs'),input,out],{encoding:'utf8'});
+ const itemsDir=path.join(dir,'session/items');
+ const pages=fs.existsSync(itemsDir)?Object.fromEntries(fs.readdirSync(itemsDir).map(f=>[f,fs.readFileSync(path.join(itemsDir,f),'utf8')])):{};
+ return {run,dir,out,itemsDir,pages,html:fs.existsSync(out)?fs.readFileSync(out,'utf8'):null,data:JSON.parse(fs.readFileSync(input,'utf8'))};
+};
+const pageText=html=>html.replace(/<style>[\s\S]*?<\/style>/,'').replace(/<svg[\s\S]*?<\/svg>/g,' ').replace(/<[^>]+>/g,' ').replace(/&amp;/g,'&').replace(/\s+/g,' ');
+const localHrefs=html=>[...html.matchAll(/href="([^"]*)"/g)].map(m=>m[1].replace(/&amp;/g,'&')).filter(h=>!/^([a-z]+:|#)/i.test(h));
+
+test('greenfield 0.0.51: the overview reads top-down, questions show only as a count and Q-ids, and every card opens an existing item page that links back (J1, J2, C2, C3, C6)',t=>{
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.51$/m);
+ const {run,out,itemsDir,pages,html,data}=renderSession(t,null,{example:true});
+ assert.equal(run.status,0,run.stderr);
+ const text=pageText(html);
+ // J1: the order of the overview.
+ const order=[data.session.title,'Next step:','wait for you in Approvals','work items','done','in progress','waiting on you','blocked','In flight','Order of work','Done','Decisions','Sources','Relevant links','Settings'];
+ let at=-1;for(const marker of order){const i=text.indexOf(marker,at+1);assert.ok(i>at,`"${marker}" comes after the one before it`);at=i;}
+ assert.ok(text.indexOf(pageText(data.session.summary).trim().slice(0,40))>text.indexOf(data.session.title),'the summary follows the title');
+ assert.doesNotMatch(html,/Needs you|class="counts"|class="state /,'no counters, state bar or Needs you section');
+ // Tiles count the cards, and the bar's widths follow the tiles.
+ const all=[...data.items,...data.done];
+ const tile=label=>Number(html.match(new RegExp(`<b>(\\d+)</b><span>${label}</span>`))?.[1]);
+ assert.equal(tile('work items'),all.length);
+ assert.equal(tile('done'),data.done.length+data.items.filter(i=>i.state==='done').length);
+ assert.equal(tile('in progress'),data.items.filter(i=>i.state==='now').length);
+ assert.equal(tile('waiting on you'),data.items.filter(i=>i.state==='need').length);
+ assert.equal(tile('blocked'),data.items.filter(i=>['blocked','failed'].includes(i.state)).length);
+ const widths=[...html.matchAll(/<i class="(ok|run|need|blk)" style="width:([\d.]+)%"><\/i>/g)].map(m=>[m[1],Number(m[2])]);
+ for(const [cls,w] of widths)assert.ok(Math.abs(w-100*tile({ok:'done',run:'in progress',need:'waiting on you',blk:'blocked'}[cls])/all.length)<0.1,cls);
+ // C3: no question wording on any page; the pointer names the count and each Q-id.
+ const named=data.needs.filter(q=>q.id);
+ assert.match(text,new RegExp(`${data.needs.length} questions wait for you in Approvals`));
+ for(const q of named)assert.ok(text.includes(q.id),q.id);
+ const wording=data.needs.flatMap(q=>[q.q,q.why,...(q.options||[]).map(o=>o.label)]).filter(Boolean);
+ assert.ok(wording.length>=4,'the example\'s needs carry question text to leak');
+ for(const [name,page] of [['index.html',html],...Object.entries(pages)])for(const w of wording)assert.ok(!page.includes(w),`${name} shows question text: ${w}`);
+ // C2: one page per item with an id; every card and Details link opens one; every item page links back and to siblings that exist.
+ const ids=all.filter(x=>x.id).map(x=>x.id);
+ assert.deepEqual(Object.keys(pages).sort(),ids.map(id=>`${id}.html`).sort());
+ for(const id of data.items.map(i=>i.id)){
+  assert.ok(html.includes(`<a class="name" href="items/${id}.html">`),`${id}: the card's name is its stretched link`);
+  assert.ok(html.includes(`<a class="more" href="items/${id}.html">Details →</a>`),`${id}: Details link`);
+ }
+ for(const h of localHrefs(html))if(h.startsWith('items/'))assert.ok(fs.existsSync(path.join(path.dirname(out),h)),h);
+ for(const [name,page] of Object.entries(pages)){
+  assert.equal(page.split('href="../index.html"').length-1,2,`${name}: breadcrumb and ↑ Back to overview`);
+  assert.match(page,/↑ Back to overview/);
+  const between=localHrefs(page).filter(h=>/^[a-z0-9-]+\.html$/.test(h));
+  for(const h of between)assert.ok(fs.existsSync(path.join(itemsDir,h)),`${name} → ${h}`);
+  for(const h of localHrefs(page).filter(h=>!/^[a-z0-9-]+\.html$/.test(h)))assert.ok(h.startsWith('../'),`${name}: ${h} is rebased to the overview's folder`);
+  assert.ok(page.length<120*1024,`${name} stays under 120 KB`);
+  assert.match(page,/<meta http-equiv="Content-Security-Policy" content="script-src 'none'">/);
+  assert.doesNotMatch(page,/<script|onclick=/);
+ }
+ assert.ok(html.length<200*1024,'the overview stays under 200 KB');
+ assert.doesNotMatch(html,/<script|onclick=/);
+ // J2: prev/next walk a group in order and stop at its ends.
+ const groups=new Map();for(const x of all.filter(x=>x.id)){const g=x.group||'';if(!groups.has(g))groups.set(g,[]);groups.get(g).push(x.id);}
+ for(const members of groups.values())members.forEach((id,i)=>{
+  const nav=pages[`${id}.html`].match(/<nav class="navbtns">[\s\S]*?<\/nav>/)[0];
+  assert.equal(nav.includes('class="prev"'),i>0,`${id}: prev`);assert.equal(nav.includes('class="next"'),i<members.length-1,`${id}: next`);
+  if(i>0)assert.ok(nav.includes(`href="${members[i-1]}.html"`),`${id}: prev is ${members[i-1]}`);
+  if(i<members.length-1)assert.ok(nav.includes(`href="${members[i+1]}.html"`),`${id}: next is ${members[i+1]}`);
+ });
+});
+
+test('greenfield 0.0.51: every item kind gets a cover page with the fixed Everything rows, and a waiting item shows only its Q-id (J3, J4)',t=>{
+ const {run,pages,data}=renderSession(t,null,{example:true});
+ assert.equal(run.status,0,run.stderr);
+ const all=[...data.items,...data.done].filter(x=>x.id);
+ for(const kind of ['planned','quick fix','tweak','picked-up PR'])assert.ok(all.some(x=>x.kind===kind),`the example has a ${kind} item`);
+ assert.ok(data.done.some(x=>x.id),'the example has a finished item with a page');
+ assert.ok(data.needs.some(q=>all.some(x=>x.id===q.item)),'the example has an item waiting on a question');
+ const KIND={planned:'Planned','quick fix':'Quick fix',tweak:'Tweak','picked-up PR':'Picked-up PR'};
+ for(const x of all){
+  const page=pages[`${x.id}.html`],text=pageText(page);
+  assert.match(page,new RegExp(`<div class="eyebrow">${KIND[x.kind]}`),`${x.id}: kind in the eyebrow`);
+  for(const label of ['Asked for','What changes','Where it stands','Everything for this item'])assert.ok(text.includes(label),`${x.id}: ${label}`);
+  assert.match(page,/<svg class="fw"/,`${x.id}: its rail`);
+  const rows=[...page.matchAll(/<tr[^>]*><th>([^<]+)<\/th>/g)].map(m=>m[1]);
+  for(const row of [x.kind==='planned'?'Plan':'Task','Pull request','QA','Review','Worker','Trace','Post-mortem'])assert.ok(rows.includes(row),`${x.id}: ${row} row`);
+  if(x.kind==='planned')assert.match(page,/<tr><th>Plan<\/th><td><a href="[^"]+">/,`${x.id}: the Plan row links its plan`);
+  const waits=data.needs.filter(q=>q.item===x.id&&q.id);
+  if(waits.length){assert.equal(rows[0],'Waiting',`${x.id}: Waiting comes first`);for(const q of waits)assert.ok(text.includes(`${q.id} waits in Approvals`),`${x.id}: ${q.id}`);}
+  else assert.ok(!rows.includes('Waiting'),`${x.id}: no Waiting row`);
+ }
+});
+
+test('greenfield 0.0.51: a missing, duplicate or unsafe item id stops the renderer before it writes anything (C4)',t=>{
+ const session={title:'Ids',eyebrow:'now',settings:'x'};
+ const item=(id,name)=>({id,name,state:'now',next:'x'});
+ for(const [items,done,named] of [
+  [[{name:'No id here',state:'now',next:'x'}],[],'No id here'],
+  [[item('a','First A'),item('a','Second A')],[],'Second A'],
+  [[item('a','Live A')],[{id:'a',label:'Done A'}],'Done A'],
+  [[item('../evil','Climber')],[],'Climber'],
+  [[item('Has Space','Spacey')],[],'Spacey'],
+ ]){
+  const {run,out,itemsDir}=renderSession(t,{session,items,done});
+  assert.notEqual(run.status,0,`${named}: exits non-zero`);
+  assert.ok(run.stderr.includes(named),`${named}: the message names the item (${run.stderr.trim()})`);
+  assert.ok(!fs.existsSync(out)&&!fs.existsSync(itemsDir),`${named}: nothing written`);
+ }
+});
+
+test('greenfield 0.0.51: item pages escape every field, keep only safe links, and say where questions wait outside Pane (C5)',t=>{
+ const evil='<img src=x onerror=alert(1)>';
+ const {run,html,pages}=renderSession(t,{session:{title:'Esc',eyebrow:'now',settings:'x',summary:`Sum ${evil} <b>bold</b>`,nextStep:'Do <a href="javascript:alert(1)">this</a>'},
+  needs:[{id:'Q-1',item:'a',q:'Secret question text?'}],
+  items:[{id:'a',name:`A ${evil}`,kind:'tweak',group:`G ${evil}`,state:'need" onmouseover="x',pr:'#1',prLink:'javascript:alert(1)',paneLink:'data:text/html,x',asked:`Ask ${evil}`,changes:'<b>ok</b>',next:'n',
+   refs:{task:{label:`T ${evil}`,link:'javascript:alert(1)',note:evil},pr:{label:'PR',link:'https://example.com/pr/1'},worker:{label:'Tab',link:'pane://open?pane=p&panel=w'}}}]});
+ assert.equal(run.status,0,run.stderr);
+ const page=pages['a.html'];
+ for(const p of [html,page]){
+  assert.doesNotMatch(p,/<img|javascript:|data:text|onmouseover/);
+  assert.ok(!p.includes('Secret question text?'));
+ }
+ assert.match(html,/Sum &lt;img src=x onerror=alert\(1\)> <b>bold<\/b>/,'summary keeps <b> and escapes the rest');
+ assert.match(html,/class="card item now/,'an unknown state falls back to now');
+ assert.match(pageText(html),/1 question waits for you in the orchestrator's chat: Q-1/,'no Approvals link: the pointer names the chat');
+ assert.match(page,/Q-1 waits in the orchestrator's chat/);
+ assert.match(page,/<a href="#">T &lt;img/,'unsafe ref link becomes #');
+ assert.match(page,/href="pane:\/\/open\?pane=p&amp;panel=w"/);
+ assert.match(page,/<tr><th>QA<\/th><td><span class="nr">Not recorded<\/span>/,'an empty fixed row shows Not recorded');
+ assert.match(page,/<h1>A &lt;img src=x onerror=alert\(1\)><\/h1>/);
+});
+
+test('greenfield 0.0.51: the instructions say questions live only in Approvals, every item\'s front page is its generated item page, and the overview and item pages render together (C7, D-34)',()=>{
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['Questions appear only in Approvals in Pane, and in your chat elsewhere','its item page, `items/<id>.html`, which the renderer generates for every item','the same run re-renders every item page with the overview','not to the brief']);
+ includesAll(['skills/orchestrate-sessions/references/status-board.md'],['The overview and the item pages are always re-rendered together','No page shows a question\'s wording','the renderer ignores any other field','A missing, repeated or unsafe id stops it','"refs"','the renderer rebases them']);
+ includesAll(['skills/orchestrate-sessions/references/ledger.md'],['"page_id":']);
+ includesAll(['skills/customer-insights-loop/references/handoff.md'],['the status page shows it only by its Q-id']);
+ for(const file of ['skills/orchestrate-sessions/SKILL.md','skills/orchestrate-sessions/references/status-board.md','skills/orchestrate-sessions/references/item-hub.md','skills/orchestrate-sessions/references/relay.md','skills/page/references/bundle.md','skills/customer-insights-loop/references/handoff.md','README.md']){
+  const text=flatText(file);
+  assert.doesNotMatch(text,/three-line summary|small hub|creating its hub|Needs you row|Needs you entry|"counts"|one state bar/,file);
+ }
 });
