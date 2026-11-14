@@ -6,7 +6,8 @@ The HTML cover sheet is the plan for both the person and the implementer. Write 
 Header                feature, one-line outcome, status chip:
                       draft | ready for approval | approved | in build | done
 Review                at the plan's end (default) · Human review: required | none, alongside status
-                      at the top; required by default when the plan changes UI
+                      at the top; required by default when the plan changes UI;
+                      required adds the person's own look after the agent review, never instead of it
                       exceptions: mode, reason, small-change skip or user approval status
 Contents              section anchors and linked table of related bundle files
 
