@@ -3,9 +3,9 @@
   "title": "Get PRs in (example)",
   "eyebrow": "Example · updated 14:40 · 2 h 05 min elapsed",
   "summary": "Landing four queued PRs and the per-project env-var feature today. Four fixes have merged; the env-var build waits on one answer and the watcher fix is retrying CI.",
-  "nextStep": "answer Q-7 so the env-var implementer can finish its build, then say <b>ready</b> for #1250.",
+  "nextStep": "answer Q-7 so the env-var implementer can finish its build.",
   "approvals": "pane://open?pane=pane-1014&panel=panel-impl",
-  "settings": "Review on \"ready\" or at a plan's end · validation default deferred",
+  "settings": "Review starts when an implementer is done · validation default full",
   "flow": {
    "caption": "Goal: land the four queued PRs and the env-var feature today",
    "steps": [
@@ -55,7 +55,7 @@
     "task": {"label": "Starting message", "link": "work/watcher-backoff.md"},
     "pr": {"label": "app #1243", "link": "https://github.com/example/app/pull/1243", "note": "CI 6/7, remotePaneClient.spec failing"},
     "qa": {"note": "not yet: waits for green CI"},
-    "review": {"note": "not yet: starts when you say “ready”"},
+    "review": {"note": "not yet: starts when the implementer is done"},
     "worker": {"label": "Implementer tab", "link": "pane://open?pane=pane-1243&panel=panel-impl"},
     "trace": {"note": "not yet"},
     "postmortem": {"note": "not yet"}
@@ -79,15 +79,15 @@
   {"id": "sidebar-copy", "group": "Queued PRs", "kind": "tweak", "short": "#1250",
    "name": "Sidebar empty-state copy", "pr": "#1250", "prLink": "https://github.com/example/app/pull/1250",
    "pane": "pr-1240", "paneLink": "pane://open?pane=pane-1240",
-   "state": "need", "stateLabel": "Say ready", "next": "Validation deferred: CI, QA and review wait for your 'ready'.",
+   "state": "now", "stateLabel": "Validating", "next": "<b>Implementer</b> is running CI and QA; review starts when it is done.",
    "asked": "“The empty sidebar should say how to add a project.”",
    "changes": "One line of copy and a link to Add project.",
-   "rail": [{"label":"Build","state":"done"},{"label":"Local checks","state":"done"},{"label":"CI","state":"todo"},{"label":"QA","state":"todo"},{"label":"Merge","state":"todo"}],
+   "rail": [{"label":"Build","state":"done"},{"label":"Local checks","state":"done"},{"label":"CI","state":"now"},{"label":"QA","state":"todo"},{"label":"Review","state":"todo"},{"label":"Merge","state":"todo"}],
    "refs": {
     "task": {"label": "Your message at 14:02", "note": "tweak on #1240's Pane"},
     "pr": {"label": "app #1250", "link": "https://github.com/example/app/pull/1250", "note": "draft"},
-    "qa": {"note": "waits for “ready”"},
-    "review": {"note": "none: tweaks start no review"},
+    "qa": {"note": "after green CI"},
+    "review": {"note": "not yet: starts when the implementer is done"},
     "worker": {"label": "Implementer tab", "link": "pane://open?pane=pane-1240&panel=panel-tweak"},
     "evidence": {"label": "Before and after screenshots", "link": "work/sidebar-copy/"}
    }},

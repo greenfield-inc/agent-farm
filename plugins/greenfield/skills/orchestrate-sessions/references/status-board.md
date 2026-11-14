@@ -74,7 +74,7 @@ Keep the JSON at `<Session folder>/.agent/status.json` and update it in place, s
 ```json
 {
   "session": { "title": "Release questions", "eyebrow": "Updated 09:12 · 4 min elapsed",
-    "summary": "Deciding whether 0.3 ships this week.", "nextStep": "you answer Q-1.", "settings": "Review on ready; validation deferred",
+    "summary": "Deciding whether 0.3 ships this week.", "nextStep": "you answer Q-1.", "settings": "Review when the implementer is done; validation full",
     "flow": { "caption": "Goal: decide whether 0.3 ships this week", "steps": [] } },
   "needs": [], "items": [], "done": [],
   "decisions": [ { "id": "D-1", "answer": "Ship after the docs fix", "by": "You", "when": "09:10" } ]
@@ -101,7 +101,7 @@ The rail is the path the work actually took, then what is still ahead: one dot p
 `next` carries what the rail cannot show:
 
 - unreviewed commits: "N commits since the last review at <sha>, not reviewed", counted with `git rev-list --count <last reviewed head>..<PR head>`, or "never reviewed" when there is no reviewed head;
-- validation still pending, from the ledger's `validation` (for example "Validation deferred: CI, QA and review wait for 'ready'");
+- validation still pending, from the ledger's `validation` (for example "Validation deferred at your request: CI, QA and review wait for 'ready'");
 - "no destination" when the repository names none.
 
 The last reviewed head is the ledger's `last_reviewed_head` for that PR. When the ledger has lost it, use the head in the newest `<!-- greenfield-review head=<sha> -->` marker on the PR's reviews, and record it.

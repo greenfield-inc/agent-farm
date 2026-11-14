@@ -25,8 +25,8 @@ Include:
 - When a package adds or changes a query on a hot path, its criteria name the worst-case production size and the budget it must meet. Passing on staging or test fixtures is not a worst case.
 - Known environment and fixture needs, required whole-feature checks, and anything that cannot be exercised yet. Mark planned tests as planned; only an observed result counts as a pass. A missing capability leaves its criterion open.
 - The review line at the top of the page, saying whether review runs and when:
-  - Default: `Review: at the plan's end · Human review: none`: the implementer runs full validation (CI and QA) when the build is done, then `greenfield/reviewer` reviews the PR on its own, and again on the person's "ready" for tweaks added since.
-  - `Human review: required | none`: required means the PR opens beside the person and no reviewer starts until they say "ready". Default to `required` when the plan changes UI, and `none` otherwise.
+  - Default: `Review: at the plan's end · Human review: none`: the implementer runs full validation (CI and QA) when the build is done, then `greenfield/reviewer` reviews the PR on its own, and again when an implementer reports tweaks added since done.
+  - `Human review: required | none`: required means that after the agent review, which still runs first, the PR opens beside the person for their own look before merge. Default to `required` when the plan changes UI, and `none` otherwise.
   - Options: none · this plan only · after named packages. Separately, the user may add a `greenfield/simplify-and-refactor` pass before QA and review.
   - Only the user changes it: record their explicit choice and when they made it. A mode you chose yourself does not count.
   - Standalone small change: a small, low-risk change may skip review without asking; say so up front and record the reason. Under an orchestrator, never skip on your own.

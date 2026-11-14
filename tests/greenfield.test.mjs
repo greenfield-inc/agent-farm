@@ -398,14 +398,14 @@ test('reviewers size every review with the bundled script, run security and PHI 
  assert.equal(resolveProfile(root,'orchestrator').nodes.main.instructions.includes('review-size'),false,'the orchestrator never sizes');
 });
 
-test('reviews start on ready, a plan\'s end or a cleared human review, never on tweaks, and findings route by scope within a fix-round budget',()=>{
+test('reviews start on their own when any implementer is done, or when the person asks, and findings route by scope within a fix-round budget (D-44)',()=>{
  const skill=flatText('skills/orchestrate-sessions/SKILL.md');
- for(const rule of ['A review starts on one of three triggers, and never on a tweak or a quick fix','**"ready".**','**A plan\'s end.**','**Human review: required.**','`<last reviewed head>...HEAD`','The reviewer sizes the range itself','No reviewer starts, and the PR\'s lane shows its unreviewed commits','Never mark a PR ready, or say it can merge, while it has commits since its last review','The end-of-Session sweep','## After a review','| Approach/scope: yes, at any level | the person, never the implementer','| Must-Fix, not flagged | the PR\'s implementer, with no question |','| Should-Fix, scope out | the person: re-plan it as follow-up work, fix it here anyway, or accept it |','checks only the F-n it was sent','| Should-Fix, scope in, Decision: fix, Fix size: small | the PR\'s implementer, but only inside a fix round a Must-Fix already opened','| Pre-existing | the card','the budget is used and a Must-Fix is still open','a follow-up confirms a fix-caused Must-Fix','small 1, standard 2, large 3','QA rounds the implementer reports in its status file\'s `fix_rounds` count too','`Mergeable as is: yes`','more fix rounds (how many), re-plan, or accept as is'])assert.ok(skill.includes(rule),rule);
+ for(const rule of ['A review starts on its own, without asking the person or waiting for a "ready"','**Implementer done.**','**The person asks.**','**Human review: required** in a cover sheet does not hold the agent review','`<last reviewed head>...HEAD`','The reviewer sizes the range itself','Then the review of the new commits starts on its own','the PR\'s lane shows its unreviewed commits','Never mark a PR ready, or say it can merge, while it has commits since its last review','The end-of-Session sweep','## After a review','| Approach/scope: yes, at any level | the person, never the implementer','| Must-Fix, not flagged | the PR\'s implementer, with no question |','| Should-Fix, scope out | the person: re-plan it as follow-up work, fix it here anyway, or accept it |','checks only the F-n it was sent','| Should-Fix, scope in, Decision: fix, Fix size: small | the PR\'s implementer, but only inside a fix round a Must-Fix already opened','| Pre-existing | the card','the budget is used and a Must-Fix is still open','a follow-up confirms a fix-caused Must-Fix','small 1, standard 2, large 3','QA rounds the implementer reports in its status file\'s `fix_rounds` count too','`Mergeable as is: yes`','more fix rounds (how many), re-plan, or accept as is'])assert.ok(skill.includes(rule),rule);
  assert.doesNotMatch(skill,/Fix the N must-fix items now|end-of-Session pass|thrash|two fix rounds|third fix round/);
- instructionsIncludeAll(COORDINATORS,['Tweaks and quick fixes start no reviewer','Never say a PR can merge while it has unreviewed commits','Must-Fix goes to the PR\'s implementer with no question','the loop stops at the PR\'s fix-round budget']);
+ instructionsIncludeAll(COORDINATORS,['Start a review on your own as soon as an implementer reports done on a PR, for every kind of work','does not hold the agent review','Never say a PR can merge while it has unreviewed commits','Must-Fix goes to the PR\'s implementer with no question','the loop stops at the PR\'s fix-round budget']);
  for(const profile of COORDINATORS)assert.doesNotMatch(resolveProfile(root,profile).nodes.main.instructions,/fix now \(recommended\)|end-of-Session pass/,profile);
- includesAll(IMPLEMENTERS,['quick-verified, with screenshots of each changed screen when it is visual','start no reviewer for it']);
- includesAll(['instructions/standing-rules.md'],['CI, QA and review wait until the person says "ready"','"Ready" runs `full` on the same branch']);
+ includesAll(IMPLEMENTERS,['quick-verified, with screenshots of each changed screen when it is visual','start no reviewer yourself: the orchestrator starts one when you report done']);
+ includesAll(['instructions/standing-rules.md'],['`deferred` applies only when the person asks for it','CI, QA and review wait until the person says "ready"','"Ready" runs `full` on the same branch']);
  includesAll(['skills/plan/SKILL.md'],['`Review: at the plan\'s end · Human review: none`','Default to `required` when the plan changes UI']);
  includesAll(['skills/plan/references/cover-sheet.md'],['Human review: required | none']);
 });
@@ -418,7 +418,7 @@ test('reviews check a cover sheet\'s criteria against their evidence, and implem
 });
 
 test('greenfield documents the relay, the map, sized and verified reviews, and review on ready',()=>{
- includesAll(['README.md'],['numbered `needs_you` block','sends `recorded: Q-n → …`','`review-size.mjs`','Principle 13 (security and PHI) runs on every review','the review lead verifies every Must-Fix and Should-Fix itself','a quick fix or tweaked PR is reviewed when you say it is "ready"','`Human review: required`','There is no separate checker']);
+ includesAll(['README.md'],['numbered `needs_you` block','sends `recorded: Q-n → …`','`review-size.mjs`','Principle 13 (security and PHI) runs on every review','the review lead verifies every Must-Fix and Should-Fix itself','a planned build, a quick fix or a tweak alike, and then its review starts on its own, without asking you','`Human review: required`','There is no separate checker']);
  includesAll(['index.html'],['sized, after CI and QA','verifies each finding before posting it']);
  for(const file of ['README.md','index.html'])assert.doesNotMatch(flatText(file),/end-of-Session pass|once per workstream/,file);
 });
@@ -430,12 +430,14 @@ test('review-final fixes: previews the orchestrator opens, the supplied range re
  includesAll(['skills/orchestrate-sessions/SKILL.md'],['plus any new Must-Fix in the lines that fix round changed, which it marks `fix-caused`']);
 });
 
-test('planned work always validates full and then reviews on its own; deferred and ready are for quick fixes and tweaks (D-65)',()=>{
- includesAll(['skills/orchestrate-sessions/SKILL.md'],['A planned feature\'s implementer always runs `full` when its build is done','it needs no "ready"','an implementer building an approved plan always runs `full`','`deferred` and "ready" apply only to quick fixes and tweaks']);
- includesAll(['instructions/standing-rules.md'],['Building an approved plan is always `full`','`deferred` and "ready" apply only to quick fixes and tweaks']);
- instructionsIncludeAll(COORDINATORS,['`full` for an approved plan, and `deferred` by default for quick fixes and tweaks','reports done after its `full` validation']);
+test('all work validates full by default and then reviews on its own; deferred only when the person asks (D-65, D-44)',()=>{
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['Every implementer runs `full` by default','every implementer runs `full` by default','runs only when the person asks for it on an item or as the Session\'s default']);
+ assert.doesNotMatch(flatText('skills/orchestrate-sessions/SKILL.md'),/never on a tweak|start no reviewer|`deferred` \(your default/);
+ includesAll(['instructions/standing-rules.md'],['The default is `full` for all work','under an orchestrator the review follows on its own, without waiting for the person']);
+ instructionsIncludeAll(COORDINATORS,['`full` by default for all work, and `deferred` only when the person asks for it']);
  includesAll(['skills/plan/SKILL.md'],['the implementer runs full validation (CI and QA) when the build is done, then `greenfield/reviewer` reviews the PR on its own']);
- includesAll(['README.md'],['A planned feature\'s implementer always runs full validation (CI, QA) when its build is done','Quick fixes and tweaks run `deferred` by default']);
+ includesAll(['README.md'],['Every implementer runs full validation (CI, QA) when its work is done','Say "defer" or "skip review" for an item or the Session']);
+ for(const file of ['README.md','instructions/coordination.md','skills/plan/SKILL.md','skills/babysit-pr/SKILL.md'])assert.doesNotMatch(flatText(file),/start no review|until they say "ready"|reviewed when you say it is "ready"|`deferred` by default/,file);
 });
 
 test('the status page is rendered to a fixed place, shows in Pane\'s Overview, every item has a front page, questions carry their context, and progress messages end with Next (P-1)',()=>{
@@ -454,7 +456,7 @@ test('the status page is rendered to a fixed place, shows in Pane\'s Overview, e
 });
 
 test('greenfield 0.0.52: the Session artifact has one home in the destination\'s sessions folder, reaches both orchestrators and names no product, and without a destination stays local with one notice (P-2)',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.52$/m);
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.53$/m);
  const skill=flatText('skills/orchestrate-sessions/SKILL.md');
  for(const rule of ['in the Session\'s folder in the document destination','Use the Session folder rule the workspace instructions give','When they give none, use `sessions/<host Session name>`, for example `sessions/Agent Farm`','if that folder already holds another Session\'s status page, use `sessions/<host Session name> · <short id>`','`sessions/Agent Farm · 55e40e55`','the first 8 hexadecimal characters of the UUID in the host\'s stable Session id','never from the UI selection','Settle the folder once, before the first dispatch, record it in the ledger, and pass it to every worker','Settle the Session folder before the first dispatch and pass that exact folder to every worker with the destination','plus the first 8 characters of an id you generate once and record in the ledger','update that same artifact on every later publish for the life of the Session','published under an older name, keep updating it at its URL and create no second one','Opening the Session artifact shows the status page first','one notice line per Session','Never ask the person to set up a document service'])assert.ok(skill.includes(rule),rule);
  assert.ok(!skill.includes('The workspace instructions supply only the organization or folder root'),'the folder-root sentence is gone');
