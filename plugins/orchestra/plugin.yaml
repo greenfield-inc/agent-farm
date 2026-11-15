@@ -111,7 +111,7 @@ checksums:
   skills/investigate/SKILL.md: d91030b7132abe3fda602f5e8a38c969296d306d3f826978dca070a98fb7fa22
   skills/investigator/SKILL.md: 2b3337c9e6ec1a84350a6a46cad19f2960e7027115b296aed063c7ddd35b51dc
   skills/investigator/agents/openai.yaml: 883b038adc53ff83659b3ce9f1acabf29cb8f25108171f6b9935a7c231cd7f1f
-  skills/ios-simulators/SKILL.md: 655c69f8527b0d793ac34a3c591f7864bd22622a7c2402e3938a14aa6b1fc610
+  skills/ios-simulators/SKILL.md: 8540725ef439bada91b5d3b891ca541fd13469cc685f02c10d58c7566312dab7
   skills/plan-reviewer/SKILL.md: f9caccf08cd5cab15686b1f2a7914c2c1ed95516ddfa4429820ad1ab3562f8d9
   skills/plan-reviewer/agents/openai.yaml: e07936c66e5b09901e0b0161743b239cccb24d14f7cfe592246d0eecd2f98f67
   skills/postmortem-loop/SKILL.md: 3ef3f0825ff7a4e7666cc1b5db5ff56391e121d35798e94cd795f169ded6214f
