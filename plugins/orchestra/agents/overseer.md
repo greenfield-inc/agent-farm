@@ -3,7 +3,7 @@ harness: claude
 model:
   name: claude-opus-5-5
 description: "The full Orchestra workflow: talk a task through, write the brief, then build, test, and review it into a pull request with little hand-holding."
-skills: [codex, cold-read, create-brief, discussion, do, excalidraw-pr-diagrams, investigate, postmortem, postmortem-loop, prepare-pull-request, sentry-loop, arena, hillclimb, babysit-pr, tdd, codebase-design, session-trace]
+skills: [codex, cold-read, create-brief, discussion, do, excalidraw-pr-diagrams, investigate, postmortem, postmortem-loop, prepare-pull-request, sentry-loop, arena, hillclimb, babysit-pr, tdd, codebase-design, session-trace, ios-simulators]
 references: orchestra
 connections:
   linear:

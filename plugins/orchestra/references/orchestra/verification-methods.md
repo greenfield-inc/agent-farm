@@ -27,7 +27,7 @@ type and require its evidence.
 | Change type | Minimum | Rubric |
 |---|---|---|
 | Frontend UI | behavior-level test or natural E2E navigation + a11y scan; visual diff if layout-sensitive | `rubrics/frontend-web.md` |
-| Mobile UI | simulator-driven flow of the changed journey | `rubrics/mobile-app.md` |
+| Mobile UI | simulator-driven flow of the changed journey (iOS: slim simulators per the bundled `ios-simulators` skill) | `rubrics/mobile-app.md` |
 | Backend API | integration test through the real HTTP layer incl. error-path and authz cases | `rubrics/backend-api.md` |
 | Data / schema migration | dry run + row counts + one domain-invariant query + tested rollback | `rubrics/data-migration.md` |
 | CLI / script | exit-code contract + idempotency (run twice) + `--dry-run` if state-mutating | `rubrics/cli-script.md` |

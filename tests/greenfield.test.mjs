@@ -214,7 +214,7 @@ test('simplify-and-refactor runs the refactor and principled-review skills on So
 test('reviewers share principled-review with simplify-and-refactor and leave fixes to an implementer, and both raw implementers can draw PR diagrams',()=>{
  for(const profile of ['reviewer:claude','reviewer:codex']){
   const main=resolveProfile(root,profile).nodes.main;
-  assert.deepEqual(main.skills.sort(),['pr-test-automation','principled-review','review'],profile);
+  assert.deepEqual(main.skills.sort(),['ios-simulators','pr-test-automation','principled-review','review'],profile);
   assert.match(fs.readFileSync(main.source_file,'utf8').replace(/\s+/g,' '),/You review; an implementer fixes\. To fix them, suggest launching `greenfield\/implementer` with that file/,profile);
  }
  for(const profile of ['implementer:opus','implementer:astra','implementer:sol'])assert.ok(resolveProfile(root,profile).nodes.main.skills.includes('excalidraw-pr-diagrams'),profile);
@@ -378,7 +378,7 @@ test('no Greenfield skill or rule asks for a secret in chat: the host secret pro
 });
 
 test('greenfield 0.0.53: in Pane, asking and relaying point to the pane skill; workers pass their status file so Pane gives each option a button; needs_you carries why and summary (J9)',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.53$/m);
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.54$/m);
  const pointer='"Asking the person in Pane"';
  const rules=flatText('instructions/standing-rules.md');
  for(const rule of ['**In Pane, ask and relay the way the `pane` skill says**',pointer,'these rules never restate it','`runpane report --state blocked --question \'Q-n: <the block\'s title>\' --summary-file <your status file>`','`why` as the subtitle','one button per option of each question with the option ending ` (recommended)` marked','one line of at most 160 characters','A question without options gets no buttons, so give every question 2 to 4','first 2,000 characters of the file, so keep `needs_you` where the template puts it','"why": "Invoice PDFs are renamed on export','"summary": "/abs/bundle/options.html"','- `why`: why it matters, in one or two sentences of at most 240 characters; in Pane it becomes the card\'s subtitle','- `summary`: optional, the absolute path of an `.html` page','In Pane, the `pane` skill says which card to use. Elsewhere, on Claude, use the harness question tool (`AskUserQuestion`)'])assert.ok(rules.includes(rule),rule);

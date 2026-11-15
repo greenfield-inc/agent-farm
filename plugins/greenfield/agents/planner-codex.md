@@ -20,6 +20,7 @@ skills:
   - tdd
   - codebase-design
   - verify-app
+  - ios-simulators
   - prepare-pr
   - babysit-pr
   - interview

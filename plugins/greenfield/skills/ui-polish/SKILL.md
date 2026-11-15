@@ -7,7 +7,7 @@ description: Use to polish the UI of an existing app (web, Electron or native) w
 
 Polish is refinement, never concealed redesign. Keep the product's look, content and behavior. When the concept itself looks wrong, report it and leave it. A missing hover, focus or press state is a defect, so adding one is polish; adding showpiece motion is not.
 
-Drive the app with what fits it. For the web, use Playwright or the Chrome DevTools MCP. For Electron, use Playwright's `_electron.launch`, or attach over CDP to an app started with `--remote-debugging-port`; `probe.js` runs unchanged in each renderer window. For native apps (macOS, iOS, Android), use the platform's own tools: simulator or emulator, accessibility inspector and screenshots. The lenses still apply there; skip the sweep and the probe, and take measurements (sizes, labels, focus order) from the accessibility tree and screenshots. Start the app the way its `AGENTS.md`, README or package scripts say, and never point the loop at production.
+Drive the app with what fits it. For the web, use Playwright or the Chrome DevTools MCP. For Electron, use Playwright's `_electron.launch`, or attach over CDP to an app started with `--remote-debugging-port`; `probe.js` runs unchanged in each renderer window. For native apps (macOS, iOS, Android), use the platform's own tools: simulator or emulator (iOS: `ios-simulators`), accessibility inspector and screenshots. The lenses still apply there; skip the sweep and the probe, and take measurements (sizes, labels, focus order) from the accessibility tree and screenshots. Start the app the way its `AGENTS.md`, README or package scripts say, and never point the loop at production.
 
 ## The loop
 
