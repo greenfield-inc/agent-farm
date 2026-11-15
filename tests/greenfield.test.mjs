@@ -214,7 +214,7 @@ test('simplify-and-refactor runs the refactor and principled-review skills on So
 test('reviewers share principled-review with simplify-and-refactor and leave fixes to an implementer, and both raw implementers can draw PR diagrams',()=>{
  for(const profile of ['reviewer:claude','reviewer:codex']){
   const main=resolveProfile(root,profile).nodes.main;
-  assert.deepEqual(main.skills.sort(),['pr-test-automation','principled-review','review'],profile);
+  assert.deepEqual(main.skills.sort(),['ios-simulators','pr-test-automation','principled-review','review'],profile);
   assert.match(fs.readFileSync(main.source_file,'utf8').replace(/\s+/g,' '),/You review; an implementer fixes\. To fix them, suggest launching `greenfield\/implementer` with that file/,profile);
  }
  for(const profile of ['implementer:opus','implementer:astra','implementer:sol'])assert.ok(resolveProfile(root,profile).nodes.main.skills.includes('excalidraw-pr-diagrams'),profile);
