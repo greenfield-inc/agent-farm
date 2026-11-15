@@ -2,6 +2,8 @@
 
 How a worker's `needs_you` (standing rules, Questions for the person) reaches the person, and how the answer goes back. One round at a time, newest blocking question first; batch `fyi` blocks into the map instead.
 
+In Pane, ask and relay the way the `pane` skill says (its "Asking the person in Pane" section); this page keeps only Greenfield's numbering and the lines back to the worker. Relaying a worker's question in Pane always uses `runpane notify --relays <item>`, never `AskUserQuestion`.
+
 ## Asked through Notify
 
 A block with `"asked": "notify"` already reached the person as the worker's own Notify cards. Never relay it while its card is live. The status pages show it only by count, and on its item page as a Waiting row that links the asking tab (status-board.md).
@@ -13,7 +15,7 @@ Every other block, `"asked": "relay"` or with no `asked`, is relayed.
 
 ## A worker's report card in a Pane Session
 
-In a Pane Session, a worker's blocked report is already an answerable card in Approvals. Never put the same question to the person a second way: relay that card with `runpane notify --relays <item>` (its choices from the block's options, its why as context, its files as links), then record the answer with `runpane inbox ack <item> --decision <D-n>` and send the line under Back to the worker. Pane's orchestration guide has the mechanics.
+In a Pane Session, a worker's blocked report is already an answerable card in Approvals, built from the `needs_you` in its status file. Never put the same question to the person a second way, and never through `AskUserQuestion`: relay that card with `runpane notify --relays <item>`, then record the answer with `runpane inbox ack <item> --decision <D-n>` and send the line under Back to the worker. The `pane` skill and Pane's orchestration guide have the mechanics.
 
 ## To the person
 
@@ -29,7 +31,7 @@ Files   <each file, opened beside you>
 Context: <where the context lives>                    (only when there are no files)
 ```
 
-On Claude, put the questions through the harness question tool (`AskUserQuestion`) once the files are open, the recommended option first; on Codex, use the numbered list above, answered as "1a". Keep the worker's options and wording; add only the label, and the Context line when there are no files.
+In Pane, the round is an approval card: `runpane notify --relays <item>` for a worker's report card, otherwise `runpane notify` as the `pane` skill says, never `AskUserQuestion`. Outside Pane, on Claude, put the questions through the harness question tool (`AskUserQuestion`) once the files are open, the recommended option first; on Codex, use the numbered list above, answered as "1a". Keep the worker's options and wording; add only the label, and the Context line when there are no files.
 
 ## Back to the worker
 
