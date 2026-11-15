@@ -77,7 +77,8 @@ connections:
 `;
 function project(t){
  const f=fixture(t),home=path.join(f.base,'home'),root=path.join(f.base,'config');fs.mkdirSync(home);fs.mkdirSync(root);
- for(const key of ['HOME','USERPROFILE']){const previous=process.env[key];process.env[key]=home;t.after(()=>{if(previous===undefined)delete process.env[key];else process.env[key]=previous;});}
+ // Launches here must not ask a real harness about sign-ins.
+ for(const [key,value] of [['HOME',home],['USERPROFILE',home],['AGENT_FARM_SIGNIN_CHECK','off']]){const previous=process.env[key];process.env[key]=value;t.after(()=>{if(previous===undefined)delete process.env[key];else process.env[key]=previous;});}
  f.put('config/agents/main.yaml','harness: claude\nmodel: test\nsubagents:\n  child:\n    agent: child\n    mode: process\n');
  f.put('config/agents/child.yaml','harness: claude\nmodel: test\n');
  const file=f.put('repo/.agent-farm/workspace.yaml',shared);

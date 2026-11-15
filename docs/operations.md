@@ -40,9 +40,40 @@ homes, and existing Codex file-based MCP credentials are linked from the
 original home. Other platforms and credential backends are unverified; a
 successful macOS login does not prove them.
 
-`agent-farm inspect` reports configured connections, not whether they are
-authenticated or reachable. Use the native harness's MCP view to check
-connectivity.
+### MCP sign-ins before launch
+
+Before each launch (`run`, `--exec`, `--print-launch` and `--print-acp`; not
+`--explain`), Agent Farm asks the native harness whether it holds a sign-in for
+every `auth: native` connection the agent would get. It never reads or prints a
+token:
+
+- Codex: `codex mcp list --json` with the connections passed as `-c` overrides,
+  against the original Codex home. Codex looks in its credential store before the
+  network, so the check is fast and works offline.
+- Claude: `claude mcp get` for each connection, in parallel, from the same private
+  folder `mcp login` uses. This connects to each server, so a confirmed sign-in is
+  remembered for an hour in `~/.cache/agent-farm/claude-mcp-signins.json`.
+
+A connection the harness reports as not signed in is left out of that launch. The
+agent's instructions say it is unavailable and not to sign in, and the launch
+prints one line on stderr with the command that signs in, for example
+`agent-farm mcp login linear --directory /path/to/repo`. Each path in that
+command is quoted so that pasting it runs nothing inside the path; on Windows, a
+path that cmd or PowerShell would expand is shown as a placeholder to fill in.
+`mcp login` finds only workspace connections, so for a connection set in an agent
+definition, use the harness's own MCP login. A connection left out still turns off
+the project's `mcp-remote` bridge for the same server. The check fails open: if
+the harness is missing, errors, or does not answer within a few seconds, the
+connection stays in and nothing is printed. Set `AGENT_FARM_SIGNIN_CHECK=off` to
+skip the check, for example on an offline machine. Native Codex subagents are
+checked with the launch, including connections only they declare; when one is
+left out, the subagent gets a copy of its config without it, under
+`~/.cache/agent-farm/native-children/`. Native Claude subagents share the
+parent's servers and get the same note.
+
+`agent-farm doctor` runs the same check for the current directory's workspace and
+lists each missing sign-in with its login command. `agent-farm inspect` reports
+configured connections, not whether they are authenticated or reachable.
 
 ## Generated bundles and isolation
 

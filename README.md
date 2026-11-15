@@ -120,7 +120,7 @@ and Pane uses it to restore panels
 agent-farm init         # First-time setup — the starting point
 agent-farm              # Interactive — pick a profile, create one, launch
 agent-farm help         # Reference — every command, for humans and agents
-agent-farm doctor       # Diagnostic — check prerequisites, config, profiles
+agent-farm doctor       # Diagnostic — check prerequisites, config, profiles, MCP sign-ins
 ```
 
 `agent-farm init` is where you start, and `agent-farm` runs it for you on
