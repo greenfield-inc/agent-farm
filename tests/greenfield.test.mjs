@@ -369,6 +369,14 @@ test('workers raise numbered needs_you blocks, standalone workers ask in the sam
  includesAll(['skills/orchestrate-sessions/references/relay.md'],['newest blocking question first','open them without asking','Recorded as D-n.` Nobody else gets it','even when you can answer it yourself','Q-n stays open and nothing is recorded','(raised as Q-3)','Never relay it while its card is live','`recorded: Q-n → <answer>. Recorded as D-n.`','in any state other than `blocked` on two checks at least a minute apart','Never put the same question to the person a second way, and never through `AskUserQuestion`: relay that card with `runpane notify --relays <item>`','`runpane inbox ack <item> --decision <D-n>`']);
 });
 
+test('no Greenfield skill or rule asks for a secret in chat: the host secret prompt in Pane, local setup confirmed without its value elsewhere (review F-1)',()=>{
+ includesAll(['instructions/standing-rules.md'],['**Never ask for a secret** (an API key, token or password) in chat, a question tool, a card, a `needs_you` or a document','`secrets_request`, or `runpane secrets request`','confirm it is ready without sending its value','stop at that prerequisite and record only whether it is ready, never the value']);
+ includesAll(['skills/interview/SKILL.md'],['- **Never ask for a secret.**','record only whether it is ready']);
+ includesAll(['skills/deep-dive/references/bright-data.md'],['never to paste it into the conversation','`secrets_request`','confirm it is ready without sending its value']);
+ for(const file of ['skills/interview/SKILL.md','skills/interview/references/question-format.md','instructions/planner-identity.md','instructions/standing-rules.md'])assert.doesNotMatch(flatText(file),/credentials as plain text|provide\/configure|pasting secrets/i,file);
+ for(const profile of ['planner:claude','planner:codex'])assert.ok(resolveProfile(root,profile).nodes.main.instructions.includes('**Never ask for a secret**'),profile);
+});
+
 test('greenfield 0.0.53: in Pane, asking and relaying point to the pane skill; workers pass their status file so Pane gives each option a button; needs_you carries why and summary (J9)',()=>{
  assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.53$/m);
  const pointer='"Asking the person in Pane"';

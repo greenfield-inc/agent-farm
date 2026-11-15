@@ -61,6 +61,8 @@ When there is a `parent`, keep that JSON file current: at start, at each step, w
 
 A worker that needs a decision, an approval or a fact only the person has asks in one shape, wherever it runs. Routine technical choices stay with the worker; ask only what the plan or the request leaves open.
 
+**Never ask for a secret** (an API key, token or password) in chat, a question tool, a card, a `needs_you` or a document. In Pane, request it with the host's secret prompt (`secrets_request`, or `runpane secrets request`), which saves it and returns only saved or declined. Elsewhere, ask the person to set it up locally (an environment variable, the keychain or a config file, named exactly) and to confirm it is ready without sending its value. If neither is possible, stop at that prerequisite and record only whether it is ready, never the value.
+
 **In Pane, ask and relay the way the `pane` skill says**: its "Asking the person in Pane" section decides which card to use, what a card holds and how to take a reply, and these rules never restate it. What stays here is Greenfield's part: the `needs_you` block, Q-n and D-n numbering, and the lines that carry answers back.
 
 - **Under an orchestrator** (there is a `parent` status file): write a `needs_you` block to it and report. Set `blocked` when the answer blocks you, and keep working on anything it does not block. Never treat silence as an answer; a long wait is normal.

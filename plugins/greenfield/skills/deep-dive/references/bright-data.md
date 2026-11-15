@@ -4,7 +4,7 @@ Shared by `deep-dive` and `tech-deep-dive`. Official documentation checked 18 Se
 
 ## Ask once about access
 
-Reuse a usable key supplied in the session or configured locally without displaying it. If Bright Data would help the investigation and no key is available, explicitly ask the user to provide/configure a Bright Data API key or skip. Prefer secure configuration over pasting secrets into conversation text. Offer “Configure Bright Data (recommended)” and “Skip and use accessible sources” when choices are supported.
+Reuse a usable key already configured locally or in the host's secret store, without displaying it. If Bright Data would help the investigation and no key is available, explicitly ask the user to configure a Bright Data API key or skip, never to paste it into the conversation: in Pane, request it with the host's secret prompt (`secrets_request`, or `runpane secrets request`); elsewhere, ask them to set `BRIGHT_DATA_API_KEY` locally and confirm it is ready without sending its value. Offer “Configure Bright Data (recommended)” and “Skip and use accessible sources” when choices are supported.
 
 Explain the tradeoff in the same question, matched to the sources being researched:
 
