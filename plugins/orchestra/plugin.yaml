@@ -1,5 +1,5 @@
 name: orchestra
-version: 0.1.8
+version: 0.1.9
 cli_major: 0
 source:
   repository: https://github.com/dcouple/orchestra
@@ -7,9 +7,9 @@ source:
 checksums:
   agents/code-researcher.md: 102f108ede110dfbce5765cfad904e06e91cca837e5eb89173c34d1ef2ae5c32
   agents/code-reviewer.md: cc522a092937228c172cd5f4f30980b31f32219097453d245c1d384522c7c4fd
-  agents/codex-overseer.md: 78264116fc1b4b37389bf8022354be6520c3adad22bba07a59d7964fa4a44def
-  agents/frontend-verifier.md: 871d4f452da1828b0985e22ca0526c4f52c6f981dc58c00fa4eef9a8a840101f
-  agents/overseer.md: 1d40d4d7542281b453ba6b99ce04e81ec2590f31fe093e379873775637fe011b
+  agents/codex-overseer.md: 286c05170182ccfa03cf4458665b8e8bb0e8a01f3a4df3465f75d6a418152d38
+  agents/frontend-verifier.md: b6fc531be07644ec84fc839ef27ef99b9dd283168675cd571f6ffbec16d3f402
+  agents/overseer.md: 7af2589ab95f66913aff1e6ee4adf110550c46df87a27db5e7924ec4fd88c62c
   agents/plan-reviewer.md: ab82b7bb841d4962c0365752fef280980ad10f23431201ee5917b95c88ec2699
   agents/socrates.md: bb9e47014243b812369b4a6d2e4ee01c42cdf57edfeddc48833e561a795398c8
   agents/web-researcher.md: 215d0afefbdb6ca95fe2ac779899f7beff069410eed4e6d22cebe3f59bc72573
@@ -35,7 +35,7 @@ checksums:
   references/orchestra/brief-template.html: 63f23cb76e98942b07047f9985fa62bf286eb8f4c91749320ea1bdae451a2c20
   references/orchestra/claude-agents/code-researcher.md: ff079f9d21afaee5bf7ce9f25ddb7e3f240d3198ea52eb2aeec3fed948e1ece4
   references/orchestra/claude-agents/code-reviewer.md: 126e98257a3806756659c77e2acb874718f62b2104ce5951f86cd09acfee2e40
-  references/orchestra/claude-agents/frontend-verifier.md: 49a5d3637132181519e174eda09236e3bbd8900e49155c0f3528c1f9b5d613b5
+  references/orchestra/claude-agents/frontend-verifier.md: 03ec69bd0cfbc6c234f1d104fde84528ae212b3aae9ef8e660a9fc6ba7c1bf37
   references/orchestra/claude-agents/plan-reviewer.md: 980a4ee74b65b281a72e1de15b16c7efc9c4087887b92b9c340e903d5ea16b93
   references/orchestra/claude-agents/socrates.md: fed56fbf5786c15e208d0f384c2dc490695aaf6dce64100fda822fd08792855f
   references/orchestra/claude-agents/web-researcher.md: 8e817693a2897d9bb00801a94adff0ef5b51c21a79f2202264e71fc788821416
@@ -66,7 +66,7 @@ checksums:
   references/orchestra/testing-accounts.md: 1b3b3c7ae6dbc4be95c13b416dd8ec5c79fb1aa82c7e06b6977b28d1da0ac074
   references/orchestra/tracker-lifecycle.md: ab096223addcf0f134479bc7ddbce4b5e17ed95abff1d4eac4981fa9ee60ba28
   references/orchestra/verification-criteria.md: 8a7fbcbe3f72b757c3d80383d2eaebd6f91a983518f067aad8d95abf0e60d8da
-  references/orchestra/verification-methods.md: e6971c99a3c0cc47a1efbdb0e48377649c647c240be5460e369ecc3968c9605a
+  references/orchestra/verification-methods.md: fca1414e30a20f7e22c5d67816e71974a05b528547e1303c8d2ed13a5e3749e6
   references/orchestra/zones.md: 4928f84e857e068eeae9cefae39098737b07152c22b72d04abea84dc88b18b28
   skills/arena/SKILL.md: 7f5af3a32d0a3683f1e77b25b9a7bb1a46e20dbdfefc501b5f5854e27fad37e7
   skills/babysit-pr/SKILL.md: 8d4b8a43e4426bbc9072c9aaa65523f1cb25aec03b164105fce26b62c858fe2c
@@ -104,13 +104,14 @@ checksums:
   skills/excalidraw-pr-diagrams/references/pyproject.toml: b68f2d373a50b623bb04f3f96e9ce12118d89b01d5ac7a538820f64e7fbdcdd0
   skills/excalidraw-pr-diagrams/references/render_excalidraw.py: c4c7dad78a7f2328e3eea68a90cf4db96576ce4a34f8fe06d04979bfd03c9ae8
   skills/excalidraw-pr-diagrams/references/render_template.html: 5caa1087d0fa68cdc873103aa761590cb16d2ae888d67a08d517ebab01ca110d
-  skills/frontend-verifier/SKILL.md: a9d184dee8766b7cf72465efe0fbef910f18fb42a52e6ddf4696230ea6858035
+  skills/frontend-verifier/SKILL.md: 559f4b4b142958736e8cc4971629f4571ccddcc8397ddfcdac183f32160c6ec8
   skills/hillclimb/SKILL.md: c49c61645ce6b837c4fa57c583a0104dfe958e39b61bd307de0bfbe51314acd4
   skills/implementer/SKILL.md: f72a0d25cb9b9c4d0e063cc848e2dfa6ac69fbf4c22fba0907d4b4fbf7e611d8
   skills/implementer/agents/openai.yaml: 936cda21b99ad63b4337da3d0ab3cf693d54f343af639ee2d805f561a3d8d701
   skills/investigate/SKILL.md: d91030b7132abe3fda602f5e8a38c969296d306d3f826978dca070a98fb7fa22
   skills/investigator/SKILL.md: 2b3337c9e6ec1a84350a6a46cad19f2960e7027115b296aed063c7ddd35b51dc
   skills/investigator/agents/openai.yaml: 883b038adc53ff83659b3ce9f1acabf29cb8f25108171f6b9935a7c231cd7f1f
+  skills/ios-simulators/SKILL.md: faf22de17cebde751b620a0b6bd330d2750e8ade6d7a484f10ff5a08c421bd24
   skills/plan-reviewer/SKILL.md: f9caccf08cd5cab15686b1f2a7914c2c1ed95516ddfa4429820ad1ab3562f8d9
   skills/plan-reviewer/agents/openai.yaml: e07936c66e5b09901e0b0161743b239cccb24d14f7cfe592246d0eecd2f98f67
   skills/postmortem-loop/SKILL.md: 3ef3f0825ff7a4e7666cc1b5db5ff56391e121d35798e94cd795f169ded6214f

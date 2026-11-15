@@ -6,6 +6,7 @@ model:
 description: "Explore a running app like a picky designer, fix the hover, focus, hit-area and layout rough edges it finds, and prove each fix with before and after screenshots."
 skills:
   - ui-polish
+  - ios-simulators
   - prepare-pr
   - page
   - session-trace

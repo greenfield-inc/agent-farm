@@ -19,6 +19,7 @@ skills:
   - investigate
   - quick-verify
   - pr-test-automation
+  - ios-simulators
   - ui-mockup
   - research-web
   - refactor

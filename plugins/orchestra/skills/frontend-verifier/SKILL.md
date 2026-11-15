@@ -42,6 +42,9 @@ per the project's testing instructions, read state via `snapshot_ui`
 via `tap`/`swipe`/`type_text`, and capture evidence with `screenshot` and
 `record_sim_video`. If no driver for the platform is
 connected, fall back to scripts and logs - and say which route you took.
+Without an `orchestra-sim` daemon, set up iOS simulators with Agent Farm's
+`ios-simulators` skill (`skills/ios-simulators/SKILL.md`, a sibling of the
+references folder): slim simulators, one per verifier.
 On a daemon host, lease with `orchestra-sim acquire` (returning
 `{udid,name,lease,evidenceDir}`), set `session_set_defaults{simulatorId: udid}`,
 then build and install from the project's mobile testing instructions using

@@ -34,6 +34,7 @@ Validate as much of a PR as possible with local services, browser automation, CL
 
 4. Build the automated test path:
    - Use Playwright when browser behavior matters. If the repo lacks Playwright, install it in a temporary directory rather than polluting the repo.
+   - For iOS, run slim simulators with `ios-simulators`, one per journey or shard.
    - Use stable, user-visible selectors first: labels, placeholders, button text, URLs, and route state.
    - Generate unique short test identities and attribution markers such as `agent-e2e-<timestamp>`.
    - When UI changes are in scope, map each touched surface area and user journey to screenshots in a temporary, easy-to-observe folder such as `tmp/pr-<number>-qa/` or `tmp/<branch>-qa/`. Use ordered filenames that describe the journey step, such as `01-signup-account.png` and `02-dropdown-expanded.png`.

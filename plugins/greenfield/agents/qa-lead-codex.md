@@ -11,6 +11,7 @@ skills:
   - investigate
   - tdd
   - quick-verify
+  - ios-simulators
   - babysit-pr
   - session-trace
   - ui-options
