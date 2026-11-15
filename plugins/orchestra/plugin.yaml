@@ -8,7 +8,7 @@ checksums:
   agents/code-researcher.md: 102f108ede110dfbce5765cfad904e06e91cca837e5eb89173c34d1ef2ae5c32
   agents/code-reviewer.md: cc522a092937228c172cd5f4f30980b31f32219097453d245c1d384522c7c4fd
   agents/codex-overseer.md: 286c05170182ccfa03cf4458665b8e8bb0e8a01f3a4df3465f75d6a418152d38
-  agents/frontend-verifier.md: b6fc531be07644ec84fc839ef27ef99b9dd283168675cd571f6ffbec16d3f402
+  agents/frontend-verifier.md: 8bf5e435c8f78fa260539719e781c70defc833e5f07f53c48d56ffc53c912b76
   agents/overseer.md: 7af2589ab95f66913aff1e6ee4adf110550c46df87a27db5e7924ec4fd88c62c
   agents/plan-reviewer.md: ab82b7bb841d4962c0365752fef280980ad10f23431201ee5917b95c88ec2699
   agents/socrates.md: bb9e47014243b812369b4a6d2e4ee01c42cdf57edfeddc48833e561a795398c8
@@ -35,7 +35,7 @@ checksums:
   references/orchestra/brief-template.html: 63f23cb76e98942b07047f9985fa62bf286eb8f4c91749320ea1bdae451a2c20
   references/orchestra/claude-agents/code-researcher.md: ff079f9d21afaee5bf7ce9f25ddb7e3f240d3198ea52eb2aeec3fed948e1ece4
   references/orchestra/claude-agents/code-reviewer.md: 126e98257a3806756659c77e2acb874718f62b2104ce5951f86cd09acfee2e40
-  references/orchestra/claude-agents/frontend-verifier.md: 03ec69bd0cfbc6c234f1d104fde84528ae212b3aae9ef8e660a9fc6ba7c1bf37
+  references/orchestra/claude-agents/frontend-verifier.md: 3db4daefb24bda90313421847b71ad920acd98fd65009aa14d4aaabacf6b469e
   references/orchestra/claude-agents/plan-reviewer.md: 980a4ee74b65b281a72e1de15b16c7efc9c4087887b92b9c340e903d5ea16b93
   references/orchestra/claude-agents/socrates.md: fed56fbf5786c15e208d0f384c2dc490695aaf6dce64100fda822fd08792855f
   references/orchestra/claude-agents/web-researcher.md: 8e817693a2897d9bb00801a94adff0ef5b51c21a79f2202264e71fc788821416
@@ -104,14 +104,14 @@ checksums:
   skills/excalidraw-pr-diagrams/references/pyproject.toml: b68f2d373a50b623bb04f3f96e9ce12118d89b01d5ac7a538820f64e7fbdcdd0
   skills/excalidraw-pr-diagrams/references/render_excalidraw.py: c4c7dad78a7f2328e3eea68a90cf4db96576ce4a34f8fe06d04979bfd03c9ae8
   skills/excalidraw-pr-diagrams/references/render_template.html: 5caa1087d0fa68cdc873103aa761590cb16d2ae888d67a08d517ebab01ca110d
-  skills/frontend-verifier/SKILL.md: 559f4b4b142958736e8cc4971629f4571ccddcc8397ddfcdac183f32160c6ec8
+  skills/frontend-verifier/SKILL.md: b22ebaeb39df9ce692d847654102579aab8f77cf02d7604764af525dd7278c22
   skills/hillclimb/SKILL.md: c49c61645ce6b837c4fa57c583a0104dfe958e39b61bd307de0bfbe51314acd4
   skills/implementer/SKILL.md: f72a0d25cb9b9c4d0e063cc848e2dfa6ac69fbf4c22fba0907d4b4fbf7e611d8
   skills/implementer/agents/openai.yaml: 936cda21b99ad63b4337da3d0ab3cf693d54f343af639ee2d805f561a3d8d701
   skills/investigate/SKILL.md: d91030b7132abe3fda602f5e8a38c969296d306d3f826978dca070a98fb7fa22
   skills/investigator/SKILL.md: 2b3337c9e6ec1a84350a6a46cad19f2960e7027115b296aed063c7ddd35b51dc
   skills/investigator/agents/openai.yaml: 883b038adc53ff83659b3ce9f1acabf29cb8f25108171f6b9935a7c231cd7f1f
-  skills/ios-simulators/SKILL.md: faf22de17cebde751b620a0b6bd330d2750e8ade6d7a484f10ff5a08c421bd24
+  skills/ios-simulators/SKILL.md: 655c69f8527b0d793ac34a3c591f7864bd22622a7c2402e3938a14aa6b1fc610
   skills/plan-reviewer/SKILL.md: f9caccf08cd5cab15686b1f2a7914c2c1ed95516ddfa4429820ad1ab3562f8d9
   skills/plan-reviewer/agents/openai.yaml: e07936c66e5b09901e0b0161743b239cccb24d14f7cfe592246d0eecd2f98f67
   skills/postmortem-loop/SKILL.md: 3ef3f0825ff7a4e7666cc1b5db5ff56391e121d35798e94cd795f169ded6214f

@@ -69,20 +69,24 @@ const PATCHES=[
  {
   why:'the Claude frontend-verifier sets up iOS simulators with the bundled ios-simulators skill',
   file:'references/orchestra/claude-agents/frontend-verifier.md',
-  from:`connected, fall back to scripts and logs - and say which route you took.`,
-  to:`connected, fall back to scripts and logs - and say which route you took.
-Without an \`orchestra-sim\` daemon, set up iOS simulators with Agent Farm's
-\`ios-simulators\` skill (\`skills/ios-simulators/SKILL.md\`, a sibling of the
-references folder): slim simulators, one per verifier.`,
+  from:`with \`stop:true\`, then run
+\`orchestra-sim release <udid>\`.`,
+  to:`with \`stop:true\`, then run
+\`orchestra-sim release <udid>\`.
+On a host without \`orchestra-sim\`, set up each simulator with the
+\`ios-simulators\` skill (\`skills/ios-simulators/SKILL.md\` in this plugin),
+then drive it as above.`,
  },
  {
   why:'the Codex frontend-verifier sets up iOS simulators with the bundled ios-simulators skill',
   file:'skills/frontend-verifier/SKILL.md',
-  from:`connected, fall back to scripts and logs - and say which route you took.`,
-  to:`connected, fall back to scripts and logs - and say which route you took.
-Without an \`orchestra-sim\` daemon, set up iOS simulators with Agent Farm's
-\`ios-simulators\` skill (\`skills/ios-simulators/SKILL.md\`, a sibling of the
-references folder): slim simulators, one per verifier.`,
+  from:`with \`stop:true\`, then run
+\`orchestra-sim release <udid>\`.`,
+  to:`with \`stop:true\`, then run
+\`orchestra-sim release <udid>\`.
+On a host without \`orchestra-sim\`, set up each simulator with the
+\`ios-simulators\` skill (\`skills/ios-simulators/SKILL.md\` in this plugin),
+then drive it as above.`,
  },
  {
   why:'codex falls back to Claude sub-agents when Codex is unavailable',

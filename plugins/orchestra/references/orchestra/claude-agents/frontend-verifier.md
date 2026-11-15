@@ -56,9 +56,6 @@ per the project's testing instructions, read state via `snapshot_ui`
 via `tap`/`swipe`/`type_text`, and capture evidence with `screenshot` and
 `record_sim_video`. If no driver for the platform is
 connected, fall back to scripts and logs - and say which route you took.
-Without an `orchestra-sim` daemon, set up iOS simulators with Agent Farm's
-`ios-simulators` skill (`skills/ios-simulators/SKILL.md`, a sibling of the
-references folder): slim simulators, one per verifier.
 On a daemon host, lease with `orchestra-sim acquire` (returning
 `{udid,name,lease,evidenceDir}`), set `session_set_defaults{simulatorId: udid}`,
 then build and install from the project's mobile testing instructions using
@@ -70,6 +67,9 @@ driver returns JPEG data regardless of the filename. For a `record_sim_video`
 journey (MP4), pass the same `outputFile` path when starting and when stopping
 with `stop:true`, then run
 `orchestra-sim release <udid>`.
+On a host without `orchestra-sim`, set up each simulator with the
+`ios-simulators` skill (`skills/ios-simulators/SKILL.md` in this plugin),
+then drive it as above.
 For a browser-required `/do` QA drive, Playwright is a prerequisite: never
 fall back to scripts, logs, or another browser surface as proof of browser
 criteria. Prove readiness with `browser_snapshot`, then close that probe so
