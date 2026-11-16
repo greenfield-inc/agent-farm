@@ -311,7 +311,8 @@ test('codebase-audit runs on Fable with native Sonnet researchers and an Opus cu
  const bundle=build(root,'codebase-audit',target);verify(bundle);
  for(const script of ['metrics.py','build.py','shoot.sh']){
   const file=fs.readdirSync(bundle,{recursive:true}).find(f=>String(f).endsWith(path.join('codebase-audit','scripts',script)));
-  assert.ok(file&&fs.statSync(path.join(bundle,file)).mode&0o100,script);
+  assert.ok(file,script);
+  if(process.platform!=='win32')assert.ok(fs.statSync(path.join(bundle,file)).mode&0o100,script);
  }
 });
 
