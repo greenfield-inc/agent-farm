@@ -54,3 +54,21 @@ test('build.py refuses research fields that are not the documented numbers, date
  assert.match(r.stderr,/top50\.low\[0\]\.rank/);
  assert.equal(fs.existsSync(path.join(dir,'out.html')),false);
 });
+
+test('build.py refuses a monthly commit count that is not a number',t=>{
+ const dir=tmp(t);
+ data(dir,{'timeline.json':{milestones:[],monthly:[{m:'2024-01',n:'<img src=x onerror=alert(1)>',f:0}]}});
+ const r=run('build.py',[dir,path.join(dir,'out.html')]);
+ assert.notEqual(r.status,0);
+ assert.match(r.stderr,/timeline\.monthly\[0\]\.n/);
+ assert.equal(fs.existsSync(path.join(dir,'out.html')),false);
+});
+
+test('build.py refuses a month outside 1 to 12 instead of looping',t=>{
+ const dir=tmp(t);
+ data(dir,{'timeline.json':{milestones:[],monthly:[{m:'2024-13',n:1,f:1}]}});
+ const r=spawnSync(python,[path.join(scripts,'build.py'),dir,path.join(dir,'out.html')],{encoding:'utf8',timeout:30000});
+ assert.equal(r.signal,null,'build.py did not finish');
+ assert.notEqual(r.status,0);
+ assert.match(r.stderr,/timeline\.monthly\[0\]\.m/);
+});

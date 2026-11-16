@@ -1,6 +1,6 @@
 # Data contract
 
-`scripts/build.py <data dir> <out.html>` reads these files from the data directory. Fields marked optional may be left out; the page drops the section that depends on them. The builder stops and lists every score, rank, date or enum value (milestone `type`, `impact`, `verified`, `tone`) that does not match these shapes, and fills months without commits with zeroes through `hand.page.today`.
+`scripts/build.py <data dir> <out.html>` reads these files from the data directory. Fields marked optional may be left out; the page drops the section that depends on them. The builder stops and lists every score, rank, date, month, commit count or enum value (milestone `type`, `impact`, `verified`, `tone`) that does not match these shapes, and fills months without commits with zeroes through `hand.page.today`.
 
 ## metrics.json (from scripts/metrics.py)
 

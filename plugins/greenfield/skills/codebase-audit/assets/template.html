@@ -257,7 +257,7 @@ const partTip=p=>`<b>${esc(p.l)}</b> <span class="k">${esc(p.k)}</span><br>Polis
 
 // ---------- header ----------
 (function(){
- const s=D.stats,last3=D.monthly.slice(-3),n3=last3.reduce((a,m)=>a+m.n,0),f3=last3.reduce((a,m)=>a+m.f,0);
+ const s=D.stats,last3=D.monthly.slice(-3),n3=last3.reduce((a,m)=>a+(+m.n||0),0),f3=last3.reduce((a,m)=>a+(+m.f||0),0);
  const tiles=[[fmt(s.loc),"lines of code, tests excluded"],[s.wavg.toFixed(1)+" / 5","average polish, weighted by size"],[D.parts.filter(p=>p.s!=null&&p.s<3).length+" of "+D.parts.length,"areas in the size chart score below 3"],[n3.toLocaleString(),"commits in the last 3 months"],[n3?Math.round(100*f3/n3)+"%":"–","of those by the top author"]];
  $("#tiles").append(...tiles.map(t=>h("div",`<b>${t[0]}</b><span>${t[1]}</span>`,"card tile")));
  $("#find").append(...(D.hand.findings||[]).map((f,i)=>h("div",`<h3><span class="num">${i+1}</span>${esc(f.h)}</h3><p>${esc(f.p)}</p>`,"card")));
@@ -383,7 +383,7 @@ const DAY=864e5,pd=d=>new Date(d.length===7?d+"-01":d).getTime(),lastM=D.monthly
  const step=mx>2500?1000:mx>800?500:mx>250?100:50;for(let n=step;n<mx;n+=step){const y=H-B-yh(n);el("line",{x1:L,x2:W-R,y1:y,y2:y,stroke:css("--line")},svg);const t=el("text",{x:L-6,y:y+4,"font-size":10.5,"text-anchor":"end",fill:css("--mut")},svg);t.textContent=n>=1000?n/1000+"k":n}
  const bw=(W-L-R)/Math.max(1,Math.round((t1-t0)/(30.44*DAY)))-2;
  D.monthly.forEach(m=>{const x=tx(m.m)+1,g=el("g",{},svg);el("rect",{x,y:H-B-yh(m.n),width:bw,height:yh(m.n-m.f),fill:css("--mut"),"fill-opacity":.45},g);el("rect",{x,y:H-B-yh(m.f),width:bw,height:yh(m.f),fill:css("--acc")},g);
-  el("rect",{x,y:T,width:bw,height:H-B-T,fill:"transparent"},g);hover(g,()=>`<b>${m.m}</b><br>${m.n} commits<br>${m.f} by ${esc(P.topAuthor||"the top author")}`)});
+  el("rect",{x,y:T,width:bw,height:H-B-T,fill:"transparent"},g);hover(g,()=>`<b>${esc(m.m)}</b><br>${esc(m.n)} commits<br>${esc(m.f)} by ${esc(P.topAuthor||"the top author")}`)});
  for(let y=new Date(t0).getUTCFullYear();y<=new Date(t1).getUTCFullYear();y++){const x=tx(y+"-01-01");if(pd(y+"-01-01")>t1)break;if(x>L){el("line",{x1:x,x2:x,y1:T-6,y2:H-B+4,stroke:css("--mut"),"stroke-dasharray":"2 3"},svg)}const t=el("text",{x:Math.max(L,x)+4,y:H-10,"font-size":12,"font-weight":700,fill:css("--mut")},svg);t.textContent=y}
  (D.rels||[]).forEach(r=>{const x=tx(r.d),g=el("g",{},svg);el("line",{x1:x,x2:x,y1:T-4,y2:T+12,stroke:"#0f9a8c","stroke-width":2.5},g);hover(g,()=>`<b>Release ${esc(r.v)}</b> · ${esc(r.d)}<br><span class="k">${(r.h||[]).map(esc).join("<br>")}</span>`)});
  {const jm=D.monthly.reduce((a,m)=>m.n>a.n?m:a),t=el("text",{x:tx(jm.m)-6,y:H-B-yh(jm.n)+12,"font-size":11,"text-anchor":"end",fill:css("--mut")},svg);t.textContent=jm.n.toLocaleString()+" in "+jm.m;
