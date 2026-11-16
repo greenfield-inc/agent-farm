@@ -15,13 +15,13 @@ Read-only: runs git ls-files and git log.
 import collections, datetime, json, os, re, subprocess, sys, time
 
 repo, cfg_path, out_path = sys.argv[1:4]
-cfg = json.load(open(cfg_path))
+cfg = json.load(open(cfg_path, encoding="utf-8"))
 os.chdir(repo)
 RULES = cfg["buckets"]
 SRC = re.compile(r"\.(ts|tsx|js|jsx|mjs|cjs|swift|kt|java|m|mm|h|c|cpp|cc|cs|py|rb|rs|go|php|ex|exs|scala|dart|vue|svelte|html|css|scss|sh|sql|md|mdx|json|yaml|yml|toml|gradle)$")
 CODE = re.compile(r"\.(ts|tsx|js|jsx|mjs|cjs|swift|kt|java|m|mm|h|c|cpp|cc|cs|py|rb|rs|go|php|ex|exs|scala|dart|vue|svelte|html|css|scss|sh|sql)$")
-SKIP = re.compile(cfg.get("skip") or r"(\.lock$|lock\.json$|/generated/|/dist/|/build/|/vendor/|\.min\.|/Pods/|/node_modules/|/third_party/|/assets/|/screenshots/|\.pb\.|_pb2\.)")
-TEST = re.compile(cfg.get("test") or r"(\.test\.|\.spec\.|_test\.|__tests__/|/tests?/|/e2e)")
+SKIP = re.compile(cfg.get("skip") or r"(\.lock$|lock\.json$|(?:^|/)(generated|dist|build|vendor|Pods|node_modules|third_party|assets|screenshots)/|\.min\.|\.pb\.|_pb2\.)")
+TEST = re.compile(cfg.get("test") or r"(\.test\.|\.spec\.|_test\.|(?:^|/)(__tests__|tests?)/|(?:^|/)e2e)")
 
 
 def bucket(path):
@@ -37,14 +37,14 @@ def bucket(path):
 new = lambda: dict(files=0, loc=0, code_loc=0, test_loc=0, test_files=0, todo=0, commits=0, c365=0, c90=0, c30=0,
                    fix90=0, top=0, first=None, last=None)
 B = collections.defaultdict(new)
-for f in subprocess.check_output(["git", "ls-files"], text=True).splitlines():
+for f in subprocess.check_output(["git", "ls-files"], encoding="utf-8", errors="ignore").splitlines():
     b = bucket(f)
     if not b or SKIP.search(f) or not SRC.search(f):
         continue
     try:
         if os.path.getsize(f) > 600000:
             continue
-        txt = open(f, errors="ignore").read()
+        txt = open(f, encoding="utf-8", errors="ignore").read()
     except OSError:
         continue
     n, d = txt.count("\n"), B[b]
@@ -58,7 +58,7 @@ for f in subprocess.check_output(["git", "ls-files"], text=True).splitlines():
             d["code_loc"] += n
             d["todo"] += len(re.findall(r"\b(TODO|FIXME|HACK|XXX)\b", txt))
 
-log = subprocess.check_output(["git", "log", "--name-only", "--format=@%H|%at|%an <%ae>|%s"], text=True, errors="ignore")
+log = subprocess.check_output(["git", "log", "--name-only", "--format=@%H|%at|%an <%ae>|%s"], encoding="utf-8", errors="ignore")
 authors = collections.Counter(l.split("|", 3)[2].lower() for l in log.splitlines() if l.startswith("@"))
 top = [s.lower() for s in (cfg.get("authors") or {}).get("top") or [authors.most_common(1)[0][0]]]
 today = cfg.get("today")
@@ -93,7 +93,7 @@ for d in B.values():
     for k in ("first", "last"):
         d[k] = time.strftime("%Y-%m-%d", time.gmtime(d[k])) if d[k] else None
 json.dump({"parts": B, "monthly": [{"m": k, "n": v[0], "f": v[1]} for k, v in sorted(monthly.items())],
-           "topAuthor": top, "authors": authors.most_common(12)}, open(out_path, "w"), indent=1)
+           "topAuthor": top, "authors": authors.most_common(12)}, open(out_path, "w", encoding="utf-8"), indent=1)
 print(f"{'part':44}{'code':>8}{'tests':>8}{'all':>6}{'90d':>5}{'30d':>5}  last")
 for k, d in sorted(B.items(), key=lambda kv: -kv[1]["code_loc"]):
     print(f"{k:44}{d['code_loc']:>8}{d['test_loc']:>8}{d['commits']:>6}{d['c90']:>5}{d['c30']:>5}  {d['last']}")

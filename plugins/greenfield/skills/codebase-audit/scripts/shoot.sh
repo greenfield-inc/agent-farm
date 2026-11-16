@@ -10,11 +10,11 @@ run --force-device-scale-factor=1 --window-size=1280,$H --virtual-time-budget=30
 run --virtual-time-budget=3000 --dump-dom "file://$PAGE" 2>/dev/null > "$OUT/dom.html"
 python3 - "$OUT" <<'PY'
 import re, html, sys
-o = sys.argv[1]; s = open(o + "/dom.html").read()
+o = sys.argv[1]; s = open(o + "/dom.html", encoding="utf-8").read()
 s = re.sub(r"<script.*?</script>|<style.*?</style>", "", s, flags=re.S)
 s = re.sub(r"</(p|div|h1|h2|h3|li|tr|summary|text|section|blockquote|td|th)>", "\n", s)
 s = re.sub(r"\n\s*\n+", "\n", re.sub(r"[ \t]+", " ", html.unescape(re.sub(r"<[^>]+>", " ", s))))
-open(o + "/page-text.txt", "w").write(s); print(len(s), "chars of text")
+open(o + "/page-text.txt", "w", encoding="utf-8").write(s); print(len(s), "chars of text")
 PY
 cd "$OUT" && rm -f c*.png && i=0 && for ((y=0; y<H; y+=1300)); do
   ffmpeg -loglevel error -y -i full.png -vf "crop=1280:$(( y+1300>H ? H-y : 1300 )):0:$y" "c$(printf %02d $i).png"; i=$((i+1)); done
