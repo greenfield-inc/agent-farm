@@ -69,6 +69,12 @@ for i, p in enumerate(hand.get("extraParts") or []):
     for key in ("loc", "t", "c90", "c30", "age"):
         num(p.get(key), f"hand.extraParts[{i}].{key}")
 date((hand.get("page") or {}).get("today"), "hand.page.today", null=True)
+MONTH = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")
+src = "timeline" if tl.get("monthly") else "metrics"
+for i, m in enumerate(tl.get("monthly") or metrics["monthly"]):
+    need(isinstance(m.get("m"), str) and MONTH.match(m["m"]), f"{src}.monthly[{i}].m: {m.get('m')!r} is not YYYY-MM")
+    num(m.get("n"), f"{src}.monthly[{i}].n", 0)
+    num(m.get("f"), f"{src}.monthly[{i}].f", 0)
 if bad:
     sys.exit("Fix these fields before building (shapes are in references/data-contract.md):\n  " + "\n  ".join(bad))
 
