@@ -20,7 +20,7 @@ function data(dir,extra={}){
  json(dir,'hand.json',{page:{title:'Acme, mapped',today:'2026-11-16'},focus:[{k:'src',n:'Settings',said:'“Settings need polish”',found:[]}]});
  for(const [file,value] of Object.entries(extra))json(dir,file,value);
 }
-const embedded=html=>JSON.parse(html.match(/const D=(.*?);\n/)[1].replace(/<\\\//g,'</'));
+const embedded=html=>JSON.parse(html.match(/const D=(.*?);\r?\n/)[1].replace(/<\\\//g,'</'));
 
 test('metrics.py counts test folders at the repository root as tests',t=>{
  const repo=tmp(t),out=tmp(t);
