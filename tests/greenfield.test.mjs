@@ -301,6 +301,20 @@ test('code-smell-fixes runs on Sonnet 5.5 low with a native Claude finder and a 
  assert.ok(fs.existsSync(path.join(bundle,'main','native-agents','finder.json')));
 });
 
+test('codebase-audit runs on Fable with native Sonnet researchers and an Opus curator, and bundles its executable scripts',t=>{
+ const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-audit-')));
+ t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
+ const resolved=resolveProfile(root,'codebase-audit'),main=resolved.nodes.main;
+ assert.deepEqual([main.harness,main.model,main.reasoning_effort],['claude','claude-fable-5-2','medium']);
+ const children=Object.fromEntries(Object.entries(main.children).map(([alias,route])=>{const n=resolved.nodes[route];return [alias,[n.mode,n.model,n.reasoning_effort]];}));
+ assert.deepEqual(children,{researcher:['native','claude-sonnet-5-5','medium'],curator:['native','claude-opus-5-5','medium'],'cold-reader':['native','claude-sonnet-5-5','medium']});
+ const bundle=build(root,'codebase-audit',target);verify(bundle);
+ for(const script of ['metrics.py','build.py','shoot.sh']){
+  const file=fs.readdirSync(bundle,{recursive:true}).find(f=>String(f).endsWith(path.join('codebase-audit','scripts',script)));
+  assert.ok(file&&fs.statSync(path.join(bundle,file)).mode&0o100,script);
+ }
+});
+
 test('Codex orchestration routes every worker and helper to Codex while retaining Claude defaults',t=>{
  const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-codex-orchestrator-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
@@ -378,7 +392,7 @@ test('no Greenfield skill or rule asks for a secret in chat: the host secret pro
 });
 
 test('greenfield 0.0.53: with a host question mechanism, asking and relaying follow the host\'s injected instructions; needs_you carries why and summary (J9)',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.56$/m);
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.57$/m);
  const rules=flatText('instructions/standing-rules.md');
  for(const rule of ['**When the host has its own question mechanism**','its injected instructions decide which mechanism to use','these rules never restate them','"why": "Invoice PDFs are renamed on export','"summary": "/abs/bundle/options.html"','- `why`: why it matters, in one or two sentences of at most 240 characters','- `summary`: optional, the absolute path of an `.html` page','When the host has its own question mechanism, use it as its instructions say. Otherwise, on Claude, use the harness question tool (`AskUserQuestion`)'])assert.ok(rules.includes(rule),rule);
  // #205's ban on passing the status file is gone, and host card rules are not restated here.

@@ -84,8 +84,10 @@ cleanup you approve.
 `business` for business documents, `seo` for search content, `audits` for
 finding outdated issues and docs, `code-smell-fixes` for an unattended
 whole-codebase hunt for confusing code that ends in fix PRs and issues,
-`ui-polish` for exploring a running app, fixing its hover, focus and
-layout rough edges, and showing before and after screenshots, and
+`codebase-audit` for one visual map of where a codebase is polished and
+where it is thin, with 50 verified opportunities, `ui-polish` for exploring
+a running app, fixing its hover, focus and layout rough edges, and showing
+before and after screenshots, and
 `customer-insights-loop` for turning a product's own usage data into ranked
 directions, then building the ones you pick and handing back every PR together.
 
