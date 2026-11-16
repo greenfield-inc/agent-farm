@@ -24,6 +24,7 @@ For a one-page visual map of how work is routed, open [index.html](index.html). 
 | `seo` (`seo:claude`) / `seo:codex` | Opus 5.5 high / Astra high | Search strategy and pages |
 | `audits` (`audits:claude`) / `audits:codex` | Opus 5.5 high / Astra low | Stale issues, pull requests and docs |
 | `code-smell-fixes` | Sonnet 5.5 low | Hunts the whole codebase for confusing code with a Claude and a Codex finder swarm, writes a ranked report, and, unattended, opens fix PRs and files issues |
+| `codebase-audit` | Fable 5.2 medium | Audits a whole codebase for polish and publishes one visual map: architecture, size and attention per part, polish scores, a timeline, your priorities checked against the code, and 25 verified quick wins plus 25 bigger investments. Changes nothing in the audited repository. See [Codebase audit](#codebase-audit) |
 | `ui-polish` | Opus 5.5 medium | Explores a running app (web, Electron or native) like a picky designer, measures hover, focus, hit-area and motion defects with an in-page probe where it can, fixes them, and opens a draft PR with before and after screenshots |
 | `bug-reporter` (`bug-reporter:claude`) / `bug-reporter:codex` | Opus 5.5 high / Sol 6.1 high | Reproduce and write a report without fixing code |
 | `free-range` (`free-range:claude`) / `free-range:codex` | Opus 5.5 high / Astra medium | Raw-model comparison profiles without the Greenfield workflow |
@@ -68,6 +69,15 @@ Review runs separately, through `greenfield/reviewer`, launched by you or by an 
 
 `greenfield/simplify-and-refactor` is an optional pass between the implementer finishing and QA or review. It runs `refactor`: blind simple and deep analyses (with `principled-review` when you ask for it), merged into one plan. Analysis is read-only. It applies the plan only after you approve it, and only while no other worker is writing the branch, then has an adversary try to break the change. Applying changes the head, so QA and review run after it. The implementer has the same `refactor` skill for a quick simple pass on its own diff.
 
+## Codebase audit
+
+`greenfield/codebase-audit` audits a whole codebase and publishes one self-contained HTML map of it: an architecture map, size and recent attention per part, a 1 to 5 polish score per part, a timeline from the first commit to today, the priorities you name checked against the code, and 25 quick wins plus 25 bigger investments, each checked against the cited files. It reads a fresh scratch clone and changes nothing in the audited repository. Before starting it settles what feels unpolished to you, how many researchers to run (10 to 15 by default) and where to publish; it asks for whatever your starting message leaves out, so it needs you at the start. By default the map is a local HTML file opened beside you, or it goes to the document destination you or the workspace name. Fable 5.2 runs the audit, Sonnet 5.5 researchers read one slice each in parallel, and one Opus 5.5 curator picks and verifies the 50. One run starts 10 to 15 researchers and takes hours of agent time, so expect a large token bill. It needs `git` and `python3`; the page review step also needs Google Chrome and `ffmpeg`.
+
+```sh
+agent-farm run greenfield/codebase-audit --directory /path/to/project \
+  --message "Audit this repo. What feels unpolished to me: onboarding and settings."
+```
+
 ## Children
 
 | Child | Bound to | Model and task |
@@ -77,6 +87,7 @@ Review runs separately, through `greenfield/reviewer`, launched by you or by an 
 | `refactor`, `cold-reader` | simplify-and-refactor | Sol 6.1 low under `:sol`; Opus 5.5 medium for `refactor` and Sonnet 5 medium for `cold-reader` under `:opus`; native. A fresh `refactor` runs each analysis, lens and adversarial pass |
 | `second-opinion` (agent `pr-reviewer`) | implementer | Sol 6.1 low under `:opus`, Opus 5.5 medium under `:astra` / `:sol`, Sol 6.1 low under `:codex`, process; an opt-in quick review with `review` |
 | `finder`, `codex-finder` (agent `smell-finder`) | code-smell-fixes | Sonnet 5.5 low, native, one per lens; Sol 6.1 low, process, one per pair of lenses. Read-only |
+| `researcher` (agent `codebase-audit-researcher`), `curator` (agent `codebase-audit-curator`), `cold-reader` | codebase-audit | Sonnet 5.5 medium, native, one per research slice; Opus 5.5 medium, native, merges and verifies the 50 opportunities; Sonnet 5.5 medium, native, cold-reads the page. Read-only |
 | `codebase-explorer` | reviewer, qa-and-fix | Targeted repository questions; a process child under `reviewer:claude` |
 | business reviewers, `cold-reader` | business | Context, research adversary, spec and artifact reviewers |
 | `socrates` | planner | Opus 5.5 high (Astra high under Codex planner); challenge unnecessary scope |
@@ -108,6 +119,7 @@ An orchestrator passes the planner its source as `source` and a status JSON path
 - `principled-review`, `review` and `pr-test-automation` support the reviewer and qa-and-fix; `principled-review` is shared with simplify-and-refactor.
 - `refactor` (simple, deep and apply modes) supports simplify-and-refactor and the implementer.
 - The research, business, SEO and audit skills support the profiles of the same names, and `code-smell-fixes` with `smell-finder` (whose `CRITERIA.md` holds the 20 lenses) supports `code-smell-fixes`.
+- `codebase-audit` supports `codebase-audit`: `scripts/metrics.py` measures size and git activity per part, `scripts/build.py` fills `assets/template.html` from six JSON files described in `references/data-contract.md`, `scripts/shoot.sh` screenshots the built page for review (it needs Google Chrome and ffmpeg), and `references/research-briefs.md` holds the researchers' shared brief.
 - `ui-polish` supports `ui-polish`: `scripts/probe.js` measures hover, focus, press, hit-area and transition defects in the page, and `references/` holds its lenses and motion bar, adapted from the sources in `THIRD_PARTY_NOTICES.md`.
 - `explain`, `brief`, `options`, `spike`, `ui-mockup`, and `page` support planning.
 - `research-and-product-design` builds a feature's research packet and design rounds before its options and plan. The planners use it, and the orchestrators use it to run several features in parallel.
