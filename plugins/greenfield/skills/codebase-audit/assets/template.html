@@ -253,19 +253,19 @@ const tip=$("#tip");
 function showTip(e,html){tip.innerHTML=html;tip.style.display="block";const w=tip.offsetWidth,hh=tip.offsetHeight;let x=e.clientX+14,y=e.clientY+14;if(x+w>innerWidth-8)x=e.clientX-w-14;if(y+hh>innerHeight-8)y=e.clientY-hh-14;tip.style.left=Math.max(6,x)+"px";tip.style.top=Math.max(6,y)+"px"}
 const hideTip=()=>tip.style.display="none";
 function hover(node,fn){node.addEventListener("mousemove",e=>showTip(e,fn()));node.addEventListener("mouseleave",hideTip)}
-const partTip=p=>`<b>${esc(p.l)}</b> <span class="k">${esc(p.k)}</span><br>Polish ${p.s??"not assessed"} · ${fmt(p.loc)} lines · ${p.est?"about ":""}${fmt(p.t)} test lines<br>${p.c90} commits in 90 days, ${p.c30} in 30${p.last?" · last change "+p.last:""}<br><span class="k">${esc(p.r)}</span>`;
+const partTip=p=>`<b>${esc(p.l)}</b> <span class="k">${esc(p.k)}</span><br>Polish ${esc(p.s??"not assessed")} · ${esc(fmt(p.loc))} lines · ${p.est?"about ":""}${esc(fmt(p.t))} test lines<br>${esc(p.c90)} commits in 90 days, ${esc(p.c30)} in 30${p.last?" · last change "+esc(p.last):""}<br><span class="k">${esc(p.r)}</span>`;
 
 // ---------- header ----------
 (function(){
  const s=D.stats,last3=D.monthly.slice(-3),n3=last3.reduce((a,m)=>a+m.n,0),f3=last3.reduce((a,m)=>a+m.f,0);
- const tiles=[[fmt(s.loc),"lines of code, tests excluded"],[s.wavg.toFixed(1)+" / 5","average polish, weighted by size"],[D.parts.filter(p=>p.s!=null&&p.s<3).length+" of "+D.parts.length,"areas in the size chart score below 3"],[n3.toLocaleString(),"commits in the last 3 months"],[Math.round(100*f3/n3)+"%","of those by the top author"]];
+ const tiles=[[fmt(s.loc),"lines of code, tests excluded"],[s.wavg.toFixed(1)+" / 5","average polish, weighted by size"],[D.parts.filter(p=>p.s!=null&&p.s<3).length+" of "+D.parts.length,"areas in the size chart score below 3"],[n3.toLocaleString(),"commits in the last 3 months"],[n3?Math.round(100*f3/n3)+"%":"–","of those by the top author"]];
  $("#tiles").append(...tiles.map(t=>h("div",`<b>${t[0]}</b><span>${t[1]}</span>`,"card tile")));
  $("#find").append(...(D.hand.findings||[]).map((f,i)=>h("div",`<h3><span class="num">${i+1}</span>${esc(f.h)}</h3><p>${esc(f.p)}</p>`,"card")));
  $("#trace").append(...(D.hand.trace||[]).map(t=>h("div",`<b>${esc(t.t)}</b><span>${esc(t.x)}</span>`)));
  $("#lg1").innerHTML=MODES.s.lg()+" · dashed outline: outside the repo";
 })();
 
-$("#lowtbl").innerHTML="<tr><th>Polish</th><th>What</th><th>Why it scores low</th><th>Where</th></tr>"+(D.hand.lowest||[]).map(l=>{const c=polC(l.s);return `<tr><td><span class="pill" style="background:${rgb(c)};color:${ink(c)}">${l.s}</span></td><td style="white-space:nowrap"><b>${esc(l.n)}</b></td><td style="color:var(--mut)">${esc(l.x)}</td><td class="note" style="white-space:nowrap">${/your focus/.test(l.w)?esc(l.w.replace(", your focus",""))+'<span class="fx">your focus</span>':esc(l.w)}</td></tr>`}).join("");
+$("#lowtbl").innerHTML="<tr><th>Polish</th><th>What</th><th>Why it scores low</th><th>Where</th></tr>"+(D.hand.lowest||[]).map(l=>{const c=polC(l.s);return `<tr><td><span class="pill" style="background:${rgb(c)};color:${ink(c)}">${esc(l.s)}</span></td><td style="white-space:nowrap"><b>${esc(l.n)}</b></td><td style="color:var(--mut)">${esc(l.x)}</td><td class="note" style="white-space:nowrap">${/your focus/.test(l.w)?esc(l.w.replace(", your focus",""))+'<span class="fx">your focus</span>':esc(l.w)}</td></tr>`}).join("");
 $("#glosstbl").innerHTML=(D.hand.glossary||[]).map(g=>`<tr><td style="white-space:nowrap;vertical-align:top"><b>${esc(g[0])}</b></td><td style="color:var(--mut)">${esc(g[1])}</td></tr>`).join("");
 
 // ---------- architecture ----------
@@ -346,16 +346,16 @@ $("#tmlow").innerHTML="<b>Scoring below 3 here:</b> "+D.parts.filter(p=>p.s!=nul
 
 // ---------- scatter ----------
 (function(){const svg=$("#sc"),W=1140,H=600,L=52,R=150,T=18,B=44;svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
- const ps=D.parts.filter(p=>p.s!=null),xs=v=>L+(W-L-R)*Math.log10(1+v)/Math.log10(520),ys=s=>T+(H-T-B)*(1-(s-1.6)/3.1);
+ const ps=D.parts.filter(p=>p.s!=null),xs=v=>L+(W-L-R)*Math.log10(1+v)/Math.log10(520),YP=30,ys=s=>T+YP+(H-T-B-2*YP)*(1-(s-1)/4);
  el("rect",{x:L,y:ys(3.25),width:xs(16)-L,height:H-B-ys(3.25),fill:css("--focus"),"fill-opacity":.08,rx:6},svg);
  const q=el("text",{x:L+10,y:H-B-10,"font-size":12,"font-weight":700,fill:css("--focus")},svg);q.textContent="Score 3 or lower, 15 commits or fewer";
- [2,2.5,3,3.5,4].forEach(s=>{el("line",{x1:L,x2:W-R,y1:ys(s),y2:ys(s),stroke:css("--line")},svg);const t=el("text",{x:L-8,y:ys(s)+4,"font-size":11.5,"text-anchor":"end",fill:css("--mut")},svg);t.textContent=s});
+ [1,2,3,4,5].forEach(s=>{el("line",{x1:L,x2:W-R,y1:ys(s),y2:ys(s),stroke:css("--line")},svg);const t=el("text",{x:L-8,y:ys(s)+4,"font-size":11.5,"text-anchor":"end",fill:css("--mut")},svg);t.textContent=s});
  [0,3,10,30,100,300].forEach(v=>{el("line",{x1:xs(v),x2:xs(v),y1:T,y2:H-B,stroke:css("--line")},svg);const t=el("text",{x:xs(v),y:H-B+16,"font-size":11.5,"text-anchor":"middle",fill:css("--mut")},svg);t.textContent=v});
  const a=el("text",{x:(L+W-R)/2,y:H-8,"font-size":12,"text-anchor":"middle",fill:css("--mut")},svg);a.textContent="Commits in the last 90 days (compressed scale, 0 at the left edge)";
  const b=el("text",{x:14,y:(T+H-B)/2,"font-size":12,"text-anchor":"middle",fill:css("--mut"),transform:`rotate(-90 14 ${(T+H-B)/2})`},svg);b.textContent="Polish score";
  const circ=[],labs=[],gC=el("g",{},svg),gL=el("g",{},svg);
  ps.sort((x,y)=>y.loc-x.loc).forEach(p=>{const r=Math.max(4.5,Math.min(46,Math.sqrt(p.loc)/9)),cx=xs(p.c90);let cy=ys(p.s);
-  for(let k=1;k<40&&circ.some(o=>Math.hypot(o.x-cx,o.y-cy)<o.r+r+1.5);k++)cy=ys(p.s)+(k%2?-1:1)*Math.ceil(k/2)*5;
+  for(let k=1;k<40&&circ.some(o=>Math.hypot(o.x-cx,o.y-cy)<o.r+r+1.5);k++)cy=Math.max(T+r,Math.min(H-B-r,ys(p.s)+(k%2?-1:1)*Math.ceil(k/2)*5));
   circ.push({x:cx,y:cy,r,p});const g=el("g",{},gC);el("circle",{cx,cy,r,fill:rgb(polC(p.s)),"fill-opacity":.88,stroke:FOCUS.has(p.k)?css("--focus"):css("--card"),"stroke-width":FOCUS.has(p.k)?3:1},g);hover(g,()=>partTip(p))});
  const want=p=>FOCUS.has(p.k)||p.s<3||p.loc>13000||(p.s<=3&&p.c90<=14&&p.loc>900);
  circ.filter(o=>want(o.p)).sort((a,b)=>(FOCUS.has(b.p.k)-FOCUS.has(a.p.k))||b.r-a.r).forEach(o=>{const w=o.p.l.length*6.1+4,cands=[[o.x+o.r+4,o.y+4],[o.x-o.r-4-w,o.y+4],[o.x-w/2,o.y-o.r-5],[o.x-w/2,o.y+o.r+13],[o.x+o.r+4,o.y-9],[o.x+o.r+4,o.y+16],[o.x-o.r-4-w,o.y-9],[o.x-o.r-4-w,o.y+16],[o.x-w/2,o.y-o.r-17],[o.x-w/2,o.y+o.r+25]];
@@ -369,7 +369,7 @@ $("#tmlow").innerHTML="<b>Scoring below 3 here:</b> "+D.parts.filter(p=>p.s!=nul
 
 // ---------- inventory ----------
 (function(){const box=$("#devs"),kinds=[...new Set((D.devices||[]).map(d=>d.kind))];kinds.forEach(k=>{box.append(h("h3",esc(k.charAt(0).toUpperCase()+k.slice(1))));
- box.append(...D.devices.filter(d=>d.kind===k).sort((a,b)=>b.score-a.score).map(d=>{const c=polC(d.score);return h("div",`<span class="pill" style="background:${rgb(c)};color:${ink(c)}">${d.score}</span><div><b>${esc(d.label)}</b> <small style="white-space:nowrap">${d.lastChange?"· "+esc(String(d.lastChange).slice(0,10)):""}</small></div><p>${esc(d.reason)}</p>`,"card")}))})})();
+ box.append(...D.devices.filter(d=>d.kind===k).sort((a,b)=>b.score-a.score).map(d=>{const c=polC(d.score);return h("div",`<span class="pill" style="background:${rgb(c)};color:${ink(c)}">${esc(d.score)}</span><div><b>${esc(d.label)}</b> <small style="white-space:nowrap">${d.lastChange?"· "+esc(String(d.lastChange).slice(0,10)):""}</small></div><p>${esc(d.reason)}</p>`,"card")}))})})();
 
 // ---------- timeline ----------
 const DAY=864e5,pd=d=>new Date(d.length===7?d+"-01":d).getTime(),lastM=D.monthly[D.monthly.length-1].m,TEND=pd(lastM)+31*DAY;
@@ -378,19 +378,19 @@ const DAY=864e5,pd=d=>new Date(d.length===7?d+"-01":d).getTime(),lastM=D.monthly
  const EC=["#8d99ae","#6c8ead","#5a9a8b","#c08a3e","#b0627a","#7c3aed","#0b4f8a"];
  D.eras.forEach((e,i)=>{const x=tx(e.a),x2=tx(e.b);el("rect",{x,y:8,width:Math.max(2,x2-x-2),height:22,rx:5,fill:EC[i%7],"fill-opacity":.9},svg);
   const nm=e.s||e.n;if(x2-x>nm.length*6.2+8){const t=el("text",{x:x+6,y:23,"font-size":11.5,"font-weight":700,fill:"#fff"},svg);t.textContent=nm}
-  const g=el("rect",{x,y:8,width:Math.max(2,x2-x-2),height:H-B-8,fill:"transparent"},svg);hover(g,()=>`<b>${esc(e.n)}</b><br>${e.a} to ${e.b}<br><span class="k">${esc(e.x)}</span>`)});
+  const g=el("rect",{x,y:8,width:Math.max(2,x2-x-2),height:H-B-8,fill:"transparent"},svg);hover(g,()=>`<b>${esc(e.n)}</b><br>${esc(e.a)} to ${esc(e.b)}<br><span class="k">${esc(e.x)}</span>`)});
  const lab=el("text",{x:L,y:48,"font-size":11,fill:css("--mut")},svg);lab.textContent=`The project in ${D.eras.length} eras. Hover an era for details.`;
  const step=mx>2500?1000:mx>800?500:mx>250?100:50;for(let n=step;n<mx;n+=step){const y=H-B-yh(n);el("line",{x1:L,x2:W-R,y1:y,y2:y,stroke:css("--line")},svg);const t=el("text",{x:L-6,y:y+4,"font-size":10.5,"text-anchor":"end",fill:css("--mut")},svg);t.textContent=n>=1000?n/1000+"k":n}
  const bw=(W-L-R)/Math.max(1,Math.round((t1-t0)/(30.44*DAY)))-2;
  D.monthly.forEach(m=>{const x=tx(m.m)+1,g=el("g",{},svg);el("rect",{x,y:H-B-yh(m.n),width:bw,height:yh(m.n-m.f),fill:css("--mut"),"fill-opacity":.45},g);el("rect",{x,y:H-B-yh(m.f),width:bw,height:yh(m.f),fill:css("--acc")},g);
   el("rect",{x,y:T,width:bw,height:H-B-T,fill:"transparent"},g);hover(g,()=>`<b>${m.m}</b><br>${m.n} commits<br>${m.f} by ${esc(P.topAuthor||"the top author")}`)});
  for(let y=new Date(t0).getUTCFullYear();y<=new Date(t1).getUTCFullYear();y++){const x=tx(y+"-01-01");if(pd(y+"-01-01")>t1)break;if(x>L){el("line",{x1:x,x2:x,y1:T-6,y2:H-B+4,stroke:css("--mut"),"stroke-dasharray":"2 3"},svg)}const t=el("text",{x:Math.max(L,x)+4,y:H-10,"font-size":12,"font-weight":700,fill:css("--mut")},svg);t.textContent=y}
- (D.rels||[]).forEach(r=>{const x=tx(r.d),g=el("g",{},svg);el("line",{x1:x,x2:x,y1:T-4,y2:T+12,stroke:"#0f9a8c","stroke-width":2.5},g);hover(g,()=>`<b>Release ${esc(r.v)}</b> · ${r.d}<br><span class="k">${(r.h||[]).map(esc).join("<br>")}</span>`)});
+ (D.rels||[]).forEach(r=>{const x=tx(r.d),g=el("g",{},svg);el("line",{x1:x,x2:x,y1:T-4,y2:T+12,stroke:"#0f9a8c","stroke-width":2.5},g);hover(g,()=>`<b>Release ${esc(r.v)}</b> · ${esc(r.d)}<br><span class="k">${(r.h||[]).map(esc).join("<br>")}</span>`)});
  {const jm=D.monthly.reduce((a,m)=>m.n>a.n?m:a),t=el("text",{x:tx(jm.m)-6,y:H-B-yh(jm.n)+12,"font-size":11,"text-anchor":"end",fill:css("--mut")},svg);t.textContent=jm.n.toLocaleString()+" in "+jm.m;
   let lx=L+8;[[css("--acc"),P.topAuthor||"Top author"],[css("--mut"),"Everyone else",.45]].concat((D.rels||[]).length?[["#0f9a8c","Release"]]:[]).forEach(([c,n,o])=>{el("rect",{x:lx,y:T+8,width:11,height:11,rx:2,fill:c,"fill-opacity":o||1},svg);const t=el("text",{x:lx+16,y:T+18,"font-size":11.5,fill:css("--ink")},svg);t.textContent=n;lx+=n.length*6.6+38})}
  if(P.marker){const fk=tx(P.marker.date);el("line",{x1:fk,x2:fk,y1:34,y2:H-B,stroke:css("--focus"),"stroke-width":1.5},svg);const ft=el("text",{x:fk-6,y:T+2,"font-size":11.5,"font-weight":700,"text-anchor":"end",fill:css("--focus")},svg);ft.textContent=P.marker.label}
  const box=$("#eras");D.eras.slice().reverse().forEach((e,i)=>{const ms=D.miles.filter(m=>m.d>=e.a&&m.d<=e.b);if(!ms.length)return;
-  const d=h("details",`<summary>${esc(e.n)} <small>${e.a.slice(0,7)} to ${pd(e.b)>=pd(lastM)?"today":e.b.slice(0,7)} · ${ms.length} milestones</small></summary><p class="note" style="margin:6px 0 8px">${esc(e.x)}</p>`+ms.slice().reverse().map(m=>`<div class="ms"><time>${m.d}</time><span class="ty ${m.y}">${m.y}</span><div><b>${esc(m.t)}</b>${m.i?' <span class="note">(inferred)</span>':""}<p>${esc(m.x)}</p></div></div>`).join(""));if(i<2)d.open=true;box.append(d)});
+  const d=h("details",`<summary>${esc(e.n)} <small>${esc(e.a.slice(0,7))} to ${pd(e.b)>=pd(lastM)?"today":esc(e.b.slice(0,7))} · ${ms.length} milestones</small></summary><p class="note" style="margin:6px 0 8px">${esc(e.x)}</p>`+ms.slice().reverse().map(m=>`<div class="ms"><time>${esc(m.d)}</time><span class="ty ${esc(m.y)}">${esc(m.y)}</span><div><b>${esc(m.t)}</b>${m.i?' <span class="note">(inferred)</span>':""}<p>${esc(m.x)}</p></div></div>`).join(""));if(i<2)d.open=true;box.append(d)});
 })();
 
 // ---------- recent months, in lanes ----------
@@ -408,17 +408,17 @@ const DAY=864e5,pd=d=>new Date(d.length===7?d+"-01":d).getTime(),lastM=D.monthly
   items.forEach(m=>{const x=tx(m.d),g=el("g",{},svg),lab=short(m.t),w=lab.length*6.5+10;let r=ends.findIndex(e=>e<x-3);
    el("circle",{cx:x,cy,r:4.5,fill:col[ty],stroke:css("--card"),"stroke-width":1},g);
    if(r>=0&&x+w<W-4){ends[r]=x+w;const ly=cy+17+r*13;el("line",{x1:x,x2:x,y1:cy+4,y2:ly-3,stroke:col[ty],"stroke-opacity":.8},g);const tt=el("text",{x:x+4,y:ly,"font-size":10.8,fill:css("--ink")},g);tt.textContent=lab}
-   hover(g,()=>`<b>${esc(m.t)}</b> · ${m.d}<br><span class="k">${esc(m.x)}</span>`)});
+   hover(g,()=>`<b>${esc(m.t)}</b> · ${esc(m.d)}<br><span class="k">${esc(m.x)}</span>`)});
   y+=h0});
 })();
 
 // ---------- focus + creative ----------
-$("#focus").append(...(D.hand.focus||[]).map(f=>{const p=D.parts.find(x=>x.k===f.k)||{},c=polC(p.s);return h("div",`<div class="meta"><span class="pill" style="background:${rgb(c)};color:${ink(c)}">${p.s??"–"}</span><span>${fmt(p.loc||0)} lines</span><span>${p.c90||0} commits in 90 days</span><span>last change ${p.last||""}</span></div><h3 style="font-size:18px">${esc(f.n)}</h3><blockquote>${esc(f.said)}</blockquote><ul>${f.found.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`,"card")}));
-$("#creative").append(...(D.hand.creative||[]).map(c=>h("div",`<div><h3>${esc(c.n)}</h3><small><i>${esc(c.said)}</i></small></div><div><small>What exists today</small>${esc(c.today)}</div><div><span class="verd ${c.tone}">${esc(c.verdict)}</span><small style="margin-top:6px">${esc(c.size)}</small></div>`,"card")));
+$("#focus").append(...(D.hand.focus||[]).map(f=>{const p=D.parts.find(x=>x.k===f.k)||{},c=polC(p.s);return h("div",`<div class="meta"><span class="pill" style="background:${rgb(c)};color:${ink(c)}">${esc(p.s??"–")}</span><span>${fmt(p.loc||0)} lines</span><span>${esc(p.c90||0)} commits in 90 days</span><span>last change ${esc(p.last||"")}</span></div><h3 style="font-size:18px">${esc(f.n)}</h3><blockquote>${esc(f.said)}</blockquote><ul>${f.found.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`,"card")}));
+$("#creative").append(...(D.hand.creative||[]).map(c=>h("div",`<div><h3>${esc(c.n)}</h3><small><i>${esc(c.said)}</i></small></div><div><small>What exists today</small>${esc(c.today)}</div><div><span class="verd ${esc(c.tone)}">${esc(c.verdict)}</span><small style="margin-top:6px">${esc(c.size)}</small></div>`,"card")));
 
 // ---------- top 50 ----------
 function opps(id,list){const box=$(id);if(!list.length){box.innerHTML='<p class="note">Being verified.</p>';return}
- box.append(...list.map(o=>h("div",`<div class="r">${o.rank}</div><div><h3>${esc(o.title)}${o.focus?'<span class="fx">your focus</span>':""}</h3><p>${esc(o.why)}</p><div class="meta"><span class="tag hi">${esc(o.area)}</span>${o.effort?`<span class="tag">${esc(o.effort)}</span>`:""}<span class="tag">impact ${esc(o.impact)}</span>${o.verified==="inferred"?'<span class="tag">not confirmable from code alone</span>':""}</div><code title="${(o.files||[]).map(esc).join("\n")}">${(o.files||[]).slice(0,3).map(f=>esc(f.split("/").filter((x,i,a)=>i===0||i>=a.length-2).filter((x,i,a)=>a.indexOf(x)===i).join("/"))).join(" · ")}</code></div>`,"opp")))}
+ box.append(...list.map(o=>h("div",`<div class="r">${esc(o.rank)}</div><div><h3>${esc(o.title)}${o.focus?'<span class="fx">your focus</span>':""}</h3><p>${esc(o.why)}</p><div class="meta"><span class="tag hi">${esc(o.area)}</span>${o.effort?`<span class="tag">${esc(o.effort)}</span>`:""}<span class="tag">impact ${esc(o.impact)}</span>${o.verified==="inferred"?'<span class="tag">not confirmable from code alone</span>':""}</div><code title="${(o.files||[]).map(esc).join("\n")}">${(o.files||[]).slice(0,3).map(f=>esc(f.split("/").filter((x,i,a)=>i===0||i>=a.length-2).filter((x,i,a)=>a.indexOf(x)===i).join("/"))).join(" · ")}</code></div>`,"opp")))}
 opps("#low",D.top.low);opps("#high",D.top.high);
 
 // ---------- page text, optional sections ----------
