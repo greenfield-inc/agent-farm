@@ -76,7 +76,7 @@ For each page marked NEEDS WORK or MINOR ISSUES:
 - Preserve all technical content and accuracy (same information, better language)
 - Replace jargon with plain language or add immediate context
 - Split tangled sentences, and vary sentence length
-- Switch passive voice to active ("Pane does X" not "X is done by Pane")
+- Switch passive voice to active ("The app does X" not "X is done by the app")
 - Use numbered steps for any workflow descriptions
 - Name the pain: describe the problem the feature solves, not the feature abstractly
 
@@ -99,7 +99,7 @@ For each page ask: "Would someone who has never heard of this product understand
 
 Flag every term or concept that a first-timer would need explained:
 - Technical terms (daemon, worktree, CLI, SSH, etc.)
-- Product-specific terms (pane, panel, orchestrator, etc.)
+- Product-specific terms (workspace, panel, orchestrator, etc.)
 - Multi-word concepts (worktree isolation, agent loop, agent-agnostic, etc.)
 - Industry terms that sound obvious to insiders but aren't
 

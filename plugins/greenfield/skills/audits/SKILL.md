@@ -53,7 +53,7 @@ in CRITERIA.md:
 4. `plugin.yaml` / profile graph when this is an Agent Farm plugin source
 
 State overrides explicitly in the report. Do not apply another project's
-patterns (Pane contract paths, Express-era architecture, a specific agent
+patterns (another app's contract paths, Express-era architecture, a specific agent
 brand) unless those files exist here.
 
 ## Step 3: Audit the requested surfaces

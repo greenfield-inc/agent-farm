@@ -123,7 +123,7 @@ function launcher(t,{harnesses=['claude','codex']}={}){
  for(const dir of [path.join(home,'.codex'),bin])fs.mkdirSync(dir,{recursive:true});
  for(const harness of harnesses)writeHarness(bin,harness,`require('fs').writeFileSync(${JSON.stringify(record)},${JSON.stringify(harness)});\n`);
  const env={...process.env,HOME:home,USERPROFILE:home,PATH:bin,AGENT_FARM_TELEMETRY:'off'};
- for(const key of ['CODEX_HOME','AGENT_FARM_NATIVE_CODEX_HOME','CLAUDE_CONFIG_DIR','PANE_PANEL_ID'])delete env[key];
+ for(const key of ['CODEX_HOME','AGENT_FARM_NATIVE_CODEX_HOME','CLAUDE_CONFIG_DIR','PANE_PANEL_ID','AGENT_FARM_REPORT_SESSION_ID'])delete env[key];
  const args=(profile,extra=[])=>[cli,'run',profile,'--config-root',f.root,'--directory',f.target,'--no-workspace',...extra];
  const launched=()=>fs.existsSync(record)?fs.readFileSync(record,'utf8'):undefined;
  const invoke=(profile,extra)=>{fs.rmSync(record,{force:true});const result=spawnSync(process.execPath,args(profile,extra),{encoding:'utf8',env});return {...result,launched:launched()};};

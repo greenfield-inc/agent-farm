@@ -151,12 +151,12 @@ test('the plugin names no destination service: no Greenfield instruction names G
  for(const folder of ['agents','skills','profiles','instructions'])for(const file of walk(path.join(root,folder)))assert.doesNotMatch(fs.readFileSync(file,'utf8'),/grain/i,path.relative(root,file));
  const publishing=fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8').split(/\n\s*\n/).find(p=>p.startsWith('**Publishing.**'));
  assert.ok(publishing,'the Publishing paragraph');
- for(const rule of ['one private artifact in the Session folder','never share it','In Pane, the Overview tab shows the local copy, so open the published page only when the person asks for it (`runpane panels open --url <its URL> --source agent`)','Elsewhere, publish first, then open the published URL beside the person','never open the local copy in its place before a publish has been tried','"Publishing the Session\'s pages to <destination> failed: <reason>; showing the local copy."','record the failure in the ledger\'s `session.artifact.publish_error`, and retry at each refresh','check the ledger\'s `session.artifact.url` and look the artifact up in the destination','never leaves a second artifact','outside Pane, open the published URL and record it as `session.artifact.opened_url`, so every later refresh reuses that tab','the first time it fails rather than at every failed retry','open the local copy as a `file://` URL and say so','Never ask the person to set up the destination service'])assert.ok(publishing.replace(/\s+/g,' ').includes(rule),rule);
+ for(const rule of ['one private artifact in the Session folder','never share it','When the host shows the local status page itself, open the published page only when the person asks for it','Otherwise publish first, then open the published URL beside the person','never open the local copy in its place before a publish has been tried','"Publishing the Session\'s pages to <destination> failed: <reason>; showing the local copy."','record the failure in the ledger\'s `session.artifact.publish_error`, and retry at each refresh','check the ledger\'s `session.artifact.url` and look the artifact up in the destination','never leaves a second artifact','open the published URL and record it as `session.artifact.opened_url`, so every later refresh reuses that tab','the first time it fails rather than at every failed retry','open the local copy as a `file://` URL and say so','Never ask the person to set up the destination service'])assert.ok(publishing.replace(/\s+/g,' ').includes(rule),rule);
 });
 
-test('the orchestrator routes planner, implementer and end-of-workstream reviewer through Pane, with safe cleanup',()=>{
+test('the orchestrator routes planner, implementer and end-of-workstream reviewer through the host\'s workspaces, with safe cleanup',()=>{
  const skill=fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8');
- for(const text of ['runpane panes create','greenfield/planner','greenfield/implementer','greenfield/reviewer:codex','one `COMMENT` review, no fixes','agent-farm inspect greenfield/<profile> --directory <repo>'])assert.ok(skill.includes(text),text);
+ for(const text of ['the host\'s own workspace-create and agent-launch commands','greenfield/planner','greenfield/implementer','greenfield/reviewer:codex','one `COMMENT` review, no fixes','agent-farm inspect greenfield/<profile> --directory <repo>'])assert.ok(skill.includes(text),text);
  assert.deepEqual(Object.keys(resolveProfile(root,'orchestrator').nodes.main.children),['advisor']);
 });
 
@@ -171,7 +171,7 @@ test('orchestrated reviewers post one COMMENT review and apply no fixes, and orc
   for(const rule of ['reconciled findings to that file','post exactly one review','event `COMMENT` (never approve or request changes)','Apply no fixes','checks only the findings it was sent and the lines that fix round changed'])assert.ok(instructions.includes(rule),`${profile}: ${rule}`);
  }
  const skill=flat(fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8'));
- for(const rule of ['no agent in it is working','1 feature = 1 worktree = 1 branch = 1 Pane','panels create --pane <feature Pane id>','--wait-ready --yes --json','agent-farm run greenfield/<role>:<variant>','Always name the variant','`greenfield/implementer:opus`','whether it explicitly grants conversation capture','a personal fallback workspace grants nothing'])assert.ok(skill.includes(rule),rule);
+ for(const rule of ['no agent in it is working','1 feature = 1 worktree = 1 branch = 1 workspace','launch every later worker for that feature as a new agent in the same workspace','agent-farm run greenfield/<role>:<variant>','Always name the variant','`greenfield/implementer:opus`','whether it explicitly grants conversation capture','a personal fallback workspace grants nothing'])assert.ok(skill.includes(rule),rule);
  assert.doesNotMatch(skill,/\[:variant\]/);
  const trace=flat(fs.readFileSync(path.join(root,'skills/session-trace/SKILL.md'),'utf8'));
  for(const rule of ['Naming a document destination is not a grant','trace not authorized','--launch <ID>','`$CODEX_HOME` before `~/.codex`'])assert.ok(trace.includes(rule),rule);
@@ -359,43 +359,42 @@ const includesAll=(files,rules)=>{for(const file of files){const text=flatText(f
 
 test('workers raise numbered needs_you blocks, standalone workers ask in the same shape, and both orchestrators relay them',()=>{
  const rules=flatText('instructions/standing-rules.md');
- for(const rule of ['## Questions for the person','"needs_you": null','"needs_you": { "id": "Q-3", "kind": "question | choice | approval | fyi"','"files": [','"blocking": true','`answer: Q-n → <answer>. Recorded as D-n.`','`clarify: Q-n → <their question>` is not an answer: keep Q-n open','(`AskUserQuestion`)','wherever there is no question tool, a numbered list (`Files: <paths>`','`Why: <why>`','recommended one first and marked `(recommended)`','Q-n are unique per Session and never reused','is written with `"id": null` and `"asked": "notify"`','A `waiting` result is never a reason to relay','`recorded: Q-n → <answer>. Recorded as D-n.` to your tab only','When `notify` returns `unavailable`, set `asked` to `"relay"`','every non-blocking question, which never becomes a card','**In a Pane Session, the one blocked report is the card.**','Write the block with `"asked": "relay"` and its Q-n (the one the orchestrator assigned, else the next free one), then send one blocked report that passes your status file','Pass the title as a literal argument: through an argv API','in single quotes with each `\'` inside it escaped for that shell: `\'\\\'\'` in a POSIX shell (sh, bash, zsh), `\'\'` in PowerShell','Never put it inside double quotes or unquoted','`runpane report --state blocked --question \'Q-n: <the block\'s title>\' --summary-file <your status file>`','`runpane report --state blocked --question \'Q-3: Use the invoice id or number in the PDF filename?\' --summary-file /abs/session/.agent/status/implementer.json`','**In Pane outside a Pane Session, a blocking question you ask yourself**'])assert.ok(rules.includes(rule),rule);
+ for(const rule of ['## Questions for the person','"needs_you": null','"needs_you": { "id": "Q-3", "kind": "question | choice | approval | fyi"','"files": [','"blocking": true','`answer: Q-n → <answer>. Recorded as D-n.`','`clarify: Q-n → <their question>` is not an answer: keep Q-n open','(`AskUserQuestion`)','wherever there is no question tool, a numbered list (`Files: <paths>`','`Why: <why>`','recommended one first and marked `(recommended)`','Q-n are unique per Session and never reused','write the block with `"id": null` and `"asked": "notify"`','A pending result is never a reason to relay','`recorded: Q-n → <answer>. Recorded as D-n.` to you only','When the host says asking is unavailable, set `asked` to `"relay"`','and for every non-blocking question','**When the host turns your blocked report into the person\'s question**','write the block with `"asked": "relay"` and its Q-n (the one the orchestrator assigned, else the next free one), send one blocked report the way the host says, and ask nothing a second way','Pass any question text to a shell command as a literal argument: through an argv API','in single quotes with each `\'` inside it escaped for that shell (`\'\\\'\'` in a POSIX shell, `\'\'` in PowerShell)','never inside double quotes or unquoted','**When the host lets a worker ask the person itself**'])assert.ok(rules.includes(rule),rule);
  assert.doesNotMatch(rules,/"question": null/);
  for(const profile of ['planner:claude','planner:codex','implementer:opus','implementer:astra','implementer:sol','implementer:codex','orchestrator:claude','orchestrator:codex'])assert.ok(resolveProfile(root,profile).nodes.main.instructions.includes('## Questions for the person'),profile);
- instructionsIncludeAll(COORDINATORS,['numbered `needs_you` blocks','labelled with its role and feature and with its files opened beside the person','send it to the asking tab only']);
+ instructionsIncludeAll(COORDINATORS,['numbered `needs_you` blocks','labelled with its role and feature and with its files opened beside the person','send it to the asking worker only']);
  includesAll(IMPLEMENTERS,['goes in that status file as a `needs_you` block; run by hand, ask the person directly in the same shape']);
  includesAll(['instructions/planner-identity.md'],['Raise each question for the person as a `needs_you`','record each `answer:` or `recorded:` line\'s D-n']);
- includesAll(['skills/orchestrate-sessions/SKILL.md'],['[references/relay.md](references/relay.md)','`[Needs you · <role> · <feature>]`','to the asking tab only']);
- includesAll(['skills/orchestrate-sessions/references/relay.md'],['newest blocking question first','open them without asking','Recorded as D-n.` Nobody else gets it','even when you can answer it yourself','Q-n stays open and nothing is recorded','(raised as Q-3)','Never relay it while its card is live','`recorded: Q-n → <answer>. Recorded as D-n.`','in any state other than `blocked` on two checks at least a minute apart','Never put the same question to the person a second way, and never through `AskUserQuestion`: relay that card with `runpane notify --relays <item>`','`runpane inbox ack <item> --decision <D-n>`']);
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['[references/relay.md](references/relay.md)','`[Needs you · <role> · <feature>]`','to the asking worker only']);
+ includesAll(['skills/orchestrate-sessions/references/relay.md'],['newest blocking question first','open them without asking','Recorded as D-n.` Nobody else gets it','even when you can answer it yourself','Q-n stays open and nothing is recorded','(raised as Q-3)','Never relay it while the host still holds it','`recorded: Q-n → <answer>. Recorded as D-n.`','in any state other than blocked on two checks at least a minute apart','never put the same question to the person a second way: relay that one with the host\'s relay command']);
 });
 
-test('no Greenfield skill or rule asks for a secret in chat: the host secret prompt in Pane, local setup confirmed without its value elsewhere (review F-1)',()=>{
- includesAll(['instructions/standing-rules.md'],['**Never ask for a secret** (an API key, token or password) in chat, a question tool, a card, a `needs_you` or a document','`secrets_request`, or `runpane secrets request`','confirm it is ready without sending its value','stop at that prerequisite and record only whether it is ready, never the value']);
+test('no Greenfield skill or rule asks for a secret in chat: the host secret prompt when the host has one, local setup confirmed without its value elsewhere (review F-1)',()=>{
+ includesAll(['instructions/standing-rules.md'],['**Never ask for a secret** (an API key, token or password) in chat, a question tool, a card, a `needs_you` or a document','When the host has a secret prompt, request it there','confirm it is ready without sending its value','stop at that prerequisite and record only whether it is ready, never the value']);
  includesAll(['skills/interview/SKILL.md'],['- **Never ask for a secret.**','record only whether it is ready']);
- includesAll(['skills/deep-dive/references/bright-data.md'],['never to paste it into the conversation','`secrets_request`','confirm it is ready without sending its value']);
+ includesAll(['skills/deep-dive/references/bright-data.md'],['never to paste it into the conversation','when the host has a secret prompt, request it there','confirm it is ready without sending its value']);
  for(const file of ['skills/interview/SKILL.md','skills/interview/references/question-format.md','instructions/planner-identity.md','instructions/standing-rules.md'])assert.doesNotMatch(flatText(file),/credentials as plain text|provide\/configure|pasting secrets/i,file);
  for(const profile of ['planner:claude','planner:codex'])assert.ok(resolveProfile(root,profile).nodes.main.instructions.includes('**Never ask for a secret**'),profile);
 });
 
-test('greenfield 0.0.53: in Pane, asking and relaying point to the pane skill; workers pass their status file so Pane gives each option a button; needs_you carries why and summary (J9)',()=>{
+test('greenfield 0.0.53: with a host question mechanism, asking and relaying follow the host\'s injected instructions; needs_you carries why and summary (J9)',()=>{
  assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.54$/m);
- const pointer='"Asking the person in Pane"';
  const rules=flatText('instructions/standing-rules.md');
- for(const rule of ['**In Pane, ask and relay the way the `pane` skill says**',pointer,'these rules never restate it','`runpane report --state blocked --question \'Q-n: <the block\'s title>\' --summary-file <your status file>`','`why` as the subtitle','one button per option of each question with the option ending ` (recommended)` marked','one line of at most 160 characters','A question without options gets no buttons, so give every question 2 to 4','first 2,000 characters of the file, so keep `needs_you` where the template puts it','"why": "Invoice PDFs are renamed on export','"summary": "/abs/bundle/options.html"','- `why`: why it matters, in one or two sentences of at most 240 characters; in Pane it becomes the card\'s subtitle','- `summary`: optional, the absolute path of an `.html` page','In Pane, the `pane` skill says which card to use. Elsewhere, on Claude, use the harness question tool (`AskUserQuestion`)'])assert.ok(rules.includes(rule),rule);
- // #205's ban on passing the status file is gone, and Pane's own card rules are not restated here.
- for(const stale of [/Never pass the status file/,/--summary '/,/--question "Q-n/,/80 to 100 characters/,/--took/,/--update/,/Pane refuses a title/])assert.doesNotMatch(rules,stale);
- includesAll(['skills/orchestrate-sessions/references/relay.md'],[pointer,'Relaying a worker\'s question in Pane always uses `runpane notify --relays <item>`, never `AskUserQuestion`','In Pane, the round is an approval card','Outside Pane, on Claude, put the questions through the harness question tool (`AskUserQuestion`)']);
- includesAll(['skills/orchestrate-sessions/SKILL.md'],['**In a Pane Session** (`PANE_ORCHESTRATION_SESSION_ID` is set), Pane\'s bundled `orchestrate-sessions` skill','adds only Greenfield\'s roles','Outside a Pane Session, follow this skill in full','relay it with `runpane notify --relays <item>`, never `AskUserQuestion`']);
- instructionsIncludeAll(['orchestrator:claude','orchestrator:codex'],['In Pane, ask and relay the way the `pane` skill says','Pane\'s bundled `orchestrate-sessions` runs the Session']);
+ for(const rule of ['**When the host has its own question mechanism**','its injected instructions decide which mechanism to use','these rules never restate them','"why": "Invoice PDFs are renamed on export','"summary": "/abs/bundle/options.html"','- `why`: why it matters, in one or two sentences of at most 240 characters','- `summary`: optional, the absolute path of an `.html` page','When the host has its own question mechanism, use it as its instructions say. Otherwise, on Claude, use the harness question tool (`AskUserQuestion`)'])assert.ok(rules.includes(rule),rule);
+ // #205's ban on passing the status file is gone, and host card rules are not restated here.
+ for(const stale of [/Never pass the status file/,/--summary '/,/--question "Q-n/,/80 to 100 characters/,/--took/,/--update/,/refuses a title/])assert.doesNotMatch(rules,stale);
+ includesAll(['skills/orchestrate-sessions/references/relay.md'],['When the host has its own way of asking the person, ask and relay the way its instructions say','When the host has its own question mechanism, put the round through it as its instructions say','Otherwise, on Claude, put the questions through the harness question tool (`AskUserQuestion`)']);
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['**When the host\'s injected instructions supply their own orchestration guide**, that guide runs the Session','adds only Greenfield\'s roles','On any other host, follow this skill in full','relay that one with the host\'s relay command and never ask it a second way']);
+ instructionsIncludeAll(['orchestrator:claude','orchestrator:codex'],['When the host has its own question mechanism, ask and relay the way its injected instructions say','that guide runs the Session and Greenfield\'s `orchestrate-sessions` adds only those']);
  // A profile cannot pick skills by host, so Greenfield's copy still ships for every other host.
  for(const profile of ['orchestrator:claude','orchestrator:codex'])assert.ok(resolveProfile(root,profile).nodes.main.skills.includes('orchestrate-sessions'),profile);
- includesAll(['skills/interview/SKILL.md'],['**In Pane, pick the card the way the `pane` skill says**',pointer,'an interview round whose answers go in the decision log is an approval card, never `AskUserQuestion`','a quick clarification that only steers your next step may use Claude\'s own card']);
- includesAll(['skills/interview/references/question-format.md'],['- **In Pane:**','- **Claude Code elsewhere:** `AskUserQuestion`']);
- includesAll(['README.md'],['--summary-file <status file>','relays that card with `runpane notify --relays <item>`','a profile cannot choose its skills by host']);
+ includesAll(['skills/interview/SKILL.md'],['**When the host has its own question mechanism, its injected instructions decide the card**','an interview round whose answers go in the decision log is the host\'s approval card, never `AskUserQuestion`','a quick clarification that only steers your next step may use Claude\'s own card']);
+ includesAll(['skills/interview/references/question-format.md'],['- **A host with its own question mechanism:**','- **Claude Code otherwise:** `AskUserQuestion`']);
+ includesAll(['README.md'],['When the host has its own question mechanism, agents ask and relay the way the host\'s injected instructions say','a profile cannot choose its skills by host']);
 });
 
-test('the map links Notify questions to the asking tab and shows each PR\'s validation and unreviewed commits, and the watcher is unchanged',()=>{
- includesAll(['skills/orchestrate-sessions/references/status-board.md'],['Never write the page\'s HTML by hand','give `id: null`, and the page shows it as "a new question"','`pane://open?pane=<pane id>&panel=<panel id>` of the tab that holds its card','the asking worker\'s for a question asked through Notify','Outside Pane, give no `link`','validation still pending, from the ledger\'s `validation`','"N commits since the last review at <sha>, not reviewed"','git rev-list --count <last reviewed head>..<PR head>','`<!-- greenfield-review head=<sha> -->` marker']);
+test('the map links self-asked questions to the asking worker and shows each PR\'s validation and unreviewed commits, and the watcher is unchanged',()=>{
+ includesAll(['skills/orchestrate-sessions/references/status-board.md'],['Never write the page\'s HTML by hand','give `id: null`, and the page shows it as "a new question"','`link` is the host\'s link to where it holds the question','the asking worker\'s for a question it asked itself through the host','When the host has no question queue, give no `link`','validation still pending, from the ledger\'s `validation`','"N commits since the last review at <sha>, not reviewed"','git rev-list --count <last reviewed head>..<PR head>','`<!-- greenfield-review head=<sha> -->` marker']);
  includesAll(['skills/orchestrate-sessions/references/ledger.md'],['"last_reviewed_head"']);
  instructionsIncludeAll(COORDINATORS,['relaying any `needs_you` a wake-up finds the same way as one an event brings']);
  const skill=fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8');
@@ -463,8 +462,8 @@ test('planned work always validates full and then reviews on its own; deferred a
  includesAll(['README.md'],['A planned feature\'s implementer always runs full validation (CI, QA) when its build is done','Quick fixes and tweaks run `deferred` by default']);
 });
 
-test('the status page is rendered to a fixed place, shows in Pane\'s Overview, every item has a front page, questions carry their context, and progress messages end with Next (P-1)',()=>{
- includesAll(['skills/orchestrate-sessions/references/status-board.md'],['Always write the local copy to `<Session folder>/session/index.html`','In Pane, the Session\'s Overview tab shows this page, so never open it as a separate tab there','names its page, `items/<id>.html`','An item moves here and is never removed','<meta http-equiv="refresh" content="60">','publish it first, then open it beside the person at the first dispatch','never a file to edit','the published URL when a destination resolves, and a `file://` URL only when none does or publishing failed','it is refreshed in the same tab, never opened in another','`session.artifact.opened_url`','open the same URL again so the host reuses its tab']);
+test('the status page is rendered to a fixed place, shows where the host puts it, every item has a front page, questions carry their context, and progress messages end with Next (P-1)',()=>{
+ includesAll(['skills/orchestrate-sessions/references/status-board.md'],['Always write the local copy to `<Session folder>/session/index.html`','When the host shows the local status page itself, never open it as a separate page there','names its page, `items/<id>.html`','An item moves here and is never removed','<meta http-equiv="refresh" content="60">','publish it first, then open it beside the person at the first dispatch','never a file to edit','the published URL when a destination resolves, and a `file://` URL only when none does or publishing failed','it is refreshed in the same tab, never opened in another','`session.artifact.opened_url`','open the same URL again so the host reuses its tab']);
  assert.doesNotMatch(fs.readFileSync(path.join(root,'skills/orchestrate-sessions/references/status-board.md'),'utf8'),/^Lanes /m);
  includesAll(['skills/orchestrate-sessions/references/ledger.md'],['"next":','"front_page":']);
  includesAll(['skills/orchestrate-sessions/references/item-hub.md'],['Every work item\'s front page','quick fix','Never hand-write it','link only files that exist','Plan or Task','Pull request','Trace, Post-mortem','"Not recorded"']);
@@ -475,20 +474,20 @@ test('the status page is rendered to a fixed place, shows in Pane\'s Overview, e
  includesAll(['skills/orchestrate-sessions/references/relay.md'],['Context: <where the context lives>','The status pages never show a question\'s wording']);
  assert.doesNotMatch(flatText('skills/orchestrate-sessions/references/relay.md'),/Needs you row/);
  instructionsIncludeAll(COORDINATORS,['end every progress message to the person with "Next: …"','open the published URL beside the person at the first dispatch']);
- includesAll(['instructions/standing-rules.md'],['An orchestrator opens four things beside the person without asking first','the Session\'s status page outside Pane (at the first dispatch, then refreshed in the same tab; in Pane it shows in the Session\'s Overview tab)','except that a worker opens the files of a question it asks through Notify']);
+ includesAll(['instructions/standing-rules.md'],['An orchestrator opens four things beside the person without asking first','the Session\'s status page (at the first dispatch, then refreshed in the same tab; not when the host already shows it)','except that a worker opens the files of a question it asks the person itself through the host']);
 });
 
 test('the Session artifact has one home in the destination\'s sessions folder, reaches both orchestrators and names no product, and without a destination stays local with one notice (P-2)',()=>{
  const skill=flatText('skills/orchestrate-sessions/SKILL.md');
  for(const rule of ['in the Session\'s folder in the document destination','Use the Session folder rule the workspace instructions give','When they give none, use `sessions/<host Session name>`, for example `sessions/Agent Farm`','if that folder already holds another Session\'s status page, use `sessions/<host Session name> · <short id>`','`sessions/Agent Farm · 55e40e55`','the first 8 hexadecimal characters of the UUID in the host\'s stable Session id','never from the UI selection','Settle the folder once, before the first dispatch, record it in the ledger, and pass it to every worker','Settle the Session folder before the first dispatch and pass that exact folder to every worker with the destination','plus the first 8 characters of an id you generate once and record in the ledger','update that same artifact on every later publish for the life of the Session','published under an older name, keep updating it at its URL and create no second one','Opening the Session artifact shows the status page first','one notice line per Session','Never ask the person to set up a document service'])assert.ok(skill.includes(rule),rule);
  assert.ok(!skill.includes('The workspace instructions supply only the organization or folder root'),'the folder-root sentence is gone');
- for(const rule of ['publish the Session\'s pages there instead of keeping them as local files, even when the host says to keep documents local, as Pane\'s Session "Plans and documents" does','The local files are the working copy','Fall back to local files only when no destination is named, or while publishing fails'])assert.ok(skill.includes(rule),rule);
+ for(const rule of ['publish the Session\'s pages there instead of keeping them as local files, even when the host says to keep documents local','The local files are the working copy','Fall back to local files only when no destination is named, or while publishing fails'])assert.ok(skill.includes(rule),rule);
  for(const file of ['skills/orchestrate-sessions/SKILL.md','skills/orchestrate-sessions/references/ledger.md','README.md'])assert.ok(!flatText(file).includes('<first 8 characters of the'),`${file}: the old folder rule`);
  const workspace=fs.readFileSync(path.join(root,'../../.agent-farm/workspace.yaml'),'utf8').replace(/\s+/g,' ');
  for(const rule of ['"sessions/<session-name>"','if that folder already holds another Session\'s status page, use "sessions/<session-name> · <short ID>", where the short ID is the first 8 hex characters of the UUID in the Session\'s stable id'])assert.ok(workspace.includes(rule),`.agent-farm/workspace.yaml: ${rule}`);
- instructionsIncludeAll(['orchestrator:claude','orchestrator:codex'],['rewrite it after every ledger write, and publish it to the document destination after each write','elsewhere you open the published URL beside the person at the first dispatch','Documents follow the document destination, not the host: when the workspace instructions name a file, artifact or bundle destination, publish there instead of keeping local files, even when the host says to keep documents local, and fall back to local files only when nothing else is available.']);
- includesAll(['skills/orchestrate-sessions/references/status-board.md'],['also publish them after every rewrite','Outside Pane, publish it first, then open it beside the person at the first dispatch','the published URL when a destination resolves, and a `file://` URL only when none does or publishing failed','publish it again, then open the same URL again so the host reuses its tab']);
- for(const rule of ['In Pane, the Overview tab shows the local copy, so open the published page only when the person asks for it','Elsewhere, publish first, then open the published URL beside the person','never open the local copy in its place before a publish has been tried','`session.artifact.publish_error`','so a failed or uncertain attempt never leaves a second artifact'])assert.ok(skill.includes(rule),rule);
+ instructionsIncludeAll(['orchestrator:claude','orchestrator:codex'],['rewrite it after every ledger write, and publish it to the document destination after each write','otherwise open the published URL beside the person at the first dispatch','Documents follow the document destination, not the host: when the workspace instructions name a file, artifact or bundle destination, publish there instead of keeping local files, even when the host says to keep documents local, and fall back to local files only when nothing else is available.']);
+ includesAll(['skills/orchestrate-sessions/references/status-board.md'],['also publish them after every rewrite','Otherwise publish it first, then open it beside the person at the first dispatch','the published URL when a destination resolves, and a `file://` URL only when none does or publishing failed','publish it again, then open the same URL again so the host reuses its tab']);
+ for(const rule of ['When the host shows the local status page itself, open the published page only when the person asks for it','Otherwise publish first, then open the published URL beside the person','never open the local copy in its place before a publish has been tried','`session.artifact.publish_error`','so a failed or uncertain attempt never leaves a second artifact'])assert.ok(skill.includes(rule),rule);
  const rule=fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8').split(/\n\s*\n/).find(p=>p.startsWith('**The Session artifact.**'));
  assert.ok(rule,'the sessions-folder rule');assert.doesNotMatch(rule,/grain/i);
  for(const profile of ['orchestrator:claude','orchestrator:codex'])assert.ok(resolveProfile(root,profile).nodes.main.skills.includes('orchestrate-sessions'),profile);
@@ -508,7 +507,7 @@ test('every PR, however small, opens with its Excalidraw image from the pr-asset
 
 test('the orchestrator writes a post-mortem after review only when something broke, into the PR\'s own artifact, and offers GitHub issues that it files only on a yes (P-3, D-72)',()=>{
  includesAll(['skills/page/references/post-mortem.md'],['The orchestrator writes it','after the PR\'s review loop closes, or when the PR merges or closes unreviewed','only when something went wrong','the PR\'s own artifact','**Issues hit:**','**Issues to file:**','repository and title','files nothing without the person\'s yes','Standalone, with no orchestrator, the implementer writes it the same way']);
- includesAll(['skills/orchestrate-sessions/SKILL.md'],['## Post-mortems','the workers\' `failure` and `attempts` fields','a timeout, a dead tab, a crash','into the PR\'s own artifact','one question listing each proposed GitHub issue with its repository and title','A yes files that one issue, with private paths, customer text and session content removed','never guessed silently','write the words "no issues hit" on the item\'s card and on its front page, its item page','the implementer\'s `pr_artifact`','never a page of your own instead']);
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['## Post-mortems','the workers\' `failure` and `attempts` fields','a timeout, a dead worker, a crash','into the PR\'s own artifact','one question listing each proposed GitHub issue with its repository and title','A yes files that one issue, with private paths, customer text and session content removed','never guessed silently','write the words "no issues hit" on the item\'s card and on its front page, its item page','the implementer\'s `pr_artifact`','never a page of your own instead']);
  includesAll(['instructions/standing-rules.md'],['`failure`: what got in the way','`attempts`: what was tried for each problem','"pr_artifact": null','`pr_artifact`: where the PR\'s own artifact is']);
  includesAll(['skills/prepare-pr/SKILL.md'],['record where the PR\'s artifact is in your status file\'s `pr_artifact`','the path belongs there and not in the PR body']);
  includesAll(['skills/orchestrate-sessions/references/ledger.md'],['"pr_artifact":']);
@@ -521,7 +520,7 @@ test('the orchestrator writes a post-mortem after review only when something bro
 });
 
 test('greenfield documents the status page, front pages, post-mortems, the PR image and artifact, and the Session artifact',()=>{
- includesAll(['README.md'],['never their wording','shows in the Session\'s Overview tab','clicking a card opens that item\'s own page','`sessions/<Session name>` unless the workspace instructions give another rule, with the short id added only when that folder already holds another Session\'s status page','the settled Session folder to the worker','one notice line saying so','writes a post-mortem after its review loop closes, with Issues hit and Issues to file','filing only on your yes','"no issues hit"','Every PR, however small, opens with an Excalidraw image']);
+ includesAll(['README.md'],['never their wording','When the host shows it itself, the orchestrator leaves it there','clicking a card opens that item\'s own page','`sessions/<Session name>` unless the workspace instructions give another rule, with the short id added only when that folder already holds another Session\'s status page','the settled Session folder to the worker','one notice line saying so','writes a post-mortem after its review loop closes, with Issues hit and Issues to file','filing only on your yes','"no issues hit"','Every PR, however small, opens with an Excalidraw image']);
  includesAll(['index.html'],['a status page beside you says what is next','image + its own page','post-mortem if it broke','leads with a diagram and links a page of its own']);
  for(const file of ['README.md','index.html'])assert.doesNotMatch(flatText(file),/workstream map per Session:|Lanes/,file);
 });
@@ -534,7 +533,7 @@ test('greenfield asks planners and reviewers for the worst case at production si
 
 test('the orchestrator is pointed at the status page and item hub specs, saying when to read them, instead of summarising the page (D-8, D-9)',()=>{
  const paragraph=(file,start)=>{const found=fs.readFileSync(path.join(root,file),'utf8').split(/\n\s*\n/).find(p=>p.startsWith(start));assert.ok(found,`${file}: ${start}`);return found.replace(/\s+/g,' ');};
- instructionsIncludeAll(COORDINATORS,['`orchestrate-sessions`\' `references/status-board.md`','read it before you first write it in a Session and again before any rewrite','never write it from memory or from this paragraph','in Pane it shows in the Session\'s Overview tab']);
+ instructionsIncludeAll(COORDINATORS,['`orchestrate-sessions`\' `references/status-board.md`','read it before you first write it in a Session and again before any rewrite','never write it from memory or from this paragraph','when the host already shows the local page, leave it there']);
  for(const profile of COORDINATORS){
   const text=resolveProfile(root,profile).nodes.main.instructions.replace(/\s+/g,' ');
   for(const removed of ['Needs you first','one card per item','a "Next step" line'])assert.ok(!text.includes(removed),`${profile} still summarises the page: ${removed}`);
@@ -556,19 +555,21 @@ test('the status page groups Sources and Relevant links by kind of work and keep
   assert.equal(run.status,0,run.stderr);
   return fs.readFileSync(path.join(dir,'index.html'),'utf8');
  };
- const session={title:'Refs',eyebrow:'now',counts:{running:0,queued:0,done:1},settings:'x'};
+ const session={title:'Refs',eyebrow:'now',counts:{running:0,queued:0,done:1},settings:'x',hostScheme:'host'};
  const html=render({session,decisions:[{id:'D-1',answer:'Approved'}],
   sources:[{label:'Cover sheet',link:'https://example.com/plan',note:'approved, D-1',group:'Plan and decisions'},
            {label:'Mockup',link:'file:///tmp/mockup.html',group:'Design'},
            {label:'Brief',link:'plans/brief.html',group:'Plan and decisions'},
            {label:'Trace',link:'javascript:alert(1)'}],
-  links:[{label:'PR <#12>',link:'https://github.com/o/r/pull/12',group:'r #12'},{label:'Pane',link:'pane://open?pane=p1',group:'r #12'}]});
+  links:[{label:'PR <#12>',link:'https://github.com/o/r/pull/12',group:'r #12'},{label:'Workspace',link:'host://open?ws=p1',group:'r #12'}]});
  const text=html.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ');
- assert.match(text,/Decisions 1 .*Sources 4 Plan and decisions 2 Cover sheet approved, D-1 Brief Design 1 Mockup Other 1 Trace Relevant links 2 r #12 2 PR &lt;#12\S* Pane Settings/,'groups in first-seen order, between Decisions and Settings');
- for(const href of ['https://example.com/plan','file:///tmp/mockup.html','plans/brief.html','https://github.com/o/r/pull/12','pane://open?pane=p1'])assert.ok(html.includes(`href="${href}"`),href);
+ assert.match(text,/Decisions 1 .*Sources 4 Plan and decisions 2 Cover sheet approved, D-1 Brief Design 1 Mockup Other 1 Trace Relevant links 2 r #12 2 PR &lt;#12\S* Workspace Settings/,'groups in first-seen order, between Decisions and Settings');
+ for(const href of ['https://example.com/plan','file:///tmp/mockup.html','plans/brief.html','https://github.com/o/r/pull/12','host://open?ws=p1'])assert.ok(html.includes(`href="${href}"`),href);
  assert.match(html,/<a href="#">Trace<\/a>/);
  assert.doesNotMatch(html,/javascript:/);
  const bare=render({session});
+ assert.ok(render({session:{...session,hostScheme:undefined},links:[{label:'W',link:'host://open?ws=p1'}]}).includes('<a href="#">W</a>'),'a host scheme the status JSON does not name is dropped');
+ assert.ok(render({session:{...session,hostScheme:'javascript'},links:[{label:'J',link:'javascript:alert(1)'}]}).includes('<a href="#">J</a>'),'a dangerous scheme is never a host scheme');
  assert.doesNotMatch(bare,/>Sources|>Relevant links/,'empty sections are omitted');
 });
 
@@ -577,21 +578,21 @@ test('greenfield 0.0.43 gives the planners and orchestrators research-and-produc
  for(const profile of ['planner:claude','planner:codex'])assert.ok(resolveProfile(root,profile).nodes.main.instructions.replace(/\s+/g,' ').includes('Before the options and the plan for a feature with an interface or a system-design choice, build a research packet and design rounds with `research-and-product-design`.'),profile);
 });
 
-test('the status page renderer runs with Node alone and draws a self-contained page that links Notify questions to their tab, by count and Q-id only',()=>{
+test('the status page renderer runs with Node alone and draws a self-contained page that links self-asked questions to the host, by count and Q-id only',()=>{
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'af-status-page-'));
  fs.cpSync(path.join(root,'skills/orchestrate-sessions/assets/status-page'),path.join(dir,'renderer'),{recursive:true});
- const status={session:{title:'Two features',eyebrow:'Updated 14:40 · 1 h 10 min elapsed',counts:{running:1,queued:0,done:0},settings:'Review on "ready"'},
-  needs:[{id:null,item:'invoice-pdf',role:'Planner',blocks:'the plan',q:'Use the invoice id in the filename?',options:[{label:'Invoice id',rec:true},{label:'Invoice number'}],why:'Ids are stable.',age:'2 min',link:'pane://open?pane=p1&panel=w1'},
+ const status={session:{title:'Two features',eyebrow:'Updated 14:40 · 1 h 10 min elapsed',counts:{running:1,queued:0,done:0},settings:'Review on "ready"',hostScheme:'host'},
+  needs:[{id:null,item:'invoice-pdf',role:'Planner',blocks:'the plan',q:'Use the invoice id in the filename?',options:[{label:'Invoice id',rec:true},{label:'Invoice number'}],why:'Ids are stable.',age:'2 min',link:'host://open?ws=p1&agent=w1'},
          {id:'Q-2',item:'export',role:'Implementer',blocks:'#12',q:'Keep CSV export?',options:[{label:'Keep',rec:true},{label:'Drop'}],why:'Customers use it.',age:'5 min'}],
-  items:[{id:'invoice-pdf',name:'Invoice PDF',pane:'invoice-pdf',paneLink:'pane://open?pane=p1',state:'need',next:'<b>Planner</b> waits on you. <img src=x onerror=alert(1)><script>alert(1)</script> <a href="javascript:alert(1)">bad</a>',rail:[{label:'Plan',state:'need'},{label:'Build',state:'todo'}]},
-         {id:'export',name:'Export',pr:'#12',pane:'export',state:'blocked',next:'Codex is not signed in.',rail:[{label:'Build',state:'done'},{label:'CI',state:'blocked'}]}],
+  items:[{id:'invoice-pdf',name:'Invoice PDF',workspace:'invoice-pdf',workspaceLink:'host://open?ws=p1',state:'need',next:'<b>Planner</b> waits on you. <img src=x onerror=alert(1)><script>alert(1)</script> <a href="javascript:alert(1)">bad</a>',rail:[{label:'Plan',state:'need'},{label:'Build',state:'todo'}]},
+         {id:'export',name:'Export',pr:'#12',workspace:'export',state:'blocked',next:'Codex is not signed in.',rail:[{label:'Build',state:'done'},{label:'CI',state:'blocked'}]}],
   done:[],decisions:[]};
  fs.writeFileSync(path.join(dir,'status.json'),JSON.stringify(status));
  const run=spawnSync(process.execPath,[path.join(dir,'renderer/render.mjs'),path.join(dir,'status.json'),path.join(dir,'index.html')],{cwd:dir,encoding:'utf8'});
  assert.equal(run.status,0,run.stderr);
  const html=fs.readFileSync(path.join(dir,'index.html'),'utf8');
- assert.match(html,/<a href="pane:\/\/open\?pane=p1&amp;panel=w1">a new question<\/a> \(Invoice PDF\) and Q-2 \(#12\)/,'the Notify question links its tab; the relayed one is a bare Q-id');
- assert.match(html,/<a class="btn sm" href="pane:\/\/open\?pane=p1&amp;panel=w1">Open Approvals →<\/a>/);
+ assert.match(html,/<a href="host:\/\/open\?ws=p1&amp;agent=w1">a new question<\/a> \(Invoice PDF\) and Q-2 \(#12\)/,'the self-asked question links where the host holds it; the relayed one is a bare Q-id');
+ assert.match(html,/<a class="btn sm" href="host:\/\/open\?ws=p1&amp;agent=w1">Open questions →<\/a>/);
  for(const leaked of ['Use the invoice id in the filename?','Keep CSV export?','Ids are stable.','Customers use it.'])assert.ok(!html.includes(leaked),leaked);
  assert.match(html,/<meta http-equiv="refresh" content="60">/);
  assert.match(html,/data:font\/woff2;base64,/);
@@ -612,27 +613,23 @@ test('the status page shows a PR\'s fix rounds of its budget, marked when spent,
   assert.equal(run.status,0,run.stderr);
   return fs.readFileSync(path.join(dir,'index.html'),'utf8');
  };
- const html=render([{id:'spent',name:'Spent',pr:'#194',pane:'p',state:'need',next:'Waits on you.',fixRounds:{used:1,budget:1}},{id:'open',name:'Open',pr:'#12',pane:'q',state:'now',next:'x',fixRounds:{used:1,budget:2}},{id:'old',name:'Old',pane:'r',state:'now',next:'y'}]);
+ const html=render([{id:'spent',name:'Spent',pr:'#194',workspace:'p',state:'need',next:'Waits on you.',fixRounds:{used:1,budget:1}},{id:'open',name:'Open',pr:'#12',workspace:'q',state:'now',next:'x',fixRounds:{used:1,budget:2}},{id:'old',name:'Old',workspace:'r',state:'now',next:'y'}]);
  assert.match(html,/<span class="rounds spent">Fix rounds 1 of 1<\/span>/);
  assert.match(html,/<span class="rounds">Fix rounds 1 of 2<\/span>/);
  assert.equal(html.split('Fix rounds').length-1,2,'an item without fixRounds shows no counter');
  assert.match(html,/\.rounds\.spent\{[^}]*var\(--warn\)/);
 });
 
-test('greenfield 0.0.46 tidies the Session as Pane\'s rules say: archive without asking, close what it opened, /wrap-up tells first and leaves the Session open (D-40, D-41, D-49, D-51, D-107)',()=>{
- const pane=['"Keep the Session tidy" section of the Session folder\'s AGENTS.md','follow the wrap-up guide that AGENTS.md points to'];
- const archive=['`runpane panes archive --pane <id> --dry-run --json`','archive its Pane right after the merge, in the same turn','Never pass `--force`'];
- instructionsIncludeAll(COORDINATORS,['Archive a feature\'s Pane without asking',...archive,...pane]);
- includesAll(['skills/orchestrate-sessions/SKILL.md'],['Archive a feature\'s Pane without asking or offering',...archive,...pane,'status page\'s Cleanup log','each PR with unreviewed commits goes into that notice','leaves the Session open; archiving the Session is the person\'s action, never yours','Ask nothing separately.']);
- // D-107: /wrap-up asks no question and never archives the Session.
+test('greenfield 0.0.46 tidies the Session as the host\'s rules say: archive without asking, close what it opened, wrap-up tells first and leaves the Session open (D-40, D-41, D-49, D-51, D-107)',()=>{
+ const archive=['archive its workspace right after the merge, in the same turn','Never force an archive'];
+ instructionsIncludeAll(COORDINATORS,['Archive a feature\'s workspace without asking','run the host\'s dry run first and archive only if it is clean',...archive,'When the host\'s injected instructions give cleanup or wrap-up rules']);
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['Archive a feature\'s workspace without asking or offering','Run the host\'s archive dry run first and archive only if it is clean',...archive,'When the host gives its own cleanup and wrap-up rules, they are the source','status page\'s Cleanup log','each PR with unreviewed commits goes into that notice','leave the Session open; archiving the Session is the person\'s action, never yours','Ask nothing separately.']);
+ // D-107: wrap-up asks no question and never archives the Session.
  for(const file of ['skills/orchestrate-sessions/SKILL.md','README.md'])assert.doesNotMatch(flatText(file),/Keep going, or stop\?|keep going, or stop\?|"Stop" leaves/,file);
- // Status-page open commands mark the tab as the agent's, so panels close can close it at /wrap-up.
- includesAll(['skills/orchestrate-sessions/SKILL.md'],['--source agent']);
- for(const file of ['skills/orchestrate-sessions/SKILL.md','skills/orchestrate-sessions/references/status-board.md'])assert.doesNotMatch(flatText(file),/runpane panels open --url <[^>]+>`/,file);
- includesAll(['instructions/standing-rules.md'],['plans, PRs and mock-ups are otherwise linked from the status page, not opened','except the status page, which stays open until the Session wraps up','`runpane panels close --panel <id> --yes --json`','it adds `--force` only for a stuck tab or one the person asked it to close',pane[0]]);
+ includesAll(['instructions/standing-rules.md'],['plans, PRs and mock-ups are otherwise linked from the status page, not opened','except the status page, which stays open until the Session wraps up','with the host\'s own close command','When the host\'s injected instructions give cleanup rules, they are the source']);
  for(const file of ['instructions/coordination.md','skills/orchestrate-sessions/SKILL.md'])assert.doesNotMatch(flatText(file),/after offering the end-of-Session sweep|you have offered the end-of-Session sweep|Always offer the sweep before/,file);
  const bigbrain=fs.readFileSync(path.join(root,'../bigbrain/skills/orchestrate/SKILL.md'),'utf8').replace(/\s+/g,' ');
- for(const rule of ['Archive a feature\'s workspace without asking','`runpane panels close --panel <id> --yes --json`',...pane])assert.ok(bigbrain.includes(rule),rule);
+ for(const rule of ['Archive a feature\'s workspace without asking','with the host\'s close command','When the host gives its own cleanup rules, they are the source'])assert.ok(bigbrain.includes(rule),rule);
 });
 
 test('greenfield 0.0.47 lets rare bugs stop blocking merge, weighs every fix by its cost, and gives each PR one fix-round budget QA and review share',()=>{
@@ -654,7 +651,7 @@ test('greenfield 0.0.48 draws a PR diagram as one layout twice on a canvas at mo
 });
 
 test('greenfield 0.0.49 renders the status page from the first working turn, re-renders a stale one on each wake-up, keeps the local file canonical, and shows the goal with no workers (P6)',t=>{
- includesAll(['skills/orchestrate-sessions/references/status-board.md'],['Write it at the Session\'s first working turn, even when nothing will be dispatched, and again after every ledger write','That file is the canonical page and the one Pane\'s Overview tab shows','never instead of the local file','**Session with no workers.**']);
+ includesAll(['skills/orchestrate-sessions/references/status-board.md'],['Write it at the Session\'s first working turn, even when nothing will be dispatched, and again after every ledger write','That file is the canonical page, and the one a host that shows the status page itself displays','never instead of the local file','**Session with no workers.**']);
  includesAll(['skills/orchestrate-sessions/SKILL.md'],['if the ledger or any in-flight worker\'s status file is newer than session/index.html, re-render the status page, and say so in this wake-up\'s one-line log','at the Session\'s first working turn, even when nothing will be dispatched, and again after every ledger write','always with the renderer, never by hand','never instead of the local file','The status page\'s canonical copy is always the local `<Session folder>/session/index.html`']);
  for(const file of ['skills/orchestrate-sessions/references/status-board.md','instructions/coordination.md'])assert.doesNotMatch(flatText(file),/Write it at the first dispatch/,file);
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'af-status-empty-'));
@@ -673,7 +670,7 @@ test('greenfield 0.0.49 renders the status page from the first working turn, re-
  assert.match(empty,/Ship after the docs fix/);
  assert.doesNotMatch(empty,/Order of work/);
  const steps=[{label:'A',state:'now'},{label:'B',state:'todo'}];
- const item={id:'a',name:'A',pane:'a',state:'now',next:'x'};
+ const item={id:'a',name:'A',workspace:'a',state:'now',next:'x'};
  const busy=render({session:{...session,flow:{caption:'Goal: two items',steps}},items:[item,{...item,id:'b',name:'B'}]});
  assert.equal(busy.split('Goal: two items').length-1,1,'with the diagram drawn, the caption shows once, under it');
  assert.match(busy,/<p class="flowcap">Goal: two items<\/p>/);
@@ -712,7 +709,7 @@ test('the overview reads top-down, questions show only as a count and Q-ids, and
  assert.equal(run.status,0,run.stderr);
  const text=pageText(html);
  // J1: the order of the overview.
- const order=[data.session.title,'Next step:','wait for you in Approvals','work items','done','in progress','waiting on you','blocked','In flight','Order of work','Done','Decisions','Sources','Relevant links','Settings'];
+ const order=[data.session.title,'Next step:','wait for you in the host\'s question queue','work items','done','in progress','waiting on you','blocked','In flight','Order of work','Done','Decisions','Sources','Relevant links','Settings'];
  let at=-1;for(const marker of order){const i=text.indexOf(marker,at+1);assert.ok(i>at,`"${marker}" comes after the one before it`);at=i;}
  assert.ok(text.indexOf(pageText(data.session.summary).trim().slice(0,40))>text.indexOf(data.session.title),'the summary follows the title');
  assert.doesNotMatch(html,/Needs you|class="counts"|class="state /,'no counters, state bar or Needs you section');
@@ -728,7 +725,7 @@ test('the overview reads top-down, questions show only as a count and Q-ids, and
  for(const [cls,w] of widths)assert.ok(Math.abs(w-100*tile({ok:'done',run:'in progress',need:'waiting on you',blk:'blocked'}[cls])/all.length)<0.1,cls);
  // C3: no question wording on any page; the pointer names the count and each Q-id.
  const named=data.needs.filter(q=>q.id);
- assert.match(text,new RegExp(`${data.needs.length} questions wait for you in Approvals`));
+ assert.match(text,new RegExp(`${data.needs.length} questions wait for you in the host's question queue`));
  for(const q of named)assert.ok(text.includes(q.id),q.id);
  const wording=data.needs.flatMap(q=>[q.q,q.why,...(q.options||[]).map(o=>o.label)]).filter(Boolean);
  assert.ok(wording.length>=4,'the example\'s needs carry question text to leak');
@@ -780,7 +777,7 @@ test('greenfield 0.0.51: every item kind gets a cover page with the fixed Everyt
   for(const row of [x.kind==='planned'?'Plan':'Task','Pull request','QA','Review','Worker','Trace','Post-mortem'])assert.ok(rows.includes(row),`${x.id}: ${row} row`);
   if(x.kind==='planned')assert.match(page,/<tr><th>Plan<\/th><td><a href="[^"]+">/,`${x.id}: the Plan row links its plan`);
   const waits=data.needs.filter(q=>q.item===x.id&&q.id);
-  if(waits.length){assert.equal(rows[0],'Waiting',`${x.id}: Waiting comes first`);for(const q of waits)assert.ok(text.includes(`${q.id} waits in Approvals`),`${x.id}: ${q.id}`);}
+  if(waits.length){assert.equal(rows[0],'Waiting',`${x.id}: Waiting comes first`);for(const q of waits)assert.ok(text.includes(`${q.id} waits in the host's question queue`),`${x.id}: ${q.id}`);}
   else assert.ok(!rows.includes('Waiting'),`${x.id}: no Waiting row`);
  }
 });
@@ -802,12 +799,12 @@ test('greenfield 0.0.51: a missing, duplicate or unsafe item id stops the render
  }
 });
 
-test('greenfield 0.0.51: item pages escape every field, keep only safe links, and say where questions wait outside Pane (C5)',t=>{
+test('greenfield 0.0.51: item pages escape every field, keep only safe links, and say where questions wait when the host has no queue (C5)',t=>{
  const evil='<img src=x onerror=alert(1)>';
- const {run,html,pages}=renderSession(t,{session:{title:'Esc',eyebrow:'now',settings:'x',summary:`Sum ${evil} <b>bold</b>`,nextStep:'Do <a href="javascript:alert(1)">this</a>'},
+ const {run,html,pages}=renderSession(t,{session:{title:'Esc',eyebrow:'now',settings:'x',hostScheme:'host',summary:`Sum ${evil} <b>bold</b>`,nextStep:'Do <a href="javascript:alert(1)">this</a>'},
   needs:[{id:'Q-1',item:'a',q:'Secret question text?'}],
-  items:[{id:'a',name:`A ${evil}`,kind:'tweak',group:`G ${evil}`,state:'need" onmouseover="x',pr:'#1',prLink:'javascript:alert(1)',paneLink:'data:text/html,x',asked:`Ask ${evil}`,changes:'<b>ok</b>',next:'n',
-   refs:{task:{label:`T ${evil}`,link:'javascript:alert(1)',note:evil},pr:{label:'PR',link:'https://example.com/pr/1'},worker:{label:'Tab',link:'pane://open?pane=p&panel=w'}}}]});
+  items:[{id:'a',name:`A ${evil}`,kind:'tweak',group:`G ${evil}`,state:'need" onmouseover="x',pr:'#1',prLink:'javascript:alert(1)',workspaceLink:'data:text/html,x',asked:`Ask ${evil}`,changes:'<b>ok</b>',next:'n',
+   refs:{task:{label:`T ${evil}`,link:'javascript:alert(1)',note:evil},pr:{label:'PR',link:'https://example.com/pr/1'},worker:{label:'Tab',link:'host://open?ws=p&agent=w'}}}]});
  assert.equal(run.status,0,run.stderr);
  const page=pages['a.html'];
  for(const p of [html,page]){
@@ -816,21 +813,29 @@ test('greenfield 0.0.51: item pages escape every field, keep only safe links, an
  }
  assert.match(html,/Sum &lt;img src=x onerror=alert\(1\)> <b>bold<\/b>/,'summary keeps <b> and escapes the rest');
  assert.match(html,/class="card item now/,'an unknown state falls back to now');
- assert.match(pageText(html),/1 question waits for you in the orchestrator's chat: Q-1/,'no Approvals link: the pointer names the chat');
+ assert.match(pageText(html),/1 question waits for you in the orchestrator's chat: Q-1/,'no question queue link: the pointer names the chat');
  assert.match(page,/Q-1 waits in the orchestrator's chat/);
  assert.match(page,/<a href="#">T &lt;img/,'unsafe ref link becomes #');
- assert.match(page,/href="pane:\/\/open\?pane=p&amp;panel=w"/);
+ assert.match(page,/href="host:\/\/open\?ws=p&amp;agent=w"/);
  assert.match(page,/<tr><th>QA<\/th><td><span class="nr">Not recorded<\/span>/,'an empty fixed row shows Not recorded');
  assert.match(page,/<h1>A &lt;img src=x onerror=alert\(1\)><\/h1>/);
 });
 
-test('greenfield 0.0.51: the instructions say questions live only in Approvals, every item\'s front page is its generated item page, and the overview and item pages render together (C7, D-34)',()=>{
- includesAll(['skills/orchestrate-sessions/SKILL.md'],['Questions appear only in Approvals in Pane, and in your chat elsewhere','its item page, `items/<id>.html`, which the renderer generates for every item','the same run re-renders every item page with the overview','not to the brief']);
+test('greenfield 0.0.51: the instructions say questions live only in the host\'s question queue, every item\'s front page is its generated item page, and the overview and item pages render together (C7, D-34)',()=>{
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['Questions appear only in the host\'s question queue, or in your chat when the host has none','its item page, `items/<id>.html`, which the renderer generates for every item','the same run re-renders every item page with the overview','not to the brief']);
  includesAll(['skills/orchestrate-sessions/references/status-board.md'],['The overview and the item pages are always re-rendered together','No page shows a question\'s wording','the renderer ignores any other field','A missing, repeated or unsafe id stops it','"refs"','the renderer rebases them']);
  includesAll(['skills/orchestrate-sessions/references/ledger.md'],['"page_id":']);
  includesAll(['skills/customer-insights-loop/references/handoff.md'],['the status page shows it only by its Q-id']);
  for(const file of ['skills/orchestrate-sessions/SKILL.md','skills/orchestrate-sessions/references/status-board.md','skills/orchestrate-sessions/references/item-hub.md','skills/orchestrate-sessions/references/relay.md','skills/page/references/bundle.md','skills/customer-insights-loop/references/handoff.md','README.md']){
   const text=flatText(file);
   assert.doesNotMatch(text,/three-line summary|small hub|creating its hub|Needs you row|Needs you entry|"counts"|one state bar/,file);
+ }
+});
+
+test('Greenfield and Bigbrain carry no Pane-specific instructions: a host supplies its own through its injected instructions or host_policy (D-398)',()=>{
+ const walk=dir=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(entry=>{const file=path.join(dir,entry.name);return entry.isDirectory()?walk(file):[file];});
+ for(const plugin of ['greenfield','bigbrain'])for(const file of walk(path.join(root,'..',plugin))){
+  if(!/\.(md|mjs|js|json|yaml|html)$/.test(file))continue;
+  assert.doesNotMatch(fs.readFileSync(file,'utf8'),/\bpanes?\b|runpane|PANE_|pane:\/\/|"Asking the person in Pane"|Keep the Session tidy|secrets_request/i,path.relative(path.join(root,'..'),file));
  }
 });

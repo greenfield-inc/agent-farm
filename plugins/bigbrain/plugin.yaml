@@ -3,7 +3,7 @@ version: 0.1.0
 cli_major: 0
 source:
   repository: https://github.com/greenfield-inc/agent-farm
-  commit: 5ae9b63d09495907b098aebced8a0702b38da290
+  commit: 55838f21341197e04baf5dce9443e43e8177ffdd
 checksums:
   agents/designer.md: 136934e54918120391232d4837f0d988cad2907a6a4ca9c3adc3412b442a478b
   agents/explorer.md: 1635f450fb53b7a435e550cdf8b91e44826512f23461836416a3da32f1dc5e6f
@@ -36,7 +36,7 @@ checksums:
   skills/architecture-diagram/SKILL.md: 714fde10cc037f62d25e74e36b248d04cee690797a3251e0d7bbaa89a1f53096
   skills/architecture-diagram/references/diagram-kit.html: b85314ba47c621e7a79f86c3dd5391f6ededa53691221f458ad584d8490bd4e8
   skills/architecture-diagram/references/layout.md: cf9bb0f42c2e9d6c1833852e4c31adc52a03487523278d36955f7a8e644dd770
-  skills/babysit-pr/SKILL.md: 7cc1e7b5295c18bc53ebdd0ebf632a338ec0beeffe80edfb6b8498e760d80ac4
+  skills/babysit-pr/SKILL.md: 74089a916bce9c611835efa9ef1dad79842fbb05284d91e365a749535f8baf17
   skills/babysit-pr/metadata/codex.yaml: 8c95b32caf792095e169588a57895c23f0c498f56cccbf2a177f5d7d3f8f2aa4
   skills/brief/SKILL.md: 386f7921c83880f5acc77e89fa64bb55c238dbf42170e7b81689718bb6cd181c
   skills/brief/references/brief-layout.md: 1a23791c3e79fab1eab1ced5630cd7a9b58f8b8ae91a93c422d1ba8d25041450
@@ -79,44 +79,38 @@ checksums:
   skills/documents/schemas/status.schema.json: 9938de5fc9bca7d9d72a761584523404b90ad2ae45df302267a1856ccf2a8b9c
   skills/documents/schemas/verification.schema.json: 123f9f7234d5511e8aa3fe7331b2980f1a7bb87f5051c26730cd5a411ec3e437
   skills/documents/scripts/check-bundle.mjs: 5621388f3479eea7d72b31eb97af66aaf3df375428557a1a78256f86d25653a5
-  skills/excalidraw-pr-diagrams/README.md: 7da1d4a66c311fe60ea176b5a918e28d0e62a98dc1ff5470e5ac24f3f8727ce7
-  skills/excalidraw-pr-diagrams/SKILL.md: abc1cdca48c2cc0a5feda95d10e315dd2c5e7adcfe4fe88c4a64139ca8fc8147
-  skills/excalidraw-pr-diagrams/references/color-palette.md: 275164ffee5b1c2c36ddeb5bbdbd73765aa8b337bd1bfe8b02a5a8d5f9581c7c
-  skills/excalidraw-pr-diagrams/references/element-templates.md: 11234630e5642779a0baa2380c913125f15084dcd05d553db2899182d66f22aa
-  skills/excalidraw-pr-diagrams/references/json-schema.md: 9048830015f3c0c4e075aa983763990d2a3d19fa32f0577917b6bfb49aeb9bd7
-  skills/excalidraw-pr-diagrams/references/pyproject.toml: b68f2d373a50b623bb04f3f96e9ce12118d89b01d5ac7a538820f64e7fbdcdd0
-  skills/excalidraw-pr-diagrams/references/render_excalidraw.py: c8c703455044faa84bbad2585b900c67e436e0c9772d45f32d4fce591f9d9120
-  skills/excalidraw-pr-diagrams/references/render_template.html: 5caa1087d0fa68cdc873103aa761590cb16d2ae888d67a08d517ebab01ca110d
+  skills/excalidraw-pr-diagrams/SKILL.md: 6b7532f813dd5cf8e66862a7d76f42c78dcdf368d1227a9c8a942f5c2efd67fb
+  skills/excalidraw-pr-diagrams/references/render.mjs: 3cf7742af8ae6fa306cb4f0d65f990dc89a46c772ce90a3519cd57a05d4a4418
   skills/explain/SKILL.md: 26588e0aff49ada0e878cf6f8005eb123a0dc0043e663ffa19b89d76057b35af
   skills/implement-plan/SKILL.md: a8383706b613bcc916837f455ebf9683d3d899001f3112648ea70347996bf41e
-  skills/interview/SKILL.md: 4632bf435dd8158e64e52c46937c95577159bf2250b89633e64ad33d4f3c1c39
+  skills/interview/SKILL.md: a93c150d44c5cb3f1e320e4072543cd9636c746f85c9f4999c4fd84ae8fa4fd0
   skills/interview/references/decision-log-template.md: ad61b41c20e6d734c82418cb9a7b4ee46820a98e6cbbcb201dcda84357f0bc27
-  skills/interview/references/question-format.md: 53ea57ce0ca40e7e74bdec11e661e0249fe2989ca1684ba5c6b348499bef54a4
+  skills/interview/references/question-format.md: fdd683c73926187c5af5bc448e47c43b50c5f0029d44068dcfa8ba5c8b94e08a
   skills/investigate-issues/SKILL.md: c9547ef7a61eddbe3430ade849e726568a947ce03adb6193651cbe6bc5a5b3d1
   skills/investigate/SKILL.md: b0199e594f142eaf17a44c193de78e04463212d7b2cdc9a858796d0d51d1e5e6
-  skills/options/SKILL.md: 265e16a8a542d6ba5901a1a55209e5838e7002235d1381873eda4b6feea0787e
+  skills/options/SKILL.md: 34589b16e0dc7b1d9c9672a6c4b44e6293e5b5cec2300d0962ea96d1c11891b8
   skills/options/references/options-template.md: cd82cdf9f56b4cdaa76c37f273beda59cecca97f46baeb046a2cc14700864579
-  skills/orchestrate/SKILL.md: c3a330417255fe063c81eba0bf5a77b116f13f5e428eb9b8eecd64dfd533b0ed
+  skills/orchestrate/SKILL.md: afab67698dec399454c1923bea3e14c17515d7646542b7925e4f952a8f1cbac7
   skills/orchestrate/references/addendum-template.md: 3a838258c90a02978c89e3f63fc18e58f32eead36989d833a6d1615efaa3f804
   skills/orchestrate/references/host-policy.md: c86e6a045d40aada6354891aa08cf4046a6a97c044068b25b2fc18b45cd9e338
   skills/orchestrate/references/ledger.md: 2a108b1c8c4fc68bc3c2b894a579cce4e00acb6e4f91cb566ba5350c616efa2f
   skills/orchestrate/references/relay.md: fac46ef068f1a8a79a9b8b1d4177b5f964c4b66315a20d9c6af1290ef319a953
   skills/plan/SKILL.md: e61a1cbb1f5f2048ceb34ab3a90ed70e7062ddd43e3d6b71acd2b709bfaff842
   skills/plan/references/cover-sheet.md: b6ee23c37605d319f49c007bb0a8ec9e249e855e9d6b4a7e839f44c87a5717db
-  skills/prepare-pr/SKILL.md: f42cc79bb7fbcdee32a831189a32a33d9c9e2694c373cfbcb6772573c44a7d1d
-  skills/prepare-pr/assets/pr-walkthrough.html: d3028a699a3d3db47b1fd715042ce383a133dd10ce1bbfec5a6c1580f26e139a
-  skills/prepare-pr/references/writing-guide.md: f2f7721f463234290466dfe26c37b6a7fd4f14ab040b795436981a074789b007
-  skills/quick-verify/SKILL.md: f1a6912e6188654d456f50018a5b99ce0afbd8000bcbec895621ff62696b645a
+  skills/prepare-pr/SKILL.md: 7790267637a527b8ed539c9f65f8cd5999b273abd7a1ce019f37fc6268c2894d
+  skills/prepare-pr/assets/pr-walkthrough.html: 66421466cfc347c812ba08410fc5b28312bf5619da321686ed966f3f94c32258
+  skills/prepare-pr/references/writing-guide.md: 3b7136178fb257fc524f86fd45352a7fe403cd49ee150c2aefce2e17d48f7e8c
+  skills/quick-verify/SKILL.md: 83e90401872be4f96434fc9abe64b7df1499502808b82f7c410f1867dc18de05
   skills/quick-verify/metadata/codex.yaml: f6786d928d9220b0b05c85352c44daa631b1c72b1709438251b3c3d23d4a37e8
-  skills/research-web/SKILL.md: e4d7741a699f69bf350485695fcce75e526aa4d9d6bbfd8e4e755c969bbab163
+  skills/research-web/SKILL.md: 78d297d404434e7f4ae8346d64bfb408465e751a58342f1480c7089271dace26
   skills/review/CRITERIA.md: a944b16a14b3610d261c1d0564a1fbc0235050b69a384ec75a4aa6115cc60b74
   skills/review/SKILL.md: 4e8e035da625fb11685732ef571fe2293a9b6855a3f0c55060dc846a6991ecb9
   skills/review/references/findings.md: b2a0002e23ac8e1bfdb5e7a79859380d935c55dbcbc0e0b0b8719f065511bdc3
   skills/review/references/worker-briefs.md: 320f6caa3f8a9d9c64954288335f3e3a5668b66d77c55850911c3da17c19b35e
   skills/review/severity-examples.md: 8f322f2c08fa8a0557c7e117d23a269ef0272debde0fbe9d5468cf3b13d0b3fa
-  skills/session-trace/SKILL.md: 41856b20114f871cedbbd64cd2349d5947c29f45f1a960aa69c6eef4cb74f26b
+  skills/session-trace/SKILL.md: acd50a36a893ebebcf17939846fc049e01c65e930ceeeeb2b541df4528b5b690
   skills/session-trace/references/page-guide.md: 2e6074da875c317c21b062ff3d1bc28231cf1c7fc95a24cab6fcde0d12633797
-  skills/session-trace/scripts/build-trace.mjs: f2bf29b7b92ea303f9677746bc9ffdc9451c61702b6306e5b196c63ad021e4a6
+  skills/session-trace/scripts/build-trace.mjs: cd3a596dc0e37b7c4e4138900acde36349bd1af73ecb32f77554ee9c6f7ead0d
   skills/spike/SKILL.md: 7a39a4026334e15ac5e5e7d9dede2dfd9ad50aaedc411b60c17bd9d7c3753d59
   skills/tdd/SKILL.md: cb01f66bebfaa25fa1f88e6b7e769cd9fd9f35b1120b8563749820738814c927
   skills/tdd/agents/openai.yaml: ea6f01cf1b8c06a4b0f5b649d74b1b8ce8685e72af1b38d70d877693e092af0b
@@ -125,4 +119,4 @@ checksums:
   skills/teach/SKILL.md: e06b6d4180dbd7b404550ce62f852f8c2e8c692eacf52d726a9e909060b9f3b9
   skills/teach/references/iceberg-template.html: f999ae6fbff45b3faad7dbacde8af3b5218bb2b338aee78d14e3f591673bfa3b
   skills/teach/references/worked-example.md: a28d38777d35304efdcf564540952692e424b8d8e9336332175a64f478fcfa4a
-  skills/verify-app/SKILL.md: da3abc4df931eff4f763da3e9ee4ab24a7a3a8de45ba45c3e1cb6b24dc6ac750
+  skills/verify-app/SKILL.md: 15f7943d23a801e7203b4e5261a9603025bffe441981aacea72c51c47eb660ad

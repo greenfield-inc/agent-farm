@@ -8,7 +8,7 @@
 // --story FILE is JSON {"summary": "...", "moments": [{"turn": 12, "title": "...", "detail": "..."}]};
 // the summary and key moments are placed above the timeline and starred on it.
 //
-// --launch ID reads another Agent Farm worker's launch record (the PANE_AGENT_SESSION_ID it
+// --launch ID reads another Agent Farm worker's launch record (the AGENT_FARM_SESSION_ID it
 // reported) and finds that session in the Claude projects folder or the Codex home it ran with.
 // Without --session or --launch it finds the current session: $CLAUDE_CODE_SESSION_ID for Claude,
 // otherwise the newest top-level Codex rollout whose working directory is this one, searching

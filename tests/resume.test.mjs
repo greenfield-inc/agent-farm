@@ -18,18 +18,18 @@ function fixture(t) {
  put('profiles/planner.yaml','variants:\n  claude:\n    agent: planner-claude\n  codex:\n    agent: planner-codex\ndefault: codex\n');
  // Fake harnesses record the argv they were started with.
  for(const harness of ['claude','codex'])writeHarness(bin,harness,`require('fs').writeFileSync(${JSON.stringify(record)},JSON.stringify({harness:${JSON.stringify(harness)},argv:process.argv.slice(2)}));\n`);
- const env={...process.env,HOME:home,USERPROFILE:home,PATH:bin+path.delimiter+process.env.PATH,AGENT_FARM_TELEMETRY:'off',PANE_PANEL_ID:'panel-under-test'};
- delete env.CODEX_HOME;delete env.AGENT_FARM_NATIVE_CODEX_HOME;delete env.CLAUDE_CONFIG_DIR;
+ const env={...process.env,HOME:home,USERPROFILE:home,PATH:bin+path.delimiter+process.env.PATH,AGENT_FARM_TELEMETRY:'off',AGENT_FARM_REPORT_SESSION_ID:'1'};
+ delete env.CODEX_HOME;delete env.PANE_PANEL_ID;delete env.AGENT_FARM_NATIVE_CODEX_HOME;delete env.CLAUDE_CONFIG_DIR;
  const invoke=(profile,args=[],extraEnv={})=>{
   fs.rmSync(record,{force:true});
   const result=spawnSync(process.execPath,[cli,'run',profile,'--config-root',root,'--directory',target,'--no-workspace',...args],{encoding:'utf8',env:{...env,...extraEnv}});
-  return {...result,launched:fs.existsSync(record)?JSON.parse(fs.readFileSync(record,'utf8')):undefined,reported:[...result.stderr.matchAll(/^PANE_AGENT_SESSION_ID=(\S+)$/gm)].map(m=>m[1])};
+  return {...result,launched:fs.existsSync(record)?JSON.parse(fs.readFileSync(record,'utf8')):undefined,reported:[...result.stderr.matchAll(/^AGENT_FARM_SESSION_ID=(\S+)$/gm)].map(m=>m[1]),legacy:[...result.stderr.matchAll(/^PANE_AGENT_SESSION_ID=(\S+)$/gm)].map(m=>m[1])};
  };
  const launches=()=>{const dir=path.join(home,'.local/state/agent-farm/launches');return fs.existsSync(dir)?fs.readdirSync(dir).map(f=>JSON.parse(fs.readFileSync(path.join(dir,f),'utf8'))):[];};
  return {base,root,target,home,bin,invoke,launches};
 }
 
-test('a first Claude launch gets a recorded session ID and reports it to Pane',t=>{
+test('a first Claude launch gets a recorded session ID and reports it to the host',t=>{
  const f=fixture(t),r=f.invoke('planner:claude');
  assert.equal(r.status,0,r.stderr);assert.equal(r.launched.harness,'claude');
  assert.equal(r.reported.length,1);const id=r.reported[0];
@@ -37,10 +37,20 @@ test('a first Claude launch gets a recorded session ID and reports it to Pane',t
  const [record]=f.launches();assert.deepEqual([record.id,record.profile,record.variant,record.harness,record.directory],[id,'planner','claude','claude',f.target]);
 });
 
-test('the Pane line is printed only under Pane',t=>{
- const f=fixture(t),r=f.invoke('planner:claude',[],{PANE_PANEL_ID:''});
- assert.equal(r.status,0,r.stderr);assert.deepEqual(r.reported,[]);
+test('the session-ID line is printed only when a host asks for it (D-403)',t=>{
+ const f=fixture(t),r=f.invoke('planner:claude',[],{AGENT_FARM_REPORT_SESSION_ID:''});
+ assert.equal(r.status,0,r.stderr);assert.deepEqual(r.reported,[]);assert.deepEqual(r.legacy,[]);
  assert.ok(r.launched.argv.includes('--session-id'));assert.equal(f.launches().length,1);
+});
+
+test('older Pane builds that set only PANE_PANEL_ID still get the PANE_AGENT_SESSION_ID line; a host that sets both gets only the new one (D-403)',t=>{
+ const f=fixture(t),old=f.invoke('planner:claude',[],{AGENT_FARM_REPORT_SESSION_ID:'',PANE_PANEL_ID:'panel-under-test'});
+ assert.equal(old.status,0,old.stderr);assert.deepEqual(old.reported,[]);assert.equal(old.legacy.length,1);
+ assert.equal(old.launched.argv[old.launched.argv.indexOf('--session-id')+1],old.legacy[0]);
+ const both=f.invoke('planner:claude',[],{PANE_PANEL_ID:'panel-under-test'});
+ assert.equal(both.status,0,both.stderr);assert.equal(both.reported.length,1);assert.deepEqual(both.legacy,[]);
+ const resumed=f.invoke('planner',['--resume',old.legacy[0]],{AGENT_FARM_REPORT_SESSION_ID:'',PANE_PANEL_ID:'panel-under-test'});
+ assert.equal(resumed.status,0,resumed.stderr);assert.equal(resumed.launched.harness,'claude');assert.deepEqual(resumed.legacy,[old.legacy[0]]);
 });
 
 test('resuming a bare profile reopens the recorded variant instead of the default',t=>{

@@ -61,4 +61,4 @@ This run is unattended. The launch is the approval for every step of `code-smell
 
 Hard stops, which no launch overrides: never merge a PR unless the person explicitly asks for that PR to be merged, never force-push a branch you did not create, and never change migrations, production configuration, deploy workflows, or anything that touches production data. A finding that needs one of those becomes an issue.
 
-Under an orchestrator, keep the status file it names current and report through `runpane report` when you finish or are blocked.
+Under an orchestrator, keep the status file it names current and report through the host's report command when you finish or are blocked.

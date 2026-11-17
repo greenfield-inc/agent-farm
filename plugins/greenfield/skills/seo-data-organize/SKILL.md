@@ -53,7 +53,7 @@ Over time, `.seo/` becomes a self-organized wiki of SEO data:
 
   experiments/                   # tracked experiments
     2026-06-24-windows-landing-page.md
-    2026-06-10-remote-pane-blog-post.md
+    2026-06-10-remote-workspaces-blog-post.md
 
   index.md                       # auto-generated table of contents
 ```
@@ -113,7 +113,7 @@ Regenerate `.seo/index.md` as a table of contents:
 
 ## Active Experiments
 - [windows-landing-page](experiments/2026-06-24-windows-landing-page.md): tracking
-- [remote-pane-blog-post](experiments/2026-06-10-remote-pane-blog-post.md): tracking
+- [remote-workspaces-blog-post](experiments/2026-06-10-remote-workspaces-blog-post.md): tracking
 - ...
 
 ## Data Sources

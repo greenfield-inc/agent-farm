@@ -54,8 +54,8 @@ test('Codex traces follow the Codex home the worker ran with, including its suba
  expectWorker(build(['--session',parent],elsewhere));
  expectWorker(build(['--codex-home',generated],work));
  const launches=path.join(home,'.local/state/agent-farm/launches');fs.mkdirSync(launches,{recursive:true});
- fs.writeFileSync(path.join(launches,'pane-worker.json'),JSON.stringify({id:'pane-worker',profile:'greenfield/reviewer',variant:'codex',harness:'codex',directory:work,started_at:'2026-10-06T12:09:58Z',codex_home:generated}));
- expectWorker(build(['--launch','pane-worker'],elsewhere));
+ fs.writeFileSync(path.join(launches,'host-worker.json'),JSON.stringify({id:'host-worker',profile:'greenfield/reviewer',variant:'codex',harness:'codex',directory:work,started_at:'2026-10-06T12:09:58Z',codex_home:generated}));
+ expectWorker(build(['--launch','host-worker'],elsewhere));
  const missing=spawnSync(process.execPath,[script,'--out',base,'--launch','nobody'],{cwd:elsewhere,encoding:'utf8',env});
  assert.equal(missing.status,1);assert.match(missing.stderr,/No Agent Farm launch record for nobody/);
 });

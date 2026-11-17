@@ -256,9 +256,9 @@ test('a workspace-selected directory collects parent and child telemetry outside
 
 for(const harness of ['claude','codex'])test(`${harness}: an orchestrator exports a finished worker by its launch ID, resumes included`,t=>{
  const f=fixture(t,harness),bundle=path.join(f.base,'artifact');fs.mkdirSync(bundle);fs.writeFileSync(path.join(bundle,'bundle.json'),'{}');
- f.env.PANE_PANEL_ID='panel-under-test';
+ f.env.AGENT_FARM_REPORT_SESSION_ID='1';
  const first=f.invoke([]);assert.equal(first.status,0,first.stderr);
- const launch=/^PANE_AGENT_SESSION_ID=(\S+)$/m.exec(first.stderr)[1];
+ const launch=/^AGENT_FARM_SESSION_ID=(\S+)$/m.exec(first.stderr)[1];
  const again=f.invoke(['--resume',launch]);assert.equal(again.status,0,again.stderr);
  const sessions=f.sessions();assert.equal(sessions.length,2);
  for(const s of sessions)assert.equal(s.attributes['agent_farm.launch.id'],launch);

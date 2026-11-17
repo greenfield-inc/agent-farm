@@ -2,20 +2,20 @@
 
 How a worker's `needs_you` (standing rules, Questions for the person) reaches the person, and how the answer goes back. One round at a time, newest blocking question first; batch `fyi` blocks into the map instead.
 
-In Pane, ask and relay the way the `pane` skill says (its "Asking the person in Pane" section); this page keeps only Greenfield's numbering and the lines back to the worker. Relaying a worker's question in Pane always uses `runpane notify --relays <item>`, never `AskUserQuestion`.
+When the host has its own way of asking the person, ask and relay the way its instructions say; this page keeps only Greenfield's numbering and the lines back to the worker.
 
-## Asked through Notify
+## Asked by the worker itself
 
-A block with `"asked": "notify"` already reached the person as the worker's own Notify cards. Never relay it while its card is live. The status pages show it only by count, and on its item page as a Waiting row that links the asking tab (status-board.md).
+A block with `"asked": "notify"` already reached the person: the worker asked it itself through the host. Never relay it while the host still holds it. The status pages show it only by count, and on its item page as a Waiting row that links the asking worker (status-board.md).
 
-- **Answered** (`answers` is not empty): assign the block the next free Q-n and each answer the next free D-n, record them as for an answer below, and send `recorded: Q-n → <answer>. Recorded as D-n.` to the asking tab only, with one `→ <answer>` and one D-n per question in order when the block has several. On the next rewrite its row moves to Decisions.
-- **The card is gone** (a crash, an interrupt or a restart): when `answers` is empty and `runpane sessions overview` shows the worker's agent in any state other than `blocked` on two checks at least a minute apart, relay the block as below. One check is not enough: a worker that got `waiting` runs briefly before it calls `notify` again.
+- **Answered** (`answers` is not empty): assign the block the next free Q-n and each answer the next free D-n, record them as for an answer below, and send `recorded: Q-n → <answer>. Recorded as D-n.` to the asking worker only, with one `→ <answer>` and one D-n per question in order when the block has several. On the next rewrite its row moves to Decisions.
+- **The question is gone** (a crash, an interrupt or a restart): when `answers` is empty and the host shows the worker's agent in any state other than blocked on two checks at least a minute apart, relay the block as below. One check is not enough: a worker that is told to wait runs briefly before it asks again.
 
 Every other block, `"asked": "relay"` or with no `asked`, is relayed.
 
-## A worker's report card in a Pane Session
+## A worker's blocked report that is already a question
 
-In a Pane Session, a worker's blocked report is already an answerable card in Approvals, built from the `needs_you` in its status file. Never put the same question to the person a second way, and never through `AskUserQuestion`: relay that card with `runpane notify --relays <item>`, then record the answer with `runpane inbox ack <item> --decision <D-n>` and send the line under Back to the worker. The `pane` skill and Pane's orchestration guide have the mechanics.
+When the host turns a worker's blocked report into an answerable question for the person, built from the `needs_you` in its status file, never put the same question to the person a second way: relay that one with the host's relay command, record the answer as the host's instructions say, and send the line under Back to the worker.
 
 ## To the person
 
@@ -31,12 +31,12 @@ Files   <each file, opened beside you>
 Context: <where the context lives>                    (only when there are no files)
 ```
 
-In Pane, the round is an approval card: `runpane notify --relays <item>` for a worker's report card, otherwise `runpane notify` as the `pane` skill says, never `AskUserQuestion`. Outside Pane, on Claude, put the questions through the harness question tool (`AskUserQuestion`) once the files are open, the recommended option first; on Codex, use the numbered list above, answered as "1a". Keep the worker's options and wording; add only the label, and the Context line when there are no files.
+When the host has its own question mechanism, put the round through it as its instructions say, the worker's blocked report included. Otherwise, on Claude, put the questions through the harness question tool (`AskUserQuestion`) once the files are open, the recommended option first; on Codex, use the numbered list above, answered as "1a". Keep the worker's options and wording; add only the label, and the Context line when there are no files.
 
 ## Back to the worker
 
-- **An answer.** Record each question's answer as the next D-n in that work's decision log (the bundle's, with `interview`), or in the map's Decisions log when the work has no bundle. Send one line to the asking tab only: `answer: Q-n → <the answer, quoted exactly when it is free text>. Recorded as D-n.` Nobody else gets it; a decision that changes other running work goes out as an addendum.
-- **A question back.** Send `clarify: Q-n → <the person's question>` to the asking tab, even when you can answer it yourself from an approved source (then add your answer and its source after it, and show the person the same), so the worker adds it to `why`. Q-n stays open and nothing is recorded; relay its next report the same way.
+- **An answer.** Record each question's answer as the next D-n in that work's decision log (the bundle's, with `interview`), or in the map's Decisions log when the work has no bundle. Send one line to the asking worker only: `answer: Q-n → <the answer, quoted exactly when it is free text>. Recorded as D-n.` Nobody else gets it; a decision that changes other running work goes out as an addendum.
+- **A question back.** Send `clarify: Q-n → <the person's question>` to the asking worker, even when you can answer it yourself from an approved source (then add your answer and its source after it, and show the person the same), so the worker adds it to `why`. Q-n stays open and nothing is recorded; relay its next report the same way.
 - **A clash.** Q-n are unique per Session. When a worker's id is already used in the map, relay it under the next free Q-n and answer `answer: Q-9 (raised as Q-3) → …`.
 
 Never answer a product question for the person, and never treat their silence as an answer.

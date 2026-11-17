@@ -2,8 +2,7 @@
 // usage: node render.mjs <status.json> <out.html>   (item pages go to items/<id>.html beside <out.html>)
 // Diagrams are drawn with rough.js at render time; the pages have no script (a script-src 'none' CSP) and fetch nothing.
 // rough.mjs and the Inter font are vendored beside this file, so it needs nothing but Node.
-// Pane copies this file; it already carries the hardening Pane's copy added (every link through href(), numeric
-// counts, an allow-listed item state, the CSP), so a refresh from Agent Farm is a straight copy.
+// Hardening: every link goes through href(), counts are numeric, item states are allow-listed, and the pages carry a CSP.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -16,7 +15,12 @@ const d = { session: {}, needs: [], items: [], done: [], decisions: [], sources:
 const g = rough.generator();
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 // `next`, `settings`, `summary`, `nextStep`, `asked` and `changes` may carry <b>, <code> and <a href> links; everything else in them is escaped.
-const SAFE_HREF = /^(https?:|file:|pane:|#|\.{0,2}\/|[\w.-]+(\/|\.html|$))/i;
+// A host may name one extra link scheme for its own deep links (`session.hostScheme`, e.g. "host" for host://…).
+// Schemes that can run code or carry content are never allowed.
+const BLOCKED_SCHEMES = new Set(['javascript', 'data', 'vbscript', 'file', 'blob', 'about']);
+const hostScheme = typeof d.session.hostScheme === 'string' && /^[a-z][a-z0-9+.-]*$/i.test(d.session.hostScheme) && !BLOCKED_SCHEMES.has(d.session.hostScheme.toLowerCase()) ? d.session.hostScheme.toLowerCase() : '';
+const BASE_HREF = /^(https?:|file:|#|\.{0,2}\/|[\w.-]+(\/|\.html|$))/i;
+const SAFE_HREF = { test: u => BASE_HREF.test(u) || (hostScheme !== '' && String(u).toLowerCase().startsWith(hostScheme + ':')) };
 // Links in the JSON are relative to the overview; on an item page (one folder down, in items/) a relative link gets `../`.
 let base = '';
 const rebase = u => (base && !/^([a-z][\w+.-]*:|#|\/)/i.test(u) ? base + u : u);
@@ -156,23 +160,23 @@ const num = v => (Number.isFinite(Number(v)) ? Number(v) : 0);
 const rounds = r => r && Number.isFinite(r.used) && Number.isFinite(r.budget) ? ` · <span class="rounds${r.used >= r.budget ? ' spent' : ''}">Fix rounds ${num(r.used)} of ${num(r.budget)}</span>` : '';
 // The item's card. On the overview its name is a stretched link to the item page (no script), with "Details →" too.
 const itemCard = (it, page) => `<div class="card item ${it.state}${page ? ' linked' : ''}">
-  <div class="hd">${page ? `<a class="name" href="${href(page)}">${esc(it.name)}</a>` : `<span class="name">${esc(it.name)}</span>`}<span class="where">${it.pr ? `<a href="${href(it.prLink)}">${esc(it.pr)}</a>` : ''}${it.pr && (it.paneLink || it.pane) ? ' · ' : ''}${it.paneLink ? `<a href="${href(it.paneLink)}">open ↗</a>` : esc(it.pane)}${rounds(it.fixRounds)}</span></div>
+  <div class="hd">${page ? `<a class="name" href="${href(page)}">${esc(it.name)}</a>` : `<span class="name">${esc(it.name)}</span>`}<span class="where">${it.pr ? `<a href="${href(it.prLink)}">${esc(it.pr)}</a>` : ''}${it.pr && (it.workspaceLink || it.workspace) ? ' · ' : ''}${it.workspaceLink ? `<a href="${href(it.workspaceLink)}">open ↗</a>` : esc(it.workspace)}${rounds(it.fixRounds)}</span></div>
   ${it.rail?.length ? diagram({ steps: it.rail }, 'rail', 'bare') : ''}
   <div class="tn">${rich(it.next)}</div>${page ? `<a class="more" href="${href(page)}">Details →</a>` : ''}</div>`;
 
-// Questions show only as a count and their Q-ids: in Pane each links the tab holding its card, which opens Approvals on it.
-// A question asked through Notify has no Q-n until it is answered; it shows as "a new question".
+// Questions show only as a count and their Q-ids: when the host has a question queue, each links where the host holds it.
+// A question a worker asked itself through the host has no Q-n until it is answered; it shows as "a new question".
 const asked = d.needs.filter(q => q && typeof q === 'object');
 const qname = q => (q.id ? esc(q.id) : 'a new question');
-const inApprovals = Boolean(d.session.approvals) || asked.some(q => q.link);
-const where = inApprovals ? 'in Approvals' : "in the orchestrator's chat";
+const inQueue = Boolean(d.session.questionsLink) || asked.some(q => q.link);
+const where = inQueue ? "in the host's question queue" : "in the orchestrator's chat";
 const qref = q => (q.link ? `<a href="${href(q.link)}">${qname(q)}</a>` : qname(q));
 const qitem = q => { const x = byId.get(q.item); return x ? short(x) : q.item; };
 const joinAnd = parts => (parts.length < 2 ? parts.join('') : `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}`);
 const pointer = () => {
   if (!asked.length) return '';
-  const n = asked.length, open = d.session.approvals || asked.find(q => q.link)?.link;
-  return `<div class="apv"><span class="hg" aria-hidden="true">⏳</span><span><b>${n} question${n === 1 ? '' : 's'}</b> wait${n === 1 ? 's' : ''} for you ${where}: ${joinAnd(asked.map(q => `${qref(q)}${q.item ? ` (${esc(qitem(q))})` : ''}`))}. Questions live only there.</span>${inApprovals && open ? `<a class="btn sm" href="${href(open)}">Open Approvals →</a>` : ''}</div>`;
+  const n = asked.length, open = d.session.questionsLink || asked.find(q => q.link)?.link;
+  return `<div class="apv"><span class="hg" aria-hidden="true">⏳</span><span><b>${n} question${n === 1 ? '' : 's'}</b> wait${n === 1 ? 's' : ''} for you ${where}: ${joinAnd(asked.map(q => `${qref(q)}${q.item ? ` (${esc(qitem(q))})` : ''}`))}. Questions live only there.</span>${inQueue && open ? `<a class="btn sm" href="${href(open)}">Open questions →</a>` : ''}</div>`;
 };
 
 // ---------- styles ----------
@@ -311,7 +315,7 @@ const NR = '<span class="nr">Not recorded</span>';
 const everything = x => {
   const refs = x.refs && typeof x.refs === 'object' ? x.refs : {};
   const rows = [];
-  for (const q of asked.filter(q => q.item === x.id)) rows.push(`<tr class="wait"><th>Waiting</th><td><b>${q.id ? esc(q.id) : 'A new question'} waits ${where}</b>${q.link ? ` <a href="${href(q.link)}">Open in Approvals →</a>` : ''}</td></tr>`);
+  for (const q of asked.filter(q => q.item === x.id)) rows.push(`<tr class="wait"><th>Waiting</th><td><b>${q.id ? esc(q.id) : 'A new question'} waits ${where}</b>${q.link ? ` <a href="${href(q.link)}">Open question →</a>` : ''}</td></tr>`);
   const decided = d.decisions.filter(dc => dc.item === x.id).map(dc => `${esc(dc.id)} ${esc(dc.answer)}`);
   for (const [key, label] of ROWS) {
     let cell = refs[key] ? refCell(refs[key]) : '';

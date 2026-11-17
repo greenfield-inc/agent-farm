@@ -93,7 +93,7 @@ its branch unless the user asks. Recommend draft vs close; the user picks.
 Target files that agents actually follow:
 
 - `AGENTS.md`, `CLAUDE.md`, nested `CLAUDE.md`
-- Managed `pane-agent-context` / similar injected HTML comment blocks
+- Managed `<tool>-agent-context` / similar injected HTML comment blocks
 - Package READMEs and `docs/` that copy command lists or architecture
 - Help dialogs or in-app copy that teach commands or data models when
   those files are in-repo
@@ -129,8 +129,8 @@ Typical sources:
 - Rendered CLI markdown, committed SDK clients, managed `AGENTS.md` blocks
 - Agent Farm `plugins/<name>/` snapshots with SHA-256 checksums
 
-If agent context is generated (for example Pane's
-`contracts/runpane/contract.json` `agentContext.managedBlock` and
+If agent context is generated (for example a CLI's
+`contracts/<cli>/contract.json` `agentContext.managedBlock` and
 `agentContext.brief.rules`):
 
 1. Change those strings in the source.
