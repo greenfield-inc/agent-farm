@@ -20,7 +20,8 @@ After             numbered open questions in plain text (names, numbers, dates)
 
 ## Tool mapping
 
-- **Claude Code:** `AskUserQuestion` (`question`, `header`, `options[]` of `label` and `description`, `multiSelect`; `preview` for side-by-side mockups).
+- **A host with its own question mechanism:** the card its injected instructions name, with this shape as its questions and options; a recorded round is the host's approval card.
+- **Claude Code otherwise:** `AskUserQuestion` (`question`, `header`, `options[]` of `label` and `description`, `multiSelect`; `preview` for side-by-side mockups).
 - **Codex and others:** the native question tool, or a numbered list (`1. Question? (Header)` / `a. Label (Recommended): consequence`) answered as "1a 2c".
 
 ## Good options

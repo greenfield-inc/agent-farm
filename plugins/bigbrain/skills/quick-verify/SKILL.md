@@ -27,7 +27,7 @@ to discover machines, run isolated native checks, and report per-OS proof.
 | Change | Observe | Look for |
 | --- | --- | --- |
 | Web UI | Screenshot the dev server (Playwright, Cypress, or a temporary script) | Layout, spacing, empty and error states, a narrow viewport |
-| Mobile UI | Simulator or device screenshot | The same, plus safe areas and keyboard overlap |
+| Mobile UI | Simulator or device screenshot (iOS: run simulators with `ios-simulators`) | The same, plus safe areas and keyboard overlap |
 | API or backend | One real request, and read the response and the logs | Status, shape, edge input, the error path |
 | CLI or script | Run it with real arguments | Output, exit code, files written |
 | Job, queue, or migration | Run it once on test data, then read what changed | The rows or records it touched, and running it twice |
