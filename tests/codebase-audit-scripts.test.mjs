@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
+import vm from 'node:vm';
 
 const scripts=fileURLToPath(new URL('../plugins/greenfield/skills/codebase-audit/scripts/',import.meta.url));
 const python=process.platform==='win32'?'python':'python3';
@@ -20,7 +21,7 @@ function data(dir,extra={}){
  json(dir,'hand.json',{page:{title:'Acme, mapped',today:'2026-11-16'},focus:[{k:'src',n:'Settings',said:'“Settings need polish”',found:[]}]});
  for(const [file,value] of Object.entries(extra))json(dir,file,value);
 }
-const embedded=html=>JSON.parse(html.match(/const D=(.*?);\r?\n/)[1].replace(/<\\\//g,'</'));
+const embedded=html=>JSON.parse(html.match(/const D=(.*?);\r?\n/)[1]);
 
 test('metrics.py counts test folders at the repository root as tests',t=>{
  const repo=tmp(t),out=tmp(t);
@@ -71,4 +72,54 @@ test('build.py refuses a month outside 1 to 12 instead of looping',t=>{
  assert.equal(r.signal,null,'build.py did not finish');
  assert.notEqual(r.status,0);
  assert.match(r.stderr,/timeline\.monthly\[0\]\.m/);
+});
+
+// Every example in references/data-contract.md, made buildable: placeholders become real keys, dates and
+// enums take a valid value, and zero counts become 400 so every part clears the page's size floor.
+const contractDir=fileURLToPath(new URL('../plugins/greenfield/skills/codebase-audit/references/',import.meta.url));
+const PLACEHOLDERS={'<bucket key>':'apps/web','<node id>':'api-gateway','<layer>':'API'};
+const swapText=(v,from,to)=>JSON.parse(JSON.stringify(v).split(JSON.stringify(from).slice(1,-1)).join(JSON.stringify(to).slice(1,-1)));
+function contract(){
+ const md=fs.readFileSync(path.join(contractDir,'data-contract.md'),'utf8'),files={};
+ for(const [,file,body] of md.matchAll(/^## (\S+\.json)[^\n]*\n[\s\S]*?```json\n([\s\S]*?)```/gm))files[file]=JSON.parse(body);
+ const fill=v=>Array.isArray(v)?v.map(fill):v&&typeof v==='object'?Object.fromEntries(Object.entries(v).map(([k,x])=>[k,fill(x)])):
+  v==='YYYY-MM-DD'?'2025-06-15':v==='YYYY-MM'?'2025-06':typeof v==='string'&&v.includes(' | ')?v.split(' | ')[0]:v===0?400:v;
+ return Object.entries(PLACEHOLDERS).reduce((v,[name,value])=>swapText(v,name,value),fill(files));
+}
+const leaves=(v,at=[])=>typeof v==='string'?[at]:v&&typeof v==='object'?Object.entries(v).flatMap(([k,x])=>leaves(x,[...at,k])):[];
+const setAt=(v,at,x)=>{at.slice(0,-1).reduce((o,k)=>o[k],v)[at.at(-1)]=x;return v};
+
+// Runs the page's script against a stand-in DOM and returns every HTML string it assigned and every text it set.
+function render(page){
+ const html=[],text=[],handlers=[];
+ class El{
+  constructor(){this.style={};this.dataset={};this.classList={toggle(){}};this.parentNode={remove(){}};this.offsetWidth=this.offsetHeight=0;this.id='x';this.h=''}
+  set innerHTML(v){html.push(v);this.h=v} get innerHTML(){return this.h}
+  set textContent(v){text.push(String(v))} get textContent(){return ''}
+  setAttribute(k,v){text.push(String(v))} appendChild(c){return c} append(){} replaceChildren(){} remove(){} closest(){return null}
+  addEventListener(type,f){handlers.push(f)}
+ }
+ const document={querySelector:()=>new El(),querySelectorAll:q=>q==='[data-t]'?[...page.matchAll(/data-t="(\w+)"/g)].map(m=>Object.assign(new El(),{dataset:{t:m[1]}})):[],createElement:()=>new El(),createElementNS:()=>new El(),documentElement:new El(),title:''};
+ vm.runInNewContext(page.match(/<script>([\s\S]*)<\/script>/)[1],{document,getComputedStyle:()=>({getPropertyValue:()=>'#000'}),innerWidth:1200,innerHeight:800});
+ for(const f of handlers)f({clientX:0,clientY:0,target:new El()});  // every hover tooltip and click detail
+ return {html,text:[...text,document.title]};
+}
+
+test('build.py and the page keep markup in every string field of the data contract as text',t=>{
+ const PAYLOAD='"\'><img src=x onerror=alert(1)>',base=contract(),reached=[],refused=[];
+ const variants=[...leaves(base).map(at=>[at.join('.'),setAt(structuredClone(base),at,PAYLOAD)]),
+  ...Object.entries(PLACEHOLDERS).map(([name,value])=>[name,swapText(base,value,PAYLOAD)])];
+ const build=files=>{const dir=tmp(t);for(const [f,v] of Object.entries(files))json(dir,f,v);const r=run('build.py',[dir,path.join(dir,'out.html')]);return {r,out:path.join(dir,'out.html')}};
+ assert.equal(build(base).r.status,0,'the filled-in contract builds');
+ for(const [field,files] of variants){
+  const {r,out}=build(files);
+  if(r.status!==0){assert.match(r.stderr,/Fix these fields/,`${field}: ${r.stderr}`);refused.push(field);continue}
+  const page=fs.readFileSync(out,'utf8');
+  assert.ok(!page.includes(PAYLOAD),`${field} appears unescaped in the page source`);
+  const {html,text}=render(page);
+  assert.ok(!html.some(s=>s.includes('<img')),`${field} reached innerHTML as markup`);
+  if(html.some(s=>s.includes('&lt;img src=x'))||text.some(s=>s.toLowerCase().includes(PAYLOAD.toLowerCase())))reached.push(field);
+ }
+ t.diagnostic(variants.map(v=>v[0]).filter(f=>!reached.includes(f)&&!refused.includes(f)).join(", "));t.diagnostic(`${reached.length} fields reached the page as text, ${refused.length} refused by the builder, ${variants.length-reached.length-refused.length} not shown`);
+ assert.ok(reached.length>variants.length/2,`most fields reach the page: ${reached.length} of ${variants.length}`);
 });

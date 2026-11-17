@@ -1,6 +1,6 @@
 # Data contract
 
-`scripts/build.py <data dir> <out.html>` reads these files from the data directory. Fields marked optional may be left out; the page drops the section that depends on them. The builder stops and lists every score, rank, date, month, commit count or enum value (milestone `type`, `impact`, `verified`, `tone`) that does not match these shapes, and fills months without commits with zeroes through `hand.page.today`.
+`scripts/build.py <data dir> <out.html>` reads these files from the data directory. Fields marked optional may be left out; the page drops the section that depends on them. The builder stops and lists every score, rank, date, month, commit count or enum value (milestone `type`, `impact`, `verified`, `tone`) that does not match these shapes, and fills months without commits with zeroes through `hand.page.today`. The page shows every string as text, so research output never becomes markup.
 
 ## metrics.json (from scripts/metrics.py)
 
@@ -48,7 +48,7 @@
 ```json
 {"low":  [{"rank": 1, "title": "verb phrase", "why": "what the user sees today and what changes", "area": "Checkout", "size": "S",
            "impact": "high | med | low", "files": ["path:line"], "verified": "code | inferred", "focus": true}],
- "high": [{"rank": 1, "title": "", "why": "", "area": "", "size": "M | L", "effort": "2 to 4 days", "impact": "", "files": [], "verified": "", "focus": false}]}
+ "high": [{"rank": 1, "title": "", "why": "", "area": "", "size": "M | L", "effort": "2 to 4 days", "impact": "high | med | low", "files": [], "verified": "code | inferred", "focus": false}]}
 ```
 Exactly 25 each. `area` names the one part the item touches. `focus` marks items serving a stated priority.
 
@@ -71,8 +71,9 @@ Exactly 25 each. `area` names the one part the item touches. `focus` marks items
  "glossary": [["term", "definition"]],
  "nodeLabel": {"<node id>": "short label"}, "nodeText": {"<node id>": "detail text"},
  "layerNote": {"<layer>": "one line"}, "archRows": [["Clients"], ["API"], ["Services", "External"]],
- "extraParts": []}
+ "extraParts": [{"k": "<bucket key>/settings", "l": "Settings", "g": "Web app", "s": 2.5, "r": "", "loc": 0, "t": 0, "c90": 0, "c30": 0, "age": 0,
+                 "first": "YYYY-MM-DD", "last": "YYYY-MM-DD"}]}
 ```
 - Every key is optional except `page.title`. `focus[].k` outlines that part in purple on every chart.
 - `units` names the folder of repeated units (apps, packages, services, plugins) for the per-unit table and the "added" lane.
-- `extraParts` adds treemap parts in the built shape (`k, l, g, s, r, loc, t, c90, c30, age`), for splitting one very large bucket into scored sub-parts.
+- `extraParts` adds treemap parts in the built shape (`k, l, g, s, r, loc, t, c90, c30, age`, optional `first` and `last`), for splitting one very large bucket into scored sub-parts.
