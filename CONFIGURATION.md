@@ -412,7 +412,7 @@ hook.
 ### ACP sessions
 
 `--print-acp` describes a profile for an [Agent Client Protocol](https://agentclientprotocol.com)
-client, such as a Pane chat tab, instead of a terminal. The client runs the
+client, such as an editor or desktop chat view, instead of a terminal. The client runs the
 printed command, which starts the harness's ACP adapter under the telemetry
 wrapper, and sends the printed session settings. The agent gets the same model,
 effort, instructions with `LAUNCH CONTEXT` (`headless: false`), skills,

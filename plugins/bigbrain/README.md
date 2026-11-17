@@ -16,7 +16,7 @@ For a one-page visual map, open [index.html](index.html).
 agent-farm plugin install bigbrain
 ```
 
-Then start the orchestrator in your repository, inside a host whose orchestration skill launches, messages and waits on workers (for example Pane, through its orchestrator guide), and tell it what you want:
+Then start the orchestrator in your repository, inside a host whose orchestration skill launches, messages and waits on workers, following that host's orchestrator guide, and tell it what you want:
 
 ```sh
 agent-farm run bigbrain/orchestrator --directory /path/to/project

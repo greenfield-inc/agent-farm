@@ -10,13 +10,13 @@ Cover          Asked for        what the person asked for, in their words   (ask
                What changes     what the plan package or PR changes        (changes)
                Where it stands  its state label and its next step          (stateLabel, next)
 Card           the item's card from the overview, with its rail and fix rounds
-Everything     Waiting       first, for each open question on it: "Q-n waits in Approvals", linked, never its wording
+Everything     Waiting       first, for each open question on it: "Q-n waits in the host's question queue" (or in the orchestrator's chat), linked, never its wording
 for this item  Plan or Task  a planned item's cover sheet and brief, linked, never copied; otherwise the starting message
                Pull request  the PR, its checks and the PR's own artifact
                QA, Review    the QA record and the findings, with the outcome or why there is none
                Decisions     every D-n about the item
                Depends on    when it waits on another item
-               Worker        the worker's tab
+               Worker        the host's link to the worker
                Trace, Post-mortem   once the review loop closes, or "no issues hit"
                Evidence      anything else it relied on
 Siblings       the other items in its group, as chips

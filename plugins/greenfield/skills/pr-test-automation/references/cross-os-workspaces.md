@@ -1,4 +1,4 @@
-# Cross-OS QA through Pane Workspaces
+# Cross-OS QA through Workspaces
 
 For OS-sensitive changes or cross-platform claims, discover reachable machines,
 run isolated checks, and collect proof per OS. OS-sensitive work includes paths,
@@ -6,91 +6,67 @@ shells, native modules, installers, desktop UI, terminals, file watching, line
 endings, WSL interop, and simulators. Keep the caller's authorization, delegation,
 time, and publication limits; preserve the PR's current draft/ready state.
 
+"Workspaces" here means whatever remote machines the host can reach for you.
+The commands that discover machines, launch an agent on one, run a command
+there, and read its output come from the host's injected instructions or the
+`host_policy` document. Read them before planning. With no such host facility,
+check the local OS and mark every other claimed OS BLOCKED with that reason.
+
 ## Detect and plan
 
-In a Pane Session, find and read its original `runtime-context.md` through the supplied
-brief or Session AGENTS instructions. Use its bundled bridge (`PANE_RUNPANE_BIN`
-or the named path), with the required `--pane-dir` on every call. WSL needs that
-Windows bridge to reach Pane's named pipe; global Linux runpane targets Linux
-sockets. The bridge handles Windows TEMP, PowerShell, and path translation.
-
-Run `runpane doctor --json`. For a Windows-host bridge, confirm `wrapper.paneDir`
-matches the Session, `platform.os` is `win32`, and `daemon.reachable` is true.
-Missing context, bridge, or matching daemon is BLOCKED; continue independent
-local checks. All local `runpane` examples below mean this verified invocation,
-including its required flags. Remote commands use the remote machine's own
-runpane and data directory.
-
-Run `runpane workspace list --json` and `runpane agent-context --json`. When
-`workspaces.state` is `on`, match online `otherMachines` with the list's OS and
-`info.wslDistros`, `info.isWsl` / `isWsl` details. Confirm shell/app readiness;
-online status and listed distros identify candidates, not completed checks.
+Confirm the host's remote facility answers and names the machines it can reach,
+with each one's OS, architecture, and any WSL distros. A missing or unreachable
+facility is BLOCKED; continue independent local checks. Online status and listed
+distros identify candidates, not completed checks: confirm each machine's shell
+or app is ready before counting it.
 
 Plan the relevant checks once per reachable OS, including the local OS. Use
 one machine per OS unless architecture/runtime differences matter. Include all
-claimed platforms: offline machines, disabled Workspaces, or unavailable tools
-get BLOCKED rows with reasons. Leave infrastructure changes to their owner.
+claimed platforms: offline machines, a disabled remote facility, or unavailable
+tools get BLOCKED rows with reasons. Leave infrastructure changes to their owner.
 Name WSL distros separately from native Windows. For OS-neutral work, state why
 local checks suffice. Continue independent platforms when another is blocked.
 
 ## Run and observe
 
-Read installed syntax with `runpane agent-context --command "<command>" --json`
-and discover each machine's saved repo with `runpane repos list --json`. Use
-its paths and shell quoting. On this machine, QA runs as a new agent tab in the
-feature's existing Pane (`runpane panels create --pane <id>`), never a new Pane.
-Another machine has no worktree for the feature, so it gets one QA Pane per
-feature: create it once and reuse it for every later QA run there. Prefer a
-visible QA agent when delegation is allowed (a tab here, the machine's QA Pane
-elsewhere);
-leaf helpers use direct exec and return agent requests (OS, SHA, check plan) to
-the parent. The parent owns authorized launches and evidence collection, or
-reports the platform BLOCKED.
+Discover each machine's saved repository and use its paths and shell quoting.
+On this machine, QA runs as a new agent in the feature's existing workspace,
+never a new workspace. Another machine has no worktree for the feature, so it
+gets one QA workspace per feature: create it once through the host and reuse it
+for every later QA run there. Prefer a visible QA agent when delegation is
+allowed; leaf helpers use direct exec and return agent requests (OS, SHA, check
+plan) to the parent. The parent owns authorized launches and evidence
+collection, or reports the platform BLOCKED.
 
-`panes create` owns the new worktree, so use it only when that machine has no Pane
-for this feature yet; pass a saved base repo as `--repo`. A QA Pane on another
-machine fetches and checks out the target SHA there and isolates the app before
-testing. A QA tab in the feature's Pane on this machine shares the implementer's
-checkout: it tests the branch as checked out, confirms `git rev-parse HEAD`
-equals the target SHA, and never runs `git checkout`, `reset` or `stash`. Replace all placeholders in these templates:
+A QA workspace on another machine fetches and checks out the target SHA there
+and isolates the app before testing. A QA agent in the feature's workspace on
+this machine shares the implementer's checkout: it tests the branch as checked
+out, confirms `git rev-parse HEAD` equals the target SHA, and never runs
+`git checkout`, `reset` or `stash`. Each starting message carries the SHA, the
+checks, the evidence wanted, and the isolation rules.
 
-```sh
-# This machine: a tab in the feature's Pane.
-runpane panels create --pane <feature-pane-id> --agent <agent> --initial-input "<SHA, checks, evidence, isolation>" --source agent --no-focus --wait-ready --yes --json
-# Another machine, first QA run for this feature only:
-runpane workspace <machine> exec -- 'runpane panes create --repo <remote-repo> --name <qa-name> --agent <agent> --prompt "<SHA, checks, evidence, isolation>" --source agent --no-focus --wait-ready --yes --json'
-# Later QA runs on that machine: a tab in its existing QA Pane.
-runpane workspace <machine> exec -- 'runpane panels create --pane <remote-qa-pane-id> --agent <agent> --initial-input "<SHA, checks, evidence, isolation>" --source agent --no-focus --wait-ready --yes --json'
-# Direct checks also suit helpers that cannot delegate.
-runpane workspace <machine> exec -- '<command>'
-```
-
-For another machine with no QA Pane for this feature, `runpane handoff "<agent>
-on <machine>" --note-file <note>` is an alternative to the first-run template:
-inspect it with `--dry-run` first, and carry the same SHA, checks, isolation, and
-evidence requirements in the note. Handoff creates a Pane, so never hand off to
-this machine; QA here is a tab.
-
-Read Pane/panel IDs from the result or `panels list --pane <id>`. Route remote
-`panels screen`, `input`, `submit`, and `last-message` through that machine's
-workspace exec. Inspect after launch/submission, wait for completion, read the
-final message, and retrieve logs/media. Discover command schemas as needed.
+After launch or submission, confirm the agent received its task, wait for
+completion, read its final message, and retrieve logs and media through the
+host. Treat input the host reports as queued or unconfirmed as not yet
+delivered; inspect and resubmit before counting the task running. Answer
+first-run dialogs (folder trust, background-server prompts) for the intended
+checkout only under the caller's authorization. Leave unrelated agents running.
 
 For WSL, select a distro from `wsl.exe --list --quiet`, then execute explicitly:
 `wsl.exe -d <distro> -- bash -lc '<check>'`, quoted for the outer shell too.
 Inside the distro, establish the Linux repo path and capture `uname -s`, distro
 identity, and `git rev-parse HEAD` with the output. A failed start is BLOCKED.
 
-On another machine, fetch and check out the requested SHA in its QA Pane,
+On another machine, fetch and check out the requested SHA in its QA workspace,
 including direct-exec checks. On this machine, check out nothing. Verify
 `git rev-parse HEAD` before tests everywhere. For a
 composite merge commit, record its SHA and prove the requested head is included
 with `git merge-base --is-ancestor <requested-head> HEAD`. Retain `git status
 --short` and the patch for dirty trees; label that evidence as dirty-state proof.
-Preserve the person's checkout and running Pane instance. Use separate
-dependencies/build output, ports, app user-data, and Pane app-build `PANE_DIR`.
-Scope `PANE_DIR` to the test app while the orchestration CLI stays connected
-to its existing daemon. Clean up only resources this run created.
+Preserve the person's checkout and any app instance they are running. Use
+separate dependencies/build output, ports, and app user-data for the app under
+test, while the host's own tooling stays connected to its existing instance.
+Clean up only resources this run created.
 
 ## Collect per-OS proof
 
@@ -123,25 +99,13 @@ WSL evidence proves its named Linux runtime; Windows requires native execution.
 
 ## Practical lessons
 
-- **Bridge flags:** some WSL→Windows bridges append `--pane-dir` after the
-  remote command. In shells supporting `#` comments, end that command with
-  ` #` to absorb the flag. ` ; echo #` can mask the check's status; preserve
-  its original exit code. Check the returned shell/status; cmd.exe lacks
-  `#` comments. Outside a configured Session, discover Windows runpane and
-  invoke it via PowerShell from a Windows directory.
-- **Borrow tools:** use a machine's existing `gh` authentication with
-  `runpane workspace <mac> exec -- 'cd <repo> && gh …'`. Set GitHub targets
-  explicitly and keep credentials on their host; caller publication rules apply.
-- **Delivery:** Codex queues `panels submit` until its turn ends; `delivery.state:
-  queued` confirms queued input, not that it was read. For urgent corrections
-  to your QA agent, send `panels input --panel <id> --keys escape`, submit the
-  correction, and inspect `panels screen`. Leave unrelated agents running.
-- **First run:** inspect `panels screen` for Claude/Codex folder-trust dialogs
-  or Codex's “Cannot use the background server → Run without daemon this time”.
-  Answer for the intended checkout with `panels input --keys …` under the
-  caller's authorization. Treat `verifiedSubmitted:false` or
-  `composer.hasUndeliveredText:true` as unconfirmed delivery; inspect and submit
-  as needed before counting the task running.
+- **Exit codes through bridges:** a remote-exec bridge may append its own flags
+  after your command or wrap it in another shell. Preserve the check's original
+  exit code (` ; echo …` can mask it), check the returned shell and status, and
+  remember cmd.exe has no `#` comments.
+- **Borrow tools:** use a machine's existing `gh` authentication through the
+  host's remote exec. Set GitHub targets explicitly and keep credentials on
+  their host; caller publication rules apply.
 - **Electron capture:** macOS background capture needs Screen Recording
   permission; Windows gdigrab can give black frames. CDP capture of the isolated
   app (`--remote-debugging-port`, `Page.startScreencast`) works without OS capture
@@ -154,6 +118,6 @@ WSL evidence proves its named Linux runtime; Windows requires native execution.
 - **Disk pressure:** pnpm node_modules may share hard links with its store, so
   deleting them reclaims little. `pnpm store prune` frees unused store content;
   treat it as shared-machine maintenance requiring coordination with its owner.
-- **WSL→Windows handoff:** affected versions look for a Linux daemon socket.
-  Check dry-run and execution results; use Mac↔Windows routes or Windows-bridge
-  direct checks while affected. Report remaining route gaps as BLOCKED.
+- **WSL→Windows routes:** a bridge from WSL to Windows tooling can look for a
+  Linux socket instead of the Windows one. Check dry-run and execution results,
+  use another route while affected, and report remaining route gaps as BLOCKED.

@@ -1,6 +1,6 @@
 # Ledger
 
-Use host durable state when available; otherwise `.agent/ledger.json`. Keep one entry per work item (one feature: one worktree, branch, Pane and PR), with one `workers` entry per worker session in it. Host IDs are opaque and separate from `status_file`; record associations only as the host reports them.
+Use host durable state when available; otherwise `.agent/ledger.json`. Keep one entry per work item (one feature: one worktree, branch, workspace and PR), with one `workers` entry per worker session in it. Host IDs are opaque and separate from `status_file`; record associations only as the host reports them.
 
 ```json
 {
@@ -21,7 +21,7 @@ Use host durable state when available; otherwise `.agent/ledger.json`. Keep one 
       "worktree": "../worktrees/invoice-pdf",
       "branch": "invoice-pdf",
       "host_workspace_id": null,
-      "pane_id": null,
+      "workspace_id": null,
       "owning_session_id": null,
       "stage": "queued | running | blocked | in review | pr open | done | failed | needs planning",
       "phase": "planning | awaiting approval | implementing | in review | complete",
@@ -52,7 +52,7 @@ Use host durable state when available; otherwise `.agent/ledger.json`. Keep one 
           "host_worker_id": null,
           "profile": "greenfield/implementer:opus",
           "status_file": "../worktrees/invoice-pdf/.agent/status.json",
-          "native_session": { "harness": "claude | codex", "launch_id": "PANE_AGENT_SESSION_ID the worker reported", "id": null, "log": null },
+          "native_session": { "harness": "claude | codex", "launch_id": "the session ID Agent Farm reported for the worker's launch", "id": null, "log": null },
           "started": "<ISO 8601 time>",
           "last_change": "<ISO 8601 time>",
           "last_event_id": null,
