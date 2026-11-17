@@ -298,7 +298,7 @@ repo-side reaper can find it by marker alone. Production analytics and
 live-mode billing are register-only by default.
 
 Local infrastructure the run created (VMs, Colima or Lima profiles with their
-data disks, containers, volumes, and images it pulled or built) is local and
+data disks, containers, volumes, and images it added) is local and
 non-production, so always delete it before the run ends; never register it.
 Delete only what the run recorded creating, and keep a VM or profile it reused.
 
