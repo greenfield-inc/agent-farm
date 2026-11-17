@@ -11,7 +11,6 @@ here = os.path.dirname(os.path.abspath(__file__))
 J = lambda n, d=None: json.load(open(os.path.join(data, n), encoding="utf-8")) if os.path.exists(os.path.join(data, n)) else d
 metrics, scores, hand = J("metrics.json"), J("scores.json"), J("hand.json", {})
 arch, tl, top = J("architecture.json", {"nodes": [], "edges": [], "layers": []}), J("timeline.json", {}), J("top50.json", {"low": [], "high": []})
-today = datetime.date(*map(int, (hand.get("page") or {}).get("today", str(datetime.date.today())).split("-")))
 
 
 # Researcher output is untrusted: check every field the page uses as a number, date, class name or enum.
@@ -38,6 +37,11 @@ def one_of(v, allowed, where, null=False):
     need((null and v is None) or v in allowed, f"{where}: {v!r} is not one of {sorted(allowed)}")
 
 
+for k, m in metrics["parts"].items():
+    for key in ("code_loc", "test_loc", "loc", "commits", "c30", "c90", "top"):
+        num(m.get(key), f"metrics.parts[{k}].{key}", 0)
+    for key in ("first", "last"):
+        date(m.get(key), f"metrics.parts[{k}].{key}", null=True)
 for k, s in scores["buckets"].items():
     num(s.get("score"), f"scores.buckets[{k}].score", 1, 5, null=True)
 for i, d in enumerate(scores.get("devices") or []):
@@ -68,6 +72,8 @@ for i, p in enumerate(hand.get("extraParts") or []):
     num(p.get("s"), f"hand.extraParts[{i}].s", 1, 5, null=True)
     for key in ("loc", "t", "c90", "c30", "age"):
         num(p.get(key), f"hand.extraParts[{i}].{key}")
+    for key in ("first", "last"):
+        date(p.get(key), f"hand.extraParts[{i}].{key}", null=True)
 date((hand.get("page") or {}).get("today"), "hand.page.today", null=True)
 MONTH = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")
 src = "timeline" if tl.get("monthly") else "metrics"
@@ -77,6 +83,7 @@ for i, m in enumerate(tl.get("monthly") or metrics["monthly"]):
     num(m.get("f"), f"{src}.monthly[{i}].f", 0)
 if bad:
     sys.exit("Fix these fields before building (shapes are in references/data-contract.md):\n  " + "\n  ".join(bad))
+today = datetime.date(*map(int, (hand.get("page") or {}).get("today", str(datetime.date.today())).split("-")))
 
 
 def age(d):
@@ -123,7 +130,9 @@ D = {"parts": parts, "devices": scores.get("devices") or [], "nodes": nodes, "ed
      "stats": {"loc": sum(p["loc"] for p in parts), "nparts": len(parts),
                "wavg": round(sum(p["s"] * p["loc"] for p in scored) / max(1, sum(p["loc"] for p in scored)), 2)}}
 tpl = open(os.path.join(here, "..", "assets", "template.html"), encoding="utf-8").read()
-html = tpl.replace("/*__DATA__*/null", json.dumps(D, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/"))
+# The data enters the page as one script literal: \u-escape the characters that could end the script or open markup.
+SCRIPT_SAFE = {ord(c): f"\\u{ord(c):04x}" for c in "<>&\u2028\u2029"}
+html = tpl.replace("/*__DATA__*/null", json.dumps(D, ensure_ascii=False, separators=(",", ":")).translate(SCRIPT_SAFE))
 open(out, "w", encoding="utf-8").write(html)
 print(out, len(html.encode()), "bytes;", len(parts), "parts;", len(nodes), "nodes;", len(top["low"]), "+", len(top["high"]), "opportunities")
 for check, ok in [("25 quick wins", len(top["low"]) == 25), ("25 investments", len(top["high"]) == 25),
