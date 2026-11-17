@@ -37,7 +37,7 @@ export const commands: Command[] = [
       {name: 'print-launch', description: 'Prepare a headless launch and print argv, cwd, bundle and env overrides as JSON. Consumers spawn the printed argv verbatim and must never assume argv[0] is the harness binary; it may be a wrapper with prefix arguments before the harness flags.', type: 'boolean'},
       {name: 'print-acp', description: 'Print the launch for an ACP client (an adapter command under the telemetry wrapper, cwd, env overrides, session/new settings and the session mode) as JSON. Interactive: LAUNCH CONTEXT says headless: false. See CONFIGURATION.md, ACP sessions.', type: 'boolean'},
       {name: 'acp-adapter', description: 'With --print-acp: the ACP adapter to run (a .js entry runs with Node.js); defaults to claude-agent-acp or codex-acp on PATH', type: 'string'},
-      {name: 'resume', description: 'Reopen an earlier interactive session by the ID Agent Farm reported (PANE_AGENT_SESSION_ID) or a native session ID, on the variant that started it', type: 'string'},
+      {name: 'resume', description: 'Reopen an earlier interactive session by the ID Agent Farm reported (AGENT_FARM_SESSION_ID) or a native session ID, on the variant that started it', type: 'string'},
       {name: 'native-arg', description: 'Repeatable native argument, before the message; use --native-arg=--flag for flags', type: 'string'},
       {name: 'config-root', description: 'Configuration directory, including host provider targeting in settings.json', type: 'string', default: '~/.config/agent-farm'},
     ],

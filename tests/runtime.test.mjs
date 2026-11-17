@@ -394,7 +394,7 @@ test('explain keeps runtime home unprepared',t=>{
  assert.equal(fs.existsSync(f.record),false);
 });
 
-test('a native print-mode Claude run through passthrough is marked headless, so its Pane hook stays quiet (review F-1)',t=>{
+test('a native print-mode Claude run through passthrough is marked headless, so its session hook stays quiet (review F-1)',t=>{
  const f=fixture(t,'claude');
  for(const native of [['--print'],['-p'],['-pc'],['--output-format','json','-p']]){
   fs.rmSync(f.record,{force:true});

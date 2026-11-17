@@ -739,8 +739,8 @@ export function resolveLaunchFor(bundle: string, route: string, options: LaunchO
   const context=['LAUNCH CONTEXT',`headless: ${launch.headless}`,...Object.entries(launch.arguments).map(([key,value])=>`${key}: ${value}`)].join('\n');
   instructions=[instructions,context].filter(Boolean).join('\n\n');
   if (agent.harness==='claude') {
-    // A headless Claude (a process child, --exec, or native `-- --print`/`-p`) inherits its caller's PANE_PANEL_ID
-    // but is not that panel's conversation, so the plugin's Pane SessionStart hook skips it.
+    // A headless Claude (a process child, --exec, or native `-- --print`/`-p`) inherits its caller's host variables
+    // but is not that terminal's conversation, so the plugin's SessionStart hook skips it.
     if (launch.headless || claudePrintMode(options.nativeArgs)) envOverrides.AGENT_FARM_HEADLESS='1';
     if (provider) {
       envOverrides.ANTHROPIC_BASE_URL=provider.base_url;
@@ -989,11 +989,20 @@ export function run(bundle: string, route: string, args: string[], launchCommand
     writeLaunchRecord(session.record);
   }
   reportUnavailable(launch.unavailable ?? []);
-  // Pane restores a panel with `{command} --resume <id>` once the CLI reports this line.
-  if (session.report && !values.explain && process.env.PANE_PANEL_ID) console.error(`PANE_AGENT_SESSION_ID=${session.report}`);
+  // A host restores a terminal with `{command} --resume <id>` once the CLI reports this line (CONFIGURATION.md, Resuming a session).
+  const reportLine=sessionReportLine(process.env);
+  if (session.report && !values.explain && reportLine) console.error(`${reportLine}=${session.report}`);
   const metadata={workspace_source:manifest.workspace_source,telemetry:launch.telemetry,telemetry_access:launch.telemetry_access,profile:manifest.profile,...(manifest.variant?{variant:manifest.variant}:{}),plugin:manifest.plugin,plugin_version:manifest.plugin_version,trace_identity:manifest.trace_identity,cross_plugin_dependencies:manifest.cross_plugin_dependencies};
   if (values.explain) console.log(JSON.stringify({...metadata,argv:launch.argv,cwd:launch.cwd,bundle,launch:launch.launch},null,2));
   else if (values['print-launch']) console.log(JSON.stringify({...metadata,argv:launch.argv,cwd:launch.cwd,bundle,env:launch.envOverrides,launch:launch.launch},null,2));
   else return execute(launch.argv,launch.cwd,launch.env);
+  return undefined;
+}
+
+/** The stderr line name a host asked for: AGENT_FARM_SESSION_ID when it sets AGENT_FARM_REPORT_SESSION_ID=1,
+ *  PANE_AGENT_SESSION_ID for older Pane builds that set only PANE_PANEL_ID, otherwise none. */
+export function sessionReportLine(env:NodeJS.ProcessEnv):string|undefined{
+  if (env.AGENT_FARM_REPORT_SESSION_ID==='1') return 'AGENT_FARM_SESSION_ID';
+  if (env.PANE_PANEL_ID) return 'PANE_AGENT_SESSION_ID';
   return undefined;
 }

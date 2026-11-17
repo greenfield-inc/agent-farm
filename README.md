@@ -109,7 +109,7 @@ another, as in `greenfield/planner:codex`. If a variant fails to start, the
 error names the other variants to try. `agent-farm profiles list` shows every
 variant with its model. Resuming with
 `--resume ID` reopens the variant that started the session,
-and Pane uses it to restore panels
+and a host that runs Agent Farm in its own terminals can use it to restore them
 ([details](CONFIGURATION.md#resuming-a-session)).
 
 ## Four entry points

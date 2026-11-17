@@ -834,10 +834,8 @@ test('greenfield 0.0.51: the instructions say questions live only in the host\'s
 
 test('Greenfield and Bigbrain carry no Pane-specific instructions: a host supplies its own through its injected instructions or host_policy (D-398)',()=>{
  const walk=dir=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(entry=>{const file=path.join(dir,entry.name);return entry.isDirectory()?walk(file):[file];});
- // The one kept name is Agent Farm's runtime contract, the session-ID line an interactive launch prints (CONFIGURATION.md, Resuming a session).
- const kept=/PANE_AGENT_SESSION_ID/g;
  for(const plugin of ['greenfield','bigbrain'])for(const file of walk(path.join(root,'..',plugin))){
   if(!/\.(md|mjs|js|json|yaml|html)$/.test(file))continue;
-  assert.doesNotMatch(fs.readFileSync(file,'utf8').replace(kept,''),/\bpanes?\b|runpane|PANE_|pane:\/\/|"Asking the person in Pane"|Keep the Session tidy|secrets_request/i,path.relative(path.join(root,'..'),file));
+  assert.doesNotMatch(fs.readFileSync(file,'utf8'),/\bpanes?\b|runpane|PANE_|pane:\/\/|"Asking the person in Pane"|Keep the Session tidy|secrets_request/i,path.relative(path.join(root,'..'),file));
  }
 });

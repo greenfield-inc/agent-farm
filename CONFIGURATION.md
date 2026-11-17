@@ -390,24 +390,28 @@ a native session ID. `--resume` works only for interactive launches, and it
 cannot be combined with native resume arguments such as `-- --continue`; those
 leave session identity to the harness.
 
-Under Pane (when `PANE_PANEL_ID` is set), each
-interactive launch prints `PANE_AGENT_SESSION_ID=ID` before the harness starts.
-Set the command's resume to **CLI reports its ID** with the resume template
-`{command} --resume {sessionId}`, and Pane restores the panel into the same
-conversation on the same variant.
+A host that runs `agent-farm run` in a terminal it owns can restore that
+terminal into the same conversation. When the host sets
+`AGENT_FARM_REPORT_SESSION_ID=1`, each interactive launch prints
+`AGENT_FARM_SESSION_ID=ID` on its own line on stderr before the harness starts.
+Set the host's resume command to `{command} --resume {sessionId}` with that ID,
+and Agent Farm reopens the same conversation on the same variant. For older
+Pane builds, a launch with `PANE_PANEL_ID` set and no
+`AGENT_FARM_REPORT_SESSION_ID` prints `PANE_AGENT_SESSION_ID=ID` instead.
 
 Each Claude agent's generated plugin folder also has `hooks/hooks.json`, which
 registers a `SessionStart` hook (startup, resume, `/clear` and compact) that
-runs `hooks/pane-session-start`. When `PANE_PANEL_ID` and `PANE_RUNPANE_BIN`
-are set, the script runs `"$PANE_RUNPANE_BIN" panels conversation --hook` with
-the hook's input, so Pane knows which conversation the panel is on after a
-`/clear` or `/resume` inside Claude. Otherwise it exits at once. It never
-prints anything, always exits 0, and stops runpane after 3 seconds. Headless
-Claude launches (`--exec`, `--print-launch`, process children, and native
-`-- --print` or `-p`) set
-`AGENT_FARM_HEADLESS=1`, and the hook skips them: they inherit the caller's
-`PANE_PANEL_ID` but are not that panel's conversation. Codex launches have no
-hook.
+runs `hooks/session-start`. When the host sets `AGENT_FARM_SESSION_HOOK` to an
+executable, the script runs `"$AGENT_FARM_SESSION_HOOK" session-start` with the
+hook's input on stdin, so the host knows which conversation the terminal is on
+after a `/clear` or `/resume` inside Claude. For older Pane builds, when only
+`PANE_PANEL_ID` and an executable `PANE_RUNPANE_BIN` are set, it runs
+`"$PANE_RUNPANE_BIN" panels conversation --hook` instead. Otherwise it exits at
+once. It never prints anything, always exits 0, and stops the command after 3
+seconds. Headless Claude launches (`--exec`, `--print-launch`, process
+children, and native `-- --print` or `-p`) set `AGENT_FARM_HEADLESS=1`, and the
+hook skips them: they inherit the host's variables but are not that terminal's
+conversation. Codex launches have no hook.
 
 ### ACP sessions
 
@@ -536,7 +540,7 @@ agent-farm telemetry export --bundle tmp/greenfield/my-work --launch LAUNCH_ID -
 ```
 
 Repeat `--session` for additional roots. `--launch` takes the ID an interactive
-`agent-farm run` launch reports (`PANE_AGENT_SESSION_ID`, the ID `--resume`
+`agent-farm run` launch reports (`AGENT_FARM_SESSION_ID`, the ID `--resume`
 takes) and exports every session recorded under it, one per run, so a resumed
 launch exports all of them. This is how an orchestrator exports a worker after
 it exits. Subsequent exports can omit both to reuse the roots recorded in
