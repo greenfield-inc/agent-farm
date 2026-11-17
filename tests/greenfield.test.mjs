@@ -301,6 +301,21 @@ test('code-smell-fixes runs on Sonnet 5.5 low with a native Claude finder and a 
  assert.ok(fs.existsSync(path.join(bundle,'main','native-agents','finder.json')));
 });
 
+test('codebase-audit runs on Fable with native Sonnet researchers and an Opus curator, and bundles its executable scripts',t=>{
+ const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-audit-')));
+ t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
+ const resolved=resolveProfile(root,'codebase-audit'),main=resolved.nodes.main;
+ assert.deepEqual([main.harness,main.model,main.reasoning_effort],['claude','claude-fable-5-2','medium']);
+ const children=Object.fromEntries(Object.entries(main.children).map(([alias,route])=>{const n=resolved.nodes[route];return [alias,[n.mode,n.model,n.reasoning_effort]];}));
+ assert.deepEqual(children,{researcher:['native','claude-sonnet-5-5','medium'],curator:['native','claude-opus-5-5','medium'],'cold-reader':['native','claude-sonnet-5-5','medium']});
+ const bundle=build(root,'codebase-audit',target);verify(bundle);
+ for(const script of ['metrics.py','build.py','shoot.sh']){
+  const file=fs.readdirSync(bundle,{recursive:true}).find(f=>String(f).endsWith(path.join('codebase-audit','scripts',script)));
+  assert.ok(file,script);
+  if(process.platform!=='win32')assert.ok(fs.statSync(path.join(bundle,file)).mode&0o100,script);
+ }
+});
+
 test('Codex orchestration routes every worker and helper to Codex while retaining Claude defaults',t=>{
  const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-codex-orchestrator-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
@@ -378,7 +393,7 @@ test('no Greenfield skill or rule asks for a secret in chat: the host secret pro
 });
 
 test('greenfield 0.0.53: in Pane, asking and relaying point to the pane skill; workers pass their status file so Pane gives each option a button; needs_you carries why and summary (J9)',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.54$/m);
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.55$/m);
  const pointer='"Asking the person in Pane"';
  const rules=flatText('instructions/standing-rules.md');
  for(const rule of ['**In Pane, ask and relay the way the `pane` skill says**',pointer,'these rules never restate it','`runpane report --state blocked --question \'Q-n: <the block\'s title>\' --summary-file <your status file>`','`why` as the subtitle','one button per option of each question with the option ending ` (recommended)` marked','one line of at most 160 characters','A question without options gets no buttons, so give every question 2 to 4','first 2,000 characters of the file, so keep `needs_you` where the template puts it','"why": "Invoice PDFs are renamed on export','"summary": "/abs/bundle/options.html"','- `why`: why it matters, in one or two sentences of at most 240 characters; in Pane it becomes the card\'s subtitle','- `summary`: optional, the absolute path of an `.html` page','In Pane, the `pane` skill says which card to use. Elsewhere, on Claude, use the harness question tool (`AskUserQuestion`)'])assert.ok(rules.includes(rule),rule);
