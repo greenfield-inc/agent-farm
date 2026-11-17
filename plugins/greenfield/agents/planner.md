@@ -21,6 +21,7 @@ skills:
   - codebase-design
   - verify-app
   - ios-simulators
+  - android-emulators
   - prepare-pr
   - babysit-pr
   - interview

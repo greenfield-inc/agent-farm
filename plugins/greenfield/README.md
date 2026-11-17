@@ -104,7 +104,7 @@ An orchestrator passes the planner its source as `source` and a status JSON path
 - `instructions/` defines shared roles, permissions, and completion rules.
 - `plan` and its cover-sheet reference define the high-level handoff and “How we will know it works” section.
 - `verify-app` and `prepare-pr` support the planner's small-fix route; `prepare-pr`, `babysit-pr` and `quick-verify` support the implementer.
-- `ios-simulators` is the one home for iOS simulator QA (slim SimSlim simulators, one per agent or test shard); `quick-verify`, `verify-app`, `pr-test-automation` and `ui-polish` point to it.
+- `ios-simulators` is the one home for iOS simulator QA (slim SimSlim simulators, one per agent or test shard, keeping only the services the journeys need), and `android-emulators` for Android emulator QA. `quick-verify`, `verify-app`, `pr-test-automation` and `ui-polish` point to both.
 - `principled-review`, `review` and `pr-test-automation` support the reviewer and qa-and-fix; `principled-review` is shared with simplify-and-refactor.
 - `refactor` (simple, deep and apply modes) supports simplify-and-refactor and the implementer.
 - The research, business, SEO and audit skills support the profiles of the same names, and `code-smell-fixes` with `smell-finder` (whose `CRITERIA.md` holds the 20 lenses) supports `code-smell-fixes`.

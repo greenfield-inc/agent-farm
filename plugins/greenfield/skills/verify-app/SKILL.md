@@ -10,9 +10,9 @@ Prove what works with evidence, say what you could not determine, and leave a tr
 ## Set up
 
 1. Confirm the target: branch or commit (including any uncommitted changes), worktree, journey numbers or check names, exact URL or route, expected results, and design reference. Use any navigation hints you are given. Report it if the target changes during verification.
-2. Check tools and sign-ins before starting anything long: browser automation, the dev server or simulator (iOS: set them up with `ios-simulators`), test accounts, and any connector needed to read back external effects. If something is missing, stop and report it as the reason.
+2. Check tools and sign-ins before starting anything long: browser automation, the dev server or simulator (iOS: set them up with `ios-simulators`; Android: `android-emulators`), test accounts, and any connector needed to read back external effects. If something is missing, stop and report it as the reason.
 3. Use test-mode keys, test accounts, local containers, and staging-safe endpoints. Never touch production unless the person explicitly asked.
-4. Reuse the running app and authenticated session whenever possible. Start only the missing authorized services, record them, and keep to one server or listener per service. A focused verification dispatch checks only the named journeys; if it needs broad setup or repository investigation, report that to the caller.
+4. Reuse the running app and authenticated session whenever possible. Start only the missing authorized services, record them (with any VM, container or volume you create), and keep to one server or listener per service. A focused verification dispatch checks only the named journeys; if it needs broad setup or repository investigation, report that to the caller.
 
 ## Drive the journeys
 
@@ -46,4 +46,4 @@ Created during the run:   record | marker | system | removed, or why not
 Evidence folder:
 ```
 
-Remove what you created when it is safe to, and list what you could not remove. You do not fix code, open pull requests, or publish anything. Hand the report and the evidence folder back to the agent that called you.
+Remove what you created when it is safe to, and list what you could not remove. The VMs, containers, volumes and images you created are always safe to remove. You do not fix code, open pull requests, or publish anything. Hand the report and the evidence folder back to the agent that called you.

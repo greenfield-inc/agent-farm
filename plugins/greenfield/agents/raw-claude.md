@@ -20,6 +20,7 @@ skills:
   - quick-verify
   - pr-test-automation
   - ios-simulators
+  - android-emulators
   - ui-mockup
   - research-web
   - refactor
