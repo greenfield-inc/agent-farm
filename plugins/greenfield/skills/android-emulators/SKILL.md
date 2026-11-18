@@ -22,8 +22,12 @@ description: Use whenever you test or QA an Android app on an emulator. Pick the
    ```sh
    PORT=<free even port>; S=emulator-$PORT
    emulator -avd <name> -port $PORT -no-window -no-audio -no-boot-anim -no-snapshot-save &
-   adb -s $S wait-for-device shell 'while [ "$(getprop sys.boot_completed)" != 1 ]; do sleep 2; done'
+   EPID=$!
+   until adb devices | grep -q "^$S[[:space:]]" || ! kill -0 $EPID 2>/dev/null; do sleep 1; done
+   kill -0 $EPID 2>/dev/null && adb -s $S wait-for-device shell 'while [ "$(getprop sys.boot_completed)" != 1 ]; do sleep 2; done'
+   kill -0 $EPID 2>/dev/null && adb devices | grep -q "^$S[[:space:]]" || echo "port $PORT is taken: start again on another"
    ```
+   Use the emulator only when, after boot, its own process (`$EPID`) is alive and `adb devices` lists `$S`. When the process has exited, another agent holds that port, so start again on another one.
 4. Turn animations off once it has booted:
    ```sh
    adb -s $S shell settings put global window_animation_scale 0
