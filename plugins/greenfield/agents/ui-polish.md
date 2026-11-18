@@ -7,6 +7,8 @@ description: "Explore a running app like a picky designer, fix the hover, focus,
 skills:
   - ui-polish
   - ios-simulators
+  - android-emulators
+  - machine-resources
   - prepare-pr
   - page
   - session-trace

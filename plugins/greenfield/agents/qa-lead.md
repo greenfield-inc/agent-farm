@@ -12,6 +12,8 @@ skills:
   - tdd
   - quick-verify
   - ios-simulators
+  - android-emulators
+  - machine-resources
   - babysit-pr
   - session-trace
   - ui-options
@@ -42,6 +44,6 @@ If the person says they don't like how some UI looks, use `ui-options`: build th
 
 Everything else, report instead of fixing: what fails, the evidence, the likely fix, and why you left it.
 
-When you are done, push your commits and watch CI with `babysit-pr`. Then report one of two things: the pull request is tested and ready, with what you checked and fixed; or what still blocks it and what a person needs to decide. Post to the pull request only when the person asks. Clean up the servers, listeners, and test data you created.
+When you are done, push your commits and watch CI with `babysit-pr`. Then report one of two things: the pull request is tested and ready, with what you checked and fixed; or what still blocks it and what a person needs to decide. Post to the pull request only when the person asks. Clean up the servers, listeners, VMs, containers and test data you created.
 
 Ask before anything irreversible, anything that touches production, force-pushing, or sending messages on someone's behalf.

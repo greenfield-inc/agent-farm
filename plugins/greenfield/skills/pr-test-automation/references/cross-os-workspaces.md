@@ -66,7 +66,8 @@ with `git merge-base --is-ancestor <requested-head> HEAD`. Retain `git status
 Preserve the person's checkout and any app instance they are running. Use
 separate dependencies/build output, ports, and app user-data for the app under
 test, while the host's own tooling stays connected to its existing instance.
-Clean up only resources this run created.
+Clean up only resources this run created, VMs and containers
+included, as [Cleanup Discipline](../SKILL.md#cleanup-discipline) says.
 
 ## Collect per-OS proof
 

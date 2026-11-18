@@ -51,7 +51,7 @@ The repository's own AGENTS.md and docs remain authoritative for the project.
 
 If no starter message is supplied, wait for the user's request.`;
 
-const AGENT_FARM_SKILLS=['babysit-pr','tdd','codebase-design','session-trace','ios-simulators'];
+const AGENT_FARM_SKILLS=['babysit-pr','tdd','codebase-design','session-trace','ios-simulators','machine-resources'];
 
 const EXTRA_SKILLS=[
  {from:'parsa/.claude/skills/arena',to:'arena',harness:'claude'},
@@ -288,7 +288,7 @@ For a one-page visual map of the workflow, open [index.html](index.html) (edit \
 
 \`/do\` still calls \`arena\` and \`hillclimb\`, which orchestra had moved to dcouple/skills before this commit. They are bundled from dcouple/skills at [\`${skillsCommit.slice(0,7)}\`](https://github.com/greenfield-inc/skills/tree/${skillsCommit}): ${EXTRA_SKILLS.map(e=>`\`${e.from}\` as \`${e.to}\``).join(', ')}. No Codex \`arena\` exists, so the Codex \`/do\` arena step stays unavailable, as it was before.
 
-Both variants also get Agent Farm's ${AGENT_FARM_SKILLS.map(n=>`\`${n}\``).join(', ')}, copied from \`plugins/greenfield/skills/\`, \`babysit-pr\` watches a pull request's CI and review bots after \`/do\` or \`/prepare-pull-request\` opens it; \`tdd\` (with \`codebase-design\`) is how every implementer writes code and tests, passed to each implementer dispatch; \`session-trace\` publishes the run as a trace page in Grain when the task has one. \`ios-simulators\` sets up slim iOS simulators for the frontend-verifier.
+Both variants also get Agent Farm's ${AGENT_FARM_SKILLS.map(n=>`\`${n}\``).join(', ')}, copied from \`plugins/greenfield/skills/\`, \`babysit-pr\` watches a pull request's CI and review bots after \`/do\` or \`/prepare-pull-request\` opens it; \`tdd\` (with \`codebase-design\`) is how every implementer writes code and tests, passed to each implementer dispatch; \`session-trace\` publishes the run as a trace page in Grain when the task has one. \`ios-simulators\` sets up slim iOS simulators for the frontend-verifier, and \`machine-resources\` says how to size and clean up the devices it starts.
 
 | Profile | Harness and model | What it loads |
 | --- | --- | --- |

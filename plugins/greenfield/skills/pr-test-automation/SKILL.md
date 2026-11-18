@@ -31,10 +31,11 @@ Validate as much of a PR as possible with local services, browser automation, CL
    - Start required dev servers or confirm existing sessions, ports, and mounted worktrees.
    - For companion PRs, test the combined state in the worktree/container that actually serves the code.
    - Avoid leaving duplicate background listeners or servers. List and clean up only processes started for the test.
+   - Create, reuse and record VMs and containers as `machine-resources` says.
 
 4. Build the automated test path:
    - Use Playwright when browser behavior matters. If the repo lacks Playwright, install it in a temporary directory rather than polluting the repo.
-   - For iOS, run slim simulators with `ios-simulators`, one per agent or test shard.
+   - For iOS, run slim simulators with `ios-simulators`, one per agent or test shard. For Android, run emulators with `android-emulators`.
    - Use stable, user-visible selectors first: labels, placeholders, button text, URLs, and route state.
    - Generate unique short test identities and attribution markers such as `agent-e2e-<timestamp>`.
    - When UI changes are in scope, map each touched surface area and user journey to screenshots in a temporary, easy-to-observe folder such as `tmp/pr-<number>-qa/` or `tmp/<branch>-qa/`. Use ordered filenames that describe the journey step, such as `01-signup-account.png` and `02-dropdown-expanded.png`.
@@ -71,6 +72,7 @@ Validate as much of a PR as possible with local services, browser automation, CL
    | Created | Marker | System | Disposition |
    |---------|--------|--------|-------------|
    | <account, org, record> | <run marker> | <staging / analytics / billing> | deleted · registered (<why not safe>) · none created |
+   | <VM, profile, container, volume, image> | <profile name or id> | local | deleted |
    ```
 
    In a status file's `checks`, Blocked and Left to human count as `undetermined`.
@@ -294,6 +296,10 @@ If any condition fails or is uncertain, do not delete. Register the item:
 name the marker, the system, and what remains, precisely enough that a
 repo-side reaper can find it by marker alone. Production analytics and
 live-mode billing are register-only by default.
+
+Local infrastructure the run created (`machine-resources` says what counts) is
+local and non-production, so always delete it before the run ends; never
+register it.
 
 Either way the disposition appears in the report's cleanup table. "None
 created" is a disposition too, not an excuse to omit the table.
