@@ -9,6 +9,7 @@ skills:
   - pr-test-automation
   - ios-simulators
   - android-emulators
+  - machine-resources
 description: "Review a pull request from many angles at once and list what to fix, most important first."
 subagents:
   codebase-explorer:

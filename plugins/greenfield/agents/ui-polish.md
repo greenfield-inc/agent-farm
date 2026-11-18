@@ -8,6 +8,7 @@ skills:
   - ui-polish
   - ios-simulators
   - android-emulators
+  - machine-resources
   - prepare-pr
   - page
   - session-trace

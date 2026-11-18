@@ -34,7 +34,7 @@ SimSlim (`simslim`, a third-party CLI from the `mobai-app` Homebrew tap) turns o
 
 ## Run in parallel
 
-- `simslim top` shows the fleet's memory and CPU. Shut down a simulator as soon as its journey is idle: `xcrun simctl shutdown "$U"`.
+- Size the fleet as `machine-resources` says; `simslim top` shows its memory and CPU. Shut down a simulator as soon as its journey is idle: `xcrun simctl shutdown "$U"`.
 - Each agent or test shard drives only its own UDID: `xcrun simctl ... "$U"`, `xcodebuild -destination "id=$U"`, or XcodeBuildMCP's `session_set_defaults{simulatorId: "$U"}`.
 - Pass `xcodebuild -parallel-testing-enabled NO` and shard tests across your slim UDIDs yourself. Xcode's parallel clones get new UDIDs that SimSlim never configured.
 - XCUITest app launches can take about 10 seconds longer on a slim simulator; allow for it in timeouts.

@@ -33,7 +33,7 @@ description: Use whenever you test or QA an Android app on an emulator. Pick the
 
 ## Run in parallel
 
-- Stop an emulator as soon as its journey is idle: `adb -s $S emu kill`.
+- Size the fleet as `machine-resources` says. Stop an emulator as soon as its journey is idle: `adb -s $S emu kill`.
 
 ## Clean up
 

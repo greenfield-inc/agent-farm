@@ -13,6 +13,7 @@ skills:
   - quick-verify
   - ios-simulators
   - android-emulators
+  - machine-resources
   - babysit-pr
   - session-trace
   - ui-options

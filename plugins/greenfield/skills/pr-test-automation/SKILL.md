@@ -31,7 +31,7 @@ Validate as much of a PR as possible with local services, browser automation, CL
    - Start required dev servers or confirm existing sessions, ports, and mounted worktrees.
    - For companion PRs, test the combined state in the worktree/container that actually serves the code.
    - Avoid leaving duplicate background listeners or servers. List and clean up only processes started for the test.
-   - Before creating a VM, Colima or Lima profile, or container, look for one to reuse (`colima list`, `limactl list`, `docker ps -a`). Record everything the run creates (profile name, container, volume and image ids) so cleanup can find it.
+   - Create, reuse and record VMs and containers as `machine-resources` says.
 
 4. Build the automated test path:
    - Use Playwright when browser behavior matters. If the repo lacks Playwright, install it in a temporary directory rather than polluting the repo.
@@ -297,10 +297,9 @@ name the marker, the system, and what remains, precisely enough that a
 repo-side reaper can find it by marker alone. Production analytics and
 live-mode billing are register-only by default.
 
-Local infrastructure the run created (VMs, Colima or Lima profiles with their
-data disks, containers, volumes, and images it added) is local and
-non-production, so always delete it before the run ends; never register it.
-Delete only what the run recorded creating, and keep a VM or profile it reused.
+Local infrastructure the run created (`machine-resources` says what counts) is
+local and non-production, so always delete it before the run ends; never
+register it.
 
 Either way the disposition appears in the report's cleanup table. "None
 created" is a disposition too, not an excuse to omit the table.
