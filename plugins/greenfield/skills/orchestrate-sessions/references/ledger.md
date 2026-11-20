@@ -8,7 +8,7 @@ Use host durable state when available; otherwise `.agent/ledger.json`. Keep one 
   "session": { "name": "<host Session name>", "id": "<the host's stable Session id>", "canonical_destination": null, "map": null, "stubs": [],
                "artifact": { "path": "sessions/<host Session name>, or the workspace's Session folder rule", "id": null, "url": null, "publish_error": null,
                              "local": "<Session folder>/session/index.html", "opened_url": null, "notice_shown": false } },
-  "review_policy": { "mode": "on ready or at a plan's end", "set_by": "default", "time": null },
+  "review_policy": { "mode": "when an implementer reports done", "set_by": "default", "time": null },
   "items": [
     {
       "id": "ENG-123",
