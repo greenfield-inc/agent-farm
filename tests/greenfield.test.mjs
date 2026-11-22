@@ -429,7 +429,7 @@ test('the Linux survey keeps a detached dev server\'s host ids, so a live termin
  t.after(()=>{child.kill();fs.rmSync(bin,{recursive:true,force:true});});
  await new Promise(resolve=>setTimeout(resolve,300));
  fs.writeFileSync(path.join(bin,'comm.txt'),`${child.pid} 1 S 1-00:00:00 1000 0.0 ? sleep\n`);
- fs.writeFileSync(path.join(bin,'args.txt'),`${child.pid} vite 60\n`);
+ fs.writeFileSync(path.join(bin,'args.txt'),`${child.pid} vite --port 5173\n`);
  fs.writeFileSync(path.join(bin,'ps'),`#!/bin/sh\ncase "$*" in *args=*) cat "${bin}/args.txt" ;; *) cat "${bin}/comm.txt" ;; esac\n`,{mode:0o755});
  const run=spawnSync('bash',[path.join(root,'skills','process-cleanup','scripts','survey.sh'),'--budget','2','--session-var','HOST_SESSION_ID','--agent-var','HOST_TERMINAL_ID'],{encoding:'utf8',timeout:60000,env:{...process.env,PATH:`${bin}${path.delimiter}${process.env.PATH}`}});
  const rows=run.stdout.split('\n== ').find(section=>section.startsWith('dev-servers'))?.split('\n');
