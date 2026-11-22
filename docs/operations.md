@@ -40,6 +40,13 @@ homes, and existing Codex file-based MCP credentials are linked from the
 original home. Other platforms and credential backends are unverified; a
 successful macOS login does not prove them.
 
+[CONFIGURATION.md](../CONFIGURATION.md#your-own-mcp-servers) says which launches
+also load MCP servers you set up yourself: Codex without a host provider always
+does, and the `inherit` opt-in adds them elsewhere. Those servers run with the
+agent's permissions. Under `inherit`, Claude also starts the servers in the
+repository's `.mcp.json` without its approval prompt, because launches run with
+`--dangerously-skip-permissions`; use `inherit` only in repositories you trust.
+
 ### MCP sign-ins before launch
 
 Before each launch (`run`, `--exec`, `--print-launch` and `--print-acp`; not
