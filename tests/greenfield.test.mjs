@@ -358,7 +358,7 @@ test('process-cleanup runs on Opus or Sol with a read-only survey for each OS',t
  assert.doesNotMatch(code('survey.sh'),/\b(kill -(KILL|9)|pkill|killall|sudo|rm -rf \/|fsmonitor--daemon stop)\b/);
  assert.doesNotMatch(code('survey.ps1'),/\b(Stop-Process|taskkill|Stop-Service|Set-Service|Start-Process)\b/i);
  const classes=fs.readFileSync(path.join(root,'skills','process-cleanup','references','classes.md'),'utf8');
- for(const id of ['fsmonitor-orphaned','fsmonitor-idle','app-renderers','app-duplicates','dev-servers-orphaned','shells-orphaned','agents-orphaned','pane-live','git-in-progress'])assert.ok(classes.includes('`'+id+'`'),id);
+ for(const id of ['fsmonitor-orphaned','fsmonitor-idle','app-renderers','app-duplicates','dev-servers-orphaned','shells-orphaned','agents-orphaned','host-live','git-in-progress'])assert.ok(classes.includes('`'+id+'`'),id);
 });
 
 // Git Bash on Windows runners can resolve `bash` to WSL, which wouldn't see the shims.
@@ -420,21 +420,21 @@ test('the survey marks only recognized dev servers as servers, so a batch job is
 });
 
 // Reads a real process's /proc environment, so it needs Linux.
-test('the Linux survey keeps a detached dev server\'s Pane ids, so a live panel protects it',{skip:process.platform!=='linux'},async t=>{
+test('the Linux survey keeps a detached dev server\'s host ids, so a live terminal protects it',{skip:process.platform!=='linux'},async t=>{
  const bin=fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-survey-'));
  // `exec -a vite` makes the sleeping process look like a vite dev server.
- const child=spawn('bash',['-c','exec -a vite sleep 60'],{cwd:os.tmpdir(),stdio:'ignore',env:{...process.env,PANE_SESSION_ID:'session-1',PANE_PANEL_ID:'panel-1'}});
+ const child=spawn('bash',['-c','exec -a vite sleep 60'],{cwd:os.tmpdir(),stdio:'ignore',env:{...process.env,HOST_SESSION_ID:'session-1',HOST_TERMINAL_ID:'panel-1'}});
  t.after(()=>{child.kill();fs.rmSync(bin,{recursive:true,force:true});});
  await new Promise(resolve=>setTimeout(resolve,300));
  fs.writeFileSync(path.join(bin,'comm.txt'),`${child.pid} 1 S 1-00:00:00 1000 0.0 ? sleep\n`);
  fs.writeFileSync(path.join(bin,'args.txt'),`${child.pid} vite 60\n`);
  fs.writeFileSync(path.join(bin,'ps'),`#!/bin/sh\ncase "$*" in *args=*) cat "${bin}/args.txt" ;; *) cat "${bin}/comm.txt" ;; esac\n`,{mode:0o755});
- const run=spawnSync('bash',[path.join(root,'skills','process-cleanup','scripts','survey.sh'),'--budget','2'],{encoding:'utf8',timeout:60000,env:{...process.env,PATH:`${bin}${path.delimiter}${process.env.PATH}`}});
+ const run=spawnSync('bash',[path.join(root,'skills','process-cleanup','scripts','survey.sh'),'--budget','2','--session-var','HOST_SESSION_ID','--agent-var','HOST_TERMINAL_ID'],{encoding:'utf8',timeout:60000,env:{...process.env,PATH:`${bin}${path.delimiter}${process.env.PATH}`}});
  const rows=run.stdout.split('\n== ').find(section=>section.startsWith('dev-servers'))?.split('\n');
  assert.ok(rows,run.stdout+run.stderr);
  const header=rows[1].split('\t'),row=rows.find(line=>line.startsWith(child.pid+'\t'))?.split('\t');
  assert.ok(row,rows.join('\n'));
- assert.deepEqual([row[header.indexOf('parent')],row[header.indexOf('pane_session')],row[header.indexOf('pane_panel')]],['orphaned','session-1','panel-1']);
+ assert.deepEqual([row[header.indexOf('parent')],row[header.indexOf('host_session')],row[header.indexOf('host_agent')]],['orphaned','session-1','panel-1']);
 });
 
 test('Codex orchestration routes every worker and helper to Codex while retaining Claude defaults',t=>{

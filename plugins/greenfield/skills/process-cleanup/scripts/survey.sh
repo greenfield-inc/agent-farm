@@ -12,16 +12,21 @@ umask 077
 
 usage() {
   cat <<'EOF'
-Usage: survey.sh [--budget SECONDS]
+Usage: survey.sh [--budget SECONDS] [--session-var NAME] [--agent-var NAME]
 
-  --budget  Seconds allowed for each slow call (lsof, mdutil, memory_pressure). Default 8.
+  --budget       Seconds allowed for each slow call (lsof, mdutil, memory_pressure). Default 8.
+  --session-var  Environment variable in which the host stores its session id.
+  --agent-var    Environment variable in which the host stores its agent or terminal id.
+                 With either set, agent, shell and dev-server rows show those ids.
 EOF
 }
 
-BUDGET=8
+BUDGET=8; SVAR=""; AVAR=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --budget) BUDGET="${2:-8}"; shift 2 ;;
+    --session-var) SVAR="${2:-}"; shift 2 ;;
+    --agent-var) AVAR="${2:-}"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) usage >&2; exit 2 ;;
   esac
@@ -121,7 +126,7 @@ while IFS="$(printf '\t')" read -r pid ipc; do
   printf '%s\t%s\t%s\t%s\n' "$pid" "$st" "$gitdir" "$wt" >> "$T/fsm.repo"
 done < "$T/fsm.ipc"
 
-# Candidate agents, shells and dev servers: look up cwd and Pane ids from the environment.
+# Candidate agents, shells and dev servers: look up cwd and the host's ids from the environment.
 awk '
   { pid=$1; $1=""; a=substr($0,2) }
   a ~ /(^|\/)(claude|codex|cursor-agent|gemini|opencode|amp)( |$)/ ||
@@ -129,20 +134,21 @@ awk '
   a ~ /(^|\/)(node|bun|deno|esbuild|tsc|tsx|turbo|nodemon|vite|next-server)( |$)/ ||
   a ~ /(vite|webpack|next dev|storybook|vitest|jest --watch|tsc -w|tsc --watch|esbuild .*--watch)/ { print pid }
 ' "$T/args" > "$T/cand.pids"
-: > "$T/cwd"; : > "$T/paneenv"
+: > "$T/cwd"; : > "$T/hostenv"
 if [ -s "$T/cand.pids" ]; then
   if [ "$OS" = Darwin ]; then
     have lsof && bounded "$BUDGET" lsof -a -d cwd -p "$(paste -sd, - < "$T/cand.pids")" -Fpn 2>/dev/null \
       | awk '/^p/{p=substr($0,2)} /^n/{print p "\t" substr($0,2)}' > "$T/cwd"
-    # ps eww appends the environment; keep only the Pane ids, never print the rest.
-    bounded "$BUDGET" ps eww -o pid=,command= -p "$(paste -sd, - < "$T/cand.pids")" 2>/dev/null | awk '{
-      s=""; p=""; for(i=2;i<=NF;i++){ if($i ~ /^PANE_SESSION_ID=/) s=substr($i,17); if($i ~ /^PANE_PANEL_ID=/) p=substr($i,15) }
-      if(s!=""||p!="") print $1 "\t" s "\t" p }' > "$T/paneenv"
+    # ps eww appends the environment; keep only the host's ids, never print the rest.
+    [ -n "$SVAR$AVAR" ] && bounded "$BUDGET" ps eww -o pid=,command= -p "$(paste -sd, - < "$T/cand.pids")" 2>/dev/null | awk -v sv="$SVAR=" -v av="$AVAR=" '{
+      s=""; p=""; for(i=2;i<=NF;i++){ if(sv!="=" && index($i,sv)==1) s=substr($i,length(sv)+1); if(av!="=" && index($i,av)==1) p=substr($i,length(av)+1) }
+      if(s!=""||p!="") print $1 "\t" s "\t" p }' > "$T/hostenv"
   else
     while read -r pid; do
       c=$(readlink "/proc/$pid/cwd" 2>/dev/null) && printf '%s\t%s\n' "$pid" "$c" >> "$T/cwd"
-      e=$(tr '\0' '\n' < "/proc/$pid/environ" 2>/dev/null | awk -F= '$1=="PANE_SESSION_ID"{s=$2} $1=="PANE_PANEL_ID"{p=$2} END{if(s!=""||p!="") print s "\t" p}')
-      [ -n "$e" ] && printf '%s\t%s\n' "$pid" "$e" >> "$T/paneenv"
+      [ -n "$SVAR$AVAR" ] || continue
+      e=$(tr '\0' '\n' < "/proc/$pid/environ" 2>/dev/null | awk -F= -v sv="$SVAR" -v av="$AVAR" 'sv!="" && $1==sv{s=$2} av!="" && $1==av{p=$2} END{if(s!=""||p!="") print s "\t" p}')
+      [ -n "$e" ] && printf '%s\t%s\n' "$pid" "$e" >> "$T/hostenv"
     done < "$T/cand.pids"
   fi
 fi
@@ -230,7 +236,7 @@ END {
   print "\n== dev-servers (node, bun, esbuild, vite, tsc and other watchers) =="
   # kind: server when the arguments show a dev server or watcher; runtime for any other
   # node, bun or deno program, which may be a batch job and is never a safe stop.
-  print "pid\tppid\tparent\tkind\tage\trss_mb\tcpu\tpane_session\tpane_panel\tcwd\targs"
+  print "pid\tppid\tparent\tkind\tage\trss_mb\tcpu\thost_session\thost_agent\tcwd\targs"
   for (i = 1; i <= np; i++) { p = pids[i]; a = args[p]
     if (a ~ /(^|\/)(claude|codex|cursor-agent|gemini|opencode|amp)( |$)/ || a ~ /--type=/ || comm[p] ~ /\.app\//) continue
     server = (name[p] ~ /^(esbuild|nodemon|vite|next-server)$/ || a ~ /(vite|webpack|next (dev|start)|next-server|storybook|vitest|nodemon|http-server|live-server|--watch|tsc -w|esbuild .*--serve|(^| )(run )?(dev|serve|start|watch)( |$))/)
@@ -239,7 +245,7 @@ END {
 
   print "\n== agents-and-shells (agent CLIs, and shells older than 1 day or orphaned) =="
   # children: live child processes. A detached shell running a job is not idle.
-  print "pid\tppid\tparent\tkind\tage\trss_mb\tcpu\tchildren\ttty\tpane_session\tpane_panel\tcwd"
+  print "pid\tppid\tparent\tkind\tage\trss_mb\tcpu\tchildren\ttty\thost_session\thost_agent\tcwd"
   for (i = 1; i <= np; i++) { p = pids[i]; if (st[p] !~ /Z/) kids[ppid[p]]++ }
   for (i = 1; i <= np; i++) { p = pids[i]; a = args[p]; kind = ""
     if (a ~ /(^|\/)(claude|codex|cursor-agent|gemini|opencode|amp)( |$)/) { kind = a; sub(/ .*/, "", kind); kind = base(kind); if (kind ~ /^(node|bun)$/) { kind = a; sub(/^[^ ]+ +/, "", kind); sub(/ .*/, "", kind); kind = base(kind) } }
@@ -260,7 +266,7 @@ END {
   print "pid\tname\tcpu\trss_mb\tage"
   for (i = 1; i <= np; i++) { p = pids[i]; printf "%s\t%s\t%s\t%.0f\t%s\n", p, name[p], cpu[p], rss[p]/1024, age(el[p]) | "sort -t\"\t\" -k3,3nr | head -15" }
   close("sort -t\"\t\" -k3,3nr | head -15")
-}' "$T/args" "$T/fsm.repo" "$T/cwd" "$T/paneenv" "$T/comm"
+}' "$T/args" "$T/fsm.repo" "$T/cwd" "$T/hostenv" "$T/comm"
 
 if [ "$OS" = Darwin ]; then
   echo
