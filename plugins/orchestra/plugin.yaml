@@ -1,5 +1,5 @@
 name: orchestra
-version: 0.1.9
+version: 0.1.10
 cli_major: 0
 source:
   repository: https://github.com/dcouple/orchestra
@@ -7,7 +7,7 @@ source:
 checksums:
   agents/code-researcher.md: 102f108ede110dfbce5765cfad904e06e91cca837e5eb89173c34d1ef2ae5c32
   agents/code-reviewer.md: cc522a092937228c172cd5f4f30980b31f32219097453d245c1d384522c7c4fd
-  agents/codex-overseer.md: 286c05170182ccfa03cf4458665b8e8bb0e8a01f3a4df3465f75d6a418152d38
+  agents/codex-overseer.md: 8e17d40ff6cc5e76a1c0e9f490a1664fe1224d07a7a0541290c0b747ebcbc998
   agents/frontend-verifier.md: 8bf5e435c8f78fa260539719e781c70defc833e5f07f53c48d56ffc53c912b76
   agents/overseer.md: 7af2589ab95f66913aff1e6ee4adf110550c46df87a27db5e7924ec4fd88c62c
   agents/plan-reviewer.md: ab82b7bb841d4962c0365752fef280980ad10f23431201ee5917b95c88ec2699

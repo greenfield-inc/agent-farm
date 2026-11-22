@@ -17,12 +17,12 @@ test('the implementer is the former dcouple raw profile on Opus, Astra or Sol, w
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
  validatePlugin(root);
  assert.equal(resolveProfile(root,'implementer').nodes.main.model,'claude-opus-5-5');
- for(const [profile,harness,model] of [['implementer:opus','claude','claude-opus-5-5'],['implementer:astra','codex','gpt-6-astra'],['implementer:sol','codex','gpt-6.1-sol']]){
+ for(const [profile,harness,model] of [['implementer:opus','claude','claude-opus-5-5'],['implementer:astra','codex','gpt-6.2-sol'],['implementer:sol','codex','gpt-6.2-sol']]){
   const resolved=resolveProfile(root,profile),main=resolved.nodes.main;
   assert.deepEqual([main.harness,main.model,main.reasoning_effort],[harness,model,'medium']);
   assert.deepEqual(Object.keys(main.children).sort(),['cold-reader','explorer','qa-and-verify','second-opinion']);
   const second=resolved.nodes[main.children['second-opinion']];
-  assert.deepEqual([second.name,second.mode,second.harness,second.model],['pr-reviewer','process',...(harness==='claude'?['codex','gpt-6.1-sol']:['claude','claude-opus-5-5'])],profile);
+  assert.deepEqual([second.name,second.mode,second.harness,second.model],['pr-reviewer','process',...(harness==='claude'?['codex','gpt-6.2-sol']:['claude','claude-opus-5-5'])],profile);
   assert.ok(second.skills.includes('review'),profile);
   const prompt=fs.readFileSync(main.source_file,'utf8').replace(/\s+/g,' ');
   for(const rule of ['Use it only when you run standalone (no orchestrator) or when the person asks','Under an orchestrator, review stays with `greenfield/reviewer`'])assert.ok(prompt.includes(rule),`${profile}: ${rule}`);
@@ -36,10 +36,10 @@ test('the implementer is the former dcouple raw profile on Opus, Astra or Sol, w
  for(const removed of ['agents/implementer.md','agents/implementer-claude.md','agents/reviewer.md','agents/frontend-verifier.md','instructions/implementer-identity.md','skills/work-packages','skills/build-package','skills/final-review'])assert.equal(fs.existsSync(path.join(root,removed)),false,removed);
 });
 
-test('the reviewer is the former dcouple reviewer, with its Codex variant on Sol 6.1 max and one reconciled COMMENT review under an orchestrator',()=>{
+test('the reviewer is the former dcouple reviewer, with its Codex variant on Sol 6.2 low ultrafast and one reconciled COMMENT review under an orchestrator',()=>{
  const claude=resolveProfile(root,'reviewer').nodes.main,codex=resolveProfile(root,'reviewer:codex').nodes.main;
  assert.deepEqual([claude.harness,claude.model,claude.reasoning_effort],['claude','claude-opus-5-5','high']);
- assert.deepEqual([codex.harness,codex.model,codex.reasoning_effort],['codex','gpt-6.1-sol','max']);
+ assert.deepEqual([codex.harness,codex.model,codex.reasoning_effort],['codex','gpt-6.2-sol','low']);assert.equal(codex.speed,'ultrafast');
  for(const agent of ['claude-pr-reviewer','codex-pr-reviewer']){
   const text=fs.readFileSync(path.join(root,'agents',agent+'.md'),'utf8');
   assert.match(text,/## Launched by an orchestrator/);assert.doesNotMatch(text,/dcouple/);
@@ -56,21 +56,22 @@ test('profiles moved from dcouple resolve from greenfield, and the dropped ones 
  assert.ok(qa.nodes.main.skills.includes('pr-test-automation'));
 });
 
-test('Codex roles formerly on gpt-5.6 run gpt-6.1-sol and reviewers keep their pins',()=>{
+test('every greenfield Codex role runs gpt-6.2-sol ultrafast, medium except the Codex reviewer at low',()=>{
  const profiles=fs.readdirSync(path.join(root,'profiles')).map(file=>{
   const name=file.replace(/\.yaml$/,''),variants=Object.keys(parse(fs.readFileSync(path.join(root,'profiles',file),'utf8')).variants??{});
   return [name,...variants.map(variant=>name+':'+variant)];
  }).flat();
- const summary=node=>[node.mode,node.harness,node.model,node.reasoning_effort];
- const child=(profile,name)=>{const resolved=resolveProfile(root,profile);return resolved.nodes[resolved.nodes.main.children[name]];};
- for(const profile of profiles)for(const node of Object.values(resolveProfile(root,profile).nodes))assert.doesNotMatch(node.model,/^gpt-5\.6-/,`${profile} ${node.name}`);
- for(const name of ['investigator','researcher'])assert.deepEqual(summary(child('planner:codex',name)),['native','codex','gpt-6.1-sol','max']);
- const qa=parse(/^---\n([\s\S]*?)\n---/.exec(fs.readFileSync(path.join(root,'agents/qa.md'),'utf8'))[1]);
- assert.deepEqual([qa.harness,qa.model.name,qa.model.reasoning],['codex','gpt-6.1-sol','medium']);
+ let codexNodes=0;
+ for(const profile of profiles)for(const node of Object.values(resolveProfile(root,profile).nodes)){
+  if(node.harness!=='codex')continue;codexNodes++;
+  const effort=profile==='reviewer:codex'&&node.name==='codex-pr-reviewer'?'low':'medium';
+  assert.deepEqual([node.model,node.reasoning_effort,node.speed],['gpt-6.2-sol',effort,'ultrafast'],`${profile} ${node.name}`);
+ }
+ assert.ok(codexNodes>20,`expected many Codex nodes, saw ${codexNodes}`);
 });
 
-test('free-range defaults to Opus 5.5 and keeps an Astra variant',()=>{
- for(const [profile,harness,model] of [['free-range','claude','claude-opus-5-5'],['free-range:claude','claude','claude-opus-5-5'],['free-range:codex','codex','gpt-6-astra']]){
+test('free-range defaults to Opus 5.5 and keeps a Codex variant',()=>{
+ for(const [profile,harness,model] of [['free-range','claude','claude-opus-5-5'],['free-range:claude','claude','claude-opus-5-5'],['free-range:codex','codex','gpt-6.2-sol']]){
   const main=resolveProfile(root,profile).nodes.main;assert.deepEqual([main.harness,main.model],[harness,model]);
  }
 });
@@ -81,7 +82,7 @@ test('bug-reporter, orchestrator and the Claude planner\'s Socrates run Opus 5.5
  for(const [name,effort] of [['investigator','high'],['qa','medium']]){const node=bug.nodes[main.children[name]];assert.deepEqual([node.mode,node.harness,node.model,node.reasoning_effort],['native','claude','claude-opus-5-5',effort]);}
  const orchestrator=resolveProfile(root,'orchestrator').nodes.main;assert.deepEqual([orchestrator.harness,orchestrator.model],['claude','claude-opus-5-5']);
  const planner=resolveProfile(root,'planner');assert.equal(planner.nodes[planner.nodes.main.children.socrates].model,'claude-opus-5-5');
- const codexPlanner=resolveProfile(root,'planner:codex');assert.equal(codexPlanner.nodes[codexPlanner.nodes.main.children.socrates].model,'gpt-6-astra');
+ const codexPlanner=resolveProfile(root,'planner:codex');assert.equal(codexPlanner.nodes[codexPlanner.nodes.main.children.socrates].model,'gpt-6.2-sol');
 });
 
 test('planners leave implementation launches to the person',()=>{
@@ -188,8 +189,8 @@ test('simplify-and-refactor runs the refactor and principled-review skills on So
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
  const variants=Object.keys(parse(fs.readFileSync(path.join(root,'profiles/simplify-and-refactor.yaml'),'utf8')).variants);
  assert.deepEqual(variants.sort(),['opus','sol']);
- assert.equal(resolveProfile(root,'simplify-and-refactor').nodes.main.model,'gpt-6.1-sol');
- for(const [profile,agent,harness,model,effort] of [['simplify-and-refactor:sol','simplify-and-refactor','codex','gpt-6.1-sol','low'],['simplify-and-refactor:opus','simplify-and-refactor-claude','claude','claude-opus-5-5','medium']]){
+ assert.equal(resolveProfile(root,'simplify-and-refactor').nodes.main.model,'gpt-6.2-sol');
+ for(const [profile,agent,harness,model,effort] of [['simplify-and-refactor:sol','simplify-and-refactor','codex','gpt-6.2-sol','medium'],['simplify-and-refactor:opus','simplify-and-refactor-claude','claude','claude-opus-5-5','medium']]){
   const resolved=resolveProfile(root,profile),main=resolved.nodes.main;
   assert.deepEqual([main.name,main.harness,main.model,main.reasoning_effort],[agent,harness,model,effort],profile);
   assert.deepEqual([...main.skills].sort(),['excalidraw-pr-diagrams','page','prepare-pr','principled-review','refactor','session-trace'],profile);
@@ -320,7 +321,7 @@ test('code-smell-fixes runs on Sonnet 5.5 low with a native Claude finder and a 
  assert.deepEqual([main.harness,main.model,main.reasoning_effort],['claude','claude-sonnet-5-5','low']);
  assert.deepEqual(main.launch.arguments,{lenses:'all',area:'all',mode:'prs'});
  const finders=Object.fromEntries(Object.entries(main.children).map(([alias,route])=>{const n=resolved.nodes[route];return [alias,[n.name,n.mode,n.harness,n.model,n.reasoning_effort,n.skills.includes('smell-finder')]];}));
- assert.deepEqual(finders,{finder:['smell-finder','native','claude','claude-sonnet-5-5','low',true],'codex-finder':['smell-finder','process','codex','gpt-6.1-sol','low',true]});
+ assert.deepEqual(finders,{finder:['smell-finder','native','claude','claude-sonnet-5-5','low',true],'codex-finder':['smell-finder','process','codex','gpt-6.2-sol','medium',true]});
  const bundle=build(root,'code-smell-fixes',target);verify(bundle);
  assert.ok(fs.existsSync(path.join(bundle,'main','dispatch','codex-finder')));
  assert.ok(fs.existsSync(path.join(bundle,'main','native-agents','finder.json')));
@@ -444,9 +445,9 @@ test('Codex orchestration routes every worker and helper to Codex while retainin
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
  validatePlugin(root);
  const resolved=resolveProfile(root,'orchestrator:codex'),main=resolved.nodes.main;
- assert.deepEqual([main.harness,main.model,main.reasoning_effort],['codex','gpt-6-astra','high']);
+ assert.deepEqual([main.harness,main.model,main.reasoning_effort],['codex','gpt-6.2-sol','medium']);
  const advisor=resolved.nodes[main.children.advisor];
- assert.deepEqual([advisor.mode,advisor.harness,advisor.model,advisor.reasoning_effort],['process','codex','gpt-6-astra','high']);
+ assert.deepEqual([advisor.mode,advisor.harness,advisor.model,advisor.reasoning_effort],['process','codex','gpt-6.2-sol','medium']);
  const workers=['bug-reporter:codex','planner:codex','implementer:codex','reviewer:codex','qa-and-fix:codex','simplify-and-refactor:sol'];
  for(const profile of workers){
   assert.ok(main.instructions.includes('greenfield/'+profile),profile);
@@ -455,18 +456,18 @@ test('Codex orchestration routes every worker and helper to Codex while retainin
   verify(build(root,profile,target));
  }
  const implementer=resolveProfile(root,'implementer:codex');
- assert.deepEqual([implementer.nodes.main.model,implementer.nodes.main.reasoning_effort],['gpt-6.1-sol','medium']);
+ assert.deepEqual([implementer.nodes.main.model,implementer.nodes.main.reasoning_effort],['gpt-6.2-sol','medium']);
  const second=implementer.nodes[implementer.nodes.main.children['second-opinion']];
- assert.deepEqual([second.mode,second.harness,second.model,second.reasoning_effort],['process','codex','gpt-6.1-sol','low']);
+ assert.deepEqual([second.mode,second.harness,second.model,second.reasoning_effort],['process','codex','gpt-6.2-sol','medium']);
  const bug=resolveProfile(root,'bug-reporter:codex');
- for(const [alias,effort] of [['investigator','high'],['qa','medium']]){
+ for(const [alias,effort] of [['investigator','medium'],['qa','medium']]){
   const child=bug.nodes[bug.nodes.main.children[alias]];
-  assert.deepEqual([child.mode,child.model,child.reasoning_effort],['native','gpt-6.1-sol',effort]);
+  assert.deepEqual([child.mode,child.model,child.reasoning_effort],['native','gpt-6.2-sol',effort]);
  }
  for(const profile of ['orchestrator','orchestrator:claude','bug-reporter','bug-reporter:claude','implementer'])assert.equal(resolveProfile(root,profile).nodes.main.harness,'claude',profile);
  assert.match(main.instructions,/Preserve explicit user model overrides/);
  const launch=command(build(root,'orchestrator:codex',target),'main',{prepare:false});
- assert.equal(launch.argv[launch.argv.indexOf('--model')+1],'gpt-6-astra');
+ assert.equal(launch.argv[launch.argv.indexOf('--model')+1],'gpt-6.2-sol');assert.ok(launch.argv.includes('service_tier="ultrafast"'));
  assert.ok(main.skills.includes('orchestrate-sessions'));
  const skill=fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8');
  assert.match(skill,/Use the orchestrator agent's worker routing defaults/);

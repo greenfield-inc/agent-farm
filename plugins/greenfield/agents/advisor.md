@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6-astra
-  reasoning: high
+  name: gpt-6.2-sol
+  reasoning: medium
+  speed: ultrafast
 description: Answer one short question from an agent that is stuck, about to deviate from its plan, or about to declare risky work done.
 ---
 

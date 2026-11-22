@@ -262,8 +262,9 @@ ${OVERSEER}`);
  write('agents/codex-overseer.md',`---
 harness: codex
 model:
-  name: gpt-6-astra
-  reasoning: high
+  name: gpt-6.2-sol
+  reasoning: medium
+  speed: ultrafast
 description: "The full Orchestra workflow: talk a task through, write the brief, then build, test, and review it into a pull request with little hand-holding."
 skills: [${[...codexSkills.map(codexDirectory),...codexExtras,...AGENT_FARM_SKILLS].join(', ')}]
 references: orchestra
@@ -293,7 +294,7 @@ Both variants also get Agent Farm's ${AGENT_FARM_SKILLS.map(n=>`\`${n}\``).join(
 | Profile | Harness and model | What it loads |
 | --- | --- | --- |
 | \`orchestra/overseer:claude\` (default) | Claude, claude-opus-5-5 | The ${claudeSkills.length} Claude skills (${claudeSkills.join(', ')}) plus ${claudeExtras.join(' and ')}, the ${roles.length} Claude agents as native subagents, Linear and Playwright MCP. Codex roles run through \`codex exec\` as in orchestra. |
-| \`orchestra/overseer:codex\` | Codex, gpt-6-astra (high) | The ${codexSkills.length} Codex skills, with \`do\` and \`investigate\` in \`codex-do\` and \`codex-investigate\`, plus ${codexExtras.join(', ')}. |
+| \`orchestra/overseer:codex\` | Codex, gpt-6.2-sol (medium, ultrafast) | The ${codexSkills.length} Codex skills, with \`do\` and \`investigate\` in \`codex-do\` and \`codex-investigate\`, plus ${codexExtras.join(', ')}. |
 
 Both variants select \`references: orchestra\`, which holds orchestra's \`references/\` folder, its Claude agent files under \`claude-agents/\`, and \`templates/\`.
 Skills cite \`.references/<path>\`; Agent Farm maps that to the bundled folder at launch.
@@ -310,7 +311,7 @@ Skills with the same name in \`~/.claude/skills\` or \`~/.codex/skills\` are sti
  const walk=dir=>{for(const item of fs.readdirSync(dir,{withFileTypes:true})){const file=path.join(dir,item.name);if(item.isDirectory())walk(file);else checksums[path.relative(plugin,file)]=createHash('sha256').update(fs.readFileSync(file)).digest('hex');}};
  for(const section of ['agents','profiles','references','skills'])walk(path.join(plugin,section));
  const lines=Object.keys(checksums).sort().map(key=>`  ${key}: ${checksums[key]}`);
- write('plugin.yaml',`name: orchestra\nversion: 0.1.9\ncli_major: 0\nsource:\n  repository: https://github.com/dcouple/orchestra\n  commit: ${commit}\nchecksums:\n${lines.join('\n')}\n`);
+ write('plugin.yaml',`name: orchestra\nversion: 0.1.10\ncli_major: 0\nsource:\n  repository: https://github.com/dcouple/orchestra\n  commit: ${commit}\nchecksums:\n${lines.join('\n')}\n`);
  console.log(`Vendored dcouple/orchestra@${commit.slice(0,7)} + dcouple/skills@${skillsCommit.slice(0,7)} (${EXTRA_SKILLS.length} skills): ${claudeSkills.length} Claude skills, ${codexSkills.length} Codex skills, ${roles.length} Claude agents, ${Object.keys(checksums).length} files`);
 }finally{fs.rmSync(source,{recursive:true,force:true});}
 

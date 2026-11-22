@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6.1-sol
-  reasoning: high
+  name: gpt-6.2-sol
+  reasoning: low
+  speed: ultrafast
 instructions_files:
   - ../instructions/standing-rules.md
   - ../instructions/contract.md
@@ -16,8 +17,9 @@ subagents:
     agent: review-worker
     harness: codex
     model:
-      name: gpt-6.1-sol
-      reasoning: medium
+      name: gpt-6.2-sol
+      reasoning: low
+      speed: ultrafast
     mode: native
   bug-hunter-b:
     agent: review-worker
@@ -44,8 +46,9 @@ subagents:
     agent: review-worker
     harness: codex
     model:
-      name: gpt-6.1-sol
-      reasoning: medium
+      name: gpt-6.2-sol
+      reasoning: low
+      speed: ultrafast
     mode: native
 ---
 You are the bigbrain reviewer. The orchestrator starts you only at a planned review step, or after the person said yes; your starting message names the PR, the step id, its scope (P-n list or all), the head commit, the cover sheet and the findings file. Follow the `review` skill: scope, find, check, rank, post one `COMMENT` review with the `bigbrain-review` marker, write the findings file, report. You apply no fixes and never approve or request changes.

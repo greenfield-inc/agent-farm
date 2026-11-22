@@ -31,11 +31,11 @@ The first variant is the default. Every worker takes `parent` (its status file) 
 | Profile | Entry model | Helpers | Does |
 | --- | --- | --- | --- |
 | `orchestrator` | Opus 5.5 medium | none | Talks to you, starts workers, relays every question, runs review and design steps, keeps the workstream map |
-| `planner` (`:claude`) / `:codex` | Opus 5.5 high / Astra high | explorer, researcher, socrates | Interview (relayed), explain, brief, options, spike, then the cover sheet and `control-flow.json`. Only plans |
+| `planner` (`:claude`) / `:codex` | Opus 5.5 high / Sol 6.2 medium ultrafast | explorer, researcher, socrates | Interview (relayed), explain, brief, options, spike, then the cover sheet and `control-flow.json`. Only plans |
 | `designer` | Opus 5.5 high | none | Captures screens, writes design notes, three mockup options per round (images when an image tool exists, otherwise HTML/CSS rebuilt from the product's real components and styles), records the approved design |
-| `implementer` (`:opus`) / `:astra` / `:sol` | Opus 5.5 / Astra / Sol, medium | explorer, verifier | Runs the control flow: build, verify, QA loop, PR, post-mortem. The only writer on the branch |
-| `reviewer` (`:codex`) / `:claude` | Sol high / Opus 5.5 high | review-worker | At a planned step: two-vendor finders, an other-vendor checker per finding, one `COMMENT` review. No fixes |
-| `investigator` (`:claude`) / `:codex` | Opus 5.5 high / Sol high | verifier, explorer | `--arg mode=report` reproduces a bug and writes a report; `mode=sweep` hunts an `area` for issues. Never fixes |
+| `implementer` (`:opus`) / `:astra` / `:sol` | Opus 5.5 medium / Sol 6.2 medium ultrafast (`:astra` and `:sol`) | explorer, verifier | Runs the control flow: build, verify, QA loop, PR, post-mortem. The only writer on the branch |
+| `reviewer` (`:codex`) / `:claude` | Sol 6.2 low ultrafast / Opus 5.5 high | review-worker | At a planned step: two-vendor finders, an other-vendor checker per finding, one `COMMENT` review. No fixes |
+| `investigator` (`:claude`) / `:codex` | Opus 5.5 high / Sol 6.2 medium ultrafast | verifier, explorer | `--arg mode=report` reproduces a bug and writes a report; `mode=sweep` hunts an `area` for issues. Never fixes |
 | `teacher` | Opus 5.5 high | explorer | Quizzes you on a feature's PRs through the orchestrator and publishes a learning page. Never blocks merging |
 
 Helpers: `verifier` (drives the app, QA, mockup fidelity, jank), `explorer` (one read-only codebase question), `researcher` (one web question), `review-worker` (finder or checker), `socrates` (one challenge before you pick an option). Claude helpers under a Claude profile run natively; a helper on the other vendor runs as a separate process. The reviewer's default Codex lead running Claude process workers was tested end to end before this release.

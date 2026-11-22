@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6.1-sol
-  reasoning: low
+  name: gpt-6.2-sol
+  reasoning: medium
+  speed: ultrafast
 description: Review the current PR using the bundled review skill and CRITERIA.md.
 skills:
   - review

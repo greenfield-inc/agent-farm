@@ -54,8 +54,9 @@ subagents:
     agent: pr-reviewer
     harness: codex
     model:
-      name: gpt-6.1-sol
-      reasoning: low
+      name: gpt-6.2-sol
+      reasoning: medium
+      speed: ultrafast
     mode: process
 ---
 

@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6-astra
-  reasoning: high
+  name: gpt-6.2-sol
+  reasoning: medium
+  speed: ultrafast
 instructions_files:
   - ../instructions/standing-rules.md
   - ../instructions/coordination.md

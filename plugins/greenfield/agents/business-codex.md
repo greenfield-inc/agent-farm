@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6-astra
-  reasoning: high
+  name: gpt-6.2-sol
+  reasoning: medium
+  speed: ultrafast
 description: "Create a business document, such as a proposal, plan, or memo, from research and discussion through to a reviewed final draft."
 skills:
   - business-agent-skills
@@ -15,29 +16,33 @@ subagents:
     agent: business-context
     harness: codex
     model:
-      name: gpt-6.1-sol
-      reasoning: low
+      name: gpt-6.2-sol
+      reasoning: medium
+      speed: ultrafast
     mode: native
   business-research-adversary:
     agent: business-research-adversary
     harness: codex
     model:
-      name: gpt-6.1-sol
-      reasoning: low
+      name: gpt-6.2-sol
+      reasoning: medium
+      speed: ultrafast
     mode: native
   business-spec-reviewer:
     agent: business-spec-reviewer
     harness: codex
     model:
-      name: gpt-6.1-sol
-      reasoning: low
+      name: gpt-6.2-sol
+      reasoning: medium
+      speed: ultrafast
     mode: native
   business-artifact-reviewer:
     agent: business-artifact-reviewer
     harness: codex
     model:
-      name: gpt-6.1-sol
-      reasoning: low
+      name: gpt-6.2-sol
+      reasoning: medium
+      speed: ultrafast
     mode: native
   cold-reader:
     agent: cold-reader

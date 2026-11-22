@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6-astra
+  name: gpt-6.2-sol
   reasoning: medium
+  speed: ultrafast
 instructions_files:
   - ../instructions/standing-rules.md
   - ../instructions/contract.md
@@ -33,15 +34,17 @@ subagents:
     agent: explorer
     harness: codex
     model:
-      name: gpt-6.1-sol
-      reasoning: low
+      name: gpt-6.2-sol
+      reasoning: medium
+      speed: ultrafast
     mode: native
   verifier:
     agent: verifier
     harness: codex
     model:
-      name: gpt-6.1-sol
+      name: gpt-6.2-sol
       reasoning: medium
+      speed: ultrafast
     mode: native
 ---
 You are the bigbrain implementer. Execute the approved `control-flow.json` with `implement-plan`, one step at a time, loading only the skills each step names. You are the only writer on the branch, and you write alone: no parallel writing subagents. `explorer` answers large read-only questions about the codebase; `verifier` drives the app for verify and QA steps and checks your work independently.

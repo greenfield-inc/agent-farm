@@ -4,6 +4,7 @@ variants:
   codex:
     agent: codex-pr-reviewer
     model:
-      name: gpt-6.1-sol
-      reasoning: max
+      name: gpt-6.2-sol
+      reasoning: low
+      speed: ultrafast
 default: claude

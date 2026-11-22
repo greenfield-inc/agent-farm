@@ -14,7 +14,7 @@ Both variants also get Agent Farm's `babysit-pr`, `tdd`, `codebase-design`, `ses
 | Profile | Harness and model | What it loads |
 | --- | --- | --- |
 | `orchestra/overseer:claude` (default) | Claude, claude-opus-5-5 | The 11 Claude skills (codex, cold-read, create-brief, discussion, do, excalidraw-pr-diagrams, investigate, postmortem, postmortem-loop, prepare-pull-request, sentry-loop) plus arena and hillclimb, the 6 Claude agents as native subagents, Linear and Playwright MCP. Codex roles run through `codex exec` as in orchestra. |
-| `orchestra/overseer:codex` | Codex, gpt-6-astra (high) | The 13 Codex skills, with `do` and `investigate` in `codex-do` and `codex-investigate`, plus codex-hillclimb. |
+| `orchestra/overseer:codex` | Codex, gpt-6.2-sol (medium, ultrafast) | The 13 Codex skills, with `do` and `investigate` in `codex-do` and `codex-investigate`, plus codex-hillclimb. |
 
 Both variants select `references: orchestra`, which holds orchestra's `references/` folder, its Claude agent files under `claude-agents/`, and `templates/`.
 Skills cite `.references/<path>`; Agent Farm maps that to the bundled folder at launch.

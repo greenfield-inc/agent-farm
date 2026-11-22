@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6.1-sol
-  reasoning: max
+  name: gpt-6.2-sol
+  reasoning: medium
+  speed: ultrafast
 description: Answer one question the codebase cannot, from outside sources, with citations. Never recommends a design.
 skills:
   - research-web
