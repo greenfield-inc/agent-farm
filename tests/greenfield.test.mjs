@@ -239,6 +239,7 @@ const unbundledMentions={
  'html-explainer -> excalidraw-pr-diagrams':'names editable diagrams as outside its scope',
  'refactor -> cold-read':'the parent runs the cold-read gate with its cold-reader child; a refactor child returns to it there',
  'session-trace -> prepare-pr':'names the pull request a trace attaches to; planning-and-prioritization never opens one, so it does not bundle prepare-pr',
+ 'page -> prepare-pr':"the post-mortem reference names a PR's companion page; only an orchestrator writes post-mortems, and planning-and-prioritization never opens a PR",
  'principled-review -> review':"uses the review skill's context step where bundled, and otherwise reads the PR and issues itself",
  'research-and-product-design -> ui-mockup':'the orchestrator runs several features through it; the feature agents it launches draw the UI rounds with ui-mockup',
 };
@@ -417,7 +418,7 @@ test('no Greenfield skill or rule asks for a secret in chat: the host secret pro
 });
 
 test('greenfield 0.0.53: with a host question mechanism, asking and relaying follow the host\'s injected instructions; needs_you carries why and summary (J9)',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.57$/m);
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.59$/m);
  const rules=flatText('instructions/standing-rules.md');
  for(const rule of ['**When the host has its own question mechanism**','its injected instructions decide which mechanism to use','these rules never restate them','"why": "Invoice PDFs are renamed on export','"summary": "/abs/bundle/options.html"','- `why`: why it matters, in one or two sentences of at most 240 characters','- `summary`: optional, the absolute path of an `.html` page','When the host has its own question mechanism, use it as its instructions say. Otherwise, on Claude, use the harness question tool (`AskUserQuestion`)'])assert.ok(rules.includes(rule),rule);
  // #205's ban on passing the status file is gone, and host card rules are not restated here.
