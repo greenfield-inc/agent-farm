@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {spawnSync} from 'node:child_process';
+import {spawn,spawnSync} from 'node:child_process';
 import {build,resolveProfile} from '../dist/compiler.js';
 import {command,verify} from '../dist/runtime.js';
 import {validatePlugin} from '../dist/plugins.js';
@@ -341,6 +341,104 @@ test('codebase-audit runs on Fable with native Sonnet researchers and an Opus cu
  }
 });
 
+test('process-cleanup runs on Opus or Sol with a read-only survey for each OS',t=>{
+ const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-cleanup-')));
+ t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
+ const expected={opus:['claude','claude-opus-5-5','medium'],sol:['codex','gpt-6.1-sol','medium']};
+ for(const [variant,model] of Object.entries(expected)){
+  const main=resolveProfile(root,'process-cleanup:'+variant).nodes.main;
+  assert.deepEqual([main.harness,main.model,main.reasoning_effort],model,variant);
+  assert.deepEqual(main.skills,['process-cleanup'],variant);
+  assert.deepEqual(main.launch.arguments,{machine:'local',authorized:'none'},variant);
+  assert.ok(main.instructions.includes('# Standing rules'),variant);
+  verify(build(root,'process-cleanup:'+variant,target));
+ }
+ const scripts=path.join(root,'skills','process-cleanup','scripts');
+ const code=file=>fs.readFileSync(path.join(scripts,file),'utf8').split('\n').filter(line=>!/^\s*#/.test(line)).join('\n');
+ assert.doesNotMatch(code('survey.sh'),/\b(kill -(KILL|9)|pkill|killall|sudo|rm -rf \/|fsmonitor--daemon stop)\b/);
+ assert.doesNotMatch(code('survey.ps1'),/\b(Stop-Process|taskkill|Stop-Service|Set-Service|Start-Process)\b/i);
+ const classes=fs.readFileSync(path.join(root,'skills','process-cleanup','references','classes.md'),'utf8');
+ for(const id of ['fsmonitor-orphaned','fsmonitor-idle','app-renderers','app-duplicates','dev-servers-orphaned','shells-orphaned','agents-orphaned','host-live','git-in-progress'])assert.ok(classes.includes('`'+id+'`'),id);
+});
+
+// Git Bash on Windows runners can resolve `bash` to WSL, which wouldn't see the shims.
+test('the Linux survey counts an app\'s main processes, so duplicate instances show',{skip:process.platform==='win32'},t=>{
+ const bin=fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-survey-'));
+ t.after(()=>fs.rmSync(bin,{recursive:true,force:true}));
+ // Two real Chrome windows (one from launchd-like pid 1, one from a shell), a utility child running
+ // the main binary under the first, and one renderer.
+ const rows=[
+  [100,1,'Ss','2-00:00:00',1000,'0.0','pts/0','bash','bash'],
+  [200,1,'S','1-00:00:00',204800,'1.0','?','chrome','/opt/google/chrome/chrome'],
+  [300,100,'S','01:00:00',102400,'1.0','?','chrome','/opt/google/chrome/chrome --new-window'],
+  [210,200,'S','1-00:00:00',51200,'0.0','?','chrome','/opt/google/chrome/chrome --utility-sub-process'],
+  [220,200,'S','3-00:00:00',51200,'0.5','?','chrome','/opt/google/chrome/chrome --type=renderer --lang=en-US'],
+ ];
+ fs.writeFileSync(path.join(bin,'comm.txt'),rows.map(r=>r.slice(0,8).join(' ')).join('\n')+'\n');
+ fs.writeFileSync(path.join(bin,'args.txt'),rows.map(r=>`${r[0]} ${r[8]}`).join('\n')+'\n');
+ fs.writeFileSync(path.join(bin,'ps'),`#!/bin/sh\ncase "$*" in *args=*) cat "${bin}/args.txt" ;; *) cat "${bin}/comm.txt" ;; esac\n`,{mode:0o755});
+ fs.writeFileSync(path.join(bin,'uname'),'#!/bin/sh\necho Linux\n',{mode:0o755});
+ const run=spawnSync('bash',[path.join(root,'skills','process-cleanup','scripts','survey.sh'),'--budget','2'],{encoding:'utf8',timeout:60000,env:{...process.env,PATH:`${bin}${path.delimiter}${process.env.PATH}`}});
+ const apps=run.stdout.split('\n== ').find(section=>section.startsWith('apps'));
+ assert.ok(apps,run.stdout+run.stderr);
+ const chrome=apps.split('\n').find(line=>line.startsWith('chrome\t'))?.split('\t');
+ // app, main_binary, launched, renderers, renderers_older_2d, other_helpers, rss_mb
+ assert.deepEqual(chrome?.slice(0,7),['chrome','3','2','1','1','0','400'],apps);
+});
+
+test('the survey counts a detached shell\'s children, so a shell running a job is not idle',{skip:process.platform==='win32'},t=>{
+ const bin=fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-survey-'));
+ t.after(()=>fs.rmSync(bin,{recursive:true,force:true}));
+ // pid 400 is an orphaned shell running a build; pid 500 is an orphaned idle shell.
+ const rows=[[400,1,'Ss','2-00:00:00',1000,'0.0','?','bash','bash'],[410,400,'R','01:00:00',90000,'95.0','?','make','make -j8'],[500,1,'Ss','2-00:00:00',1000,'0.0','?','bash','bash']];
+ fs.writeFileSync(path.join(bin,'comm.txt'),rows.map(r=>r.slice(0,8).join(' ')).join('\n')+'\n');
+ fs.writeFileSync(path.join(bin,'args.txt'),rows.map(r=>`${r[0]} ${r[8]}`).join('\n')+'\n');
+ fs.writeFileSync(path.join(bin,'ps'),`#!/bin/sh\ncase "$*" in *args=*) cat "${bin}/args.txt" ;; *) cat "${bin}/comm.txt" ;; esac\n`,{mode:0o755});
+ fs.writeFileSync(path.join(bin,'uname'),'#!/bin/sh\necho Linux\n',{mode:0o755});
+ const run=spawnSync('bash',[path.join(root,'skills','process-cleanup','scripts','survey.sh'),'--budget','2'],{encoding:'utf8',timeout:60000,env:{...process.env,PATH:`${bin}${path.delimiter}${process.env.PATH}`}});
+ const lines=run.stdout.split('\n== ').find(section=>section.startsWith('agents-and-shells'))?.split('\n');
+ assert.ok(lines,run.stdout+run.stderr);
+ const header=lines[1].split('\t'),children=pid=>lines.find(line=>line.startsWith(pid+'\t'))?.split('\t')[header.indexOf('children')];
+ assert.deepEqual([children(400),children(500)],['1','0'],lines.join('\n'));
+});
+
+test('the survey marks only serve and watch modes as servers, so a one-shot job is never a safe stop, and prints no credential from a command line',{skip:process.platform==='win32'},t=>{
+ const bin=fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-survey-'));
+ t.after(()=>fs.rmSync(bin,{recursive:true,force:true}));
+ const rows=[[600,1,'S','1-00:00:00',50000,'0.0','?','node','node /srv/jobs/export-customers.js'],[700,1,'S','1-00:00:00',50000,'0.0','?','node','node /app/node_modules/.bin/vite --port 3000'],[800,1,'S','1-00:00:00',50000,'0.0','?','node','node /usr/lib/node_modules/pnpm/bin/pnpm.cjs run dev'],[900,1,'S','1-00:00:00',50000,'0.0','?','node','node /app/node_modules/vite/bin/vite.js build'],[1000,1,'S','1-00:00:00',50000,'0.0','?','node','node /app/node_modules/vitest/vitest.mjs run'],[1100,1,'S','1-00:00:00',50000,'0.0','?','esbuild','esbuild input.js --outfile=output.js'],[1200,1,'S','1-00:00:00',50000,'0.0','?','node','node /srv/jobs/invite-users.js'],[1300,1,'S','1-00:00:00',50000,'0.0','?','node','node /srv/app.js --database-url postgresql://alice:synthetic-example@db.example/test --password horse battery staple'],[1400,1,'S','1-00:00:00',50000,'0.0','?','node','node /srv/export.js EXAMPLE42'],[1500,1,'S','1-00:00:00',50000,'0.0','?','node','node /app/node_modules/typescript/bin/tsc --watch false'],[1600,1,'S','1-00:00:00',50000,'0.0','?','node','node /app/node_modules/typescript/bin/tsc -w false'],[1700,1,'S','1-00:00:00',50000,'0.0','?','node','node /app/node_modules/typescript/bin/tsc --watch=false'],[1800,1,'S','1-00:00:00',50000,'0.0','?','node','node /app/node_modules/typescript/bin/tsc --watch false --watch'],[1900,1,'S','1-00:00:00',50000,'0.0','?','node','node /app/node_modules/typescript/bin/tsc -w --watch=false'],[2000,1,'S','1-00:00:00',50000,'0.0','?','node','node /app/node_modules/typescript/bin/tsc --watch --watch=true']];
+ fs.writeFileSync(path.join(bin,'comm.txt'),rows.map(r=>r.slice(0,8).join(' ')).join('\n')+'\n');
+ fs.writeFileSync(path.join(bin,'args.txt'),rows.map(r=>`${r[0]} ${r[8]}`).join('\n')+'\n');
+ fs.writeFileSync(path.join(bin,'ps'),`#!/bin/sh\ncase "$*" in *args=*) cat "${bin}/args.txt" ;; *) cat "${bin}/comm.txt" ;; esac\n`,{mode:0o755});
+ fs.writeFileSync(path.join(bin,'uname'),'#!/bin/sh\necho Linux\n',{mode:0o755});
+ const run=spawnSync('bash',[path.join(root,'skills','process-cleanup','scripts','survey.sh'),'--budget','2'],{encoding:'utf8',timeout:60000,env:{...process.env,PATH:`${bin}${path.delimiter}${process.env.PATH}`}});
+ const lines=run.stdout.split('\n== ').find(section=>section.startsWith('dev-servers'))?.split('\n');
+ assert.ok(lines,run.stdout+run.stderr);
+ const header=lines[1].split('\t'),kind=pid=>lines.find(line=>line.startsWith(pid+'\t'))?.split('\t')[header.indexOf('kind')];
+ assert.deepEqual([600,700,800,900,1000,1100,1200,1300,1500,1600,1700,1800,1900,2000].map(kind),['runtime','server','server','runtime','runtime','runtime','runtime','runtime','runtime','runtime','runtime','runtime','runtime','server'],lines.join('\n'));
+ assert.equal(lines.find(line=>line.startsWith('1300\t')).split('\t')[header.indexOf('args')],'node ...');
+ assert.doesNotMatch(run.stdout,/alice|synthetic-example|horse|battery|staple|EXAMPLE42/);
+ const classes=fs.readFileSync(path.join(root,'skills','process-cleanup','references','classes.md'),'utf8');
+ assert.match(classes.split('\n').find(line=>line.startsWith('| `dev-servers-orphaned`')),/kind `server`/);
+});
+
+// Reads a real process's /proc environment, so it needs Linux.
+test('the Linux survey keeps a detached dev server\'s host ids, so a live terminal protects it',{skip:process.platform!=='linux'},async t=>{
+ const bin=fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-survey-'));
+ // `exec -a vite` makes the sleeping process look like a vite dev server.
+ const child=spawn('bash',['-c','exec -a vite sleep 60'],{cwd:os.tmpdir(),stdio:'ignore',env:{...process.env,HOST_SESSION_ID:'session-1',HOST_TERMINAL_ID:'panel-1'}});
+ t.after(()=>{child.kill();fs.rmSync(bin,{recursive:true,force:true});});
+ await new Promise(resolve=>setTimeout(resolve,300));
+ fs.writeFileSync(path.join(bin,'comm.txt'),`${child.pid} 1 S 1-00:00:00 1000 0.0 ? sleep\n`);
+ fs.writeFileSync(path.join(bin,'args.txt'),`${child.pid} vite --port 5173\n`);
+ fs.writeFileSync(path.join(bin,'ps'),`#!/bin/sh\ncase "$*" in *args=*) cat "${bin}/args.txt" ;; *) cat "${bin}/comm.txt" ;; esac\n`,{mode:0o755});
+ const run=spawnSync('bash',[path.join(root,'skills','process-cleanup','scripts','survey.sh'),'--budget','2','--session-var','HOST_SESSION_ID','--agent-var','HOST_TERMINAL_ID'],{encoding:'utf8',timeout:60000,env:{...process.env,PATH:`${bin}${path.delimiter}${process.env.PATH}`}});
+ const rows=run.stdout.split('\n== ').find(section=>section.startsWith('dev-servers'))?.split('\n');
+ assert.ok(rows,run.stdout+run.stderr);
+ const header=rows[1].split('\t'),row=rows.find(line=>line.startsWith(child.pid+'\t'))?.split('\t');
+ assert.ok(row,rows.join('\n'));
+ assert.deepEqual([row[header.indexOf('parent')],row[header.indexOf('host_session')],row[header.indexOf('host_agent')]],['orphaned','session-1','panel-1']);
+});
+
 test('Codex orchestration routes every worker and helper to Codex while retaining Claude defaults',t=>{
  const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-codex-orchestrator-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
@@ -418,7 +516,7 @@ test('no Greenfield skill or rule asks for a secret in chat: the host secret pro
 });
 
 test('greenfield 0.0.53: with a host question mechanism, asking and relaying follow the host\'s injected instructions; needs_you carries why and summary (J9)',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.59$/m);
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.60$/m);
  const rules=flatText('instructions/standing-rules.md');
  for(const rule of ['**When the host has its own question mechanism**','its injected instructions decide which mechanism to use','these rules never restate them','"why": "Invoice PDFs are renamed on export','"summary": "/abs/bundle/options.html"','- `why`: why it matters, in one or two sentences of at most 240 characters','- `summary`: optional, the absolute path of an `.html` page','When the host has its own question mechanism, use it as its instructions say. Otherwise, on Claude, use the harness question tool (`AskUserQuestion`)'])assert.ok(rules.includes(rule),rule);
  // #205's ban on passing the status file is gone, and host card rules are not restated here.
