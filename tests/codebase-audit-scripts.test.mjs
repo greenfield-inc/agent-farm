@@ -100,7 +100,7 @@ function render(page){
   addEventListener(type,f){handlers.push(f)}
  }
  const document={querySelector:()=>new El(),querySelectorAll:q=>q==='[data-t]'?[...page.matchAll(/data-t="(\w+)"/g)].map(m=>Object.assign(new El(),{dataset:{t:m[1]}})):[],createElement:()=>new El(),createElementNS:()=>new El(),documentElement:new El(),title:''};
- vm.runInNewContext(page.match(/<script>([\s\S]*)<\/script>/)[1],{document,getComputedStyle:()=>({getPropertyValue:()=>'#000'}),innerWidth:1200,innerHeight:800});
+ vm.runInNewContext(page.slice(page.indexOf('<script>')+8,page.lastIndexOf('</script>')),{document,getComputedStyle:()=>({getPropertyValue:()=>'#000'}),innerWidth:1200,innerHeight:800});
  for(const f of handlers)f({clientX:0,clientY:0,target:new El()});  // every hover tooltip and click detail
  return {html,text:[...text,document.title]};
 }
