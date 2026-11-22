@@ -3,8 +3,8 @@
 #
 # Prints sections headed "== name ==", each a tab-separated table with a header row.
 # It never kills, stops or changes anything, never uses sudo, and bounds every slow call.
-# Command lines never reach the output: each row shows only the program and up to two plain
-# words after it (basenames), stopping at the first flag, URL, user@host, key=value or credential word.
+# Command lines never reach the output: each row shows the program and only those of its first
+# three arguments that match a fixed list of tool, mode and flag names, with "..." for the rest.
 # Its only file writes are temp files under mktemp, removed on exit.
 # Runs on the macOS system bash (3.2) and BSD awk.
 
@@ -165,30 +165,38 @@ function secs(e,   d, n, i, s, p, a) {
 function age(s) { if (s > up + 3600) return "boot"; if (s >= 86400) return sprintf("%.1fd", s/86400); if (s >= 3600) return sprintf("%.1fh", s/3600); return sprintf("%dm", s/60) }
 function base(p,   n, x) { n = split(p, x, "/"); return x[n] }
 function appof(p,   i, n, x) { n = split(p, x, "/"); for (i = 1; i <= n; i++) if (x[i] ~ /\.app$/) return substr(x[i], 1, length(x[i]) - 4); return "" }
-# The only path from a command line to the output. Fail closed: keep the program and up to two
-# plain words after it, as basenames, and stop at the first word that could carry a credential.
-function plain(w,   b) {
-  if (w ~ /^-/ || w ~ /(=|:\/\/|@)/ || tolower(w) ~ /(token|secret|passw|key|auth|bearer|cookie|credential|session)/) return ""
-  b = base(w); return (b ~ /^[A-Za-z0-9._-]{1,64}$/ && b !~ /^[A-Za-z0-9_-]{32,}$/) ? b : ""
+# The only path from a command line to the output. Print the program name and only those of
+# its first three arguments that are in a fixed list of tool, mode and flag names; the rest
+# becomes "...". Credentials cannot be recognized by their shape, so nothing else is printed.
+function label(w,   b) {
+  if (w ~ /^(--watch|-w|--serve|--port|--host)$/) return w
+  if (w ~ /[:@=]/) return ""
+  b = base(w); sub(/\.(c|m)?js$/, "", b)
+  return (b ~ /^(vite|vitest|next|nodemon|webpack|webpack-dev-server|storybook|start-storybook|tsc|tsx|esbuild|jest|turbo|http-server|live-server|npm|npx|pnpm|yarn|bun|deno|run|dev|serve|start|watch|preview|build|test|exec|x)$/) ? b : ""
 }
-function clean(a,   n, w, i, out, b) {
-  n = split(a, w, " "); out = plain(w[1]); if (out == "") return "?"
-  for (i = 2; i <= n && i <= 3; i++) { b = plain(w[i]); if (b == "") break; out = out " " b }
-  return out (i <= n ? " ..." : "")
+function clean(a,   n, w, i, out, l, more) {
+  n = split(a, w, " "); out = base(w[1])
+  if (out !~ /^[A-Za-z0-9._-]{1,64}$/ || out ~ /^[A-Za-z0-9_-]{32,}$/) out = "?"
+  for (i = 2; i <= n; i++) { l = (i <= 4) ? label(w[i]) : ""; if (l == "") more = 1; else out = out " " l }
+  return out (more ? " ..." : "")
 }
+# A watch or serve flag counts only when it is on: a bare flag, or one followed by another flag
+# or true, or a =value other than false, 0, no or off. Any other next word leaves it ambiguous.
+function on(v) { return (v == "" || v ~ /^-/ || v ~ /^(true|1|yes|on)$/) }
 # A dev server or watcher only on positive evidence of a serve or watch mode; one-shot builds,
 # test runs and anything ambiguous stay "runtime", which is never a safe stop.
 function isserver(a, nm,   n, w, i, b, nx) {
   if (nm ~ /^(nodemon|next-server)$/) return 1
   n = split(a, w, " ")
   for (i = 1; i <= n; i++) {
-    if (w[i] ~ /^--(watch|serve)(=|$)/) return 1
+    if (w[i] ~ /^--(watch|serve)$/ && on(i < n ? w[i + 1] : "")) return 1
+    if (w[i] ~ /^--(watch|serve)=/ && tolower(w[i]) !~ /=(false|0|no|off)$/) return 1
     b = base(w[i]); sub(/\.(c|m)?js$/, "", b); nx = (i < n) ? w[i + 1] : ""
     if (b ~ /^(nodemon|http-server|live-server|webpack-dev-server|start-storybook|next-server)$/) return 1
     if (b == "vite" && (nx == "" || nx ~ /^-/ || nx ~ /^(dev|serve|preview)$/)) return 1
     if (b == "next" && nx ~ /^(dev|start)$/) return 1
     if (b ~ /^(webpack|storybook)$/ && nx ~ /^(serve|dev)$/) return 1
-    if (b == "tsc" && nx == "-w") return 1
+    if (b == "tsc" && nx == "-w" && on(i + 2 <= n ? w[i + 2] : "")) return 1
     if (b ~ /^(npm|pnpm|yarn|bun)$/) { if (nx == "run" && i + 2 <= n) nx = w[i + 2]; if (nx ~ /^(dev|serve|start|watch)$/) return 1 }
   }
   return 0

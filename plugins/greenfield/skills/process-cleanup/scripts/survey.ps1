@@ -2,7 +2,7 @@
 #
 # Prints sections headed "== name ==", each a tab-separated table with a header row, in the
 # same shape as survey.sh. It never stops or changes anything and never elevates. Process
-# command lines never reach the output: rows show only the program and up to two plain words.
+# command lines never reach the output: rows show only the program and fixed tool, mode and flag names.
 # Runs on Windows PowerShell 5.1 and PowerShell 7:
 #   powershell -NoProfile -ExecutionPolicy Bypass -File survey.ps1
 
@@ -16,23 +16,29 @@ function Age([double]$s) {
   return ('{0}m' -f [int]($s / 60))
 }
 
-# The only path from a command line to the output. Fail closed: keep the program and up to two
-# plain words after it, as basenames, and stop at the first word that could carry a credential.
-function Plain([string]$w) {
-  if ($w -match '^-' -or $w -match '(=|://|@)' -or $w -match '(?i)(token|secret|passw|key|auth|bearer|cookie|credential|session)') { return '' }
-  $b = ($w.Trim('"') -split '[\\/]')[-1]
-  if ($b -match '^[A-Za-z0-9._-]{1,64}$' -and $b -notmatch '^[A-Za-z0-9_-]{32,}$') { return $b }
+# The only path from a command line to the output. Print the program name and only those of
+# its first three arguments that are in a fixed list of tool, mode and flag names; the rest
+# becomes "...". Credentials cannot be recognized by their shape, so nothing else is printed.
+function Label([string]$w) {
+  if ($w -cmatch '^(--watch|-w|--serve|--port|--host)$') { return $w }
+  if ($w -match '[:@=]' -and $w -notmatch '^"?[A-Za-z]:\\[^:@=]*$') { return '' }
+  $b = (($w.Trim('"') -split '[\\/]')[-1]) -replace '\.(c|m)?js$', '' -replace '\.(exe|cmd)$', ''
+  if ($b -cmatch '^(vite|vitest|next|nodemon|webpack|webpack-dev-server|storybook|start-storybook|tsc|tsx|esbuild|jest|turbo|http-server|live-server|npm|npx|pnpm|yarn|bun|deno|run|dev|serve|start|watch|preview|build|test|exec|x)$') { return $b }
   return ''
 }
 function Clean([string]$a) {
   if (-not $a) { return '' }
   if ($a -match '^\s*"([^"]*)"\s*(.*)$') { $prog = $Matches[1]; $rest = $Matches[2] }
   else { $prog, $rest = ($a.Trim() -split ' ', 2) }
-  $out = Plain $prog; if (-not $out) { return '?' }
+  $out = ($prog -split '[\\/]')[-1]
+  if ($out -notmatch '^[A-Za-z0-9._-]{1,64}$' -or $out -match '^[A-Za-z0-9_-]{32,}$') { $out = '?' }
   $words = @(("$rest" -split ' ') | Where-Object { $_ })
-  $i = 0
-  while ($i -lt $words.Count -and $i -lt 2) { $b = Plain $words[$i]; if (-not $b) { break }; $out += " $b"; $i++ }
-  if ($i -lt $words.Count) { $out += ' ...' }
+  $more = $false
+  for ($i = 0; $i -lt $words.Count; $i++) {
+    $l = if ($i -lt 3) { Label $words[$i] } else { '' }
+    if ($l) { $out += " $l" } else { $more = $true }
+  }
+  if ($more) { $out += ' ...' }
   return $out
 }
 
