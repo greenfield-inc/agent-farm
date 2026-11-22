@@ -3,7 +3,8 @@
 #
 # Prints sections headed "== name ==", each a tab-separated table with a header row.
 # It never kills, stops or changes anything, never uses sudo, and bounds every slow call.
-# Process arguments are shortened and token-shaped words are replaced with <redacted>.
+# Command lines never reach the output: each row shows only the program and up to two plain
+# words after it (basenames), stopping at the first flag, URL, user@host, key=value or credential word.
 # Its only file writes are temp files under mktemp, removed on exit.
 # Runs on the macOS system bash (3.2) and BSD awk.
 
@@ -132,7 +133,8 @@ awk '
   a ~ /(^|\/)(claude|codex|cursor-agent|gemini|opencode|amp)( |$)/ ||
   a ~ /(^|\/)-?(zsh|bash|fish|sh|tmux)( |$)/ ||
   a ~ /(^|\/)(node|bun|deno|esbuild|tsc|tsx|turbo|nodemon|vite|next-server)( |$)/ ||
-  a ~ /(vite|webpack|next dev|storybook|vitest|jest --watch|tsc -w|tsc --watch|esbuild .*--watch)/ { print pid }
+  a ~ /(vite|webpack|next dev|storybook|vitest|jest --watch|tsc -w|tsc --watch|esbuild .*--watch)/ ||
+  (a ~ /(^|\/)git( |$)/ && a !~ /fsmonitor--daemon/) { print pid }
 ' "$T/args" > "$T/cand.pids"
 : > "$T/cwd"; : > "$T/hostenv"
 if [ -s "$T/cand.pids" ]; then
@@ -163,18 +165,33 @@ function secs(e,   d, n, i, s, p, a) {
 function age(s) { if (s > up + 3600) return "boot"; if (s >= 86400) return sprintf("%.1fd", s/86400); if (s >= 3600) return sprintf("%.1fh", s/3600); return sprintf("%dm", s/60) }
 function base(p,   n, x) { n = split(p, x, "/"); return x[n] }
 function appof(p,   i, n, x) { n = split(p, x, "/"); for (i = 1; i <= n; i++) if (x[i] ~ /\.app$/) return substr(x[i], 1, length(x[i]) - 4); return "" }
-# Shorten args and hide anything shaped like a credential.
-function clean(a,   n, w, i, out, lw, hide) {
-  n = split(a, w, " "); out = ""; hide = 0
+# The only path from a command line to the output. Fail closed: keep the program and up to two
+# plain words after it, as basenames, and stop at the first word that could carry a credential.
+function plain(w,   b) {
+  if (w ~ /^-/ || w ~ /(=|:\/\/|@)/ || tolower(w) ~ /(token|secret|passw|key|auth|bearer|cookie|credential|session)/) return ""
+  b = base(w); return (b ~ /^[A-Za-z0-9._-]{1,64}$/ && b !~ /^[A-Za-z0-9_-]{32,}$/) ? b : ""
+}
+function clean(a,   n, w, i, out, b) {
+  n = split(a, w, " "); out = plain(w[1]); if (out == "") return "?"
+  for (i = 2; i <= n && i <= 3; i++) { b = plain(w[i]); if (b == "") break; out = out " " b }
+  return out (i <= n ? " ..." : "")
+}
+# A dev server or watcher only on positive evidence of a serve or watch mode; one-shot builds,
+# test runs and anything ambiguous stay "runtime", which is never a safe stop.
+function isserver(a, nm,   n, w, i, b, nx) {
+  if (nm ~ /^(nodemon|next-server)$/) return 1
+  n = split(a, w, " ")
   for (i = 1; i <= n; i++) {
-    lw = tolower(w[i])
-    if (hide) { w[i] = "<redacted>"; hide = 0 }
-    else if (lw ~ /(token|secret|passw|apikey|api_key|api-key|authorization|bearer|cookie|credential)/) {
-      if (index(w[i], "=")) w[i] = substr(w[i], 1, index(w[i], "=")) "<redacted>"; else hide = 1
-    } else if (w[i] ~ /^[A-Za-z0-9_+=-]{32,}$/) w[i] = "<redacted>"
-    out = out (i > 1 ? " " : "") w[i]
+    if (w[i] ~ /^--(watch|serve)(=|$)/) return 1
+    b = base(w[i]); sub(/\.(c|m)?js$/, "", b); nx = (i < n) ? w[i + 1] : ""
+    if (b ~ /^(nodemon|http-server|live-server|webpack-dev-server|start-storybook|next-server)$/) return 1
+    if (b == "vite" && (nx == "" || nx ~ /^-/ || nx ~ /^(dev|serve|preview)$/)) return 1
+    if (b == "next" && nx ~ /^(dev|start)$/) return 1
+    if (b ~ /^(webpack|storybook)$/ && nx ~ /^(serve|dev)$/) return 1
+    if (b == "tsc" && nx == "-w") return 1
+    if (b ~ /^(npm|pnpm|yarn|bun)$/) { if (nx == "run" && i + 2 <= n) nx = w[i + 2]; if (nx ~ /^(dev|serve|start|watch)$/) return 1 }
   }
-  return length(out) > 160 ? substr(out, 1, 157) "..." : out
+  return 0
 }
 FILENAME == ARGV[1] { l = $0; sub(/^ +/, "", l); pid = l; sub(/ .*/, "", pid); sub(/^[0-9]+ */, "", l); args[pid] = l; next }
 FILENAME == ARGV[2] { fsm[$1] = $2 "\t" $3 "\t" $4; fsmrows[++nf] = $0; next }
@@ -239,8 +256,8 @@ END {
   print "pid\tppid\tparent\tkind\tage\trss_mb\tcpu\thost_session\thost_agent\tcwd\targs"
   for (i = 1; i <= np; i++) { p = pids[i]; a = args[p]
     if (a ~ /(^|\/)(claude|codex|cursor-agent|gemini|opencode|amp)( |$)/ || a ~ /--type=/ || comm[p] ~ /\.app\//) continue
-    server = (name[p] ~ /^(esbuild|nodemon|vite|next-server)$/ || a ~ /(vite|webpack|next (dev|start)|next-server|storybook|vitest|nodemon|http-server|live-server|--watch|tsc -w|esbuild .*--serve|(^| )(run )?(dev|serve|start|watch)( |$))/)
-    if (server || name[p] ~ /^(node|bun|deno|tsc|tsx|turbo)$/)
+    server = isserver(a, name[p])
+    if (server || name[p] ~ /^(node|bun|deno|esbuild|vite|tsc|tsx|turbo)$/)
       printf "%s\t%s\t%s\t%s\t%s\t%.0f\t%s\t%s\t%s\t%s\t%s\n", p, ppid[p], (ppid[p] == 1 ? "orphaned" : (ppid[p] in alive ? name[ppid[p]] : "gone")), (server ? "server" : "runtime"), age(el[p]), rss[p]/1024, cpu[p], (p in pses ? pses[p] : "-"), (p in ppan ? ppan[p] : "-"), (p in cwd ? cwd[p] : "?"), clean(a) }
 
   print "\n== agents-and-shells (agent CLIs, and shells older than 1 day or orphaned) =="
@@ -252,6 +269,11 @@ END {
     else if (name[p] ~ /^-?(zsh|bash|fish|sh|tmux)$/ && (el[p] > now1 || ppid[p] == 1)) kind = name[p]
     if (kind == "") continue
     printf "%s\t%s\t%s\t%s\t%s\t%.0f\t%s\t%d\t%s\t%s\t%s\t%s\n", p, ppid[p], (ppid[p] == 1 ? "orphaned" : (ppid[p] in alive ? name[ppid[p]] : "gone")), kind, age(el[p]), rss[p]/1024, cpu[p], kids[p], tty[p], (p in pses ? pses[p] : "-"), (p in ppan ? ppan[p] : "-"), (p in cwd ? cwd[p] : "?") }
+
+  print "\n== git-in-progress (git commands other than fsmonitor daemons) =="
+  print "pid\tage\tcwd\tcommand"
+  for (i = 1; i <= np; i++) { p = pids[i]; a = args[p]
+    if (a ~ /(^|\/)git( |$)/ && a !~ /fsmonitor--daemon/ && st[p] !~ /Z/) printf "%s\t%s\t%s\t%s\n", p, age(el[p]), (p in cwd ? cwd[p] : "?"), clean(a) }
 
   print "\n== zombies =="
   print "pid\tppid\tparent\tage"

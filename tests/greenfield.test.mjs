@@ -402,10 +402,10 @@ test('the survey counts a detached shell\'s children, so a shell running a job i
  assert.deepEqual([children(400),children(500)],['1','0'],lines.join('\n'));
 });
 
-test('the survey marks only recognized dev servers as servers, so a batch job is never a safe stop',{skip:process.platform==='win32'},t=>{
+test('the survey marks only serve and watch modes as servers, so a one-shot job is never a safe stop, and prints no credential from a command line',{skip:process.platform==='win32'},t=>{
  const bin=fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-survey-'));
  t.after(()=>fs.rmSync(bin,{recursive:true,force:true}));
- const rows=[[600,1,'S','1-00:00:00',50000,'0.0','?','node','node /srv/jobs/export-customers.js'],[700,1,'S','1-00:00:00',50000,'0.0','?','node','node /app/node_modules/.bin/vite --port 3000'],[800,1,'S','1-00:00:00',50000,'0.0','?','node','node /usr/lib/node_modules/pnpm/bin/pnpm.cjs run dev']];
+ const rows=[[600,1,'S','1-00:00:00',50000,'0.0','?','node','node /srv/jobs/export-customers.js'],[700,1,'S','1-00:00:00',50000,'0.0','?','node','node /app/node_modules/.bin/vite --port 3000'],[800,1,'S','1-00:00:00',50000,'0.0','?','node','node /usr/lib/node_modules/pnpm/bin/pnpm.cjs run dev'],[900,1,'S','1-00:00:00',50000,'0.0','?','node','node /app/node_modules/vite/bin/vite.js build'],[1000,1,'S','1-00:00:00',50000,'0.0','?','node','node /app/node_modules/vitest/vitest.mjs run'],[1100,1,'S','1-00:00:00',50000,'0.0','?','esbuild','esbuild input.js --outfile=output.js'],[1200,1,'S','1-00:00:00',50000,'0.0','?','node','node /srv/jobs/invite-users.js'],[1300,1,'S','1-00:00:00',50000,'0.0','?','node','node /srv/app.js --database-url postgresql://alice:synthetic-example@db.example/test --password horse battery staple']];
  fs.writeFileSync(path.join(bin,'comm.txt'),rows.map(r=>r.slice(0,8).join(' ')).join('\n')+'\n');
  fs.writeFileSync(path.join(bin,'args.txt'),rows.map(r=>`${r[0]} ${r[8]}`).join('\n')+'\n');
  fs.writeFileSync(path.join(bin,'ps'),`#!/bin/sh\ncase "$*" in *args=*) cat "${bin}/args.txt" ;; *) cat "${bin}/comm.txt" ;; esac\n`,{mode:0o755});
@@ -414,7 +414,9 @@ test('the survey marks only recognized dev servers as servers, so a batch job is
  const lines=run.stdout.split('\n== ').find(section=>section.startsWith('dev-servers'))?.split('\n');
  assert.ok(lines,run.stdout+run.stderr);
  const header=lines[1].split('\t'),kind=pid=>lines.find(line=>line.startsWith(pid+'\t'))?.split('\t')[header.indexOf('kind')];
- assert.deepEqual([kind(600),kind(700),kind(800)],['runtime','server','server'],lines.join('\n'));
+ assert.deepEqual([600,700,800,900,1000,1100,1200,1300].map(kind),['runtime','server','server','runtime','runtime','runtime','runtime','runtime'],lines.join('\n'));
+ assert.equal(lines.find(line=>line.startsWith('1300\t')).split('\t')[header.indexOf('args')],'node app.js ...');
+ assert.doesNotMatch(run.stdout,/alice|synthetic-example|horse|battery|staple/);
  const classes=fs.readFileSync(path.join(root,'skills','process-cleanup','references','classes.md'),'utf8');
  assert.match(classes.split('\n').find(line=>line.startsWith('| `dev-servers-orphaned`')),/kind `server`/);
 });

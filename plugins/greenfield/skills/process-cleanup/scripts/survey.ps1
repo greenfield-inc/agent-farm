@@ -2,7 +2,7 @@
 #
 # Prints sections headed "== name ==", each a tab-separated table with a header row, in the
 # same shape as survey.sh. It never stops or changes anything and never elevates. Process
-# command lines are shortened and token-shaped words are replaced with <redacted>.
+# command lines never reach the output: rows show only the program and up to two plain words.
 # Runs on Windows PowerShell 5.1 and PowerShell 7:
 #   powershell -NoProfile -ExecutionPolicy Bypass -File survey.ps1
 
@@ -16,22 +16,24 @@ function Age([double]$s) {
   return ('{0}m' -f [int]($s / 60))
 }
 
+# The only path from a command line to the output. Fail closed: keep the program and up to two
+# plain words after it, as basenames, and stop at the first word that could carry a credential.
+function Plain([string]$w) {
+  if ($w -match '^-' -or $w -match '(=|://|@)' -or $w -match '(?i)(token|secret|passw|key|auth|bearer|cookie|credential|session)') { return '' }
+  $b = ($w.Trim('"') -split '[\\/]')[-1]
+  if ($b -match '^[A-Za-z0-9._-]{1,64}$' -and $b -notmatch '^[A-Za-z0-9_-]{32,}$') { return $b }
+  return ''
+}
 function Clean([string]$a) {
   if (-not $a) { return '' }
-  $words = $a -split ' '; $hide = $false
-  $out = for ($i = 0; $i -lt $words.Count; $i++) {
-    $w = $words[$i]
-    if ($hide) { '<redacted>'; $hide = $false; continue }
-    if ($w -match '(?i)(token|secret|passw|apikey|api_key|api-key|authorization|bearer|cookie|credential)') {
-      if ($w.Contains('=')) { $w.Substring(0, $w.IndexOf('=') + 1) + '<redacted>' } else { $w; $hide = $true }
-      continue
-    }
-    if ($w -match '^[A-Za-z0-9_+=-]{32,}$') { '<redacted>'; continue }
-    $w
-  }
-  $s = ($out -join ' ')
-  if ($s.Length -gt 160) { $s = $s.Substring(0, 157) + '...' }
-  return $s
+  if ($a -match '^\s*"([^"]*)"\s*(.*)$') { $prog = $Matches[1]; $rest = $Matches[2] }
+  else { $prog, $rest = ($a.Trim() -split ' ', 2) }
+  $out = Plain $prog; if (-not $out) { return '?' }
+  $words = @(("$rest" -split ' ') | Where-Object { $_ })
+  $i = 0
+  while ($i -lt $words.Count -and $i -lt 2) { $b = Plain $words[$i]; if (-not $b) { break }; $out += " $b"; $i++ }
+  if ($i -lt $words.Count) { $out += ' ...' }
+  return $out
 }
 
 function Row { ($args | ForEach-Object { "$_" }) -join "`t" }
@@ -165,6 +167,13 @@ $procs | ForEach-Object {
   if ($_.Cmd -match $agentRe -and $_.Name -notmatch '^(conhost|OpenConsole)$') { $kind = $Matches[2].ToLower() }
   elseif ($_.Name -match '^(pwsh|powershell|cmd|bash|zsh|sh|wsl)$' -and ($_.Age -gt $day -or (ParentOf $_) -eq 'gone')) { $kind = $_.Name }
   if ($kind) { Row $_.Pid $_.Ppid (ParentOf $_) $kind (Age $_.Age) ('{0:0}' -f $_.RssMb) ('{0:0}' -f $cpu[$_.Pid]) (Clean $_.Cmd) }
+}
+
+""
+"== git-in-progress (git commands other than fsmonitor daemons) =="
+Row pid age command
+$procs | Where-Object { $_.Name -match '^git(\.exe)?$' -and $_.Cmd -notmatch 'fsmonitor--daemon' } | ForEach-Object {
+  Row $_.Pid (Age $_.Age) (Clean $_.Cmd)
 }
 
 ""
