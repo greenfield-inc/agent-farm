@@ -1148,8 +1148,9 @@ when it loads the MCP configuration. Codex receives
 `bearer_token_env_var = "SERVICE_TOKEN"`, including in native child-agent files.
 The bundle and launch arguments contain only the variable name, never its value.
 `env_var` is required for `bearer_env` and is invalid for `native` or `none`.
-Bearer connections do not use the OAuth login command. Claude continues to use
-strict MCP mode with workspace and agent connections in the same configuration.
+Bearer connections do not use the OAuth login command. Claude loads them in the
+same configuration as workspace and agent connections, in strict MCP mode by
+default (see [Your own MCP servers](#your-own-mcp-servers)).
 
 Claude receives an HTTP/stdio MCP JSON configuration; Codex receives equivalent
 native configuration, including native child-agent files. Claude native children
@@ -1229,10 +1230,14 @@ default for one launch. A per-launch flag reaches process children through
 `AGENT_FARM_MCP` (`inherit` or `strict`), which you can also set yourself. The
 flag wins over that variable, and the variable wins over `settings.json`.
 With inherit, Claude also loads the user and local servers in `~/.claude.json`
-and the project's `.mcp.json`. Codex under a provider gets your
-`[mcp_servers.NAME]` tables copied into its generated config. If one of your
-servers has the same name as a connection (`orchestra_<connection>`), the
-connection wins and the launch prints one line naming it. Telemetry tools
+and the project's `.mcp.json`. Launches run with `--dangerously-skip-permissions`,
+so the project's servers start without Claude's approval prompt; use inherit only
+in repositories you trust. Codex under a provider gets your `[mcp_servers.NAME]`
+tables copied into its generated config, in a runtime home separate from strict
+launches. A table that holds a multi-line string is not copied, and the launch
+prints one line naming it. If one of your servers has the same name as a
+connection (`orchestra_<connection>`), the connection wins (Codex leaves your
+table out) and the launch prints one line naming it. Telemetry tools
 (`agent_farm_telemetry`) load in both modes. A connection left out for a missing
 [sign-in](docs/operations.md#mcp-sign-ins-before-launch) stays out in both modes;
 your own servers are not checked. `--print-acp` follows the same mode.

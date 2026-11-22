@@ -741,17 +741,33 @@ test('Codex argv is the same in both modes; the profile overrides a same-named u
  }
 });
 
-test('a Codex provider config carries the user mcp_servers over only on inherit',t=>{
+test('a Codex provider config carries the user mcp_servers over only on inherit, in its own runtime home',t=>{
  const f=mcpFixture(t,'codex');fs.writeFileSync(path.join(f.home,'.codex/config.toml'),userCodexConfig);
+ const homes={};
  for(const mcp of [undefined,'strict','inherit']) {
   f.settings({provider,...(mcp?{mcp}:{})});
-  const launch=JSON.parse(f.invoke(['--print-launch']).stdout);
+  const launch=JSON.parse(f.invoke(['--print-launch']).stdout);homes[mcp]=launch.env.CODEX_HOME;
   const data=parseToml(fs.readFileSync(path.join(launch.env.CODEX_HOME,'config.toml'),'utf8'));
   assert.equal(data.model_provider,'cliproxy');assert.equal(data.profiles,undefined);assert.equal(data.model,undefined);
-  if(mcp==='inherit')assert.deepEqual(data.mcp_servers,{mine:{command:'mine-cmd',env:{TOKEN:'USER-MCP-SECRET'}},orchestra_svc:{command:'user-svc'}});
+  // Codex merges same-named tables, so the user's orchestra_svc is left out and the profile's connection stands alone.
+  if(mcp==='inherit')assert.deepEqual(data.mcp_servers,{mine:{command:'mine-cmd',env:{TOKEN:'USER-MCP-SECRET'}}});
   else assert.equal(data.mcp_servers,undefined);
   assert.equal(JSON.stringify(launch).includes('USER-MCP-SECRET'),false);
  }
+ // A strict launch can't pick up the config an inherit launch wrote; the default home is unchanged, so resume still finds it.
+ assert.equal(homes.strict,homes[undefined]);assert.notEqual(homes.inherit,homes.strict);
+ assert.equal(parseToml(fs.readFileSync(path.join(homes.strict,'config.toml'),'utf8')).mcp_servers,undefined);
+});
+
+test('inherit skips a user Codex server holding a multi-line string and names it',t=>{
+ const f=mcpFixture(t,'codex');
+ fs.writeFileSync(path.join(f.home,'.codex/config.toml'),'developer_instructions = """\nExample:\n[mcp_servers.example]\ncommand = "demo"\n"""\n[mcp_servers.multi]\ncommand = "x"\nnote = \'\'\'\n[not.a.header]\n\'\'\'\n[mcp_servers.plain]\ncommand = "y"\n');
+ f.settings({provider,mcp:'inherit'});
+ const result=f.invoke(['--print-launch']);assert.equal(result.status,0,result.stderr);
+ const launch=JSON.parse(result.stdout);
+ assert.deepEqual(parseToml(fs.readFileSync(path.join(launch.env.CODEX_HOME,'config.toml'),'utf8')).mcp_servers,{plain:{command:'y'}});
+ assert.deepEqual(launch.mcp.user_servers,['multi','plain']);
+ assert.deepEqual(result.stderr.split('\n').filter(Boolean),['agent-farm: your Codex MCP server multi holds a multi-line string, so this launch does not copy it into the provider config; write that value on one line to load it with inherit.']);
 });
 
 test('codexServerTables reads mcp_servers tables only',()=>{

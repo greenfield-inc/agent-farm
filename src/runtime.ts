@@ -419,7 +419,7 @@ function generatedConfig(destination: string, native: string): boolean {
     return fs.readFileSync(destination,'utf8').startsWith(providerConfigMarker);
   } catch (e) { if (missing(e)) return false; throw e; }
 }
-function codexConfig(original: string, runtime: string, provider?: Provider, mcp: McpMode='strict'): void {
+function codexConfig(original: string, runtime: string, provider?: Provider, inherit?: string[]): void {
   const destination=path.join(runtime,'config.toml'),native=path.join(original,'config.toml');
   if (!provider) {
     // Codex writes its settings through this link, so it needs a file to point at.
@@ -442,6 +442,8 @@ function codexConfig(original: string, runtime: string, provider?: Provider, mcp
     if (owned) break;
     if (!settling(attempt)) throw new Error(`Conflicting runtime path: ${destination}`);
   }
+  const servers=codexServerTables(inherit ? readText(native) : '',inherit);
+  for (const name of servers.skipped) console.error(`agent-farm: your Codex MCP server ${name} holds a multi-line string, so this launch does not copy it into the provider config; write that value on one line to load it with inherit.`);
   const content=providerConfigMarker+[
     `model_provider = ${toml(provider.name)}`,
     `[model_providers.${provider.name}]`,
@@ -451,9 +453,9 @@ function codexConfig(original: string, runtime: string, provider?: Provider, mcp
     'wire_api = "responses"',
     `env_key = ${toml(provider.api_key_env)}`
   ].join('\n')+'\n'
-    // A provider replaces the linked native config; only the inherit opt-in
-    // (see McpMode) carries the user's MCP servers over.
-    +(mcp==='inherit' ? codexServerTables(readText(native)).text : '');
+    // A provider replaces the linked native config; only the inherit opt-in (see McpMode) carries the
+    // user's MCP servers over. Codex merges same-named tables, so a server this launch registers is left out.
+    +(inherit ? servers.text : '');
   // Atomic replacement also replaces a native-config symlink without following it.
   const temporary=destination+'.'+process.pid+'.tmp';
   fs.writeFileSync(temporary,content,{mode:0o600,flag:'wx'});
@@ -481,18 +483,26 @@ const readText=(file:string)=>{ try { return fs.readFileSync(file,'utf8'); } cat
 const readJson=(file:string):Record<string,unknown>|undefined=>{ try { const v=JSON.parse(fs.readFileSync(file,'utf8')); return v && typeof v==='object' && !Array.isArray(v) ? v : undefined; } catch { return undefined; } };
 const serverNames=(value:unknown)=>value && typeof value==='object' && !Array.isArray(value) ? Object.keys(value) : [];
 /** `[mcp_servers.NAME…]` tables of a Codex config.toml, as their names and verbatim text. Only node: builtins here, so this scans headers rather than parsing TOML. */
-export function codexServerTables(text:string):{names:string[];text:string} {
-  const names=new Set<string>(),kept:string[]=[];let keep=false;
+export function codexServerTables(text:string, leaveOut:string[]=[]):{names:string[];text:string;skipped:string[]} {
+  const names=new Set<string>(),skipped=new Set<string>(),tables:{name:string|null;lines:string[]}[]=[{name:null,lines:[]}];
+  let open:string|undefined;
   for (const line of text.split(/\r?\n/)) {
-    const header=/^\s*\[(\[?)\s*([^\]]*)\]\]?\s*(?:#.*)?$/.exec(line);
+    const quotes=line.match(/"""|'''/g) ?? [];
+    const header=!open && /^\s*\[(\[?)\s*([^\]]*)\]\]?\s*(?:#.*)?$/.exec(line);
     if (header) {
       // Arrays of tables ([[…]]) never hold an MCP server.
       const server=header[1] ? null : /^mcp_servers\s*\.\s*(?:"([A-Za-z0-9_-]+)"|([A-Za-z0-9_-]+))(?:\s*\.|$)/.exec(header[2]!.trim());
-      keep=!!server;if (server) names.add(server[1] ?? server[2]!);
+      const name=server ? server[1] ?? server[2]! : null;
+      if (name) names.add(name);
+      tables.push({name,lines:[]});
     }
-    if (keep) kept.push(line);
+    const table=tables[tables.length-1]!;table.lines.push(line);
+    // A header-shaped line inside a multi-line string is text, not a table. A server holding one is not copied.
+    if (quotes.length && table.name) skipped.add(table.name);
+    for (const quote of quotes) open = open===undefined ? quote : open===quote ? undefined : open;
   }
-  return {names:[...names],text:kept.length ? '\n'+kept.join('\n')+'\n' : ''};
+  const kept=tables.flatMap(t=>t.name && !skipped.has(t.name) && !leaveOut.includes(t.name) ? t.lines : []);
+  return {names:[...names],text:kept.length ? '\n'+kept.join('\n')+'\n' : '',skipped:[...skipped]};
 }
 /** MCP server names the user configured for Claude: user and local scope in .claude.json, project scope in .mcp.json. */
 function claudeUserServers(directory:string, env:NodeJS.ProcessEnv, home:string):string[] {
@@ -515,17 +525,19 @@ function managedLink(destination: string, source?: string): string | null | unde
     }
   }
 }
-export function codexHome(bundle: string, route: string, env: NodeJS.ProcessEnv, home = os.homedir(), provider?: Provider, mcp: McpMode='strict'): string {
+/** `inherit`: the MCP server names this launch registers, when it also loads the user's own servers (McpMode). */
+export function codexHome(bundle: string, route: string, env: NodeJS.ProcessEnv, home = os.homedir(), provider?: Provider, inherit?: string[]): string {
   const manifest: Manifest=JSON.parse(fs.readFileSync(path.join(bundle,'manifest.json'),'utf8'));
   const native=nativeCodexHome(env,home);
   // Without a provider, the runtime home mirrors the native one, so create it the way Codex would on first run.
   if (!provider) fs.mkdirSync(native,{recursive:true,mode:0o700});
   const original = provider && !fs.existsSync(native) ? path.resolve(native) : fs.realpathSync(native);
   // Resume identity must survive bundle rebuilds and changes to the selected agent.
-  const identity={profile:manifest.profile,workspace:manifest.workspace_source?.source ?? null,directory:manifest.directory,route};
+  // Under a provider, inherit writes a different config.toml, so it gets its own home; strict keeps the default one.
+  const identity={profile:manifest.profile,workspace:manifest.workspace_source?.source ?? null,directory:manifest.directory,route,...(provider && inherit ? {mcp:'inherit'} : {})};
   const runtime = path.join(home,'.cache/agent-farm/native-proof',hash(canonical(identity)).slice(0,24));
   fs.mkdirSync(runtime,{recursive:true,mode:0o700});
-  codexConfig(original,runtime,provider,mcp);
+  codexConfig(original,runtime,provider,inherit);
   for (const item of ['auth.json','.credentials.json','AGENTS.md','AGENTS.override.md','rules','plugins','mcp-oauth-locks']) link(path.join(original,item),path.join(runtime,item));
   const skills = path.join(runtime,'skills'); fs.mkdirSync(skills,{recursive:true});
   const selected = path.join(bundle,route,'skills');
@@ -803,7 +815,7 @@ export function resolveLaunchFor(bundle: string, route: string, options: LaunchO
       for (const alias of ['HAIKU','SONNET','OPUS','FABLE']) envOverrides[`ANTHROPIC_DEFAULT_${alias}_MODEL`]=launch.model.name;
     }
   } else if (options.prepare!==false) {
-    codexHome(bundle,route,env,options.home,provider,mcp.mode);
+    codexHome(bundle,route,env,options.home,provider,mcp.mode==='inherit' ? [...profileServers,...(access ? [telemetryServerName] : [])] : undefined);
     envOverrides.CODEX_HOME=env.CODEX_HOME!;
     envOverrides.AGENT_FARM_NATIVE_CODEX_HOME=env.AGENT_FARM_NATIVE_CODEX_HOME!;
   }
