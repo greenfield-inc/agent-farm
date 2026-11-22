@@ -238,6 +238,8 @@ const unbundledMentions={
  'babysit-pr -> create-ticket':"falls back to the PR's findings or handoff file where the agent cannot create tickets",
  'html-explainer -> excalidraw-pr-diagrams':'names editable diagrams as outside its scope',
  'refactor -> cold-read':'the parent runs the cold-read gate with its cold-reader child; a refactor child returns to it there',
+ 'session-trace -> prepare-pr':'names the pull request a trace attaches to; planning-and-prioritization never opens one, so it does not bundle prepare-pr',
+ 'page -> prepare-pr':"the post-mortem reference names a PR's companion page; only an orchestrator writes post-mortems, and planning-and-prioritization never opens a PR",
  'principled-review -> review':"uses the review skill's context step where bundled, and otherwise reads the PR and issues itself",
  'research-and-product-design -> ui-mockup':'the orchestrator runs several features through it; the feature agents it launches draw the UI rounds with ui-mockup',
 };
@@ -268,6 +270,29 @@ test('every Greenfield skill and agent is bundled by a profile, and every skill 
  assert.deepEqual(agents.filter(agent=>!reachedAgents.has(agent)),[]);
  assert.deepEqual([...unresolved],[]);
  assert.deepEqual(Object.keys(unbundledMentions).filter(key=>!usedExceptions.has(key)),[],'stale exception');
+});
+
+test('planning-and-prioritization runs read-only Opus lanes and a reconciler from one lane-researcher, and takes the sweep arguments',t=>{
+ const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-sweep-')));
+ t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
+ const resolved=resolveProfile(root,'planning-and-prioritization'),main=resolved.nodes.main;
+ assert.deepEqual([main.harness,main.model,main.reasoning_effort],['claude','claude-opus-5-5','high']);
+ assert.deepEqual(main.skills,['research-reconcile','swarm','interview','page','session-trace']);
+ assert.ok(main.instructions.includes('# Standing rules'));
+ assert.ok(!main.skills.includes('prepare-pr'));
+ assert.deepEqual(Object.keys(main.argument_definitions).sort(),['docs','parent','rank_by','source','topic','window']);
+ const children=Object.fromEntries(Object.entries(main.children).map(([alias,route])=>{const n=resolved.nodes[route];return [alias,[n.name,n.mode,n.harness,n.model,n.reasoning_effort]];}));
+ assert.deepEqual(children,{lane:['lane-researcher','native','claude','claude-opus-5-5','medium'],reconciler:['lane-researcher','native','claude','claude-opus-5-5','high']});
+ const lane=fs.readFileSync(path.join(root,'agents/lane-researcher.md'),'utf8').replace(/\s+/g,' ');
+ for(const rule of ['Write only the path your prompt names','record that source as `unavailable` with the exact error','create, update, comment on'])assert.ok(lane.toLowerCase().includes(rule.toLowerCase()),rule);
+ const skill=fs.readFileSync(path.join(root,'skills/research-reconcile/SKILL.md'),'utf8').replace(/\s+/g,' ');
+ for(const rule of ['verify and reconcile before acting',"never written without the person's approval",'Rank only on reconciled values'])assert.ok(skill.toLowerCase().includes(rule.toLowerCase()),rule);
+ assert.match(fs.readFileSync(path.join(root,'skills/research-reconcile/references/reconciler-prompt.md'),'utf8'),/"record_fixes"/);
+ const bundle=build(root,'planning-and-prioritization',target);verify(bundle);
+ for(const alias of ['lane','reconciler'])assert.ok(fs.existsSync(path.join(bundle,'main','native-agents',alias+'.json')));
+ const launch=command(bundle,'main',{prepare:false,args:['rank_by=deadline','topic=x']});
+ assert.deepEqual([launch.launch.arguments.rank_by,launch.launch.arguments.topic],['deadline','x']);
+ assert.throws(()=>command(bundle,'main',{prepare:false,args:['foo=1']}),/undeclared|Unknown|unknown|does not declare/);
 });
 
 const withoutStandingRules={
@@ -393,7 +418,7 @@ test('no Greenfield skill or rule asks for a secret in chat: the host secret pro
 });
 
 test('greenfield 0.0.53: with a host question mechanism, asking and relaying follow the host\'s injected instructions; needs_you carries why and summary (J9)',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.57$/m);
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.59$/m);
  const rules=flatText('instructions/standing-rules.md');
  for(const rule of ['**When the host has its own question mechanism**','its injected instructions decide which mechanism to use','these rules never restate them','"why": "Invoice PDFs are renamed on export','"summary": "/abs/bundle/options.html"','- `why`: why it matters, in one or two sentences of at most 240 characters','- `summary`: optional, the absolute path of an `.html` page','When the host has its own question mechanism, use it as its instructions say. Otherwise, on Claude, use the harness question tool (`AskUserQuestion`)'])assert.ok(rules.includes(rule),rule);
  // #205's ban on passing the status file is gone, and host card rules are not restated here.
