@@ -180,23 +180,30 @@ function clean(a,   n, w, i, out, l, more) {
   for (i = 2; i <= n; i++) { l = (i <= 4) ? label(w[i]) : ""; if (l == "") more = 1; else out = out " " l }
   return out (more ? " ..." : "")
 }
-# A watch or serve flag counts only when it is on: a bare flag, or one followed by another flag
-# or true, or a =value other than false, 0, no or off. Any other next word leaves it ambiguous.
-function on(v) { return (v == "" || v ~ /^-/ || v ~ /^(true|1|yes|on)$/) }
 # A dev server or watcher only on positive evidence of a serve or watch mode; one-shot builds,
 # test runs and anything ambiguous stay "runtime", which is never a safe stop.
-function isserver(a, nm,   n, w, i, b, nx) {
+# Every watch or serve flag is read first (-w only in a tsc command): a bare flag, one followed
+# by another flag, or a value of true, 1, yes, on or forever (or a port for --serve) turns it on.
+# Any other value, or one occurrence that is on and another that is off, keeps the row runtime.
+function isserver(a, nm,   n, w, i, b, nx, v, tsc, en) {
   if (nm ~ /^(nodemon|next-server)$/) return 1
-  n = split(a, w, " ")
+  n = split(a, w, " "); tsc = 0; en = 0
+  for (i = 1; i <= n; i++) { b = base(w[i]); sub(/\.(c|m)?js$/, "", b); if (b == "tsc") tsc = 1 }
   for (i = 1; i <= n; i++) {
-    if (w[i] ~ /^--(watch|serve)$/ && on(i < n ? w[i + 1] : "")) return 1
-    if (w[i] ~ /^--(watch|serve)=/ && tolower(w[i]) !~ /=(false|0|no|off)$/) return 1
+    if (w[i] ~ /^--(watch|serve)$/ || (tsc && w[i] == "-w")) v = (i < n && w[i + 1] !~ /^-/) ? w[i + 1] : "true"
+    else if (w[i] ~ /^--(watch|serve)=/) v = substr(w[i], index(w[i], "=") + 1)
+    else continue
+    v = tolower(v)
+    if (v ~ /^(true|1|yes|on|forever)$/ || (w[i] ~ /^--serve/ && v ~ /^([0-9.]+:)?[0-9]+$/)) en = 1
+    else return 0
+  }
+  if (en) return 1
+  for (i = 1; i <= n; i++) {
     b = base(w[i]); sub(/\.(c|m)?js$/, "", b); nx = (i < n) ? w[i + 1] : ""
     if (b ~ /^(nodemon|http-server|live-server|webpack-dev-server|start-storybook|next-server)$/) return 1
     if (b == "vite" && (nx == "" || nx ~ /^-/ || nx ~ /^(dev|serve|preview)$/)) return 1
     if (b == "next" && nx ~ /^(dev|start)$/) return 1
     if (b ~ /^(webpack|storybook)$/ && nx ~ /^(serve|dev)$/) return 1
-    if (b == "tsc" && nx == "-w" && on(i + 2 <= n ? w[i + 2] : "")) return 1
     if (b ~ /^(npm|pnpm|yarn|bun)$/) { if (nx == "run" && i + 2 <= n) nx = w[i + 2]; if (nx ~ /^(dev|serve|start|watch)$/) return 1 }
   }
   return 0
