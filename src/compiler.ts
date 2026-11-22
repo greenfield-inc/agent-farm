@@ -72,8 +72,8 @@ export function orderedVariants(variants:string[],defaultVariant?:string):string
 /** `agent-farm run NAME:VARIANT` for each variant but `except`, default first; empty for a profile without variants. */
 export function variantCommands(name:string,resolution:{variants?:string[];default_variant?:string},except?:string):string[]{return orderedVariants(resolution.variants??[],resolution.default_variant).filter(v=>v!==except).map(v=>`agent-farm run ${splitVariant(name).name}:${v}`);}
 /** ` (claude · codex)` for a profile with variants, empty otherwise. */
-/** `claude-opus-5-5 medium fast`: a model with its reasoning and fast tier, as listings show it. */
-export function modelSummary(model:{name:string;reasoning?:string;speed?:string}):string{return [model.name,model.reasoning,model.speed==='fast'?'fast':undefined].filter(Boolean).join(' ');}
+/** `gpt-6-astra medium fast`: a model with its reasoning and non-standard speed tier, as listings show it. */
+export function modelSummary(model:{name:string;reasoning?:string;speed?:string}):string{return [model.name,model.reasoning,model.speed==='fast'||model.speed==='ultrafast'?model.speed:undefined].filter(Boolean).join(' ');}
 /** ` (opus: claude-opus-5-5 medium · astra: gpt-6-astra medium)` for a profile with variants, default first; names only when models are unknown. */
 export function variantLabel(profile:{variants?:string[];default_variant?:string;variant_models?:Record<string,{name:string;reasoning?:string;speed?:string}>}):string{if(!profile.variants)return '';return ` (${orderedVariants(profile.variants,profile.default_variant).map(v=>profile.variant_models?.[v]?`${v}: ${modelSummary(profile.variant_models[v]!)}`:v).join(' · ')})`;}
 

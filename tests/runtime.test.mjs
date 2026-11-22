@@ -95,8 +95,18 @@ test('different launch argument values create valid independent content-addresse
  assert.equal(JSON.parse(fs.readFileSync(path.join(a.bundle,'main/agent.json'))).launch.arguments.review,'final');assert.equal(JSON.parse(fs.readFileSync(path.join(b.bundle,'main/agent.json'))).launch.arguments.review,'full');
 });
 
+test('a profile at speed ultrafast launches Codex on the ultrafast tier and is refused for Claude',t=>{
+ for(const harness of ['codex','claude']){
+  const f=fixture(t,harness);fs.mkdirSync(path.join(f.root,'profiles'));
+  fs.writeFileSync(path.join(f.root,'profiles/quick.yaml'),'agent: planner\nmodel: {speed: ultrafast}\n');
+  const result=f.invoke(['--explain'],'quick');
+  if(harness==='codex'){assert.equal(result.status,0,result.stderr);assert.ok(JSON.parse(result.stdout).argv.includes('service_tier="ultrafast"'));}
+  else{assert.equal(result.status,1);assert.match(result.stderr,/model\.speed "ultrafast", but model\.speed is Codex-only .*Claude has no speed tier/);}
+ }
+});
+
 test('model flag validation is harness-specific and launch-only',t=>{
- const claude=fixture(t,'claude');let result=claude.invoke(['--explain','--speed','fast']);assert.equal(result.status,1);assert.match(result.stderr,/model\.speed supports fast or standard for Codex only/);
+ const claude=fixture(t,'claude');let result=claude.invoke(['--explain','--speed','fast']);assert.equal(result.status,1);assert.match(result.stderr,/speed is Codex-only/);
  result=claude.invoke(['--explain','--reasoning','minimal']);assert.equal(result.status,1);assert.match(result.stderr,/accepted: low, medium, high, xhigh, max/);
  const nonRun=spawnSync(process.execPath,[cli,'inspect','planner','--config-root',claude.root,'--model','test'],{encoding:'utf8'});assert.equal(nonRun.status,1);assert.match(nonRun.stderr,/only supported by run and unset global/);
 });
