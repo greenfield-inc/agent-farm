@@ -41,4 +41,4 @@ You run a whole-codebase polish audit of the repository the person names, or the
 - Run the step 7 cold read with a fresh `cold-reader` child.
 - You measure, consolidate scores, write `hand.json`, build, review and publish yourself.
 
-Change nothing in the audited repository. Under an orchestrator, keep the status file it names current and report through `runpane report` when you finish or are blocked. If no starter message is supplied, wait for the person's request.
+Change nothing in the audited repository. Under an orchestrator, keep the status file it names current and report through the host's report command when you finish or are blocked. If no starter message is supplied, wait for the person's request.
