@@ -40,6 +40,11 @@ homes, and existing Codex file-based MCP credentials are linked from the
 original home. Other platforms and credential backends are unverified; a
 successful macOS login does not prove them.
 
+Launches load only workspace and agent connections by default. The `inherit`
+opt-in (see [CONFIGURATION.md](../CONFIGURATION.md#your-own-mcp-servers)) adds
+your own Claude or Codex MCP servers, which then run with the agent's
+permissions, just as they do in a native session.
+
 ### MCP sign-ins before launch
 
 Before each launch (`run`, `--exec`, `--print-launch` and `--print-acp`; not

@@ -70,6 +70,8 @@ test('print-acp gives a Claude profile to claude-agent-acp: model, effort, instr
  });
  assert.equal(acp.env.ANTHROPIC_MODEL,'claude-opus-5-5');
  assert.equal(options.settings,undefined,'the adapter takes the initial mode from session/set_mode, not settings');
+ const inherit=f.invoke(['--print-acp','--inherit-mcp']);assert.equal(inherit.status,0,inherit.stderr);
+ assert.equal(JSON.parse(inherit.stdout).session._meta.claudeCode.options.strictMcpConfig,false);
 });
 
 test('print-acp gives a Codex profile to codex-acp: CODEX_CONFIG with instructions, effort, tier, subagents and MCP servers, and a prepared CODEX_HOME',t=>{
