@@ -186,10 +186,11 @@ test('the pre-check delivers its whole JSON line and exit status to a reader tha
  execFileSync('git',['add','.'],{cwd:repo,env});execFileSync('git',['-c','user.email=t@example.com','-c','user.name=t','commit','-qm','records'],{cwd:repo,env});
  const {spawn}=await import('node:child_process');
  const child=spawn(process.execPath,[path.join(root,'skills/seo-experiments/scripts/due.mjs'),'--repo',repo,'--today','2026-03-01','--check'],{stdio:['ignore','pipe','pipe']});
+ const closed=new Promise(resolve=>child.on('close',resolve));
  child.stdout.pause();
  await new Promise(resolve=>setTimeout(resolve,1500));
  const chunks=[];child.stdout.on('data',chunk=>chunks.push(chunk));child.stdout.resume();
- const code=await new Promise(resolve=>child.on('close',resolve));
+ const code=await closed;
  const result=JSON.parse(Buffer.concat(chunks).toString('utf8'));
  assert.deepEqual([code,result.reads_due.length],[0,3000]);
 });
