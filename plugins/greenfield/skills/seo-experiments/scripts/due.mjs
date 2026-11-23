@@ -13,7 +13,8 @@
 // A record with status: closed keeps its dates, but its open reads are "closed": never due, no next read.
 // A Markdown file with no frontmatter is a legacy record from the older per-file format: it is listed as
 // "legacy" (needs migration) and the rest of the list still runs.
-// --check answers "is anything due today" in one JSON line for a scheduled run: the due reads, records to migrate,
+// --check answers "is anything due today" in one JSON line for a scheduled run: the due reads, records to migrate
+// (old-format files, and a single .seo/experiments.md log),
 // and the review, which is due when .seo/access.md is missing or its cadence (weekly 7 days, monthly 30, default
 // monthly) has passed since the last merged .seo/ change (the newest first-parent commit on the ref touching .seo/).
 // It also names the product's local folder (working memory and raw pulls), one per repository whatever the worktree:
@@ -144,6 +145,7 @@ function check(records,repo,ref,today){
   const {access,review:rev}=review(repo,ref,today);
   const reads_due=records.flatMap(rec=>rec.reads.filter(read=>read.state==='due').map(read=>({id:rec.id,days:read.days,since:read.runnable_from})));
   const legacy=records.filter(rec=>rec.legacy).map(rec=>rec.id);
+  if(readFile(repo,ref,'.seo/experiments.md')!==null)legacy.push('.seo/experiments.md');
   const later=[...records.flatMap(rec=>rec.reads.filter(read=>read.state==='too early').map(read=>read.runnable_from)),...(rev.due?[]:[rev.next])].sort();
   const due=reads_due.length>0||legacy.length>0||rev.due;
   return {today,due,reads_due,legacy,review:rev,next_due:later[0]||null,access,memory:memoryDir(repo)};

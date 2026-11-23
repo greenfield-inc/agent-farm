@@ -159,6 +159,10 @@ test('the pre-check answers in one line whether a read or the review is due, fro
  assert.deepEqual(check('t3','2026-11-20'),[0,{today:'2026-11-20',due:true,reads_due:[],legacy:[],review:{cadence:'monthly',last:'2026-10-18',next:'2026-11-17',due:true,reason:null},next_due:null,access}]);
  // No .seo/ yet: a first run is due.
  assert.deepEqual(check('t0','2026-09-20'),[0,{today:'2026-09-20',due:true,reads_due:[],legacy:[],review:{cadence:null,last:null,next:null,due:true,reason:'no .seo/access.md: first run'},next_due:null,access:null}]);
+ // A single-file experiment log hides its reads from the script, so it is due for migration.
+ fs.writeFileSync(path.join(repo,'.seo/experiments.md'),'| date | target | review |\n| 2026-07-10 | /pricing | 2026-08-11 |\n');commit('t4','2026-11-01T12:00:00Z');
+ const [status4,{legacy,due}]=run(repo,'t4','2026-11-02');
+ assert.deepEqual([status4,due,legacy],[0,true,['.seo/experiments.md']]);
  // Every worktree of the product shares one local folder, under Agent Farm's state directory.
  const other=path.join(tempDir(t,'seo-check-wt-'),'run');git(['worktree','add','-q','--detach',other,'t3']);
  const [,main]=run(repo,'t3','2026-11-20'),[,fromWorktree]=run(other,'t3','2026-11-20');
