@@ -23,7 +23,7 @@ autonomously; the human returns at the PR.
 **Sub-agents:** code-researcher, investigator, implementer,
 backend-verifier, plan-reviewer, and code-reviewer run on Codex via the
 matching role skills; this entrypoint uses a single Codex lane. **All
-implementation runs on the Codex `implementer`** at effort `low`,
+implementation runs on the Codex `implementer`** at effort `medium`,
 every surface - backend/ops and frontend web/mobile alike. The Codex
 `frontend-verifier` is the app-driving QA agent: it runs **once per run,
 post-PR** (Step 5), never at the verify stage, and drives web UI with local
@@ -375,7 +375,7 @@ step in `.references/publish-work-item.md`.
 ## Step 2: Implement
 
 Every implementation dispatch goes to the Codex `implementer` role at effort
-`low` (later fix rounds resume the same Codex session). **A mixed
+`medium` (later fix rounds resume the same Codex session). **A mixed
 frontend+backend change is one dispatch** - the implementer owns the whole
 vertical slice, so lint/typecheck/build run against the complete change;
 splitting by surface manufactures intermediate states where neither half

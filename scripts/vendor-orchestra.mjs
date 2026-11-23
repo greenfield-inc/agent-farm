@@ -188,6 +188,80 @@ instead of failing.`,
   from:'The daemon supplies `ORCHESTRA_BROWSER_EVIDENCE_DIR` for the current attempt.',
   to:'The daemon supplies `ORCHESTRA_BROWSER_EVIDENCE_DIR` for the current attempt; on a local run the dispatch supplies the evidence directory, run id, and attempt id instead.',
  },
+ {
+  why:'codex dispatches run gpt-6.2-sol on the ultrafast tier (Agent Farm default; upstream still names gpt-6.1-sol)',
+  file:'skills/codex/SKILL.md',
+  from:`description: Dispatches one Codex (GPT-6.1 Sol) sub-agent`,
+  to:`description: Dispatches one Codex (GPT-6.2 Sol, ultrafast) sub-agent`,
+ },
+ {
+  why:'codex dispatches run gpt-6.2-sol on the ultrafast tier',
+  file:'skills/codex/SKILL.md',
+  from:`agent CLI; each dispatch is a fresh GPT-6.1 Sol session that knows nothing about`,
+  to:`agent CLI; each dispatch is a fresh GPT-6.2 Sol session (ultrafast tier) that knows nothing about`,
+ },
+ {
+  why:'codex role efforts: reviewers low, every other role medium, all on gpt-6.2-sol ultrafast',
+  file:'skills/codex/SKILL.md',
+  from:`| \`implementer\` | \`gpt-6.1-sol\` / \`medium\` | \`--yolo\` | persistent - resume for fix rounds |
+| \`backend-verifier\` | \`gpt-6.1-sol\` / \`low\` | \`--yolo\` | \`--ephemeral\` |
+| \`plan-reviewer\` | \`gpt-6.1-sol\` / \`low\` | \`--yolo\` | \`--ephemeral\` |
+| \`code-reviewer\` | \`gpt-6.1-sol\` / \`low\` | \`--yolo\` | \`--ephemeral\` |
+| \`code-researcher\` | \`gpt-6.1-sol\` / \`low\` | \`--yolo\` | \`--ephemeral\` |
+| \`investigator\` | \`gpt-6.1-sol\` / \`low\` | \`--yolo\` | \`--ephemeral\` |
+
+Efforts are defaults: \`medium\` for the implementer and the refactor roles, \`low\` for every other role.`,
+  to:`| \`implementer\` | \`gpt-6.2-sol\` / \`medium\` | \`--yolo\` | persistent - resume for fix rounds |
+| \`backend-verifier\` | \`gpt-6.2-sol\` / \`medium\` | \`--yolo\` | \`--ephemeral\` |
+| \`plan-reviewer\` | \`gpt-6.2-sol\` / \`low\` | \`--yolo\` | \`--ephemeral\` |
+| \`code-reviewer\` | \`gpt-6.2-sol\` / \`low\` | \`--yolo\` | \`--ephemeral\` |
+| \`code-researcher\` | \`gpt-6.2-sol\` / \`medium\` | \`--yolo\` | \`--ephemeral\` |
+| \`investigator\` | \`gpt-6.2-sol\` / \`medium\` | \`--yolo\` | \`--ephemeral\` |
+
+Every role runs on Codex's \`ultrafast\` service tier. Efforts are defaults: \`low\` for the reviewer roles (\`plan-reviewer\`, \`code-reviewer\`), \`medium\` for every other role.`,
+ },
+ {
+  why:'codex dispatch command selects gpt-6.2-sol on the ultrafast tier',
+  file:'skills/codex/SKILL.md',
+  from:`  codex exec -m gpt-6.1-sol -c model_reasoning_effort="<effort>" --yolo \\`,
+  to:`  codex exec -m gpt-6.2-sol -c model_reasoning_effort="<effort>" -c service_tier="ultrafast" --yolo \\`,
+ },
+ {
+  why:'codex resume pins model, effort and tier, since resume otherwise takes the model from the user config',
+  file:'skills/codex/SKILL.md',
+  from:`  codex exec resume --last --yolo -o <owner dir>/<name>.md \\`,
+  to:`  codex exec resume --last -m gpt-6.2-sol -c model_reasoning_effort="medium" -c service_tier="ultrafast" --yolo -o <owner dir>/<name>.md \\`,
+ },
+ ...[
+  ['backend-verifier','dispatched you (GPT-6.1 Sol, effort `low`) with numbered','dispatched you (GPT-6.2 Sol, effort `medium`) with numbered'],
+  ['implementer','dispatched you (GPT-6.1 Sol, effort `low`) with an','dispatched you (GPT-6.2 Sol, effort `medium`) with an'],
+  ['investigator','dispatched you (GPT-6.1 Sol, effort `low`) with a','dispatched you (GPT-6.2 Sol, effort `medium`) with a'],
+  ['code-researcher','dispatched you (GPT-6.1 Sol,\neffort `low`)','dispatched you (GPT-6.2 Sol,\neffort `medium`)'],
+  ['code-reviewer','dispatched you (GPT-6.1 Sol, effort `low` by default)','dispatched you (GPT-6.2 Sol, effort `low` by default)'],
+  ['plan-reviewer','dispatched you (GPT-6.1 Sol, effort `low` by default)','dispatched you (GPT-6.2 Sol, effort `low` by default)'],
+  ['refactor-deep','dispatched you (GPT-6.1 Sol, effort','dispatched you (GPT-6.2 Sol, effort'],
+  ['refactor-simple','dispatched you (GPT-6.1 Sol, effort','dispatched you (GPT-6.2 Sol, effort'],
+ ].map(([skill,from,to])=>({why:`the ${skill} role names its gpt-6.2-sol dispatch and effort`,file:`skills/${skill}/SKILL.md`,from,to})),
+ {
+  why:'codex-do runs its implementer at medium effort',
+  file:'skills/codex-do/SKILL.md',
+  from:`implementation runs on the Codex \`implementer\`** at effort \`low\`,`,
+  to:`implementation runs on the Codex \`implementer\`** at effort \`medium\`,`,
+ },
+ {
+  why:'codex-do runs its implementer at medium effort (Step 2)',
+  file:'skills/codex-do/SKILL.md',
+  from:`Every implementation dispatch goes to the Codex \`implementer\` role at effort
+\`low\` (later fix rounds`,
+  to:`Every implementation dispatch goes to the Codex \`implementer\` role at effort
+\`medium\` (later fix rounds`,
+ },
+ {
+  why:'model prices say codex dispatches moved to gpt-6.2-sol, whose ultrafast rates are not recorded yet',
+  file:'references/orchestra/model-prices.md',
+  from:"| `gpt-6.1-sol` (codex dispatches) |",
+  to:"| `gpt-6.1-sol` (former codex dispatch model; dispatches now run `gpt-6.2-sol` on the ultrafast tier, whose rates are not recorded here yet) |",
+ }
 ];
 
 const [checkout,skillsCheckout,ref='cd3d468682fdb727d109a762ebb131daa4e7ece8',skillsRef='a79b9fde21a94e1f21e9ce03ab0e9e5b9f61739e']=process.argv.slice(2);

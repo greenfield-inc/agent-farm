@@ -1,6 +1,6 @@
 ---
 name: codex
-description: Dispatches one Codex (GPT-6.1 Sol) sub-agent via `codex exec` - implementer, backend-verifier, plan-reviewer, code-reviewer, code-researcher, or investigator - and returns its report. Used by /do, /discussion, and /create-brief whenever one of these roles runs; not normally invoked by the user directly. Use when a pipeline stage needs its Codex sub-agent dispatched, resumed for a fix round, or re-run.
+description: Dispatches one Codex (GPT-6.2 Sol, ultrafast) sub-agent via `codex exec` - implementer, backend-verifier, plan-reviewer, code-reviewer, code-researcher, or investigator - and returns its report. Used by /do, /discussion, and /create-brief whenever one of these roles runs; not normally invoked by the user directly. Use when a pipeline stage needs its Codex sub-agent dispatched, resumed for a fix round, or re-run.
 argument-hint: "[role] [inputs: item/plan paths, question, pass number]"
 ---
 
@@ -15,21 +15,21 @@ retain completion markers and required working files until consumed.
 
 Run one Codex sub-agent non-interactively and hand its report back to the
 caller. One dispatch = one role + its inputs. Codex is the OpenAI coding
-agent CLI; each dispatch is a fresh GPT-6.1 Sol session that knows nothing about
+agent CLI; each dispatch is a fresh GPT-6.2 Sol session (ultrafast tier) that knows nothing about
 this conversation - the prompt must carry everything the role needs.
 
 ## Role table
 
 | Role | Model / effort | Sandbox | Session |
 | --- | --- | --- | --- |
-| `implementer` | `gpt-6.1-sol` / `medium` | `--yolo` | persistent - resume for fix rounds |
-| `backend-verifier` | `gpt-6.1-sol` / `low` | `--yolo` | `--ephemeral` |
-| `plan-reviewer` | `gpt-6.1-sol` / `low` | `--yolo` | `--ephemeral` |
-| `code-reviewer` | `gpt-6.1-sol` / `low` | `--yolo` | `--ephemeral` |
-| `code-researcher` | `gpt-6.1-sol` / `low` | `--yolo` | `--ephemeral` |
-| `investigator` | `gpt-6.1-sol` / `low` | `--yolo` | `--ephemeral` |
+| `implementer` | `gpt-6.2-sol` / `medium` | `--yolo` | persistent - resume for fix rounds |
+| `backend-verifier` | `gpt-6.2-sol` / `medium` | `--yolo` | `--ephemeral` |
+| `plan-reviewer` | `gpt-6.2-sol` / `low` | `--yolo` | `--ephemeral` |
+| `code-reviewer` | `gpt-6.2-sol` / `low` | `--yolo` | `--ephemeral` |
+| `code-researcher` | `gpt-6.2-sol` / `medium` | `--yolo` | `--ephemeral` |
+| `investigator` | `gpt-6.2-sol` / `medium` | `--yolo` | `--ephemeral` |
 
-Efforts are defaults: `medium` for the implementer and the refactor roles, `low` for every other role. The dispatcher may raise a reviewer to `medium` or
+Every role runs on Codex's `ultrafast` service tier. Efforts are defaults: `low` for the reviewer roles (`plan-reviewer`, `code-reviewer`), `medium` for every other role. The dispatcher may raise a reviewer to `medium` or
 `high` - rarely, when the zone warrants it (zone 0, or a multi-phase item), with the
 reason stated in the dispatch; never above `high`, never by default. The investigator and
 backend-verifier act on the environment (tests, scripts, app boots), but
@@ -141,7 +141,7 @@ arguments while writing it):
 ```bash
 #!/usr/bin/env bash
 perl -e 'alarm shift; exec @ARGV or die "exec failed: $!"' <cap> \
-  codex exec -m gpt-6.1-sol -c model_reasoning_effort="<effort>" --yolo \
+  codex exec -m gpt-6.2-sol -c model_reasoning_effort="<effort>" -c service_tier="ultrafast" --yolo \
   [--ephemeral] --skip-git-repo-check -C <repo root> \
   -o <owner dir>/<name>.md "$(cat <owner dir>/<name>.prompt)" </dev/null
 status=$?
@@ -163,7 +163,7 @@ its command with the following so session context survives:
 
 ```bash
 perl -e 'alarm shift; exec @ARGV or die "exec failed: $!"' 2700 \
-  codex exec resume --last --yolo -o <owner dir>/<name>.md \
+  codex exec resume --last -m gpt-6.2-sol -c model_reasoning_effort="medium" -c service_tier="ultrafast" --yolo -o <owner dir>/<name>.md \
   "$(cat <owner dir>/<name>.prompt)" </dev/null
 status=$?
 echo "$status" > <owner dir>/<name>.done.tmp && \

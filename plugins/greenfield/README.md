@@ -87,11 +87,11 @@ agent-farm run greenfield/codebase-audit --directory /path/to/project \
 | `explorer`, `cold-reader` | implementer | Sonnet 5 medium, native (Sol 6.2 medium ultrafast under the Codex variants); codebase facts and a fresh read of prose |
 | `qa-and-verify` (agent `pr-qa`) | implementer | Opus 5.5 medium, native (Sol 6.2 medium ultrafast under the Codex variants); a full QA pass on a finished pull request |
 | `refactor`, `cold-reader` | simplify-and-refactor | Sol 6.2 medium ultrafast under `:sol`; Opus 5.5 medium for `refactor` and Sonnet 5 medium for `cold-reader` under `:opus`; native. A fresh `refactor` runs each analysis, lens and adversarial pass |
-| `second-opinion` (agent `pr-reviewer`) | implementer | Sol 6.2 medium ultrafast under `:opus`, Opus 5.5 medium under `:astra` / `:sol`, Sol 6.2 medium ultrafast under `:codex`, process; an opt-in quick review with `review` |
+| `second-opinion` (agent `pr-reviewer`) | implementer | Sol 6.2 low ultrafast under `:opus`, Opus 5.5 medium under `:astra` / `:sol`, Sol 6.2 low ultrafast under `:codex`, process; an opt-in quick review with `review` |
 | `finder`, `codex-finder` (agent `smell-finder`) | code-smell-fixes | Sonnet 5.5 low, native, one per lens; Sol 6.2 medium ultrafast, process, one per pair of lenses. Read-only |
 | `researcher` (agent `codebase-audit-researcher`), `curator` (agent `codebase-audit-curator`), `cold-reader` | codebase-audit | Sonnet 5.5 medium, native, one per research slice; Opus 5.5 medium, native, merges and verifies the 50 opportunities; Sonnet 5.5 medium, native, cold-reads the page. Read-only |
 | `codebase-explorer` | reviewer, qa-and-fix | Targeted repository questions; a process child under `reviewer:claude` |
-| business reviewers, `cold-reader` | business | Context, research adversary, spec and artifact reviewers |
+| business reviewers, `cold-reader` | business | Context, research adversary, spec and artifact reviewers (Sol 6.2 low ultrafast for the spec and artifact reviewers under `:codex`) |
 | `socrates` | planner | Opus 5.5 high (Sol 6.2 medium ultrafast under Codex planner); challenge unnecessary scope |
 | `investigator`, `researcher` | planner, customer-insights-loop; `investigator` also under bug-reporter | Opus 5.5 high (Sol 6.2 medium ultrafast under Codex planner and Codex bug-reporter); bounded evidence questions |
 | `qa` | bug-reporter | Opus 5.5 medium (Sol 6.2 medium ultrafast under `:codex`); reproduce a bug in the app |
@@ -138,7 +138,7 @@ Compare runs using the same approved feature, current-code validation, reviewer 
 
 ## Orchestration
 
-Launch the Codex coordinator with `agent-farm run greenfield/orchestrator:codex --directory /absolute/coordination`. It defaults to `planner:codex`, `implementer:codex`, `bug-reporter:codex`, `qa-and-fix:codex` and `simplify-and-refactor:sol`, each on Sol 6.2 medium ultrafast, and `reviewer:codex` on Sol 6.2 low ultrafast. Its advisor runs Sol 6.2 medium ultrafast too. Explicit user model or variant overrides take precedence. The dedicated implementer keeps even its opt-in second opinion on Codex (Sol 6.2 medium ultrafast); the existing `implementer:sol` and `:astra` retain their cross-vendor second opinions. Codex bug intake uses Sol 6.2 medium ultrafast for investigation and QA. Shared skills are reused. `greenfield/orchestrator` still defaults to Claude.
+Launch the Codex coordinator with `agent-farm run greenfield/orchestrator:codex --directory /absolute/coordination`. It defaults to `planner:codex`, `implementer:codex`, `bug-reporter:codex`, `qa-and-fix:codex` and `simplify-and-refactor:sol`, each on Sol 6.2 medium ultrafast, and `reviewer:codex` on Sol 6.2 low ultrafast. Its advisor runs Sol 6.2 medium ultrafast too. Explicit user model or variant overrides take precedence. The dedicated implementer keeps even its opt-in second opinion on Codex (Sol 6.2 low ultrafast); the existing `implementer:sol` and `:astra` retain their cross-vendor second opinions. Codex bug intake uses Sol 6.2 medium ultrafast for investigation and QA. Shared skills are reused. `greenfield/orchestrator` still defaults to Claude.
 
 `greenfield/orchestrator` routes all work the same way: 1 feature = 1 branch = 1 workspace (one worktree); reviews, audits, fixes and QA for it run as fresh agents in that workspace, never in a new one. The host creates the feature's workspace once, with its first worker, and opens every later role in it:
 

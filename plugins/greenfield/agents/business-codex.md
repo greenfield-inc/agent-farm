@@ -33,7 +33,7 @@ subagents:
     harness: codex
     model:
       name: gpt-6.2-sol
-      reasoning: medium
+      reasoning: low
       speed: ultrafast
     mode: native
   business-artifact-reviewer:
@@ -41,7 +41,7 @@ subagents:
     harness: codex
     model:
       name: gpt-6.2-sol
-      reasoning: medium
+      reasoning: low
       speed: ultrafast
     mode: native
   cold-reader:

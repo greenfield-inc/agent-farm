@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6.1-sol
+  name: gpt-6.2-sol
   reasoning: medium
+  speed: ultrafast
 description: "Find what is slowing down a long-running Mac, Windows or Linux machine, local or remote, stop the leftovers you approve, and show before and after."
 instructions_files:
   - ../instructions/standing-rules.md

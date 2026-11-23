@@ -47,7 +47,7 @@ export const commands: Command[] = [
       'agent-farm run planner',
       'agent-farm run greenfield/implementer:sol',
       'agent-farm run implementer --directory ~/repos/my-app',
-      'agent-farm run implementer --model gpt-6.2-sol --speed ultrafast',
+      'agent-farm run greenfield/implementer:codex --speed ultrafast',
       'agent-farm run greenfield/planner --directory ~/repos/my-project --message "Plan issue #42"',
       'agent-farm run planner --directory ~/repos/my-app --print-launch',
       'agent-farm run greenfield/implementer:opus --print-acp --acp-adapter ./node_modules/@agentclientprotocol/claude-agent-acp/dist/index.js',

@@ -56,7 +56,7 @@ test('profiles moved from dcouple resolve from greenfield, and the dropped ones 
  assert.ok(qa.nodes.main.skills.includes('pr-test-automation'));
 });
 
-test('every greenfield Codex role runs gpt-6.2-sol ultrafast, medium except the Codex reviewer at low',()=>{
+test('every greenfield Codex role runs gpt-6.2-sol ultrafast, low for review roles and medium otherwise',()=>{
  const profiles=fs.readdirSync(path.join(root,'profiles')).map(file=>{
   const name=file.replace(/\.yaml$/,''),variants=Object.keys(parse(fs.readFileSync(path.join(root,'profiles',file),'utf8')).variants??{});
   return [name,...variants.map(variant=>name+':'+variant)];
@@ -64,7 +64,7 @@ test('every greenfield Codex role runs gpt-6.2-sol ultrafast, medium except the 
  let codexNodes=0;
  for(const profile of profiles)for(const node of Object.values(resolveProfile(root,profile).nodes)){
   if(node.harness!=='codex')continue;codexNodes++;
-  const effort=profile==='reviewer:codex'&&node.name==='codex-pr-reviewer'?'low':'medium';
+  const effort=['codex-pr-reviewer','pr-reviewer','business-spec-reviewer','business-artifact-reviewer'].includes(node.name)?'low':'medium';
   assert.deepEqual([node.model,node.reasoning_effort,node.speed],['gpt-6.2-sol',effort,'ultrafast'],`${profile} ${node.name}`);
  }
  assert.ok(codexNodes>20,`expected many Codex nodes, saw ${codexNodes}`);
@@ -345,7 +345,7 @@ test('codebase-audit runs on Fable with native Sonnet researchers and an Opus cu
 test('process-cleanup runs on Opus or Sol with a read-only survey for each OS',t=>{
  const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-cleanup-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
- const expected={opus:['claude','claude-opus-5-5','medium'],sol:['codex','gpt-6.1-sol','medium']};
+ const expected={opus:['claude','claude-opus-5-5','medium'],sol:['codex','gpt-6.2-sol','medium']};
  for(const [variant,model] of Object.entries(expected)){
   const main=resolveProfile(root,'process-cleanup:'+variant).nodes.main;
   assert.deepEqual([main.harness,main.model,main.reasoning_effort],model,variant);
@@ -458,7 +458,7 @@ test('Codex orchestration routes every worker and helper to Codex while retainin
  const implementer=resolveProfile(root,'implementer:codex');
  assert.deepEqual([implementer.nodes.main.model,implementer.nodes.main.reasoning_effort],['gpt-6.2-sol','medium']);
  const second=implementer.nodes[implementer.nodes.main.children['second-opinion']];
- assert.deepEqual([second.mode,second.harness,second.model,second.reasoning_effort],['process','codex','gpt-6.2-sol','medium']);
+ assert.deepEqual([second.mode,second.harness,second.model,second.reasoning_effort],['process','codex','gpt-6.2-sol','low']);
  const bug=resolveProfile(root,'bug-reporter:codex');
  for(const [alias,effort] of [['investigator','medium'],['qa','medium']]){
   const child=bug.nodes[bug.nodes.main.children[alias]];
@@ -517,7 +517,7 @@ test('no Greenfield skill or rule asks for a secret in chat: the host secret pro
 });
 
 test('greenfield 0.0.53: with a host question mechanism, asking and relaying follow the host\'s injected instructions; needs_you carries why and summary (J9)',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.60$/m);
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.61$/m);
  const rules=flatText('instructions/standing-rules.md');
  for(const rule of ['**When the host has its own question mechanism**','its injected instructions decide which mechanism to use','these rules never restate them','"why": "Invoice PDFs are renamed on export','"summary": "/abs/bundle/options.html"','- `why`: why it matters, in one or two sentences of at most 240 characters','- `summary`: optional, the absolute path of an `.html` page','When the host has its own question mechanism, use it as its instructions say. Otherwise, on Claude, use the harness question tool (`AskUserQuestion`)'])assert.ok(rules.includes(rule),rule);
  // #205's ban on passing the status file is gone, and host card rules are not restated here.
