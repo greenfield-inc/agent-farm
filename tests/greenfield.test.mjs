@@ -44,7 +44,7 @@ test('the reviewer is the former dcouple reviewer, with its Codex variant on Sol
   const text=fs.readFileSync(path.join(root,'agents',agent+'.md'),'utf8');
   assert.match(text,/## Launched by an orchestrator/);assert.doesNotMatch(text,/dcouple/);
   const orchestrated=/## Launched by an orchestrator\n([\s\S]*?)\n## /.exec(text)[1];
-  for(const phrase of [/exactly one review/,/event `COMMENT`/,/never approve or request changes/,/<!-- greenfield-review head=<sha> -->/,/earlier greenfield reviews/,/Apply no fixes/,/checks only the findings it was sent and the lines that fix round\s+changed/,/Noticed, not raised/,/--remerge-diff/,/Mergeable as is: yes \| no/])assert.match(orchestrated,phrase,agent);
+  for(const phrase of [/exactly one review/,/event `COMMENT`/,/never approve or request changes/,/<!-- greenfield-review head=<sha> -->/,/earlier greenfield reviews/,/Apply no fixes/,/reads the lines that fix round changed for regressions first/,/checks only the findings it was sent/,/Noticed, not raised/,/--remerge-diff/,/Mergeable as is: yes \| no/])assert.match(orchestrated,phrase,agent);
  }
 });
 
@@ -169,7 +169,7 @@ test('orchestrated reviewers post one COMMENT review and apply no fixes, and orc
   const launch=command(build(root,profile,target),'main',{prepare:false});
   const codex=launch.argv.find(v=>v.startsWith('developer_instructions='));
   const instructions=flat(codex ? JSON.parse(codex.slice('developer_instructions='.length)) : launch.argv[launch.argv.indexOf('--append-system-prompt')+1]);
-  for(const rule of ['reconciled findings to that file','post exactly one review','event `COMMENT` (never approve or request changes)','Apply no fixes','checks only the findings it was sent and the lines that fix round changed'])assert.ok(instructions.includes(rule),`${profile}: ${rule}`);
+  for(const rule of ['reconciled findings to that file','post exactly one review','event `COMMENT` (never approve or request changes)','Apply no fixes','reads the lines that fix round changed for regressions first, then checks only the findings it was sent'])assert.ok(instructions.includes(rule),`${profile}: ${rule}`);
  }
  const skill=flat(fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8'));
  for(const rule of ['no agent in it is working','1 feature = 1 worktree = 1 branch = 1 workspace','launch every later worker for that feature as a new agent in the same workspace','agent-farm run greenfield/<role>:<variant>','Always name the variant','`greenfield/implementer:opus`','whether it explicitly grants conversation capture','a personal fallback workspace grants nothing'])assert.ok(skill.includes(rule),rule);
@@ -181,7 +181,7 @@ test('orchestrated reviewers post one COMMENT review and apply no fixes, and orc
  assert.ok(plan.includes('Under an orchestrator, never skip on your own'));
  assert.ok(sheet.includes("Under an orchestrator, only the user's explicit word changes the review line"));
  const babysit=flat(fs.readFileSync(path.join(root,'skills/babysit-pr/SKILL.md'),'utf8'));
- for(const rule of ["Fix every finding within the PR's goal","don't dismiss an in-scope finding as out of scope",'capture it with `create-ticket`','reply on the thread with the link','When you decline a finding as wrong, reply with the reason'])assert.ok(babysit.includes(rule),rule);
+ for(const rule of ["Fix every finding within the PR's goal","don't dismiss an in-scope finding as out of scope",'capture it with `create-ticket`','reply on the thread with the link','When you decline a finding as wrong, reply with the reason',"Leave a greenfield review's Suggestions unfixed"])assert.ok(babysit.includes(rule),rule);
 });
 
 test('simplify-and-refactor runs the refactor and principled-review skills on Sol by default or Opus, with a refactor child per analysis',t=>{
@@ -555,7 +555,7 @@ test('reviewers size every review with the bundled script, run security and PHI 
  includesAll(REVIEWERS,['and run the principles for that size, with principle 13 (security and PHI) on every review','Verify each Must-Fix and Should-Fix yourself as the review skill says','`Size: … because …` and `Budget:` lines','`Scope:` and `Approach/scope:` line']);
  includesAll(['skills/review/SKILL.md'],['scripts/review-size.mjs','Never lower it.','### Verify each finding','verify every Must-Fix and Should-Fix candidate yourself','Post one you can\'t verify as Should-Fix marked "unverified"','**Size:** [small|standard|large] because','Scope: in | out ([why]) · Approach/scope: no | yes','Source: [where the value comes from] → Sink: [where it ends up] → Missing control:']);
  includesAll(['skills/principled-review/SKILL.md'],['| small | 4, 5 and 13;','Principle 13 (security and PHI) runs at every size','### Principle 13: Security Boundaries & PHI','missing control redaction','### Principle 9: Query, Data & Hot-Path Cost','names the hot path, the scale and an estimate']);
- includesAll(['skills/review/CRITERIA.md'],['any PHI exposure','## 7. Routing','keep the one that sends the finding to the person']);
+ includesAll(['skills/review/CRITERIA.md'],['A PHI exposure is Must-Fix at any reach, in every review, follow-ups included','## 7. Routing','keep the one that sends the finding to the person']);
  assert.equal(fs.existsSync(path.join(root,'agents','review-checker.md')),false,'no review checker (D-66)');
  for(const file of ['skills/review/SKILL.md',...REVIEWERS])assert.doesNotMatch(flatText(file),/checker|other vendor|same vendor/i,file);
  assert.equal(resolveProfile(root,'orchestrator').nodes.main.instructions.includes('review-size'),false,'the orchestrator never sizes');
@@ -563,7 +563,7 @@ test('reviewers size every review with the bundled script, run security and PHI 
 
 test('reviews start on their own when any implementer is done, or when the person asks, and findings route by scope within a fix-round budget (D-44)',()=>{
  const skill=flatText('skills/orchestrate-sessions/SKILL.md');
- for(const rule of ['A review starts on its own, without asking the person or waiting for a "ready"','**Implementer done.**','**The person asks.**','**Human review: required** in a cover sheet does not hold the agent review','`<last reviewed head>...HEAD`','The reviewer sizes the range itself','Then the review of the new commits starts on its own','the PR\'s lane shows its unreviewed commits','Never mark a PR ready, or say it can merge, while it has commits since its last review','The end-of-Session sweep','## After a review','| Approach/scope: yes, at any level | the person, never the implementer','| Must-Fix, not flagged | the PR\'s implementer, with no question |','| Should-Fix, scope out | the person: re-plan it as follow-up work, fix it here anyway, or accept it |','checks only the F-n it was sent','| Should-Fix, scope in, Decision: fix, Fix size: small | the PR\'s implementer, but only inside a fix round a Must-Fix already opened','| Pre-existing | the card','the budget is used and a Must-Fix is still open','a follow-up confirms a fix-caused Must-Fix','small 1, standard 2, large 3','QA rounds the implementer reports in its status file\'s `fix_rounds` count too','`Mergeable as is: yes`','more fix rounds (how many), re-plan, or accept as is'])assert.ok(skill.includes(rule),rule);
+ for(const rule of ['A review starts on its own, without asking the person or waiting for a "ready"','**Implementer done.**','**The person asks.**','**Human review: required** in a cover sheet does not hold the agent review','`<last reviewed head>...HEAD`','The reviewer sizes the range itself','Then the review of the new commits starts on its own','the PR\'s lane shows its unreviewed commits','Never mark a PR ready, or say it can merge, while it has commits since its last review','The end-of-Session sweep','## After a review','| Approach/scope: yes, at any level | the person, never the implementer','| Must-Fix, not flagged | the PR\'s implementer, with no question |','| Should-Fix, scope out | the person: re-plan it as follow-up work, fix it here anyway, or accept it |','checks only the F-n it was sent','| Should-Fix, scope in, Decision: fix, not rare | the PR\'s implementer; it can open a fix round |','| Pre-existing | the card','the budget is used and a Must-Fix is still open','a follow-up confirms a fix-caused Must-Fix','small 1, standard 2, large 3','QA rounds the implementer reports in its status file\'s `fix_rounds` count too','`Mergeable as is: yes`','more fix rounds (how many), re-plan, or accept as is'])assert.ok(skill.includes(rule),rule);
  assert.doesNotMatch(skill,/Fix the N must-fix items now|end-of-Session pass|thrash|two fix rounds|third fix round/);
  instructionsIncludeAll(COORDINATORS,['Start a review on your own as soon as an implementer reports done on a PR, for every kind of work','does not hold the agent review','Never say a PR can merge while it has unreviewed commits','Must-Fix goes to the PR\'s implementer with no question','the loop stops at the PR\'s fix-round budget']);
  for(const profile of COORDINATORS)assert.doesNotMatch(resolveProfile(root,profile).nodes.main.instructions,/fix now \(recommended\)|end-of-Session pass/,profile);
@@ -590,7 +590,7 @@ test('review-final fixes: previews the orchestrator opens, the supplied range re
  includesAll(['instructions/standing-rules.md'],['An orchestrator opens four things beside the person without asking first','the files of a question it relays, a PR waiting on their human review, and the screenshots of a visual tweak']);
  includesAll(['skills/principled-review/SKILL.md'],['When the caller supplies one','use it as `DIFF_RANGE` exactly and skip the base detection below']);
  includesAll(REVIEWERS,['pass that same range to principled-review as its `DIFF_RANGE` for every finder','a new Must-Fix in the lines that fix round changed','marked `fix-caused`']);
- includesAll(['skills/orchestrate-sessions/SKILL.md'],['plus any new Must-Fix in the lines that fix round changed, which it marks `fix-caused`']);
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['It raises only a new Must-Fix in the lines that fix round changed with Reach medium or high, which it marks `fix-caused`, or a PHI exposure']);
 });
 
 test('all work validates full by default and then reviews on its own; deferred only when the person asks (D-65, D-44)',()=>{
@@ -784,6 +784,20 @@ test('greenfield 0.0.47 lets rare bugs stop blocking merge, weighs every fix by 
  for(const file of fs.readdirSync(root,{recursive:true}).map(String).filter(f=>/\.(md|html)$/.test(f))){
   const text=flatText(file);
   assert.doesNotMatch(text,/high reach or silent|high harm and \(high reach or silent\)|still open after two fix rounds|thrash rule/i,file);
+ }
+});
+
+test('greenfield 0.0.63 grades security and data loss by reach, sends common Should-Fixes to the implementer, and keeps follow-ups on regressions',()=>{
+ includesAll(['skills/review/CRITERIA.md'],['about 1 in 10,000 users, or a very unusual or complex application state','An older app version still in use is normal use','Security and data-loss problems are graded by reach like any other finding','a finding no user or agent acts on','One that would lead a person or agent to do the wrong thing is a Should-Fix','A rare security or data-loss problem takes the same fix, mitigate or let-go decision as any other rare finding']);
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['by the first row that matches','| Should-Fix (rare), a security or data-loss problem, not flagged | the PR\'s implementer when a fix round is open and its fix or mitigation is small; otherwise the person |','carries the reviewer\'s grading line (Harm · Reach · Recovery → level) word for word','When the budget is used with only Should-Fixes open, they go to the PR\'s notes and card, with no question','name its root cause and recommend fixing that']);
+ includesAll(['instructions/standing-rules.md'],['or a Should-Fix that is not rare, starts a round','rerun the QA journeys whose code changed since they last ran']);
+ includesAll(REVIEWERS,['Resolved means the finding\'s original failure scenario no longer happens','security and data loss included, goes under **Noticed, not raised**']);
+ const followUp=agent=>/A follow-up reads[\s\S]*?not the whole PR\./.exec(fs.readFileSync(path.join(root,'agents',agent),'utf8'))[0];
+ assert.equal(followUp('claude-pr-reviewer.md'),followUp('codex-pr-reviewer.md'));
+ for(const file of fs.readdirSync(root,{recursive:true}).map(String).filter(f=>/\.(md|html)$/.test(f))){
+  const text=flatText(file);
+  assert.doesNotMatch(text,/whatever the reach: any security|Security, PHI, data loss and public-contract problems are always fixed|only inside a fix round a Must-Fix already opened/,file);
+  if(file!=='skills/review/CRITERIA.md')assert.doesNotMatch(text,/PHI exposure is (always )?Must-Fix/,file);
  }
 });
 

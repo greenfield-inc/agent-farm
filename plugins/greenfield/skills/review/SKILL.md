@@ -202,7 +202,7 @@ Mergeable as is: yes | no - [one line why]
 ```
 
 Say `Mergeable as is: yes` when no Must-Fix is open. Open Should-Fixes and
-Suggestions don't make it no; they go to the PR's notes. A finding whose
+Suggestions don't make it no. A finding whose
 Decision is mitigate or let go goes to the PR's notes as its option or known
 limitation.
 

@@ -25,14 +25,14 @@ UI panels, and JavaScript conventions are not requirements for other projects.
 Sections 1 to 6 are a checklist of what to look for. Their category never sets a finding's severity: a race condition can be a Suggestion and a TypeScript gap can be Must-Fix. Grade every finding by its consequence, answering three questions:
 
 - **Harm:** what goes wrong when it happens. High: a wrong answer, data lost or damaged, a security hole, or something silently stuck. Medium: stale or misleading output, or an action blocked that should work. Low: cosmetic, a confusing message, or a clear error.
-- **Reach:** who hits it, in practice. High: the normal path, every user or every orchestrator. Medium: a common but not default path, including a failed external call (a provider error or timeout) on a path every request takes, since those happen routinely in production. Low: needs a rare timing, platform, setup or input. Name what reaches it: a real caller, config or input in the repo or the product, with its file and line, or a normal use of a feature the product documents (a nearer config overriding a shared one, a supported flow). If the only trigger is an input you made up, or an unusual way of writing a supported one, Reach is low.
+- **Reach:** who hits it, in practice. High: the normal path, every user or every orchestrator. Medium: a common but not default path, including a failed external call (a provider error or timeout) on a path every request takes, since those happen routinely in production. Low: rare, about 1 in 10,000 users, or a very unusual or complex application state (a rare timing, platform, setup or input). An older app version still in use is normal use: a path it reaches, when the version difference alone triggers it, is at least medium. Name what reaches it: a real caller, config or input in the repo or the product, with its file and line, or a normal use of a feature the product documents (a nearer config overriding a shared one, a supported flow). If the only trigger is an input you made up, or an unusual way of writing a supported one, Reach is low.
 - **Recovery:** what happens next. Silent: nobody notices, or there is no workaround. Visible: the failure shows and an obvious workaround exists.
 
 Then pick the level:
 
-- **Must-Fix (blocks merge):** high harm with reach medium or high. Also, whatever the reach: any security issue, any PHI exposure (PHI reaching a log, error, analytics or telemetry event, cache, URL, third party or client storage without a control), any data loss, any broken promise in a public contract (machine-readable output other programs parse, such as JSON fields, exit codes and error codes), and a failing required check.
+- **Must-Fix (blocks merge):** high harm with reach medium or high. Also, at any reach: a PHI exposure, a broken promise in a public contract (machine-readable output other programs parse, such as JSON fields, exit codes and error codes), a failing required check, and a repo or plan rule (below). A PHI exposure is Must-Fix at any reach, in every review, follow-ups included: PHI reaching a log, error, analytics or telemetry event, cache, URL, third party or client storage without a control. Security and data-loss problems are graded by reach like any other finding.
 - **Should-Fix:** high harm with low reach (mark it `rare`, silent or not), medium harm on the normal path, or a promise stated only in human-readable text or docs, even a small one. Whether it is fixed in this PR is decided by Fix or let go below.
-- **Suggestion:** low harm, or a convention or style point that lint doesn't enforce. Never fixed in a review round.
+- **Suggestion:** low harm, a convention or style point that lint doesn't enforce, or a finding no user or agent acts on (internal docs wording, tests, the PR body, code structure). Never fixed in a review round. One that would lead a person or agent to do the wrong thing is a Should-Fix; published content is a user path.
 - **Don't raise:** anything lint, typecheck or CI already enforces. Report a failing gate as a gate failure instead.
 
 Otherwise: Should-Fix if harm is high or medium, else Suggestion.
@@ -61,7 +61,7 @@ The level says how bad a problem is. Whether to fix it in this PR also depends o
    - **Mitigate:** rare, the full fix is large, and a small safe option exists. Recommend that option.
    - **Let go:** rare, and the only fixes are large. Write it as a known limitation in one line the PR can carry. If its harm is high, mark `Approach/scope: yes` so the person decides; otherwise it goes on the PR's notes.
 
-Security, PHI, data loss and public-contract problems are always fixed; their cheapest safe fix still comes first.
+PHI and public-contract problems are always fixed; their cheapest safe fix still comes first. A rare security or data-loss problem takes the same fix, mitigate or let-go decision as any other rare finding.
 
 **Fix the class once.** When one problem has many examples (several unusual inputs that all break the same parser), name the class and fix the class once. Failing safe for the whole class beats a patch per example. A later example of a class already fixed is not a new finding.
 
