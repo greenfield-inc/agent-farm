@@ -141,7 +141,7 @@ test('the pre-check answers in one line whether a read or the review is due, fro
  const write=(rel,text)=>{fs.mkdirSync(path.dirname(path.join(repo,rel)),{recursive:true});fs.writeFileSync(path.join(repo,rel),text);};
  const commit=(tag,date)=>{git(['add','.']);git(['commit','-qm',tag],date);git(['tag',tag]);};
  const record=(read21='',read42='',status='running')=>write('.seo/experiments/a.md',`---\nid: a\nread_21: ${read21}\nread_42: ${read42}\nstatus: ${status}\n---\n`);
- git(['init','-q','-b','main']);
+ git(['init','-q','-b','main']);git(['config','user.email','t@example.com']);git(['config','user.name','t']);
  write('README.md','site\n');commit('t0','2026-08-01T12:00:00Z');
  write('.seo/access.md','---\ntier: Search\ncadence: monthly   # monthly | weekly\nautonomy: fully automatic\n---\n');record();commit('t1','2026-09-01T12:00:00Z');
  record('2026-09-27');commit('t2','2026-09-28T12:00:00Z');
