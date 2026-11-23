@@ -44,7 +44,7 @@ pageviews, visitors, downloads) or know this is the first pull.
 Check what analytics, search, and SEO tools are available:
 - PostHog, GA4, Plausible, or similar analytics (MCP or API)
 - Google Search Console (MCP or API)
-- Ahrefs, Semrush, or similar via Composio or direct API
+- Ahrefs, Semrush, or similar through a connected tool or direct API
 - GitHub API (for stars, forks if this is an open-source project)
 - Package registries (npm, PyPI) if the project publishes packages
 - Any other relevant MCP tools
@@ -125,7 +125,7 @@ Write to `.seo/data/search-console.md`.
 
 ### 5. Pull SEO tool data
 
-From Ahrefs, Semrush, or similar (if connected via Composio):
+From Ahrefs, Semrush, or similar (if connected):
 - Current keyword rankings and movement
 - New keywords appeared for
 - Lost keywords
@@ -247,10 +247,14 @@ improving their instrumentation over time.
 
 ### 8. Note experiment baselines
 
-If `.seo/experiments/` exists, check if any experiments reference pages or
-queries that were just pulled. If an experiment's review date has passed and
-it has no "Result" section yet, flag it in the manifest as "experiment awaiting
-measurement" so the briefing skill knows to evaluate it.
+If `.seo/experiments/` exists (one file per experiment), check if any
+experiments reference pages or queries that were just pulled. A read is due
+from 21 or 42 days after the ship date plus 3 days of Search Console lag; the
+ship date is the `live` frontmatter field when present, else the committer date
+of the first-parent commit on the default branch that added the file. When a
+read is due, its `read_21` or `read_42` field is empty and `status` is
+`running`, flag it in the manifest as "experiment awaiting measurement" so the
+briefing skill knows to evaluate it.
 
 **Success criteria**: Manifest notes any experiments that need evaluation.
 

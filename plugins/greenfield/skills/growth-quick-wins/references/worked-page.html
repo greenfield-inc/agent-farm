@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Worked example for the growth-quick-wins skill. Built from Product A's quick wins page of 2026-11-04 in the page template's structure. -->
+<title>Product A Quick Wins</title>
+<style>
+:root{--bg:#fbfaf7;--panel:#fff;--ink:#1c2321;--muted:#5f6b66;--line:#e0e2dc;--accent:#2f6fb0;--soft:#e7eff8;--c1:#e6f2ea;--c1t:#2e7d4f;--c2:#f6eedf;--c2t:#8a5a00;--c3:#efe8f6;--c3t:#6a3fa0;--c4:#e7eff8;--c4t:#2f6fb0;--c5:#eeeeea;--c5t:#5f6b66;--hy:#fbe9e7;--hyt:#a33a2a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141816;--panel:#1b201d;--ink:#e8ece9;--muted:#9ba7a1;--line:#2e3632;--accent:#7fb0e6;--soft:#1e2a36;--c1:#1c2b22;--c1t:#6cc493;--c2:#2e2618;--c2t:#e0a84a;--c3:#271f33;--c3t:#b99ae6;--c4:#1e2a36;--c4t:#7fb0e6;--c5:#262b28;--c5t:#9ba7a1;--hy:#33201c;--hyt:#f0998a}}
+:root[data-theme="dark"]{--bg:#141816;--panel:#1b201d;--ink:#e8ece9;--muted:#9ba7a1;--line:#2e3632;--accent:#7fb0e6;--soft:#1e2a36;--c1:#1c2b22;--c1t:#6cc493;--c2:#2e2618;--c2t:#e0a84a;--c3:#271f33;--c3t:#b99ae6;--c4:#1e2a36;--c4t:#7fb0e6;--c5:#262b28;--c5t:#9ba7a1;--hy:#33201c;--hyt:#f0998a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif}
+main{max-width:860px;margin:0 auto;padding:36px 16px 72px}
+h1{font-size:30px;line-height:1.2;margin:0 0 8px}
+h2{font-size:23px;margin:48px 0 4px}
+.lede{color:var(--muted);font-size:17px;margin:0 0 18px}
+.legend{display:flex;flex-wrap:wrap;gap:6px;margin:20px 0 0}
+nav{display:flex;gap:10px;margin:18px 0 0;flex-wrap:wrap}
+nav a{background:var(--soft);color:var(--accent);text-decoration:none;padding:6px 14px;border-radius:99px;font-weight:600;font-size:15px}
+ol.list{list-style:none;padding:0;margin:16px 0 0;counter-reset:n}
+ol.list li{counter-increment:n;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px 12px 52px;margin:8px 0;position:relative}
+ol.list li::before{content:counter(n);position:absolute;left:14px;top:12px;width:26px;height:26px;border-radius:50%;background:var(--soft);color:var(--accent);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center}
+.do{font-weight:600}
+.why{color:var(--muted);font-size:14.5px;margin-top:3px}
+.tags{float:right;display:flex;gap:4px;margin:0 0 4px 8px}
+.t{font-size:11.5px;padding:1px 8px;border-radius:99px;white-space:nowrap;font-weight:600}
+.idx{background:var(--c1);color:var(--c1t)}
+.pg{background:var(--c4);color:var(--c4t)}
+.ai{background:var(--c3);color:var(--c3t)}
+.ms{background:var(--c2);color:var(--c2t)}
+.cl{background:var(--c5);color:var(--c5t)}
+.hy{background:var(--hy);color:var(--hyt)}
+.e{background:transparent;color:var(--muted);border:1px solid var(--line)}
+.src{font-size:11px;font-weight:700;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-left:4px;white-space:nowrap}
+.sec{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin:26px 0 0;font-weight:700}
+.note{background:var(--soft);border-radius:10px;padding:14px 16px;margin:18px 0 0;font-size:15px}
+.ws{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:10px 0}
+.ws h3{margin:0 0 6px;font-size:18px}
+.ws dl{display:grid;grid-template-columns:110px 1fr;gap:4px 12px;margin:0;font-size:15px}
+.ws dt{color:var(--muted);font-weight:600}
+.ws dd{margin:0}
+ul.plain{padding-left:20px}
+.rv{color:var(--muted);font-size:13px;margin-top:3px}
+ol.top{padding-left:22px;margin:10px 0 0}
+ol.top li{margin:4px 0}
+ol.top a{color:var(--accent)}
+table{border-collapse:collapse;width:100%;font-size:14.5px;margin-top:10px}
+th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600}
+.scroll{overflow-x:auto}
+.small{color:var(--muted);font-size:13.5px;margin-top:36px}
+code{font-size:13.5px;overflow-wrap:anywhere}
+@media (max-width:560px){.tags{float:none;margin:0 0 6px}.ws dl{grid-template-columns:1fr}.ws dt{margin-top:6px}}
+</style>
+</head>
+<body>
+<main>
+<h1>25 quick wins and 11 workstreams for Product A</h1>
+<p class="lede">Product A is an open-source developer tool for running coding agents in parallel, used by developers who run several agents at once. Ranked by payoff per hour. Search Console and analytics pulled 2026-11-03; gaps rechecked on the live site 2026-11-04. Access: <b>Full</b> (Search Console, an analytics tool and the site's repository; no sign-up survey).</p>
+<p class="small" style="margin-top:0">Access tiers: Public means the live site only; Search adds Search Console; Analytics adds an analytics tool; Full adds the site's code or a sign-up survey.</p>
+<h2 id="top">Start here: the top 10</h2>
+<ol class="top">
+<li><a href="#w1">#1</a> Set the analytics read-key secret that the install-attribution job needs. (15 min).</li>
+<li><a href="#w6">#6</a> Click one of the product's citations inside claude.ai and check which referrer the analytics tool records. (10 min).</li>
+<li><a href="#w15">#15</a> Take <code>/benchmarks/2026-q2</code> out of the sitemap until it has real data. (10 min).</li>
+<li><a href="#w2">#2</a> Start the link test: two links from high-traffic pages to 6 of the unindexed October pages, with 6 matched pages left alone as the control. (1 h).</li>
+<li><a href="#w3">#3</a> Run the citation probe once: ask ChatGPT, Claude, Perplexity and Gemini "best Conductor alternative", "Conductor for Windows", "&lt;product&gt; vs Conductor" and "Herdr alternatives", and log which sites they name and cite. (1 h).</li>
+<li><a href="#w4">#4</a> Ship <code>/conductor-competitors</code> as its own page: a neutral landscape of six tools, with the product as one of them. (half day).</li>
+<li><a href="#w5">#5</a> Translate <code>/alternatives/herdr</code> and <code>/alternatives/mobaxterm</code> into Korean and Chinese. (2 h).</li>
+<li><a href="#w14">#14</a> Make sitemap <code>lastmod</code> match each page's real last change. (1 h).</li>
+<li><a href="#w12">#12</a> Redirect new pages whose query an older page already wins: <code>/compare/paseo</code>, <code>/compare/termius</code>, <code>/what-is-a-software-factory</code>. (1 h).</li>
+<li><a href="#w11">#11</a> Answer "is conductor free": a pricing row on the competitors page, or <code>/compare/conductor-pricing</code>. (1 h).</li>
+</ol>
+
+<div class="legend">
+<span class="t idx">Indexing</span><span class="t pg">Pages</span><span class="t ai">AI discovery</span><span class="t ms">Measurement</span><span class="t cl">Cleanup</span><span class="t hy">Hypothesis</span><span class="t e">time to do</span>
+</div>
+<p class="small" style="margin-top:10px">Evidence tags: <span class="src">Live</span> checked on the site 2026-11-04; <span class="src">Search Console</span> pulled 2026-11-03; <span class="src">Analytics</span> pulled 2026-11-03; <span class="src">Repo</span> the site's git history; <span class="src">Case</span> a result measured on another product, not yet checked here. No item on this page rests on case evidence alone, so none is a <span class="t hy">Hypothesis</span>.</p>
+<nav><a href="#wins">Quick wins</a><a href="#workstreams">Workstreams</a><a href="#left-out">Left out</a><a href="#limits">Limits</a><a href="#second-pass">Second pass</a></nav>
+
+<div class="note"><b>What explains most of this.</b> The engine is "&lt;competitor&gt; alternatives" pages. The leaks are new pages Google never indexed because no page with traffic links to them, Conductor clicks lost to an AI Overview at a steady rank, and AI-assistant traffic nobody can attribute. Most items link new pages from pages that already earn, aim pages at searchers who still have something to compare, and make the AI side measurable.</div>
+
+<h2 id="wins">Quick wins</h2>
+
+<p class="sec">This week</p>
+<ol class="list">
+<li id="w1"><span class="tags"><span class="t ms">Measurement</span><span class="t e">15 min</span></span><div class="do">Set the analytics read-key secret that the install-attribution job needs.</div><div class="why">The job has failed every run since it shipped because the secret is empty, so no installs are attributed to any page. <span class="src">Repo</span></div><div class="rv">Review 2026-11-05, the next scheduled run</div></li>
+<li id="w2"><span class="tags"><span class="t idx">Indexing</span><span class="t e">1 h</span></span><div class="do">Start the link test: two links from high-traffic pages to 6 of the unindexed October pages, with 6 matched pages left alone as the control.</div><div class="why">24 of 41 pages shipped Oct 5 to 10 are unindexed, and Google never fetched them. Indexed pages have a median of 5 inbound links from pages with traffic; unindexed ones have 2. <span class="src">Search Console</span></div><div class="rv">Review 2026-11-17 (day 7 index check), then 2026-12-01</div></li>
+<li id="w3"><span class="tags"><span class="t ai">AI discovery</span><span class="t e">1 h</span></span><div class="do">Run the citation probe once: ask ChatGPT, Claude, Perplexity and Gemini "best Conductor alternative", "Conductor for Windows", "&lt;product&gt; vs Conductor" and "Herdr alternatives", and log which sites they name and cite.</div><div class="why">AI-assistant landings on compare pages fell from 4.0 to 0.7 a day, concentrated on Conductor and Superset. Only a probe tells lost citations from lost referrers. <span class="src">Analytics</span></div><div class="rv">Review 2026-11-11, then monthly</div></li>
+<li id="w4"><span class="tags"><span class="t pg">Pages</span><span class="t e">half day</span></span><div class="do">Ship <code>/conductor-competitors</code> as its own page: a neutral landscape of six tools, with the product as one of them.</div><div class="why">"conductor competitors" has 2,155 impressions at position 18.6, the biggest non-branded pool on the site. Retargeting <code>/alternatives/conductor</code> at it did not move it. <span class="src">Search Console</span></div><div class="rv">Review 2026-12-01 (21-day read)</div></li>
+<li id="w5"><span class="tags"><span class="t pg">Pages</span><span class="t e">2 h</span></span><div class="do">Translate <code>/alternatives/herdr</code> and <code>/alternatives/mobaxterm</code> into Korean and Chinese.</div><div class="why">They are the two best launches since August: the Herdr pages earned 745 clicks in six weeks, MobaXterm 86 in its first three. Korean pages run a 4.94% click rate, and neither page exists in any locale today. <span class="src">Search Console</span> <span class="src">Live</span></div><div class="rv">Review 2026-12-01 (21-day read)</div></li>
+<li id="w6"><span class="tags"><span class="t ai">AI discovery</span><span class="t e">10 min</span></span><div class="do">Click one of the product's citations inside claude.ai and check which referrer the analytics tool records.</div><div class="why">claude.ai visits fell from 44 in August to 5 in October. This tells you whether Claude stopped citing the site or stopped sending a referrer. <span class="src">Analytics</span></div><div class="rv">Review 2026-11-05</div></li>
+</ol>
+
+<p class="sec">Next two weeks</p>
+<ol class="list" start="7" style="counter-reset:n 6">
+<li id="w7"><span class="tags"><span class="t ai">AI discovery</span><span class="t e">half day</span></span><div class="do">Serve Markdown for the compare, alternatives and agent pages, the way <code>/</code> and <code>/docs</code> already do.</div><div class="why">Those pages hold 5,101 of 10,513 lifetime clicks and return HTML to an <code>Accept: text/markdown</code> request (checked: <code>/alternatives/herdr</code>). It is Ora's top Access gap (scan of 2026-11-03). <span class="src">Live</span> <span class="src">Search Console</span></div><div class="rv">Review 2026-12-08</div></li>
+<li id="w8"><span class="tags"><span class="t ai">AI discovery</span><span class="t e">2 h</span></span><div class="do">Open every compare and alternatives page with a 40 to 60 word direct answer.</div><div class="why"><code>/compare/conductor</code> lost its blue link to an AI Overview around Sep 11 and is now a source card there; its queries lost two thirds of their clicks at the same rank. The first paragraph is what the Overview quotes. <span class="src">Search Console</span></div><div class="rv">Review 2026-12-08 (21-day read)</div></li>
+<li id="w9"><span class="tags"><span class="t ai">AI discovery</span><span class="t e">2 h</span></span><div class="do">Fix the <code>/.well-known/mcp</code> card: host a small read-only remote server there, or describe the local server in a form scanners accept.</div><div class="why">A POST to it returns 405, so the scan flags a broken handshake. It is the top item on Ora (scan of 2026-11-03) and on is-agentic (cached scan dated 2026-08-31). <span class="src">Live</span></div><div class="rv">Review 2026-11-18, rescan</div></li>
+<li id="w10"><span class="tags"><span class="t pg">Pages</span><span class="t e">2 h</span></span><div class="do">Write a "&lt;product&gt; alternatives" page before a competitor writes it.</div><div class="why">No such page exists on the site (checked live). Five competitors published Conductor alternatives pages from August to November, so the same will happen to this product. <span class="src">Live</span></div><div class="rv">Review 2026-12-08</div></li>
+<li id="w11"><span class="tags"><span class="t pg">Pages</span><span class="t e">1 h</span></span><div class="do">Answer "is conductor free": a pricing row on the competitors page, or <code>/compare/conductor-pricing</code>.</div><div class="why">150 impressions at position 6.3 and no page aimed at it. Price questions get clicked. <span class="src">Search Console</span></div><div class="rv">Review 2026-12-08 (21-day read)</div></li>
+<li id="w12"><span class="tags"><span class="t cl">Cleanup</span><span class="t e">1 h</span></span><div class="do">Redirect new pages whose query an older page already wins: <code>/compare/paseo</code>, <code>/compare/termius</code>, <code>/what-is-a-software-factory</code>.</div><div class="why">"paseo" goes to <code>/compare/remote-development</code> (738 impressions) and "termius" to <code>/alternatives/termius</code>. The new pages split the signal and are not indexed. <span class="src">Search Console</span></div><div class="rv">Review 2026-11-25 (day 7 inspection)</div></li>
+<li id="w13"><span class="tags"><span class="t cl">Cleanup</span><span class="t e">1 h</span></span><div class="do">Fold the glossary explainers with no search demand into <code>/glossary</code>: harness router, design mode, control plane, side chat, ACP.</div><div class="why">These terms have 0 to 7 impressions site-wide from August to October, and 10 of the 11 new explainers are unindexed. <span class="src">Search Console</span></div><div class="rv">Review 2026-11-25</div></li>
+<li id="w14"><span class="tags"><span class="t idx">Indexing</span><span class="t e">1 h</span></span><div class="do">Make sitemap <code>lastmod</code> match each page's real last change.</div><div class="why">635 of 722 URLs carry the same build date, so Google ignores the field and loses its freshness signal. <span class="src">Live</span></div><div class="rv">Review 2026-11-25</div></li>
+<li id="w15"><span class="tags"><span class="t cl">Cleanup</span><span class="t e">10 min</span></span><div class="do">Take <code>/benchmarks/2026-q2</code> out of the sitemap until it has real data.</div><div class="why">The page is noindex with placeholder data and is still listed, which asks Google to crawl a page it is told to ignore. <span class="src">Live</span></div><div class="rv">Review 2026-11-18</div></li>
+<li id="w16"><span class="tags"><span class="t ai">AI discovery</span><span class="t e">30 min</span></span><div class="do">Small scanner fixes: put a heading at the top of <code>/auth.md</code> (it starts with frontmatter), drop the unused Idempotency-Key from the OpenAPI spec, add <code>$schema</code> to the agent-skills index.</div><div class="why">Each is a listed Ora gap (scan of 2026-11-03), and each is a few lines. They fit: the product is a developer tool agents operate. <span class="src">Live</span></div><div class="rv">Review 2026-11-18, rescan</div></li>
+<li id="w17"><span class="tags"><span class="t ms">Measurement</span><span class="t e">1 h</span></span><div class="do">Add an alert when analytics events, the IndexNow submit (it reaches Bing and Yandex, not Google) or the attribution job go quiet for a day.</div><div class="why">Analytics recorded nothing from Sep 9 to Oct 5 and nobody noticed. That month is a hole in every reading. <span class="src">Analytics</span></div><div class="rv">Review 2026-11-18</div></li>
+</ol>
+
+<p class="sec">This month</p>
+<ol class="list" start="18" style="counter-reset:n 17">
+<li id="w18"><span class="tags"><span class="t pg">Pages</span><span class="t e">2 h</span></span><div class="do">Find out why Spanish and German pages get seen and not clicked, before adding any new locale.</div><div class="why">Spanish: 6,427 impressions at 0.31%. German: 1,830 at 0.16%. Korean on the same pages: 4.94%. <span class="src">Search Console</span></div><div class="rv">Review 2026-12-02</div></li>
+<li id="w19"><span class="tags"><span class="t pg">Pages</span><span class="t e">2 h</span></span><div class="do">Fix or fold the six English pages with 200+ impressions and no clicks: <code>/letta-code</code>, <code>/alternatives/crystal</code>, a quick-start doc, three blog URLs.</div><div class="why">They are visible and earn nothing. Each needs a sharper first paragraph or should merge into a page that wins. <span class="src">Search Console</span></div><div class="rv">Review 2026-12-22 (21-day read)</div></li>
+<li id="w20"><span class="tags"><span class="t pg">Pages</span><span class="t e">1 h</span></span><div class="do">Before touching the <code>/worktrees</code> title again, check whether the results page already answers the query. Rewrite only if it does not.</div><div class="why">18 clicks on 2,283 impressions in 28 days. Earlier title rounds on both case products failed when the answer fit in the snippet. <span class="src">Search Console</span> <span class="src">Live</span></div><div class="rv">Review 2026-12-02</div></li>
+<li id="w21"><span class="tags"><span class="t pg">Pages</span><span class="t e">same week</span></span><div class="do">When a new competitor shows up in search data, ship its <code>/alternatives/</code> page within a week, one page, linked from <code>/alternatives</code>.</div><div class="why">Herdr took one 77-minute session and earned 745 clicks in six weeks. It is the most repeatable win on the site. <span class="src">Search Console</span></div><div class="rv">Review each weekly check, first 2026-11-11</div></li>
+<li id="w22"><span class="tags"><span class="t ai">AI discovery</span><span class="t e">2 h</span></span><div class="do">Join the conversations: answer in r/conductorbuild and the threads that rank for "conductor vs competitors reddit", with replies a person posts.</div><div class="why">That query has 150 impressions and 0 clicks, and asks for human opinion by name. No page can win it. <span class="src">Search Console</span></div><div class="rv">Review 2026-12-16</div></li>
+<li id="w23"><span class="tags"><span class="t ai">AI discovery</span><span class="t e">1 h</span></span><div class="do">Create a Wikidata entry for the product and list its skills on skills.sh.</div><div class="why">The scan notes there is no entity. The product's name is a common English word, and assistants lean on entities to tell a product apart from the word. <span class="src">Live</span></div><div class="rv">Review 2026-12-02</div></li>
+<li id="w24"><span class="tags"><span class="t ms">Measurement</span><span class="t e">1 h/month</span></span><div class="do">Read the questions people ask the product's docs assistant once a month, and turn repeated unanswered ones into pages or docs.</div><div class="why">It is the only tool that shows what agents and visitors ask. Nobody reads it on a schedule. <span class="src">Analytics</span></div><div class="rv">Review 2026-12-02, then monthly</div></li>
+<li id="w25"><span class="tags"><span class="t ms">Measurement</span><span class="t e">calendar</span></span><div class="do">Put the October readings on the calendar: Nov 19 (rewrites), Nov 20 (handoff pages), Nov 23 (remote cluster, homepage).</div><div class="why">The 3-week reads say the 95-page rewrite moved with the site. The 6-week read decides whether rewrites are worth repeating. <span class="src">Repo</span> <span class="src">Search Console</span></div><div class="rv">Review 2026-11-19</div></li>
+</ol>
+
+<h2 id="workstreams">Workstreams</h2>
+<p class="lede">Larger bets. Each has a first step small enough to start this week.</p>
+<div class="ws">
+<h3>Alternatives family</h3>
+<dl>
+<dt>Outcome</dt><dd>A "&lt;competitor&gt; alternatives" page for every competitor buyers choose between, each live within a week of the name appearing in search data.</dd>
+<dt>Why</dt><dd>Compare plus alternatives pages took 49% of all clicks in the 28 days to 2026-11-01; alternatives ran 4.26% against 1.85% for compare pages. <span class="src">Search Console</span></dd>
+<dt>Size</dt><dd>M, ongoing</dd>
+<dt>First step</dt><dd>A weekly check of new competitor names in Search Console and on Hacker News (item 21).</dd>
+<dt>Measure</dt><dd>Clicks and click rate per alternatives page against the compare pages; index status at day 7.</dd>
+<dt>Review</dt><dd>2026-12-08</dd>
+</dl>
+</div>
+<div class="ws">
+<h3>Indexing by links from pages with traffic</h3>
+<dl>
+<dt>Outcome</dt><dd>Every new page indexed within two weeks.</dd>
+<dt>Why</dt><dd>24 of 41 October pages unindexed; indexed pages had 5 links from pages with traffic, unindexed 2. Word count and content overlap were the same. <span class="src">Search Console</span> <span class="src">Repo</span></dd>
+<dt>Size</dt><dd>S, then a standing check</dd>
+<dt>First step</dt><dd>The link test (item 2).</dd>
+<dt>Measure</dt><dd>Indexed count at 7 and 28 days, treated against control.</dd>
+<dt>Review</dt><dd>2026-11-17 and 2026-12-01</dd>
+</dl>
+</div>
+<div class="ws">
+<h3>Monthly citation probe</h3>
+<dl>
+<dt>Outcome</dt><dd>A monthly record of whether four assistants name the product for 20 to 30 buyer questions, and with which facts.</dd>
+<dt>Why</dt><dd>AI-assistant landings fell from 19.5 a day in July to 9.5 in October with no site change that explained it. <span class="src">Analytics</span></dd>
+<dt>Size</dt><dd>S, monthly</dd>
+<dt>First step</dt><dd>The first probe (item 3).</dd>
+<dt>Measure</dt><dd>Share of questions where the product is named, month over month.</dd>
+<dt>Review</dt><dd>2026-12-04</dd>
+</dl>
+</div>
+<div class="ws">
+<h3>Agent-readable money pages</h3>
+<dl>
+<dt>Outcome</dt><dd>Compare and alternatives pages served as Markdown, opening with a direct answer, with the scan gaps that fit a developer tool closed.</dd>
+<dt>Why</dt><dd>Ora scored 87 (scan of 2026-11-03) and is-agentic 100 (cached scan dated 2026-08-31) while AI visits fell: scores measure readiness, not citations. Facts and money pages come first. <span class="src">Live</span> <span class="src">Analytics</span></dd>
+<dt>Size</dt><dd>M, about 7.5 h for a site-wide pass</dd>
+<dt>First step</dt><dd>Markdown on the alternatives pages (item 7).</dd>
+<dt>Measure</dt><dd>AI referrer landings on those pages, and the probe's citations of them.</dd>
+<dt>Review</dt><dd>2026-12-15</dd>
+</dl>
+</div>
+<div class="ws">
+<h3>Platform-gap pages</h3>
+<dl>
+<dt>Outcome</dt><dd>An exact-match "&lt;competitor&gt; alternative for &lt;platform&gt;" page live within days of a rising competitor shipping without that platform.</dd>
+<dt>Why</dt><dd><code>/alternatives/conductor-windows</code> went from 0 to 899 impressions and 86 clicks in 30 days at position 1.4. Pages missing one factor failed: brand too small, demand too small, or the gap closed first. <span class="src">Search Console</span></dd>
+<dt>Size</dt><dd>S per page, weekly check</dd>
+<dt>First step</dt><dd>Check this week's launches against their install docs.</dd>
+<dt>Measure</dt><dd>Impressions and clicks on the exact query at 7, 21 and 42 days.</dd>
+<dt>Review</dt><dd>2026-12-04</dd>
+</dl>
+</div>
+<div class="ws">
+<h3>Event response: Conductor wind-down</h3>
+<dl>
+<dt>Outcome</dt><dd>Pages for people leaving Conductor live within two days of its announcement, with sign-ups recorded by source page.</dd>
+<dt>Why</dt><dd>Conductor announced its wind-down on 2026-11-04. <code>/use-your-claude-subscription</code>, shipped the day after Anthropic's credit news, earned 79 clicks in the 4 weeks to Nov 3. <span class="src">Live</span> <span class="src">Search Console</span></dd>
+<dt>Size</dt><dd>S, within two days</dd>
+<dt>First step</dt><dd>One post and the leaving pages (alternatives, migration, comparison), citing the primary announcement and inventing no transition length.</dd>
+<dt>Measure</dt><dd>Impressions on "conductor alternative" queries and sign-ups by source page, weekly for six weeks.</dd>
+<dt>Review</dt><dd>2026-11-11, then weekly</dd>
+</dl>
+</div>
+<div class="ws">
+<h3>Localization of winners</h3>
+<dl>
+<dt>Outcome</dt><dd>The best alternatives pages in Korean and Chinese, and no new locale until the Spanish and German leaks are explained.</dd>
+<dt>Why</dt><dd>Korean 4.94% against Spanish 0.31% on 6,427 impressions and German 0.16%; localized impressions grew 2.3x while clicks barely moved. <span class="src">Search Console</span></dd>
+<dt>Size</dt><dd>M</dd>
+<dt>First step</dt><dd>Diagnose Spanish and German (item 18).</dd>
+<dt>Measure</dt><dd>Click rate per locale against the English original.</dd>
+<dt>Review</dt><dd>2026-12-02</dd>
+</dl>
+</div>
+<div class="ws">
+<h3>Experiment log and readings</h3>
+<dl>
+<dt>Outcome</dt><dd>Every change logged with its live date, pages, baseline, control and 3-week and 6-week reads, and every read written back.</dd>
+<dt>Why</dt><dd>The log's main copy stops at 2026-08-05; later reviews were never written back. The 95-page October rewrite moved with the site at 3 weeks. <span class="src">Repo</span> <span class="src">Search Console</span></dd>
+<dt>Size</dt><dd>S, standing</dd>
+<dt>First step</dt><dd>Record the October readings (item 25) and every item on this page as it ships.</dd>
+<dt>Measure</dt><dd>Past-due reads closed each month.</dd>
+<dt>Review</dt><dd>2026-11-19</dd>
+</dl>
+</div>
+<div class="ws">
+<h3>Measurement you can trust</h3>
+<dl>
+<dt>Outcome</dt><dd>One alert when any measurement pipeline goes quiet for a day, and the attribution job running.</dd>
+<dt>Why</dt><dd>Analytics recorded nothing from Sep 9 to Oct 5; the attribution job has failed every run since it shipped. <span class="src">Analytics</span> <span class="src">Repo</span></dd>
+<dt>Size</dt><dd>S</dd>
+<dt>First step</dt><dd>Set the secret (item 1) and add the alert (item 17).</dd>
+<dt>Measure</dt><dd>Days with zero events; attribution runs succeeding.</dd>
+<dt>Review</dt><dd>2026-11-18</dd>
+</dl>
+</div>
+<div class="ws">
+<h3>Entity and brand name</h3>
+<dl>
+<dt>Outcome</dt><dd>Search engines and assistants tell the product apart from the common word it is named after.</dd>
+<dt>Why</dt><dd>The scan notes no entity, and the name is a common English word. <span class="src">Live</span></dd>
+<dt>Size</dt><dd>S</dd>
+<dt>First step</dt><dd>The Wikidata entry (item 23), then Organization and SoftwareApplication data with <code>alternateName</code> and <code>sameAs</code>.</dd>
+<dt>Measure</dt><dd>The probe's answer to "what is &lt;product&gt;".</dd>
+<dt>Review</dt><dd>2026-12-02</dd>
+</dl>
+</div>
+<div class="ws">
+<h3>Conversations and community</h3>
+<dl>
+<dt>Outcome</dt><dd>The product present in the threads where developers ask people which tool to use.</dd>
+<dt>Why</dt><dd>"conductor vs competitors reddit" has 150 impressions and 0 clicks; social posts drew 14 of 738 views in 55 days. <span class="src">Search Console</span> <span class="src">Analytics</span></dd>
+<dt>Size</dt><dd>M, ongoing</dd>
+<dt>First step</dt><dd>A weekly sweep of at most 5 threads with drafted replies a person posts (item 22).</dd>
+<dt>Measure</dt><dd>Tagged clicks and sign-ups from threads.</dd>
+<dt>Review</dt><dd>2026-12-16</dd>
+</dl>
+</div>
+
+<h2 id="left-out">Checked and left out on purpose</h2>
+<ul class="plain">
+<li><b>IndexNow as a route to Google.</b> Google does not read it. The 41 October pages were submitted through it and most stayed unindexed; links decide indexing (item 2).</li>
+<li><b>More definition or glossary pages.</b> Explainers run 0.87%, and 1 of 14 October definition pages was indexed. Existing ones are judged by AI views; no new ones.</li>
+<li><b>Compare pages for every newly found tool.</b> 2 of 9 new compare pages were indexed. Alternatives pages for competitors buyers choose between come first (workstream 1).</li>
+<li><b>New locales.</b> Spanish and German leak; they are diagnosed first (item 18).</li>
+<li><b>Moving compare pages under one URL scheme.</b> Those URLs earn traffic, and a move resets indexing.</li>
+<li><b>Another title round on pages the results page already answers.</b> Earlier rounds did not move click rate; item 20 checks first.</li>
+</ul>
+
+<h2 id="limits">Limits of this run</h2>
+<ul class="plain">
+<li>No sign-up survey was available to this run, so the AI share of sign-ups is unknown; tracking alone undercounts it.</li>
+<li>Search Console's Generative AI report was not transcribed (the API does not expose it), so AI-feature views of the explainers are not on this page.</li>
+<li>Analytics has a hole from Sep 9 to Oct 5. Every reading that spans it says so.</li>
+<li>The citation probe has not run yet (item 3); AI findings come from referrers only.</li>
+<li>is-agentic returned a cached scan dated 2026-08-31; Ora's scan is from 2026-11-03.</li>
+<li>Live checks ran once, on 2026-11-04, from outside the site.</li>
+</ul>
+
+<h2 id="second-pass">Second pass</h2>
+<p class="lede">A re-read of the recorded data on 2026-11-21, when this page became the skill's worked example. Live probes were not re-run. Every issue the evidence shows, and what the first pass got wrong or missed.</p>
+<div class="scroll"><table>
+<tr><th>Issue</th><th>Source</th><th>First pass</th><th>Now</th></tr>
+<tr><td>New pages unindexed; links from pages with traffic decide it</td><td>Search Console</td><td>Covered</td><td>Items 2, 14, 15; workstream 2</td></tr>
+<tr><td>Conductor clicks lost to an AI Overview at a steady rank</td><td>Search Console</td><td>Covered</td><td>Item 8</td></tr>
+<tr><td>AI-assistant landings fell; cause unknown</td><td>Analytics</td><td>Covered</td><td>Items 3, 6; workstream 3</td></tr>
+<tr><td>Unbuilt high-impression query pools</td><td>Search Console</td><td>Covered</td><td>Items 4, 11</td></tr>
+<tr><td>New pages splitting an older page's query; explainers with no demand</td><td>Search Console</td><td>Covered</td><td>Items 12, 13</td></tr>
+<tr><td>Localized pages leaking in Spanish and German</td><td>Search Console</td><td>Covered</td><td>Items 5, 18; workstream 7</td></tr>
+<tr><td>Measurement holes: empty secret, a month without events, unread October readings</td><td>Analytics, Repo</td><td>Covered</td><td>Items 1, 17, 25; workstreams 8, 9</td></tr>
+<tr><td>Scan gaps that fit a developer tool; no entity</td><td>Live</td><td>Covered</td><td>Items 7, 9, 16, 23; workstreams 4, 10</td></tr>
+<tr><td>Scanner scores cited as "both scanners", without names or dates</td><td>Live</td><td>Wrong</td><td>Each score now carries its scanner and scan date (items 9, 16; limits)</td></tr>
+<tr><td>Korean figure described as a conversion rate</td><td>Search Console</td><td>Wrong</td><td>Stated as a 4.94% click rate (items 5, 18)</td></tr>
+<tr><td>IndexNow named in the alert item without saying it does not reach Google</td><td>Corrections list</td><td>Unclear</td><td>Item 17 says Bing and Yandex only; left-out list says why</td></tr>
+<tr><td>Conductor's wind-down announcement, the same day as the live recheck</td><td>Live</td><td>Missed</td><td>Workstream 6</td></tr>
+<tr><td>Per-item review dates</td><td>Skill rule</td><td>Missed on most items</td><td>Every item carries one</td></tr>
+<tr><td>No sign-up survey source</td><td>Skill rule</td><td>Not stated</td><td>Stated in the limits</td></tr>
+</table></div>
+<p>What the first pass got wrong: the two scanner lines, the Korean figure and the IndexNow wording, each fixed above. What it missed: the Conductor announcement and the review dates. Checks that came back clean: every number re-read against the Search Console and analytics pulls of 2026-11-03; every item's category and time; the agent-file check (the product is a developer tool agents operate); the URL-move check (no item moves a URL that earns traffic). The money-page check (P3) needs a live run and is left for the next one.</p>
+
+<p class="small">Sources: Search Console (90 and 28 days to 2026-11-01, pulled 2026-11-03); the analytics tool (pulled 2026-11-03); the site's repository and deploy history; live checks of 2026-11-04; Ora scan of 2026-11-03 and is-agentic cached scan of 2026-08-31. Times are rough estimates for one person working with an agent. Case numbers come from two products whose search results were measured in 2026.</p>
+</main>
+</body>
+</html>

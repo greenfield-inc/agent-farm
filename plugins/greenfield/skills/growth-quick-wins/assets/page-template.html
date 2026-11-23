@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Replace every {{...}} placeholder and repeat the example <li>, .ws and table rows.
+     Number quick wins continuously: set start and counter-reset on each <ol>.
+     The top 10 repeats the ten highest-payoff items, each linking to its full entry by number:
+     give every quick win an id of w plus its number (w1, w2, ...). -->
+<title>{{Product}} Quick Wins</title>
+<style>
+:root{--bg:#fbfaf7;--panel:#fff;--ink:#1c2321;--muted:#5f6b66;--line:#e0e2dc;--accent:#2f6fb0;--soft:#e7eff8;--c1:#e6f2ea;--c1t:#2e7d4f;--c2:#f6eedf;--c2t:#8a5a00;--c3:#efe8f6;--c3t:#6a3fa0;--c4:#e7eff8;--c4t:#2f6fb0;--c5:#eeeeea;--c5t:#5f6b66;--hy:#fbe9e7;--hyt:#a33a2a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141816;--panel:#1b201d;--ink:#e8ece9;--muted:#9ba7a1;--line:#2e3632;--accent:#7fb0e6;--soft:#1e2a36;--c1:#1c2b22;--c1t:#6cc493;--c2:#2e2618;--c2t:#e0a84a;--c3:#271f33;--c3t:#b99ae6;--c4:#1e2a36;--c4t:#7fb0e6;--c5:#262b28;--c5t:#9ba7a1;--hy:#33201c;--hyt:#f0998a}}
+:root[data-theme="dark"]{--bg:#141816;--panel:#1b201d;--ink:#e8ece9;--muted:#9ba7a1;--line:#2e3632;--accent:#7fb0e6;--soft:#1e2a36;--c1:#1c2b22;--c1t:#6cc493;--c2:#2e2618;--c2t:#e0a84a;--c3:#271f33;--c3t:#b99ae6;--c4:#1e2a36;--c4t:#7fb0e6;--c5:#262b28;--c5t:#9ba7a1;--hy:#33201c;--hyt:#f0998a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif}
+main{max-width:860px;margin:0 auto;padding:36px 16px 72px}
+h1{font-size:30px;line-height:1.2;margin:0 0 8px}
+h2{font-size:23px;margin:48px 0 4px}
+.lede{color:var(--muted);font-size:17px;margin:0 0 18px}
+.legend{display:flex;flex-wrap:wrap;gap:6px;margin:20px 0 0}
+nav{display:flex;gap:10px;margin:18px 0 0;flex-wrap:wrap}
+nav a{background:var(--soft);color:var(--accent);text-decoration:none;padding:6px 14px;border-radius:99px;font-weight:600;font-size:15px}
+ol.list{list-style:none;padding:0;margin:16px 0 0;counter-reset:n}
+ol.list li{counter-increment:n;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px 12px 52px;margin:8px 0;position:relative}
+ol.list li::before{content:counter(n);position:absolute;left:14px;top:12px;width:26px;height:26px;border-radius:50%;background:var(--soft);color:var(--accent);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center}
+.do{font-weight:600}
+.why{color:var(--muted);font-size:14.5px;margin-top:3px}
+.tags{float:right;display:flex;gap:4px;margin:0 0 4px 8px}
+.t{font-size:11.5px;padding:1px 8px;border-radius:99px;white-space:nowrap;font-weight:600}
+.idx{background:var(--c1);color:var(--c1t)}
+.pg{background:var(--c4);color:var(--c4t)}
+.ai{background:var(--c3);color:var(--c3t)}
+.ms{background:var(--c2);color:var(--c2t)}
+.cl{background:var(--c5);color:var(--c5t)}
+.hy{background:var(--hy);color:var(--hyt)}
+.e{background:transparent;color:var(--muted);border:1px solid var(--line)}
+.src{font-size:11px;font-weight:700;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-left:4px;white-space:nowrap}
+.sec{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin:26px 0 0;font-weight:700}
+.note{background:var(--soft);border-radius:10px;padding:14px 16px;margin:18px 0 0;font-size:15px}
+.ws{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:10px 0}
+.ws h3{margin:0 0 6px;font-size:18px}
+.ws dl{display:grid;grid-template-columns:110px 1fr;gap:4px 12px;margin:0;font-size:15px}
+.ws dt{color:var(--muted);font-weight:600}
+.ws dd{margin:0}
+ul.plain{padding-left:20px}
+.rv{color:var(--muted);font-size:13px;margin-top:3px}
+ol.top{padding-left:22px;margin:10px 0 0}
+ol.top li{margin:4px 0}
+ol.top a{color:var(--accent)}
+table{border-collapse:collapse;width:100%;font-size:14.5px;margin-top:10px}
+th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600}
+.scroll{overflow-x:auto}
+.small{color:var(--muted);font-size:13.5px;margin-top:36px}
+code{font-size:13.5px;overflow-wrap:anywhere}
+@media (max-width:560px){.tags{float:none;margin:0 0 6px}.ws dl{grid-template-columns:1fr}.ws dt{margin-top:6px}}
+</style>
+</head>
+<body>
+<main>
+<h1>{{N}} quick wins and {{M}} workstreams for {{Product}}</h1>
+<p class="lede">{{One sentence: what the product is and who buys it.}} Ranked by payoff per hour. Checked {{date}}. Access: <b>{{tier}}</b> ({{what was and was not available}}).</p>
+<p class="small" style="margin-top:0">Access tiers: Public means the live site only; Search adds Search Console; Analytics adds an analytics tool; Full adds the site's code or a signup survey.</p>
+<h2 id="top">Start here: the top 10</h2>
+<ol class="top">
+<li><a href="#w{{n}}">#{{n}}</a> {{The action in one line}} ({{time}}).</li>
+</ol>
+
+<div class="legend">
+<span class="t idx">Indexing</span><span class="t pg">Pages</span><span class="t ai">AI discovery</span><span class="t ms">Measurement</span><span class="t cl">Cleanup</span><span class="t hy">Hypothesis</span><span class="t e">time to do</span>
+</div>
+<p class="small" style="margin-top:10px">Evidence tags: <span class="src">Live</span> checked on the site {{date}}; <span class="src">Search Console</span>; <span class="src">Analytics</span>; <span class="src">Repo</span>; <span class="src">Survey</span>; <span class="src">Case</span> a result measured on another product, not yet checked here. A <span class="t hy">Hypothesis</span> item rests on case evidence alone.</p>
+<nav><a href="#top">Top 10</a><a href="#wins">Quick wins</a><a href="#workstreams">Workstreams</a><a href="#left-out">Left out</a><a href="#limits">Limits</a><a href="#second-pass">Second pass</a></nav>
+
+
+<div class="note"><b>What explains most of this.</b> {{Two to four sentences: the engine, the leaks, the one idea behind most items.}}</div>
+
+<h2 id="wins">Quick wins</h2>
+
+<p class="sec">This week</p>
+<ol class="list">
+<li id="w1"><span class="tags"><span class="t idx">Indexing</span><span class="t e">15 min</span></span><div class="do">{{The exact action, with the exact URL.}}</div><div class="why">{{The evidence: a number or live result, with its date.}} <span class="src">Live</span></div><div class="rv">Review {{date}}</div></li>
+</ol>
+
+<p class="sec">Next two weeks</p>
+<ol class="list" start="{{k}}" style="counter-reset:n {{k-1}}">
+<li><span class="tags"><span class="t pg">Pages</span><span class="t e">half day</span></span><div class="do">{{Action}}</div><div class="why">{{Evidence}} <span class="src">Search Console</span></div><div class="rv">Review {{date}}</div></li>
+</ol>
+
+<p class="sec">This month</p>
+<ol class="list" start="{{j}}" style="counter-reset:n {{j-1}}">
+<li><span class="tags"><span class="t hy">Hypothesis</span><span class="t ai">AI discovery</span><span class="t e">1 h</span></span><div class="do">{{Action}}</div><div class="why">{{Case evidence and the probe that would confirm it here.}} <span class="src">Case</span></div><div class="rv">Review {{date}}</div></li>
+</ol>
+
+<h2 id="workstreams">Workstreams</h2>
+<p class="lede">Larger bets. Each has a first step small enough to start this week.</p>
+<div class="ws">
+<h3>{{Workstream name}}</h3>
+<dl>
+<dt>Outcome</dt><dd>{{What is true when it is done.}}</dd>
+<dt>Why</dt><dd>{{Evidence.}} <span class="src">Live</span></dd>
+<dt>Size</dt><dd>{{S, M or L, with a rough time.}}</dd>
+<dt>First step</dt><dd>{{One concrete action.}}</dd>
+<dt>Measure</dt><dd>{{The number and where to read it.}}</dd>
+<dt>Review</dt><dd>{{Date}}</dd>
+</dl>
+</div>
+
+<h2 id="left-out">Checked and left out on purpose</h2>
+<ul class="plain">
+<li><b>{{Item}}.</b> {{Why it does not fit this product.}}</li>
+</ul>
+
+<h2 id="limits">Limits of this run</h2>
+<ul class="plain">
+<li>{{What access was missing, what was checked once, what was not checked.}}</li>
+</ul>
+
+<h2 id="second-pass">Second pass</h2>
+<p class="lede">A rerun of the probes on {{date}} before review. Every issue the evidence shows, and what the first pass got wrong or missed.</p>
+<div class="scroll"><table>
+<tr><th>Issue</th><th>Source</th><th>First pass</th><th>Now</th></tr>
+<tr><td>{{The issue, with its evidence.}}</td><td>{{Live, Search Console, ...}}</td><td>{{Covered, missed, wrong or stale}}</td><td>{{Item #n, or left out: why}}</td></tr>
+</table></div>
+<p>{{What the first pass got wrong or missed, one line each with the fix; or "Nothing", naming the checks that came back clean.}}</p>
+
+<p class="small">Sources: {{each source with its date window}}. Times are rough estimates for one person working with an agent. Case numbers come from two other products whose search results were measured in 2026.</p>
+</main>
+</body>
+</html>

@@ -1,6 +1,6 @@
 ---
 name: seo-from-calls
-description: "Mine customer call transcripts (Doozy captures) for unmet search intents, validate against the existing site and competitive landscape, and draft the pages that fill the gaps. Use when the user wants to turn sales call insights into SEO pages: 'what pages should we create from today's calls', 'turn that call into pages', 'SEO from calls'."
+description: "Mine customer call transcripts for unmet search intents, validate against the existing site and competitive landscape, and draft the pages that fill the gaps. Use when the user wants to turn sales call insights into SEO pages: 'what pages should we create from today's calls', 'turn that call into pages', 'SEO from calls'."
 allowed-tools:
   - Read
   - Write
@@ -12,10 +12,9 @@ allowed-tools:
   - ToolSearch
 when_to_use: >
   Use when the user wants to extract SEO page ideas from customer calls,
-  Doozy captures, or sales conversation transcripts. Examples: 'what SEO pages
+  call recordings, or sales conversation transcripts. Examples: 'what SEO pages
   should we create from today's calls', 'turn those transcripts into pages',
   'mine calls for page ideas', 'seo from calls'.
-model: claude-opus-4-6
 ---
 
 # SEO From Calls
@@ -45,8 +44,8 @@ conversation and the signals drive the process.
 
 Get the raw material: call transcripts, notes, or summaries. Sources vary:
 
-- **Doozy captures**: load tools via ToolSearch (`mcp__doozy__list_captures`,
-  `mcp__doozy__get_capture`), list recent captures, fetch transcripts
+- **A connected call-recording or transcript tool**: find its tools with
+  ToolSearch, list recent calls, and fetch their transcripts
 - **Pasted notes or summaries**: the user may share what they already
   distilled from a call
 - **Multiple calls**: patterns across calls matter more than any single one
@@ -128,6 +127,5 @@ cross-links, navigation updates, and deploy config are all in place.
 This skill turns qualitative customer signals into pages. It complements:
 
 - `seo-content-strategy`: works from analytics data, not calls
-- `page-strategy`: plans a single page from a keyword
-- `seo-readability-pass`: rewrites existing copy
-- `seo-authority-pass`: deep competitor analysis
+- seo-readability-pass: rewrites existing copy
+- seo-authority-pass: adds explainer pages, a glossary, author bylines and structured data

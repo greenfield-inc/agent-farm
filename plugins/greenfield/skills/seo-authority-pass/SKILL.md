@@ -10,9 +10,6 @@ across a product website: explainer pages for hard concepts, a glossary,
 author attribution with bylines and headshots, structured data schemas,
 OG images, and consistent SEO metadata.
 
-**Important**: Run this skill with Claude Opus 4.6. It performs significantly
-better than 4.7 or 4.8 at copywriting and writing in specific voice styles.
-
 ## Prerequisites
 
 - **Writing process**: Follow `seo-writing-framework` when writing explainer pages and copy. Research examples, draft with reference, reader hat, edit, run the `good-writing-fundamentals` gate, score.
@@ -34,7 +31,7 @@ Every page should signal authority to both readers and Google:
 
 ### 1. Identify concepts needing explainer pages
 
-If a term list exists from a prior content-readability-pass, use it.
+If a term list exists from a prior seo-readability-pass, use it.
 Otherwise, scan all content pages for:
 - Technical terms used repeatedly but never formally defined
 - Product-specific concepts that get mentioned without explanation
@@ -68,7 +65,7 @@ For each approved concept, create a dedicated page following this pattern:
 - "The problem" section (why this concept matters to the reader)
 - "How [product] does it" section (tie it back naturally)
 - Comparison table where relevant
-- FAQ section with `FAQPage` JSON-LD schema (6+ questions)
+- FAQ section when readers ask those questions. Add `FAQPage` JSON-LD only on a government or health site that Google treats as authoritative: Google limited FAQ rich results to those sites in August 2023, so on other sites the markup earns no rich result
 - Links to related docs and other explainer pages
 - External authority links (official specs, Anthropic/Google blogs, respected sources)
 - OG image generation (reuse site's banner style if one exists)
@@ -135,13 +132,22 @@ Add the glossary and explainer pages to the site footer in a "Learn" column for 
 
 Update the sitemap if it's manually maintained.
 
+An `llms.txt` file is optional. It does not affect Google ranking or Google
+visibility, so never present it as an SEO step.
+
 **Success criteria**: Consistent titles under 60 chars across all pages. Descriptions include differentiators. Footer links to glossary and explainer pages.
 
 ### 7. Build, verify, deploy
 
 Run the production build to catch errors.
 Create a PR with a clear summary of everything added.
-After merge, produce a list of all new and updated URLs for Google Search Console indexing.
+After merge, link each new page from pages Google already crawls and that earn
+search traffic. List every new and updated URL with its Search Console URL
+Inspection link so the person can click "Request Indexing": the Search Console
+API inspects URLs but cannot request indexing, and Google does not read
+IndexNow.
 
-**Success criteria**: Build passes. PR merged. URL list provided for indexing.
-**Artifacts**: List of URLs to request indexing for in Google Search Console.
+**Success criteria**: Build passes. PR merged. URL list provided with an
+inspection link for each URL.
+**Artifacts**: List of URLs, each with its URL Inspection link, for the person
+to submit in Google Search Console.

@@ -189,7 +189,7 @@ test('a bare plugin install installs the bundled greenfield plugin with the move
  result=run(['list']);
  assert.deepEqual(JSON.parse(result.stdout).map(plugin=>plugin.name),['greenfield']);
  const profiles=fs.readdirSync(path.join(root,'plugins/greenfield/profiles')).map(file=>file.replace(/\.yaml$/,'')).sort();
- assert.deepEqual(profiles,['audits','bug-reporter','business','code-smell-fixes','codebase-audit','customer-insights-loop','free-range','implementer','orchestrator','planner','planning-and-prioritization','process-cleanup','product-researcher','qa-and-fix','reviewer','seo','simplify-and-refactor','ui-polish']);
+ assert.deepEqual(profiles,['audits','bug-reporter','business','code-smell-fixes','codebase-audit','customer-insights-loop','free-range','implementer','orchestrator','planner','planning-and-prioritization','process-cleanup','product-researcher','qa-and-fix','reviewer','seo','seo-investigator','seo-measurer','seo-orchestrator','seo-reviewer','seo-strategist','seo-writer','simplify-and-refactor','ui-polish']);
 });
 
 test('every plugin in the repository installs from its directory',t=>{

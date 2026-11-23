@@ -10,8 +10,6 @@ The process for producing any deliverable that a real person will read.
 Works for pricing emails, blog posts, landing pages, docs, support replies,
 announcements, or anything where the words matter.
 
-**Important**: Run with Claude Opus 4.6.
-
 ## The core problem
 
 LLMs generate things that look good. But looking good is not the same as

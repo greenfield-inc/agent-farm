@@ -51,7 +51,7 @@ Over time, `.seo/` becomes a self-organized wiki of SEO data:
           briefing.md
           ...
 
-  experiments/                   # tracked experiments
+  experiments/                   # one file per experiment
     2026-06-24-windows-landing-page.md
     2026-06-10-remote-workspaces-blog-post.md
 
@@ -71,27 +71,37 @@ If `.seo/briefing.md` or `.seo/strategy.md` exist:
 
 ### 2. Track experiments
 
-Scan the current strategy and any PRs merged since the last organize run.
-For each new piece of content created or significant change made:
-- Create an experiment file: `.seo/experiments/YYYY-MM-DD-short-name.md`
-- Record: what was done, why (link to strategy), target keyword/metric, baseline data
-- If a prior experiment exists for the same page, append a "follow-up" section with current data
+Experiments live in `.seo/experiments/`, one file per experiment. If the repo
+still has a single legacy `.seo/experiments.md`, import it once: split each
+entry into its own file under `.seo/experiments/`, then remove the legacy file
+in the same commit.
 
-Experiment files use this format:
+Scan the current strategy and any PRs merged since the last organize run.
+For each new piece of content created or significant change made with no
+experiment file yet:
+- Create an experiment file: `.seo/experiments/YYYY-MM-DD-short-name.md`
+- Record the hypothesis, the pages, the baseline (its source and date window),
+  what stays unchanged, the control pages, and a link to the strategy
+
+Experiment files open with this frontmatter:
 
 ```markdown
-# [Short name]
-
-- **Date**: YYYY-MM-DD
-- **Type**: new page / rewrite / E-E-A-T / blog post
-- **Target**: [keyword or metric]
-- **Baseline**: [data from briefing at time of creation]
-- **Action**: [what was done]
-- **Strategy ref**: [link to .seo/archive/YYYY/MM/DD/strategy.md]
-
-## Follow-ups
-- YYYY-MM-DD: [updated data, outcome so far]
+---
+id: 2026-06-24-windows-landing-page
+hypothesis: <one sentence>
+pages: [/windows]
+live:            # optional: the ship date, only when deploys happen by hand
+read_21:         # empty until the 21-day read is done, then the date it was done
+read_42:         # same for the 42-day read
+status: running  # running | read | closed
+---
 ```
+
+The ship date is `live` when present. Otherwise it is the committer date of
+the first-parent commit on the default branch that added the file. A read is
+due from 21 or 42 days after the ship date plus 3 days of Search Console lag.
+A read is past due when it is due, its field is empty and `status` is
+`running`.
 
 **Success criteria**: Every content action from this cycle has an experiment file.
 
@@ -112,8 +122,8 @@ Regenerate `.seo/index.md` as a table of contents:
 - ...
 
 ## Active Experiments
-- [windows-landing-page](experiments/2026-06-24-windows-landing-page.md): tracking
-- [remote-workspaces-blog-post](experiments/2026-06-10-remote-workspaces-blog-post.md): tracking
+- [windows-landing-page](experiments/2026-06-24-windows-landing-page.md): running, 21-day read due 2026-07-18
+- [remote-workspaces-blog-post](experiments/2026-06-10-remote-workspaces-blog-post.md): running, 42-day read due 2026-07-25
 - ...
 
 ## Data Sources

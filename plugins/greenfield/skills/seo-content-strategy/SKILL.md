@@ -8,8 +8,6 @@ description: "(proactive) Turn an SEO briefing into a prioritized content plan: 
 Consume the SEO briefing and decide what to do: which pages to rewrite, which
 explainers to create, which blog posts to write, which pages to index.
 
-**Important**: Run with Claude Opus 4.6.
-
 ## Prerequisites
 
 - **Briefing**: `.seo/briefing.md` must exist from a prior `seo-briefing` run. If it doesn't, tell the user to run `seo-briefing` first. Don't strategize without data.
@@ -58,15 +56,15 @@ Sort recommendations into buckets:
 
 **Readability rewrites** (medium effort):
 - Pages with declining traffic that need voice/comprehension fixes
-- Flag these for `content-readability-pass`
+- Flag these for the readability pass (seo-readability-pass)
 
 **New explainer pages** (medium effort):
 - Concepts with search volume but no dedicated page
-- Flag these for `content-authority-pass`
+- Flag these for the authority pass (seo-authority-pass)
 
 **New blog posts** (higher effort):
 - Keyword gaps, trending topics, competitor content to counter
-- Flag these for `seo-content-drafting`
+- Flag these for content drafting (seo-content-drafting)
 
 **New landing pages** (higher effort):
 - Commercial-intent keywords with no landing page
