@@ -66,7 +66,7 @@ Product A and Product B used PostHog with HogQL; the same traps apply to GA4 and
 - **Event definitions change.** Read each event's definition and the date it started or changed. Product B's "signup completed" event fired per user and overcounted organizations about 4x; net-new sign-ups are organizations. Product A's `download_started` event covered only 3% to 4% of GitHub downloads; its all-downloads total is a marketing number and human installs the internal one ("Analytics and Attribution", Product A, May 2026).
 - **Bots inflate counts.** Product A's "human" download users tripled in three weeks, 1,338 to 4,065 a week, while visitors fell: bot leakage, caught in the 2026-08-05 briefing. A count that rises while its upstream falls is a data problem until proven otherwise.
 - **Pageviews are floors.** Ad blockers drop some captures; server-side events do not. Never divide a server-side count by a client-side count to get a conversion rate.
-- **Know when the project starts.** Product B's analytics began in the first week of its rework, website pageviews a week later, and its server-side sign-up event about ten weeks after that. Nothing earlier exists, so say so instead of extrapolating.
+- **Know when the project starts.** Product B's analytics began at the start of its rework, website pageviews soon after, and its server-side sign-up event much later. Nothing earlier exists, so say so instead of extrapolating.
 
 ## Repository history
 
@@ -74,7 +74,7 @@ The source for "what changed and when". Read it with `git log` and `git show` in
 
 - **Enumerate every change, never a sample.** Run `git log --first-parent --since=<start>` on the default branch over every path that produces a public page: site source, docs, metadata and schema, sitemaps, robots.txt, llms.txt, agent files, redirect configuration. Then list merged PRs for the same window.
 - **Reconcile commits to PRs.** Match each first-parent commit to its PR; match commits without a PR number through the hosting API; name direct commits. Squash-merging repositories keep per-commit times only in the PR's commit list.
-- **Date by live date when deploys are manual.** On a site that deploys by hand, a merge is not a launch. Date each change by the first successful deploy run whose head contains the PR's merge commit, read from the CI run history. Product B's foundation PR went live about two weeks after it merged. One Product B PR merged and was reverted before any deploy, and was never live. Where deploys run on merge, the merge date is the ship date.
+- **Date by live date when deploys are manual.** On a site that deploys by hand, a merge is not a launch. Date each change by the first successful deploy run whose head contains the PR's merge commit, read from the CI run history. Product B's foundation PR went live well after it merged. A Product B change merged and was reverted before any deploy, and was never live. Where deploys run on merge, the merge date is the ship date.
 - **Say what git cannot show.** Redirects configured outside the repository, side-branch merges, and shared components (footer, head, homepage sections) that change many pages without a per-page diff. List them in the coverage appendix.
 - **Work sessions.** Rebuild them from every human commit on every branch plus PR open and merge times; events less than 2.5 hours apart form one session ([lessons-by-phase.md](lessons-by-phase.md#work-sessions-rebuilt-from-git)).
 

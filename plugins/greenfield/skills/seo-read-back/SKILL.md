@@ -48,7 +48,7 @@ Product B's deep dive classified every PR merged in its window, more than five f
 ### 2. Date each change
 
 - **Merge date** when the site deploys on merge.
-- **Live date** when deploys are manual: the first successful deploy run whose head contains the merge commit (`gh run list --workflow <deploy workflow> --status success`, then `git merge-base --is-ancestor <merge commit> <run head>`). One of Product B's PRs went live about two weeks after it merged.
+- **Live date** when deploys are manual: the first successful deploy run whose head contains the merge commit (`gh run list --workflow <deploy workflow> --status success`, then `git merge-base --is-ancestor <merge commit> <run head>`). One of Product B's changes went live well after it merged.
 - A PR reverted before any deploy was never live. Product B found one.
 - `.seo/access.md` says which deploy mode applies.
 

@@ -10,7 +10,7 @@ What decided growth on two products, as rules an audit applies to any site. The 
 Google indexes a new page when a page it already values links to it. Sitemaps and ping services do not substitute.
 
 - Product A: of 41 pages shipped Oct 5 to 10, 17 were indexed by Nov 3 and 24 had never been fetched. Indexed pages had a median of 7 inbound links, 5 of them from pages with 100+ impressions, and their linking pages totalled 4,424 impressions. Unindexed pages had 3, 2 and 433. Word count (729 vs 664) and 5-word shingle overlap (0.16 vs 0.15) were the same, so content did not decide it.
-- Product B: a template batch whose pages linked only to each other got no impressions until two later changes linked to it from crawled pages; about three quarters of the batch pages that ever showed got their first impression within days of those links. Clusters whose hub Google crawled were indexed; the rest were not. Every orphan page, present only in the sitemap, stayed unindexed.
+- Product B: a template batch whose pages linked only to each other got no impressions until later changes linked to it from crawled pages; about three quarters of the batch pages that ever showed got their first impression within days of those links. Clusters whose hub Google crawled were indexed; the rest were not. Every orphan page, present only in the sitemap, stayed unindexed.
 - Google does not read IndexNow (Bing and Yandex do). Product A's 41 pages were submitted through IndexNow and most stayed unindexed; pages shipped with no submission indexed in 3 days once linked well.
 
 Audit: P4 link graph, S5 index coverage. Quick win: two links from high-traffic pages to each unindexed page, with matched pages left alone as a control.

@@ -25,7 +25,7 @@ How to read the numbers:
 
 | | Product A | Product B |
 |---|---|---|
-| Start | New domain, launched under its name 2026-02-26; a category with no agreed name; no audience | Known brand, reworked in 2026; the marketing site started with only a homepage and a pricing page |
+| Start | New domain, launched under its name 2026-02-26; a category with no agreed name; no audience | Known brand, reworked in 2026; the marketing site started with a handful of pages |
 | Size by November | 722 sitemap URLs | A full marketing site, help center and developer docs |
 | Search result | 10,298 Google clicks, 2026-02-26 to 11-01 (property total); 2,945 in October, the best month | Clicks +81% for the 28 days to 11-01 against a year earlier; October clicks to pages other than the homepage about 7x October 2025 |
 | Where clicks land | About a quarter on the homepage (2,688 of 10,513 page-level clicks) | 76% of organic search visits land on the homepage; 87% of query-attributed clicks are brand searches |
@@ -88,7 +88,7 @@ Use this when you plan: a batch of pages is one or two sessions of agent work. B
 
 The whiteboard plan is Phase 0 to Phase 5 in order. The evidence differed in five places:
 
-1. **The competitor sitemap study came months after the first pages.** Product A wrote positioning on day one and mapped competitors' sitemaps in June. Product B benchmarked a competitor's sitemap about four months into its rework.
+1. **The competitor sitemap study came months after the first pages.** Product A wrote positioning on day one and mapped competitors' sitemaps in June. Product B benchmarked a competitor's sitemap well into its rework.
 2. **Comparison pages came before pillar pages.** Product A shipped 9 comparison pages on day three; its category hubs came ten weeks later.
 3. **Each template shipped with its first batch.** Phases 2 and 3 were the same PRs at first. Later batches reused the template.
 4. **The files AI tools read went in on day one.** Phase 4 started with Product A's first landing page.
@@ -103,7 +103,7 @@ What to copy from this: do the sitemap study first (it is a few hours), ship the
 **What each product did.**
 
 - Product A, Feb 19 to 20: first landing page and message in two sessions of 10 and 7 minutes. Feb 26: positioning and a competitive landscape inside the evening session that rebuilt the site. Jun 25: the full map in the repository's foundations file: 19 competitors, 9 competitor sites crawled, a 20-query results audit, URL counts per competitor (one had 450+ URLs with 52 compare pages, another 288). Aug 24: repositioned around a free product.
-- Product B: the brand and message already existed. Its first SEO change (week 1 of the rework) started from a competitor check: it ranked near the top for its core terms and got almost no clicks, because its title tag was only the brand name while competitors' titles named the benefit. About four months in: one competitor's sitemap had about 30x Product B's URL count, including one-question FAQ pages and tag pages for "[competitor] alternative" searches.
+- Product B: the brand and message already existed. Its first SEO change, at the start of the rework, started from a competitor check: it ranked near the top for its core terms and got almost no clicks, because its title tag was only the brand name while competitors' titles named the benefit. Well into the rework: one competitor's sitemap had about 30x Product B's URL count, including one-question FAQ pages and tag pages for "[competitor] alternative" searches.
 
 **Time.** Product A: 7 sessions, about 7 hours. Product B: a few short sessions (earlier work lived in another repository).
 
@@ -130,7 +130,7 @@ What to copy from this: do the sitemap study first (it is a few hours), ship the
 **What each product did.**
 
 - Product A: Feb 26, site rebuilt for the new name with an FAQ in one 4-hour session. Feb 28, a neutral definition page for the category. Apr 3, a 33-page docs site in one 5.7-hour evening. May 8, six category hubs linked from the homepage. Oct 9, homepage rebuilt around real product demos.
-- Product B: week 1, homepage and pricing got real titles and descriptions (live about two weeks later). Week 4, help docs moved onto the site. About week 11, a pillar page with explainers, a glossary and an author page. About six months in, a homepage redesign.
+- Product B: first, homepage and pricing got real titles and descriptions (live some time after merge). Then help docs moved onto the site. Later, a pillar page with explainers, a glossary and an author page. Last, a homepage redesign.
 
 **Time.** Product A: 8 sessions, about 14 hours.
 
@@ -227,7 +227,7 @@ Free-plan queries are the only intent above 1%; some phrasings reach 11%, and ne
 **What each product did.**
 
 - Product A: May 25 to Jun 2, five more agent pages with sources and bylines. Jun 13 to 25, a Conductor page rewrite, platform alternatives pages, title tests. Sep 14, the Herdr pages, soon after that competitor launched, in one 77-minute session. Oct 9, a 19-page remote-access cluster on SSH clients, a category new to the site. Oct 28, scheduled-agents and notifications pages.
-- Product B: two small batches of comparison pages in its first month; a small vertical set in the second; a batch of single-topic pages and question pages about four months in; a large templated batch right after it, whose pages linked only to each other; a larger vertical hub the month after.
+- Product B: small batches of comparison pages early on; then a small vertical set; later a batch of single-topic pages and question pages; a large templated batch right after it, whose pages linked only to each other; then a larger vertical hub.
 
 **Time.** Product A: 18 sessions, about 27 hours, 12 PRs.
 
@@ -241,8 +241,8 @@ Free-plan queries are the only intent above 1%; some phrasings reach 11%, and ne
 | Product A, /use-your-claude-subscription, shipped the day after a vendor's pricing news (May 14) | 84 clicks on 6,338 impressions from Oct 20 to Nov 17, months later | Durable |
 | Product A, a remote-control use case and its docs page (Sep 14) | Logged expectation 50 to 150 impressions a month; 1,518 impressions and 14 clicks at six weeks, 5 to 7x the top of the range, at a weak 0.9% CTR | 6 weeks |
 | Product B, a single-topic batch | Nearly all seen at three weeks; at six weeks about 4x the clicks of the templated batch; its best batch in months | 3 to 6 weeks |
-| Product B, a large templated batch linking only to each other | Almost half never appeared. The rest got their first impressions only after two later PRs linked to them, about two weeks apart; about three quarters of the pages that ever had an impression got the first one within days of the second | Waited for outside links |
-| Product B, a small vertical set | Indexed within two weeks | Under two weeks |
+| Product B, a large templated batch linking only to each other | Almost half never appeared. The rest got their first impressions only after later changes linked to them from crawled pages; about three quarters of the pages that ever had an impression got the first one within days of those links | Waited for outside links |
+| Product B, a small vertical set | Indexed quickly | Fast |
 | Product B, a larger vertical hub | All indexed almost at once, then flat after week 3 | Almost at once, then stalled |
 
 **A new-category cluster earns on its one fresh name.** The remote-access cluster's clicks sat almost entirely on one alternatives page for a tool people were already searching for; most of its other pages stayed unindexed.
@@ -265,7 +265,7 @@ Free-plan queries are the only intent above 1%; some phrasings reach 11%, and ne
 **What each product did.**
 
 - Product A: Feb 26, JSON-LD, FAQ, llms.txt and an AI-friendly robots.txt in the first evening. Apr 3, llms.txt and sitemap generated from content. Jun 16 to 26, a one-line npm or PyPI install, a machine-readable product contract, an answer endpoint, and sitemap pings on every deploy. Aug 22 to 23, an agent-readiness pass in one 7-hour session (is-agentic 86 to 100).
-- Product B: first robots.txt, sitemap and JSON-LD in its first weeks; llms.txt, Markdown docs, a sitemap index and an indexing check script in the first two months; agent-readiness pages and files about three months in; a sitemap fix about four months in that restored pages Google could not read.
+- Product B: first robots.txt, sitemap and JSON-LD early in the rework; then llms.txt, Markdown docs, a sitemap index and an indexing check script; later agent-readiness pages and files; then a sitemap fix that restored pages Google could not read.
 
 **Time.** Product A: 21 sessions, about 41 hours, 23 PRs, the most of any phase.
 
@@ -314,7 +314,7 @@ Every page returned 200 with `index, follow`, a self canonical, server-rendered 
 **What each product did.**
 
 - Product A: May 7, analytics added in week 10, after the first pages. Jun 13, installs linked back to the web visitor. Jun 25, search data and the experiment log committed to the repository. Jul 15 and Aug 5, overdue experiments read and written down, failures included. Nov 3, every PR since August read at 3 and 6 weeks.
-- Product B: sign-up source tracking just before the first new pages went live. About nine weeks in, Search Console connected, the experiment log started, a set of titles rewritten as a test. About two weeks later, an AI option added to the sign-up question, then the losing titles reverted and the winners kept.
+- Product B: sign-up source tracking just before the first new pages went live. Later, Search Console connected, the experiment log started, a set of titles rewritten as a test. Soon after, an AI option added to the sign-up question, then the losing titles reverted and the winners kept.
 
 **Time.** Product A: 21 sessions, about 16 hours.
 

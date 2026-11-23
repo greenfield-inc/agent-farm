@@ -71,7 +71,7 @@ The body has these sections, in this order:
 ## Ship date
 
 - The ship date is the date the record landed on the default branch: the committer date of the first-parent commit that added the record file.
-- Set `live` when the change went live on a different day from that commit: when deploys are manual (use the first successful deploy run containing the merge commit; Product B had a page go live about two weeks after its merge), for a record imported from a legacy log, and for a record written later for a past change. Then `live` is the ship date.
+- Set `live` when the change went live on a different day from that commit: when deploys are manual (use the first successful deploy run containing the merge commit; Product B had a page go live well after its merge), for a record imported from a legacy log, and for a record written later for a past change. Then `live` is the ship date.
 - A change reverted before any deploy was never live and gets no reads. Close its record with the reason.
 
 ## Reads
