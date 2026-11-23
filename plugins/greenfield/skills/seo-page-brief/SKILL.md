@@ -63,7 +63,7 @@ Write each field. A field with no answer says why, and a missing fact goes to it
 ### Links
 
 - **Link in from pages that already earn traffic.** Of 41 Product A pages shipped Oct 5 to 10, the 17 indexed by Nov 3 had a median 7 inlinks, 5 of them from pages with 100+ impressions, and their linking pages totalled 4,424 impressions; the 24 unindexed ones had a median 3 inlinks, 2 from such pages, and 433 impressions on their linking pages. Word count and content overlap were the same in both groups. Name each linking page with its impressions, source and window, and add the hub, sitemap and `llms.txt` entries the site uses for the page type.
-- **Link only to pages already live.** A Product B page linked several pages days before they existed; Google fetched a 404 and had not recrawled them more than five months later, though all of them now return 200. A page that does not return 200 today gets no link; the brief lists the link for the PR that ships it.
+- **Link only to pages already live.** A Product B page linked several pages days before they existed; Google fetched a 404 and had not recrawled them months later, though all of them now return 200. A page that does not return 200 today gets no link; the brief lists the link for the PR that ships it.
 - Keep ranking URLs. Moving a page that ranks loses its clicks at the old address; link to it instead. A redirect goes only to an intent-equivalent page, names the old URL's evidence and its destination, and never points everything at the homepage.
 
 ### Say each fact once

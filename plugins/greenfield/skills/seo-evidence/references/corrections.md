@@ -18,8 +18,8 @@ Product A is an open-source developer tool for running coding agents in parallel
 
 - **Believed:** a higher is-agentic or Ora score means assistants cite the site more or send more visitors.
 - **True:** a scanner scores whether an agent *could* find, read and use the site. It does not measure whether assistants cite it or send anyone. The score did not predict AI traffic in either direction.
-- **Evidence:** Product A reached is-agentic 100/100 (scan dated 2026-08-31) and Ora 87/100 (2026-11-03), and its AI-assistant pageviews fell from 606 in July to 247 in October (5.2% to 1.4% of pageviews). Product B scored is-agentic 64/100 (scan dated 2026-08-23) and Ora 65/100 (2026-11-04), and its AI-assistant visits about doubled from May to October.
-- **Source:** "Growth, phase by phase" (v2, 2026-11-04), Principle 6; "Agent-First Growth Playbook" (2026-11-03), "Where Product A stands with AI agents"; "Product B growth deep dive, April to November 2026" (2026-11-03), "Agent-readiness scanners".
+- **Evidence:** Product A reached is-agentic 100/100 (scan dated 2026-08-31) and Ora 87/100 (2026-11-03), and its AI-assistant pageviews fell from 606 in July to 247 in October (5.2% to 1.4% of pageviews). Product B scored lower than Product A on both scanners, and its AI-assistant visits about doubled from May to October.
+- **Source:** "Growth, phase by phase" (v2, 2026-11-04), Principle 6; "Agent-First Growth Playbook" (2026-11-03), "Where Product A stands with AI agents"; "Product B growth deep dive" (2026-11-03), "Agent-readiness scanners".
 - **Do instead:** report each score with its scanner's name and its scan date (is-agentic can return a cached scan older than your run). Call it readiness. Measure AI discovery with AI referrals by assistant, the sign-up survey and an answer panel. Never set a score as a goal.
 
 ### 3. Agent-file and Markdown advice must match the buyers and what the site serves
@@ -27,7 +27,7 @@ Product A is an open-source developer tool for running coding agents in parallel
 - **Believed:** every site should add an agents.md, Markdown copies and an MCP card.
 - **True:** these help only when the site's buyers use agents and the site actually serves what the file promises. A file that describes an endpoint the site does not serve is a broken promise, and scanners count it against the site.
 - **Evidence:** Product B's /agents.md described MCP and OAuth that no endpoint serves. Product A served Markdown only for `/` and `/docs`, and its /.well-known/mcp card described a local stdio server, so both scanners reported a failed handshake.
-- **Source:** "Product B growth deep dive, April to November 2026" (2026-11-03), "Agent-readiness scanners"; "Agent-First Growth Playbook" (2026-11-03), "Where Product A stands with AI agents".
+- **Source:** "Product B growth deep dive" (2026-11-03), "Agent-readiness scanners"; "Agent-First Growth Playbook" (2026-11-03), "Where Product A stands with AI agents".
 - **Do instead:** recommend agent files only when the buyers use agents (developer tools, API products, buyers who research through assistants) and name the evidence. Check what the site serves with `curl -H 'Accept: text/markdown'` and an agent user agent before you call anything missing. Remove or fix promises the site does not keep before adding new files.
 
 ### 4. A dated audit is not the live site
@@ -43,7 +43,7 @@ Product A is an open-source developer tool for running coding agents in parallel
 - **Believed:** moving comparison posts to a cleaner path is a safe structural fix.
 - **True:** a ranking URL carries its history. Moving it makes Google judge the new address again, and the old address loses its clicks. The address is rarely what limits a page.
 - **Evidence:** Product A keeps old slugs that rank when a competitor renames, and writes "New (formerly Old)" on the page. Product B's deliberate move of help articles onto docs pages with canonicals did shift signals as designed: the old pages lost 61% of impressions at three weeks against a 33% fall in the control.
-- **Source:** "Product B growth deep dive, April to November 2026" (2026-11-03), Experiments.
+- **Source:** "Product B growth deep dive" (2026-11-03), Experiments.
 - **Do instead:** keep ranking URLs and link to them. When a move is unavoidable, redirect each old URL to its intent-equivalent new one, record the move as an experiment with its live date, and read it at 3 and 6 weeks.
 
 ### 6. AI-feature impressions are not in the Search Console API
@@ -51,7 +51,7 @@ Product A is an open-source developer tool for running coding agents in parallel
 - **Believed:** Search Console's API returns AI Overview and AI Mode appearances.
 - **True:** the Generative AI features report exists only in the Search Console screen, and it shows impressions only, with no clicks or queries.
 - **Evidence:** requests for the search types `aiOverview`, `aiMode` and `generativeAi` returned `400 INVALID_ARGUMENT`; a `searchAppearance` query on Product A's Conductor queries returned no rows.
-- **Source:** "Product B growth deep dive, April to November 2026" (2026-11-03), Evidence rules; "Conductor query clicks: evidence tables" (2026-11-03), section 5.
+- **Source:** "Product B growth deep dive" (2026-11-03), Evidence rules; "Conductor query clicks: evidence tables" (2026-11-03), section 5.
 - **Do instead:** transcribe the report from the screen and label it, as [data-sources.md](data-sources.md#ai-feature-impressions) describes. Never present an API pull as covering AI features.
 
 ### 7. Date an AI-visit drop before blaming the latest change
@@ -92,8 +92,8 @@ Product A is an open-source developer tool for running coding agents in parallel
 
 - **Believed:** links to pages shipping next week cost nothing.
 - **True:** Google can follow the link first, record a 404, and not come back for months.
-- **Evidence:** a Product B calculator linked several compliance pages days before they existed. Google got 404 and had not recrawled more than five months later, though all of them now return 200; one targets the site's top compliance query.
-- **Source:** "Growth, phase by phase" (v2, 2026-11-04), "Linking ahead caused months of errors"; "Product B growth deep dive, April to November 2026" (2026-11-03), Indexing.
+- **Evidence:** a Product B calculator linked several compliance pages days before they existed. Google got 404 and had not recrawled them months later, though all of them now return 200; one targets the site's top compliance query.
+- **Source:** "Growth, phase by phase" (v2, 2026-11-04), "Linking ahead caused months of errors"; "Product B growth deep dive" (2026-11-03), Indexing.
 - **Do instead:** add a link only after its target is live. On a site that deploys by hand, live means deployed, not merged. If it already happened, request indexing for the targets and link them from pages with traffic.
 
 ### 12. "0 of 31 indexed" was not a code bug
@@ -116,7 +116,7 @@ Product A is an open-source developer tool for running coding agents in parallel
 
 - **Believed:** lost landing-page clicks mean lost rankings.
 - **True:** clicks can move with a migration. Count how many lost landing clicks sit on URLs that now redirect elsewhere before you diagnose ranking.
-- **Evidence:** the customer workflow starter keeps migration as one of five explanation classes in every search diagnosis, because redirected URLs carry lost landing clicks that look like a ranking loss. 
+- **Evidence:** the customer workflow starter keeps migration as one of five explanation classes in every search diagnosis, because redirected URLs carry lost landing clicks that look like a ranking loss.
 - **Source:** the customer workflow starter's search-diagnosis method, method only.
 - **Do instead:** keep five explanations apart (demand, ranking, results-page presentation, migration, measurement), and reconcile redirects with their real migration dates before you call a ranking loss.
 
@@ -134,8 +134,8 @@ Product A is an open-source developer tool for running coding agents in parallel
 
 - **Believed:** a page under 1% CTR is a failure to fix or prune.
 - **True:** Product B's lowest-CTR definition and compliance pages are among the pages Google quotes most in AI answers. Whether those answers name the product is still unmeasured.
-- **Evidence:** one Product B compliance page had AI-feature impressions equal to 57% of its web impressions at about 0.5% CTR; one definition page, 53% at about 0.1%. AI-feature impressions reached 34% of web impressions in September and October.
-- **Source:** "Growth, phase by phase" (v2, 2026-11-04), "The 'weakest' pages are what AI quotes most"; "Product B growth deep dive, April to November 2026" (2026-11-03), AI search.
+- **Evidence:** one Product B compliance page had AI-feature impressions equal to 57% of its web impressions at about 0.5% CTR; one definition page, 53% at about 0.1%. AI-feature impressions reached 34% of web impressions at their peak.
+- **Source:** "Growth, phase by phase" (v2, 2026-11-04), "The 'weakest' pages are what AI quotes most"; "Product B growth deep dive" (2026-11-03), AI search.
 - **Do instead:** judge definition and compliance pages by AI-feature impressions and an answer panel as well as CTR. Never prune on CTR alone.
 
 ### 17. A hand rewrite of about 95 pages did not lift them
@@ -177,7 +177,7 @@ Product A is an open-source developer tool for running coding agents in parallel
 - **Believed:** a "signup completed" analytics event counts new customers.
 - **True:** it fired per user, so it overcounted organizations about 4x. Net-new sign-ups are organizations.
 - **Evidence:** Product B's analytics notes; its deep dive counts net-new organizations with a server-side event typed `net_new`.
-- **Source:** "Product B growth deep dive, April to November 2026" (2026-11-03), Evidence rules.
+- **Source:** "Product B growth deep dive" (2026-11-03), Evidence rules.
 - **Do instead:** read each event's definition and the date it changed before you count with it.
 
 ### 22. A download event covered 3% to 4% of downloads

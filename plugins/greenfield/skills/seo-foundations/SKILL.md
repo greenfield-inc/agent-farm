@@ -214,7 +214,7 @@ them in turn. For each competitor record:
   ones you will compete with), and the URL patterns they do not have (a 404
   on `/glossary`, `/about`, `/changelog`, `/<x>-vs-<y>`).
 - **Titles and H1s** of the money pages, the keyword each targets, and your
-  own titles beside them. Product B ranked on page 1 for its core category
+  own titles beside them. Product B ranked near the top for its core category
   queries and got almost no clicks because its title tag was only its
   brand name; competitors' titles named the benefit. Source: "Growth, phase
   by phase" (v2, 2026-11-04), Phase 0.

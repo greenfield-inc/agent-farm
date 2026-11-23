@@ -71,7 +71,7 @@ The body has these sections, in this order:
 ## Ship date
 
 - The ship date is the date the record landed on the default branch: the committer date of the first-parent commit that added the record file.
-- Set `live` when the change went live on a different day from that commit: when deploys are manual (use the first successful deploy run containing the merge commit; Product B had a page merge 2026-04-25 and go live 2026-05-06), for a record imported from a legacy log, and for a record written later for a past change. Then `live` is the ship date.
+- Set `live` when the change went live on a different day from that commit: when deploys are manual (use the first successful deploy run containing the merge commit; Product B had a page go live about two weeks after its merge), for a record imported from a legacy log, and for a record written later for a past change. Then `live` is the ship date.
 - A change reverted before any deploy was never live and gets no reads. Close its record with the reason.
 
 ## Reads
@@ -130,7 +130,7 @@ Due now: 1
 
 Due reads go first in any review, before new work. Every run ends with the next due date and this command.
 
-A first run on an existing product usually finds reads nobody did. On 2026-11-21, Product A's October program had 42-day reads due since 2026-11-19, and its internal-link test, due for review from 2026-11-17, had never shipped; Product B's log had no results written back after July (Source: "Agent-First Growth Playbook" (refreshed 2026-11-03), "Experiments since August"; the catalog of Product B's SEO documents, 2026-11-21).
+A first run on an existing product usually finds reads nobody did. On 2026-11-21, Product A's October program had 42-day reads due since 2026-11-19, and its internal-link test, due for review from 2026-11-17, had never shipped; Product B's log had gone months with no results written back (Source: "Agent-First Growth Playbook" (refreshed 2026-11-03), "Experiments since August"; the catalog of Product B's SEO documents, 2026-11-21).
 
 ## Import a legacy log once
 

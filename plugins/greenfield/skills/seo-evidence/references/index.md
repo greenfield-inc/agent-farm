@@ -8,7 +8,7 @@ Product A is an open-source developer tool for running coding agents in parallel
 
 | File | What it shows | Original |
 |---|---|---|
-| `seo-evidence/references/lessons-by-phase.md` | Phase 0 to Phase 5 and the sign-up lane, each with what was done, what it earned and after what lag, "Evidence vs. the plan" and "Copy this"; the monthly loop; work sessions rebuilt from git; the five places the real order differed from the plan; where the two products differed | "Growth, phase by phase" (v2, 2026-11-04); "Agent-First Growth Playbook" (Product A refresh, 2026-11-03); "Product B growth deep dive, April to November 2026" (2026-11-03); "Work sessions behind the Product A and Product B growth work" (2026-11-03) |
+| `seo-evidence/references/lessons-by-phase.md` | Phase 0 to Phase 5 and the sign-up lane, each with what was done, what it earned and after what lag, "Evidence vs. the plan" and "Copy this"; the monthly loop; work sessions rebuilt from git; the five places the real order differed from the plan; where the two products differed | "Growth, phase by phase" (v2, 2026-11-04); "Agent-First Growth Playbook" (Product A refresh, 2026-11-03); "Product B growth deep dive" (2026-11-03); "Work sessions behind the Product A and Product B growth work" (2026-11-03) |
 | `seo-evidence/references/corrections.md` | Every corrected belief with its evidence, source and what to do instead | The same pages' "What surprised us" cards and change logs; the four investigations of 2026-11-03; the customer workflow starter's gap-check method (method only) |
 | `seo-evidence/references/data-sources.md` | How Search Console, URL Inspection, AI-feature impressions, analytics, git history, the sign-up survey and the scanners were reached, and their traps; the data contract | The deep dives' "Evidence rules" and "How to reproduce" sections (2026-11-03); "Product B 'How did you find us?' signup answers" (2026-11-03); the customer workflow starter's data contract (method only) |
 
@@ -27,7 +27,7 @@ Product A is an open-source developer tool for running coding agents in parallel
 | File | What it shows | Original |
 |---|---|---|
 | `seo-experiments/references/experiment-record.md` | The template and four filled records: a hand rewrite of about 95 pages that moved with the site, a six-against-six internal-link test with matched controls, Product A's July bets (mixed and failed), and a Product B title test read as split or confounded | "Agent-First Growth Playbook" (2026-11-03), "Experiments since August", rows B1 and D1; Product A SEO experiments log (2026-06-14 to 2026-08-05); "Product B growth deep dive" (2026-11-03), Experiments |
-| `seo-read-back/references/deep-dive-outline.md` (measurer) | The deep dive's section structure, with its coverage appendix | "Product B growth deep dive, April to November 2026" (2026-11-03), structure only |
+| `seo-read-back/references/deep-dive-outline.md` (measurer) | The deep dive's section structure, with its coverage appendix | "Product B growth deep dive" (2026-11-03), structure only |
 | `seo-read-back/references/worked-read-back.md` (measurer) | Product A's experiments table read at 21 and 42 days against a control, with real numbers | "Agent-First Growth Playbook" (2026-11-03), "Experiments since August" |
 
 ## Agent discovery (measurer)

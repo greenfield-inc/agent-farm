@@ -2,7 +2,7 @@
 
 How two products grew through Google and AI answers in 2026, in the order the work happened. Each phase says what to do, what each product did, how long it took, what it earned and after what lag, where the evidence disagreed with the plan, and a checklist to copy.
 
-Main source: "Growth, phase by phase" (v2, 2026-11-04), the cross-product evidence base. It distils two deep dives: "Agent-First Growth Playbook" (Product A refresh, 2026-11-03) and "Product B growth deep dive, April to November 2026" (2026-11-03). Other sources are named where they are used. Search data runs through 2026-11-01 unless a line says otherwise.
+Main source: "Growth, phase by phase" (v2, 2026-11-04), the cross-product evidence base. It distils two deep dives: "Agent-First Growth Playbook" (Product A refresh, 2026-11-03) and "Product B growth deep dive" (2026-11-03). Other sources are named where they are used. Search data runs through 2026-11-01 unless a line says otherwise.
 
 How to read the numbers:
 
@@ -18,14 +18,14 @@ How to read the numbers:
 1. **People click when they still have a decision to make.** Product A's "[tool] alternatives" pages earn 4.26% CTR (28 days). Product B's free-plan searches earn 4.11% (90 days). Definitions and yes/no questions get answered on Google's own page and earn under 1% on both sites.
 2. **Ship 5 to 15 pages at a time, one topic each, and be first on a new name.** Product A's pages for a new competitor, Herdr, drew 745 clicks in six weeks from one 77-minute session. Product B's single-topic batch out-earned its templated batch about 4 to 1 at six weeks, and almost half the templated batch never appeared in Google.
 3. **Link every new page from a page that already gets search traffic, then check it a week later.** Of 41 Product A pages shipped 2026-10-05 to 10-10, Google indexed 17 by 2026-11-03 and never fetched the other 24. Links from pages with traffic separated the two groups; word count and similarity did not.
-4. **Much of the growth shows up only as people searching your name.** 87% of Product B's query-attributed clicks are brand searches. Since July, 25% to 28% of its new sign-ups each month say an AI recommended it, while tracking credits AI with about 4%.
+4. **Much of the growth shows up only as people searching your name.** 87% of Product B's query-attributed clicks are brand searches. Since its survey added an AI option, 25% to 28% of its new sign-ups each month say an AI recommended it, while tracking credits AI with about 4%.
 5. **Log every bet with a baseline and a review date, and write down the losses.** Product A's log showed a hand rewrite of about 95 pages lost 7% of clicks at three weeks while untouched pages gained 40%. Without the comparison it would have read as a win.
 
 ## The two products
 
 | | Product A | Product B |
 |---|---|---|
-| Start | New domain, launched under its name 2026-02-26; a category with no agreed name; no audience | Known brand, rework from 2026-04-22; the marketing site had only a homepage and a pricing page |
+| Start | New domain, launched under its name 2026-02-26; a category with no agreed name; no audience | Known brand, reworked in 2026; the marketing site started with only a homepage and a pricing page |
 | Size by November | 722 sitemap URLs | A full marketing site, help center and developer docs |
 | Search result | 10,298 Google clicks, 2026-02-26 to 11-01 (property total); 2,945 in October, the best month | Clicks +81% for the 28 days to 11-01 against a year earlier; October clicks to pages other than the homepage about 7x October 2025 |
 | Where clicks land | About a quarter on the homepage (2,688 of 10,513 page-level clicks) | 76% of organic search visits land on the homepage; 87% of query-attributed clicks are brand searches |
@@ -80,7 +80,7 @@ The bursts that carried the most work on Product A:
 | Sep 14 | 1 | 1.3 | Herdr pages, the best launch on the site |
 | Oct 4 to 9 | 7 | 22.0 | About 95 pages rewritten by hand, new compare and use-case pages, the 19-page remote-access cluster, homepage rebuild |
 
-Product B's biggest burst was a few sessions over three days in late August that shipped a large batch of new URLs. One Product A session of 5.5 hours built 44 pages on a branch that was never merged: count it as work, credit it with nothing.
+Product B's biggest burst was a short run of sessions in late summer that shipped a large batch of new URLs. One Product A session of 5.5 hours built 44 pages on a branch that was never merged: count it as work, credit it with nothing.
 
 Use this when you plan: a batch of pages is one or two sessions of agent work. Budget the calendar for the 3 and 6 week reads, and spend the hours on picking the right pages.
 
@@ -88,11 +88,11 @@ Use this when you plan: a batch of pages is one or two sessions of agent work. B
 
 The whiteboard plan is Phase 0 to Phase 5 in order. The evidence differed in five places:
 
-1. **The competitor sitemap study came months after the first pages.** Product A wrote positioning on day one and mapped competitors' sitemaps in June. Product B benchmarked a competitor's sitemap in August.
+1. **The competitor sitemap study came months after the first pages.** Product A wrote positioning on day one and mapped competitors' sitemaps in June. Product B benchmarked a competitor's sitemap about four months into its rework.
 2. **Comparison pages came before pillar pages.** Product A shipped 9 comparison pages on day three; its category hubs came ten weeks later.
 3. **Each template shipped with its first batch.** Phases 2 and 3 were the same PRs at first. Later batches reused the template.
 4. **The files AI tools read went in on day one.** Phase 4 started with Product A's first landing page.
-5. **Measurement started early on Product B and late on Product A.** Product B recorded sign-up sources the day before its first new page went live. Product A added analytics in week 10. Product B also spent more time on its sign-up flow than on any single phase.
+5. **Measurement started early on Product B and late on Product A.** Product B recorded sign-up sources just before its first new page went live. Product A added analytics in week 10. Product B also spent more time on its sign-up flow than on any single phase.
 
 What to copy from this: do the sitemap study first (it is a few hours), ship the template with its first real pages, put the agent-readable files in on day one, and connect measurement before the first page ships.
 
@@ -103,7 +103,7 @@ What to copy from this: do the sitemap study first (it is a few hours), ship the
 **What each product did.**
 
 - Product A, Feb 19 to 20: first landing page and message in two sessions of 10 and 7 minutes. Feb 26: positioning and a competitive landscape inside the evening session that rebuilt the site. Jun 25: the full map in the repository's foundations file: 19 competitors, 9 competitor sites crawled, a 20-query results audit, URL counts per competitor (one had 450+ URLs with 52 compare pages, another 288). Aug 24: repositioned around a free product.
-- Product B: the brand and message already existed. Its first SEO change (Apr 25) started from a competitor check: it ranked on page 1 for its core terms and got almost no clicks, because its title tag was only the brand name while competitors' titles named the benefit. Aug 13: one competitor's sitemap had about 30x Product B's URL count, including one-question FAQ pages and tag pages for "[competitor] alternative" searches.
+- Product B: the brand and message already existed. Its first SEO change (week 1 of the rework) started from a competitor check: it ranked near the top for its core terms and got almost no clicks, because its title tag was only the brand name while competitors' titles named the benefit. About four months in: one competitor's sitemap had about 30x Product B's URL count, including one-question FAQ pages and tag pages for "[competitor] alternative" searches.
 
 **Time.** Product A: 7 sessions, about 7 hours. Product B: a few short sessions (earlier work lived in another repository).
 
@@ -130,7 +130,7 @@ What to copy from this: do the sitemap study first (it is a few hours), ship the
 **What each product did.**
 
 - Product A: Feb 26, site rebuilt for the new name with an FAQ in one 4-hour session. Feb 28, a neutral definition page for the category. Apr 3, a 33-page docs site in one 5.7-hour evening. May 8, six category hubs linked from the homepage. Oct 9, homepage rebuilt around real product demos.
-- Product B: Apr 25, homepage and pricing got real titles and descriptions (live May 6). May 14, help docs moved onto the site. Jul 9, a pillar page with explainers, a glossary and an author page. Oct 11, homepage redesign.
+- Product B: week 1, homepage and pricing got real titles and descriptions (live about two weeks later). Week 4, help docs moved onto the site. About week 11, a pillar page with explainers, a glossary and an author page. About six months in, a homepage redesign.
 
 **Time.** Product A: 8 sessions, about 14 hours.
 
@@ -142,9 +142,9 @@ What to copy from this: do the sitemap study first (it is a few hours), ship the
 | Product A homepage title, brand plus category ("<Brand> by <Company> \| Open-Source Agent Manager") | 14.57% CTR at position 3.94 over 24 days, against 10.31% at 4.48 before; brand clicks 92 to 170; homepage impressions down 36.5% ("SEO Briefing", 2026-08-05) | 24 days |
 | Product A hub /terminal-multiplexers | A top-10 page with 228 lifetime clicks | Weeks |
 | Product A homepage rebuild (Oct 9) | Clicks +37% against a control of +32%; CTR 12.67% to 13.76%: moved with the site, slight CTR gain | 3 weeks |
-| Product B homepage title fix | Average position 9.9 to 7.8 and no measurable click lift (homepage clicks +0% against a control of +78% at three weeks) | 3 to 6 weeks |
-| Product B help docs on the main domain | Ranked near position 4.6 from launch | Immediate |
-| Product B pillar and explainers | Few clicks (0.27% CTR to November); among the pages Google quotes most in AI answers | 6 weeks |
+| Product B homepage title fix | Average position up about two places and no measurable click lift (homepage clicks +0% against a control of +78% at three weeks) | 3 to 6 weeks |
+| Product B help docs on the main domain | Ranked near the top of the first page from launch | Immediate |
+| Product B pillar and explainers | Few clicks (0.27% CTR over the whole period read); among the pages Google quotes most in AI answers | 6 weeks |
 | Product B homepage redesign | Held its clicks (-4%) at three weeks while older pages fell 24% | 3 weeks |
 
 **Pillar pages help AI answers and internal links more than clicks.** Product B's pillar set was among its most-quoted pages in AI answers with few clicks; Product A's hub is a top-10 page mainly as a link source. Judge a pillar by what it links to and by AI-feature impressions as well as by its own clicks.
@@ -198,7 +198,7 @@ Product B, CTR by what the searcher is trying to do (90 days to 2026-11-01, quer
 | "Best ..." lists | 0.08% |
 | Conversational, 9+ words | 0.00% |
 
-Free-plan queries are the only intent above 1%; some phrasings reach 11%, and nearly all their clicks land on the homepage because no page targets them. Lag: Product A's February compare pages took 8 to 12 weeks to show. Product B's first pages had about a tenth of their November click total at six weeks.
+Free-plan queries are the only intent above 1%; some phrasings reach 11%, and nearly all their clicks land on the homepage because no page targets them. Lag: Product A's February compare pages took 8 to 12 weeks to show. Product B's first pages had about a tenth of their latest monthly click total at six weeks.
 
 **Alternatives pages beat compare pages.** In the 28 days to 2026-11-01 Product A's alternatives pages out-clicked compare pages 3.5 to 1 at 4.26% against 1.85% CTR, and they lead the homepage on lifetime clicks. Compare pages accumulate impressions; alternatives pages convert them. Start with the alternatives template.
 
@@ -227,7 +227,7 @@ Free-plan queries are the only intent above 1%; some phrasings reach 11%, and ne
 **What each product did.**
 
 - Product A: May 25 to Jun 2, five more agent pages with sources and bylines. Jun 13 to 25, a Conductor page rewrite, platform alternatives pages, title tests. Sep 14, the Herdr pages, soon after that competitor launched, in one 77-minute session. Oct 9, a 19-page remote-access cluster on SSH clients, a category new to the site. Oct 28, scheduled-agents and notifications pages.
-- Product B: two small batches of comparison pages in May; a small vertical set in June; a batch of single-topic pages and question pages in late August; a large templated batch the next day whose pages linked only to each other; a larger vertical hub in September.
+- Product B: two small batches of comparison pages in its first month; a small vertical set in the second; a batch of single-topic pages and question pages about four months in; a large templated batch right after it, whose pages linked only to each other; a larger vertical hub the month after.
 
 **Time.** Product A: 18 sessions, about 27 hours, 12 PRs.
 
@@ -240,10 +240,10 @@ Free-plan queries are the only intent above 1%; some phrasings reach 11%, and ne
 | Product A, /alternatives/conductor-windows (platform gap) | Impressions the day it shipped; first window 204 impressions, 24 clicks, 11.8% CTR; then 899 impressions and 86 clicks in 30 days at position 1.4 on "conductor alternative for windows" | Same day |
 | Product A, /use-your-claude-subscription, shipped the day after a vendor's pricing news (May 14) | 84 clicks on 6,338 impressions from Oct 20 to Nov 17, months later | Durable |
 | Product A, a remote-control use case and its docs page (Sep 14) | Logged expectation 50 to 150 impressions a month; 1,518 impressions and 14 clicks at six weeks, 5 to 7x the top of the range, at a weak 0.9% CTR | 6 weeks |
-| Product B, a single-topic batch | Nearly all seen at three weeks; at six weeks about 4x the clicks of the templated batch; its best batch since June | 3 to 6 weeks |
-| Product B, a large templated batch linking only to each other | Almost half never appeared. The rest got their first impressions only after two later PRs linked to them (Sep 9 and Sep 22); about three quarters of the pages that ever had an impression got the first one between Sep 23 and Sep 26 | Waited for outside links |
-| Product B, a small vertical set | Indexed within about 10 days | 10 days |
-| Product B, a larger vertical hub | All indexed within a day, then flat after week 3 | 1 day, then stalled |
+| Product B, a single-topic batch | Nearly all seen at three weeks; at six weeks about 4x the clicks of the templated batch; its best batch in months | 3 to 6 weeks |
+| Product B, a large templated batch linking only to each other | Almost half never appeared. The rest got their first impressions only after two later PRs linked to them, about two weeks apart; about three quarters of the pages that ever had an impression got the first one within days of the second | Waited for outside links |
+| Product B, a small vertical set | Indexed within two weeks | Under two weeks |
+| Product B, a larger vertical hub | All indexed almost at once, then flat after week 3 | Almost at once, then stalled |
 
 **A new-category cluster earns on its one fresh name.** The remote-access cluster's clicks sat almost entirely on one alternatives page for a tool people were already searching for; most of its other pages stayed unindexed.
 
@@ -265,7 +265,7 @@ Free-plan queries are the only intent above 1%; some phrasings reach 11%, and ne
 **What each product did.**
 
 - Product A: Feb 26, JSON-LD, FAQ, llms.txt and an AI-friendly robots.txt in the first evening. Apr 3, llms.txt and sitemap generated from content. Jun 16 to 26, a one-line npm or PyPI install, a machine-readable product contract, an answer endpoint, and sitemap pings on every deploy. Aug 22 to 23, an agent-readiness pass in one 7-hour session (is-agentic 86 to 100).
-- Product B: first robots.txt, sitemap and JSON-LD in April; llms.txt, Markdown docs, a sitemap index and an indexing check script in May; agent-readiness pages and files in July; a sitemap fix in August that restored pages Google could not read.
+- Product B: first robots.txt, sitemap and JSON-LD in its first weeks; llms.txt, Markdown docs, a sitemap index and an indexing check script in the first two months; agent-readiness pages and files about three months in; a sitemap fix about four months in that restored pages Google could not read.
 
 **Time.** Product A: 21 sessions, about 41 hours, 23 PRs, the most of any phase.
 
@@ -279,8 +279,8 @@ Free-plan queries are the only intent above 1%; some phrasings reach 11%, and ne
 | Product A agent-readiness pass | No measurable search effect: clicks +6% against a control of +13% at three weeks, -2% at six. It touched nearly every page, so there is no clean control |
 | Product A AI-assistant visits | Already falling three weeks before the readiness pass (medium confidence: assistants stopped sending visitors to the Conductor and Superset compare pages) |
 | Product A answer endpoint | Content gaps fixed (a docs fix took 8 test queries from 0 to 8 correct matches), but real assistant use unproven: 78 query events and 85 bare landings in two weeks, 2 from ChatGPT and 1 from Perplexity |
-| Product B scanners | is-agentic 64, Ora 65; AI-assistant visits about doubled from May to October anyway |
-| Product B pages linked before they existed | Google got "not found" and had not come back more than five months later |
+| Product B scanners | Lower than Product A on both scanners; AI-assistant visits about doubled over five months anyway |
+| Product B pages linked before they existed | Google got "not found" and had not come back months later |
 
 **What separated indexed from unindexed pages** (Product A, 41 pages shipped Oct 5 to 10, medians; "Why new pages are not indexed", 2026-11-03):
 
@@ -295,7 +295,7 @@ Every page returned 200 with `index, follow`, a self canonical, server-rendered 
 
 **AI answers and assistants.**
 
-- Product B's AI-feature impressions rose from 14% of its web impressions in June to 34% in September and October (transcribed from the Search Console UI). Its definition and compliance pages appear in AI answers at the highest rates and earn the fewest clicks: one definition page had 53% as many AI-feature impressions as web impressions, at about 0.1% lifetime CTR. Whether those answers name the product is unmeasured.
+- Product B's AI-feature impressions rose from 14% of its web impressions to 34% about three months later (transcribed from the Search Console UI). Its definition and compliance pages appear in AI answers at the highest rates and earn the fewest clicks: one definition page had 53% as many AI-feature impressions as web impressions, at about 0.1% lifetime CTR. Whether those answers name the product is unmeasured.
 - Product A's Perplexity referrals rose from 2 to 24 pageviews (May 10 to 12) after compare-page rewrites. Visitors landed on the cited compare pages and category hubs, never on llms-full.txt or the homepage. Measure AI discovery on the pages assistants cite.
 
 **Evidence vs. the plan.** Product A started this on day one and spent the most hours here. Scanner scores did not predict AI traffic on either site; links from pages with traffic predicted indexing.
@@ -314,7 +314,7 @@ Every page returned 200 with `index, follow`, a self canonical, server-rendered 
 **What each product did.**
 
 - Product A: May 7, analytics added in week 10, after the first pages. Jun 13, installs linked back to the web visitor. Jun 25, search data and the experiment log committed to the repository. Jul 15 and Aug 5, overdue experiments read and written down, failures included. Nov 3, every PR since August read at 3 and 6 weeks.
-- Product B: sign-up source tracking the day before the first new pages went live. Jun 26, Search Console connected, the experiment log started, a set of titles rewritten as a test. Jul 8, an AI option added to the sign-up question. Jul 9, the losing titles reverted and the winners kept.
+- Product B: sign-up source tracking just before the first new pages went live. About nine weeks in, Search Console connected, the experiment log started, a set of titles rewritten as a test. About two weeks later, an AI option added to the sign-up question, then the losing titles reverted and the winners kept.
 
 **Time.** Product A: 21 sessions, about 16 hours.
 
@@ -322,7 +322,7 @@ Every page returned 200 with `index, follow`, a self canonical, server-rendered 
 
 | Finding | Numbers |
 |---|---|
-| Product B: the survey shows AI that tracking hides | From July to October, 25% to 28% of sign-up answers each month name an AI; tracking credits AI with about 4%, so self-reported AI runs 4 to 5x tracked AI. Only about 1 in 7 AI answerers had an AI first touch; most arrived as organic search or direct. Before the option existed, about 2% wrote AI in |
+| Product B: the survey shows AI that tracking hides | In each month after the AI option was added, 25% to 28% of sign-up answers name an AI; tracking credits AI with about 4%, so self-reported AI runs 4 to 5x tracked AI. Only about 1 in 7 AI answerers had an AI first touch; most arrived as organic search or direct. Before the option existed, about 2% wrote AI in |
 | Product A: a hand rewrite of about 95 pages moved with the site | Rewritten compare pages: clicks -7% at three weeks while the control rose 40%. URLs, titles and headings stayed the same, so the search result barely changed |
 | Product A: a June five-page title rewrite | Combined CTR about 0.47% to 0.62% against a 2% to 3% scenario; /worktrees stayed at 0.13% on 2,988 impressions (read 2026-08-05); /worktree-tools was the one win (0.2% to 0.55%) |
 | Product A: May compare-title rewrites | Of five, only the one that led with what the searcher resolves hit target: /compare/superset 3.14%, then 3.95%. The others stayed between 0% and 1.43% |
@@ -369,10 +369,10 @@ Why split brand and homepage: people who search your name click at high rates, a
 |---|---|---|
 | 1. People click when they still have a decision to make | Alternatives 4.26% CTR, explainers 0.87% (28 days) | Free plan 4.11%, definitions 0.10% (90 days) |
 | 2. Small batches on one topic, and be first on a new name | Herdr 745 clicks in six weeks; 1 of 14 October definition pages indexed | Single-topic batch about 4x the templated batch at six weeks; almost half the templated batch never shown |
-| 3. A page counts once Google has indexed it, and links get it there | 17 of 41 October pages indexed; the other 24 never fetched | Pages linked before they existed: not recrawled in more than five months |
+| 3. A page counts once Google has indexed it, and links get it there | 17 of 41 October pages indexed; the other 24 never fetched | Pages linked before they existed: not recrawled for months |
 | 4. Report the homepage and brand searches separately | Site CTR 4.70% to 2.85% while clicks grew 15x | Site CTR 4.81% to 1.95% while clicks rose; 87% of clicks are brand |
 | 5. AI answers show you without sending clicks; measure them on their own | A compare page moved into an AI Overview source card; its query's clicks fell from 45 to 4 at a steady reported rank | AI-feature impressions reached 34% of web impressions |
-| 6. Make the site easy for agents to read, as insurance | is-agentic 100, Ora 87; AI visits fell anyway | is-agentic 64, Ora 65; AI visits about doubled |
+| 6. Make the site easy for agents to read, as insurance | is-agentic 100, Ora 87; AI visits fell anyway | Lower scores than Product A on both scanners; AI visits about doubled |
 | 7. Ask every sign-up how they found you | No survey yet, so fewer AI recommendations cannot be told from hidden referrers | 25% to 28% name an AI against about 4% tracked |
 | 8. Write every bet down with a baseline and a review date | 95-page rewrite -7% against a +40% control | Half the title changes reverted; none crossed 1.1% CTR |
 
@@ -406,7 +406,7 @@ People keep the judgment: what the product is and who it is for, whether a page 
 
 - "Growth, phase by phase" (v2, 2026-11-04): phases, principles, the monthly loop, where the products differed, the five order differences.
 - "Agent-First Growth Playbook" (Product A refresh, 2026-11-03): monthly totals, families, nine readings, experiments since August, agent readiness.
-- "Product B growth deep dive, April to November 2026" (2026-11-03): CTR by intent, experiments, indexing, AI-feature impressions, the sign-up funnel.
+- "Product B growth deep dive" (2026-11-03): CTR by intent, experiments, indexing, AI-feature impressions, the sign-up funnel.
 - "Work sessions behind the Product A and Product B growth work" (2026-11-03): sessions and hours by phase.
 - "Why new pages are not indexed" (2026-11-03): the indexed against unindexed comparison.
 - "SEO: GSC Findings and Diagnosis" (Product A, data pulled 2026-05-07); "SEO Briefing" (Product A, 2026-08-05); "Platform-Gap Page Playbook" (Product A, 2026-07-15); "Content Briefs" (Product A, 2026-05-07 to 05-14); the answer-endpoint experiment readout (Product A, 2026-07-08).

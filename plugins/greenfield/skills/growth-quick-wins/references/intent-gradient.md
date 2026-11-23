@@ -15,7 +15,7 @@ Two products measured it. **Product A** is an open-source developer tool for run
 | Verification | `is <tool> <compliant/safe/secure>` | Product B 0.4 to 0.5% | Citation play; judge by AI views |
 | Definition | `what is <term>` | Product A 0.87% (28 days); Product B 0.10% | Citation play; write no more once one exists |
 | Category list | `best <category>`, `<category> software` | Product B 0.08 to 0.13% with no list page | One honest list page, 8 to 10 products, the product ranked on merit |
-| Conversational | 5+ word questions | Product B 0% at position 3 to 6 | Test one page whose H1 is the question |
+| Conversational | 5+ word questions | Product B 0%, even near the top of the first page | Test one page whose H1 is the question |
 | Bare competitor name | `<competitor>` | Product B 0.05 to 0.11% | Test one honest review page at most |
 | Wants people | `<category> reddit` | Product A 0 clicks on 150 impressions | Join the threads; no page wins it |
 

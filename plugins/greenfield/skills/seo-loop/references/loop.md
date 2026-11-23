@@ -14,7 +14,7 @@ Sources: the orchestrating session's transcript digest (2026-11-03 to 2026-11-04
 | 3 | Product A read-back refresh: every merged PR since August grouped into 17 experiments, read at 3 and 6 weeks, young ones given review dates | a worker on the playbook's branch | updated playbook, change-log line, cold read with 25 findings fixed | blocked about 85 minutes on Search Console access, then 35 minutes | step 2; rule 1 (it stopped instead of estimating) |
 | 4 | A meeting snapshot | the orchestrator and one helper | a showcase page, later corrected for IndexNow | 73 s | not part of the loop (Later) |
 | 5 | New site, first pass | the orchestrator alone, from Product A lessons only | a fixes page | | step 7, and the reason the rerun and gap check exists |
-| 6 | Product B deep dive: every PR since April, live dates from deploy runs, Search Console page by day, AI-feature impressions transcribed, analytics funnel and AI referrals, both scanners | a worker fanning out 4 read-only research agents | deep dive with a coverage appendix that classified every merged PR and reconciled every public-path commit; raw pulls archived under `.seo/archive/` | | steps 2, 3 and 5 |
+| 6 | Product B deep dive: every PR since its rework began, live dates from deploy runs, Search Console page by day, AI-feature impressions transcribed, analytics funnel and AI referrals, both scanners | a worker fanning out 4 read-only research agents | deep dive with a coverage appendix that classified every merged PR and reconciled every public-path commit; raw pulls archived under `.seo/archive/` | | steps 2, 3 and 5 |
 | 7 | Polling | the orchestrator | status messages every 10 minutes | | `orchestrate-sessions`' watcher |
 | 8 | New-site rerun with both products' lessons, every sitemap URL live, both scanners, competitor and assistant-answer searches, and a gap check against the site's own audit | 1 research agent | a second page and a gap-check file; the orchestrator re-verified the top finding before republishing | | step 7's rerun and gap check |
 | 9 | Cross-product write-up v1 (thematic) | 1 research agent | 7 sections; its own cold read fixed 12 problems | 453 s | step 6 |
@@ -29,7 +29,7 @@ Sources: the orchestrating session's transcript digest (2026-11-03 to 2026-11-04
 | The person's words (paraphrased) | Rule or step |
 | --- | --- |
 | "dug into every commit ... against the Google Search Console data ... what happened after three to six weeks ... for every everything" | step 2; rule 2 |
-| "literally looked at every commit from start of April to today" | rule 2; the coverage appendix |
+| "literally looked at every commit from the start of the rework to today" | rule 2; the coverage appendix |
 | "it's really hard to read"; "in very simple terms, so I can share it" | rule 6 |
 | "start the document with a list of the top 10 low hanging fruits" | the ranked page opens with the top actions |
 | "check every 10 mins until everything's done" | the watcher |

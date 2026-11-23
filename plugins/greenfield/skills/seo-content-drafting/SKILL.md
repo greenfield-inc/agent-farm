@@ -96,7 +96,7 @@ After all content is drafted, do a linking pass:
 Add a link to a page only once that page is live and returns 200. A link to a
 page that does not exist yet costs months: one site linked several pages days
 before they shipped, Google fetched them as 404, and it had not recrawled them
-more than five months later. Add the links from existing pages in the same deploy as the new
+months later. Add the links from existing pages in the same deploy as the new
 pages, or after it.
 
 **Success criteria**: Every new page links to at least 2-3 existing pages. Existing pages link back where relevant. Every linked page is live.

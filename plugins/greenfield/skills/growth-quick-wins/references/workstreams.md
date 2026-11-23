@@ -70,7 +70,7 @@ Propose a workstream when a probe on this product shows the gap. Each entry give
 
 - Outcome: search engines and assistants tell the product apart from other things with its name.
 - Trigger: P13 shows the site below #1 for its own name, or P18 finds no entity and a name shared with another product or a common word.
-- Evidence: Product B ranked 8th to 10th for its own name in the scanner's searches, among many businesses sharing the word. Product A's name is a common English word, and the scan flagged no entity.
+- Evidence: Product B ranked below several other businesses for its own name in the scanner's searches, among many sharing the word. Product A's name is a common English word, and the scan flagged no entity.
 - First step: Organization, WebSite and SoftwareApplication JSON-LD with `alternateName` and `sameAs`; a Wikidata item; an FAQ line saying the product is not the other one; a footer "Not affiliated with ..." line when a same-named product exists.
 - Measure: rank for the bare name and the citation probe's answer to "what is <product>".
 
@@ -78,7 +78,7 @@ Propose a workstream when a probe on this product shows the gap. Each entry give
 
 - Outcome: every new page indexed within two weeks.
 - Trigger: S5 shows unindexed recent pages; P1 to P6 find orphans, noindex money pages, one build-date `lastmod`, redirect chains, or early links.
-- Evidence: 24 of Product A's 41 new pages unindexed with 2 vs 5 inbound links from traffic pages; Product B's early links left 404s for five months.
+- Evidence: 24 of Product A's 41 new pages unindexed with 2 vs 5 inbound links from traffic pages; Product B's early links left 404s for months.
 - First step: a link test: two links from high-traffic pages to half the unindexed pages, the other half left as a control.
 - Measure: indexed count at 7 and 28 days, treated vs control.
 
@@ -86,7 +86,7 @@ Propose a workstream when a probe on this product shows the gap. Each entry give
 
 - Outcome: the site's build fails before a wrong claim, a broken link or a stale date ships.
 - Trigger: P9 or P15 finds a wrong fact the site itself published; P4 or P5 finds broken internal links or links to unbuilt pages; F1 shows links committed before their pages.
-- Evidence: a third product's SEO plan (2026) shipped these gates: a claims check that fails on banned claims, gated claims without a tag, a gate marked shipped without evidence, and placeholder prices, with a rendered check that crawls every sitemap URL plus llms.txt and llms-full.txt; an internal-link check that fails when a pillar page has fewer than 2 contextual inbound links or fewer than 5 linking pages, when a hub misses a page, or when an internal link does not return 200; dates stored in one file; a fact sheet per changed page with claim, source URL, quote and verified date. Product B's links to unbuilt pages left 404s for five months.
+- Evidence: a third product's SEO plan (2026) shipped these gates: a claims check that fails on banned claims, gated claims without a tag, a gate marked shipped without evidence, and placeholder prices, with a rendered check that crawls every sitemap URL plus llms.txt and llms-full.txt; an internal-link check that fails when a pillar page has fewer than 2 contextual inbound links or fewer than 5 linking pages, when a hub misses a page, or when an internal link does not return 200; dates stored in one file; a fact sheet per changed page with claim, source URL, quote and verified date. Product B's links to unbuilt pages left 404s for months.
 - First step: the internal-link check (links resolve and point at built pages), then the claims check over prices.
 - Measure: failures caught per month; zero 404s from internal links in S5.
 
@@ -139,7 +139,7 @@ Propose a workstream when a probe on this product shows the gap. Each entry give
 
 ## Time estimates
 
-From work sessions on both products, one person with an agent:
+From the growth work sessions, one person with an agent:
 
 | Work | Time |
 | --- | --- |

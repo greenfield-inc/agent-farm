@@ -10,7 +10,7 @@ What decided growth on two products, as rules an audit applies to any site. The 
 Google indexes a new page when a page it already values links to it. Sitemaps and ping services do not substitute.
 
 - Product A: of 41 pages shipped Oct 5 to 10, 17 were indexed by Nov 3 and 24 had never been fetched. Indexed pages had a median of 7 inbound links, 5 of them from pages with 100+ impressions, and their linking pages totalled 4,424 impressions. Unindexed pages had 3, 2 and 433. Word count (729 vs 664) and 5-word shingle overlap (0.16 vs 0.15) were the same, so content did not decide it.
-- Product B: a template batch whose pages linked only to each other got no impressions until two later changes linked to it from crawled pages; about three quarters of the batch pages that ever showed got their first impression within four days of those links. Clusters whose hub Google crawled were indexed; the rest were not. Every orphan page, present only in the sitemap, stayed unindexed.
+- Product B: a template batch whose pages linked only to each other got no impressions until two later changes linked to it from crawled pages; about three quarters of the batch pages that ever showed got their first impression within days of those links. Clusters whose hub Google crawled were indexed; the rest were not. Every orphan page, present only in the sitemap, stayed unindexed.
 - Google does not read IndexNow (Bing and Yandex do). Product A's 41 pages were submitted through IndexNow and most stayed unindexed; pages shipped with no submission indexed in 3 days once linked well.
 
 Audit: P4 link graph, S5 index coverage. Quick win: two links from high-traffic pages to each unindexed page, with matched pages left alone as a control.
@@ -19,7 +19,7 @@ Audit: P4 link graph, S5 index coverage. Quick win: two links from high-traffic 
 
 A link to a page that does not exist yet teaches the crawler a 404 that lasts.
 
-- Product B: one page linked to several pages days before they shipped. Google fetched 404s and had not returned five months later. The top query among those pages kept its impressions with no page to land on.
+- Product B: one page linked to several pages days before they shipped. Google fetched 404s and had not returned months later. The top query among those pages kept its impressions with no page to land on.
 - Product B also had merged changes that never deployed. Merged is not shipped.
 
 Audit: P5, S5, F1. Quick wins: request indexing and bump `lastmod` on pages last crawled as 404; a build check that fails on links to unbuilt pages; a URL Inspection pass 7 days after every launch.
@@ -50,7 +50,7 @@ Audit: P12 competitor sitemaps, P13, P14. Ship a new competitor's page within a 
 
 Large template batches get held back, and template pages wait until outside pages link in (principle 1).
 
-- Product B: a batch of hand-written single-topic pages earned about 4x the six-week clicks of a template batch almost four times its size. The single pages reached first impression in under a day; the batch took a median of about four weeks, and 46% of it was never shown.
+- Product B: a batch of hand-written single-topic pages earned about 4x the six-week clicks of a template batch almost four times its size. The single pages reached first impression almost at once; the batch took a median of about four weeks, and 46% of it was never shown.
 - Product A: of 14 short definition pages shipped in one batch in October, Google indexed 1.
 
 Audit: P11. Ship 5 to 15 hand-written pages at a time; pause a template family until the last batch is indexed and linked from pages outside it.
@@ -67,7 +67,7 @@ Audit: P13, P14, S7, S8, A1. Judge explainer pages by AI views, not clicks. Open
 
 ## 7. Ask sign-ups; tracking undercounts AI
 
-- Product B: once its sign-up survey offered an AI option, about a quarter of answers each month (25 to 28%, July to October) named an AI assistant, while first-touch tracking credited AI with about 4%: self-reported AI ran 4x to 5x tracked AI. About 1 in 7 of those sign-ups had an AI first touch; most arrived as organic search or direct. Buyers ask an assistant, then search the brand.
+- Product B: once its sign-up survey offered an AI option, about a quarter of answers each month (25 to 28%, every month since) named an AI assistant, while first-touch tracking credited AI with about 4%: self-reported AI ran 4x to 5x tracked AI. About 1 in 7 of those sign-ups had an AI first touch; most arrived as organic search or direct. Buyers ask an assistant, then search the brand.
 - A single "AI" option cannot say which assistant to work on. Split it.
 
 Audit: F2. Quick wins: add the question, or split the option by assistant; cross-tab answers against first touch.
@@ -86,7 +86,7 @@ Make the facts machine-readable and true, then stop.
 - Product A served Markdown only on `/` and `/docs` while compare and alternatives pages held 5,101 of 10,513 lifetime page-level clicks (through 2026-11-01).
 - Product A's `/.well-known/mcp` described a local server; scanners POST to it, get a 405, and flag a broken handshake.
 - Product B's agents.md described an MCP server and OAuth endpoints that did not exist. Scanners count that as a broken promise.
-- Product B ranked 8th to 10th for its own name in the scanner's searches, a generic-name collision with no entity.
+- Product B ranked below several other businesses for its own name in the scanner's searches, a generic-name collision with no entity.
 
 Audit: P16, P17, P18. Fix wrong or missing facts first (price, when to use, entity), then Markdown on money pages. Recommend developer items (agents.md, MCP, OAuth) only when the product sells to developers.
 

@@ -48,8 +48,8 @@ Product B's deep dive classified every PR merged in its window, more than five f
 ### 2. Date each change
 
 - **Merge date** when the site deploys on merge.
-- **Live date** when deploys are manual: the first successful deploy run whose head contains the merge commit (`gh run list --workflow <deploy workflow> --status success`, then `git merge-base --is-ancestor <merge commit> <run head>`). One of Product B's PRs merged 2026-04-25 and went live 2026-05-06.
-- A PR reverted before any deploy was never live. Product B found one, reverted minutes after merging.
+- **Live date** when deploys are manual: the first successful deploy run whose head contains the merge commit (`gh run list --workflow <deploy workflow> --status success`, then `git merge-base --is-ancestor <merge commit> <run head>`). One of Product B's PRs went live about two weeks after it merged.
+- A PR reverted before any deploy was never live. Product B found one.
 - `.seo/access.md` says which deploy mode applies.
 
 ### 3. Group into experiments
@@ -82,16 +82,16 @@ Product A: 69 growth sessions, 126 hours over eight months, median 66 minutes, 3
 
 Measure three things, each dated, and keep them apart.
 
-- **Scanners measure readiness, never citations.** Run named scanners (is-agentic: `npx is-agentic <domain> --json`, which may return a cached scan; Ora: `POST https://ora.ai/api/scan`) and record each score with its scan date and whether it was cached. Product A's readiness pass took is-agentic from 86 to 100 while AI-assistant pageviews fell from 606 in July to 247 in October (5.2% to 1.4% of pageviews); Product B scored 64 and 65 while its AI visits about doubled (Source: "Growth, phase by phase" (v2, 2026-11-04), Principle 6).
+- **Scanners measure readiness, never citations.** Run named scanners (is-agentic: `npx is-agentic <domain> --json`, which may return a cached scan; Ora: `POST https://ora.ai/api/scan`) and record each score with its scan date and whether it was cached. Product A's readiness pass took is-agentic from 86 to 100 while AI-assistant pageviews fell from 606 in July to 247 in October (5.2% to 1.4% of pageviews); Product B scored lower than Product A on both scanners while its AI visits about doubled (Source: "Growth, phase by phase" (v2, 2026-11-04), Principle 6).
 - **AI referrals by assistant.** Count visits per month from ChatGPT, Claude, Perplexity, Gemini and Copilot in the connected analytics tool, by referrer or `utm_source` (ChatGPT sends most visits as `utm_source=chatgpt.com` with no referrer), split by landing page. Name any gap in the analytics data.
-- **The sign-up survey over time.** Ask every sign-up "How did you find us?" with an AI option split by assistant, and save the first-touch source on the sign-up. Report the AI share by month. Tracking hides AI: on Product B, 25% to 28% of answers each month from July to October named an AI while tracking credited about 4%, so self-reported AI ran 4x to 5x tracked AI; only about 1 in 7 AI answerers had an AI first touch. Before the AI option existed, about 2% typed it in, so shares before and after an option change are not comparable (Source: "Growth, phase by phase" (v2, 2026-11-04), Principle 7). With no survey, say the product cannot tell fewer AI recommendations from hidden referrers, and list adding one as an action.
+- **The sign-up survey over time.** Ask every sign-up "How did you find us?" with an AI option split by assistant, and save the first-touch source on the sign-up. Report the AI share by month. Tracking hides AI: on Product B, 25% to 28% of answers each month after the AI option was added named an AI while tracking credited about 4%, so self-reported AI ran 4x to 5x tracked AI; only about 1 in 7 AI answerers had an AI first touch. Before the AI option existed, about 2% typed it in, so shares before and after an option change are not comparable (Source: "Growth, phase by phase" (v2, 2026-11-04), Principle 7). With no survey, say the product cannot tell fewer AI recommendations from hidden referrers, and list adding one as an action.
 - **State the denominator.** Product B's AI share of sign-ups was about 4% tracked, 20% in one analytics survey count, and 24.3% and 27% in warehouse counts over different windows. All are correct for what they measure. Every AI share names its numerator, denominator and window.
 - Google's AI-feature impressions are not in the Search Console API; copy them from the Search Console screen and label them "transcribed".
 - Whether assistants name the product is measured by the answer panel in `seo-answer-panel`.
 
 ## Report brand and homepage separately
 
-Brand searches and the homepage click at high rates, so many new pages at lower rates pull the site's CTR down while clicks grow. Product A's site CTR fell from 4.70% in May to 2.85% in October while monthly clicks rose from 191 to 2,945. On Product B, 87% of query-attributed clicks were brand searches and 76% of search visits landed on the homepage, while non-homepage clicks rose about 7x October to October (Source: "Growth, phase by phase" (v2, 2026-11-04), Principle 4 and "Where they differed"). Every summary and every experiment table reports brand and non-brand, and homepage and other pages, as separate rows.
+Brand searches and the homepage click at high rates, so many new pages at lower rates pull the site's CTR down while clicks grow. Product A's site CTR fell from 4.70% in May to 2.85% in October while monthly clicks rose from 191 to 2,945. On Product B, 87% of query-attributed clicks were brand searches and 76% of search visits landed on the homepage, while non-homepage clicks rose about 7x year over year (Source: "Growth, phase by phase" (v2, 2026-11-04), Principle 4 and "Where they differed"). Every summary and every experiment table reports brand and non-brand, and homepage and other pages, as separate rows.
 
 ## Deep dive
 
@@ -99,7 +99,7 @@ Write the product's deep dive from [references/deep-dive-outline.md](references/
 
 - **Open with a five-minute founder summary of actions**: what happened, what it proves, and the method step by step, in plain words any founder can copy. Numbers follow below it.
 - **End with the coverage appendix**: every merged PR classified with counts, the commit list and its reconciliation to PRs, what git cannot show (redirects outside the repo, side-branch merges, shared components that change many pages at once), headline numbers re-verified, and what was not checked.
-- **Re-verify headline numbers by a separate script** that recomputes every number in the summary from the raw pulls. Product B's check found sums off by one and a mislabelled window.
+- **Re-verify headline numbers by a separate script** that recomputes every number in the summary from the raw pulls. Product B's check found sums that did not add up and a mislabelled window.
 - Use `swarm` to fan out the read-only pulls in parallel: the PR timeline, Search Console page-by-day and queries, analytics and referrals, and the scanners.
 - The orchestrator sends the finished deep dive to the reviewer for a claims check and a cold read before the person sees it.
 

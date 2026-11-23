@@ -42,7 +42,7 @@ Reached through the same connected tool. Inspect the exact canonical form of eac
 
 ## AI-feature impressions
 
-Search Console's Generative AI features report (Performance, Generative AI features) is available only in the Search Console screen. The API returns `400 INVALID_ARGUMENT` for the search types `aiOverview`, `aiMode` and `generativeAi`, and a `searchAppearance` query returns no AI rows ("Product B growth deep dive, April to November 2026", 2026-11-03; "Conductor query clicks: evidence tables", 2026-11-03).
+Search Console's Generative AI features report (Performance, Generative AI features) is available only in the Search Console screen. The API returns `400 INVALID_ARGUMENT` for the search types `aiOverview`, `aiMode` and `generativeAi`, and a `searchAppearance` query returns no AI rows ("Product B growth deep dive", 2026-11-03; "Conductor query clicks: evidence tables", 2026-11-03).
 
 To use it:
 
@@ -53,7 +53,7 @@ To use it:
 5. Report AI-feature impressions as a share of web impressions only with the caveat that whether Google counts them inside web impressions is unverified. Page sums can exceed property totals because slash variants count separately.
 6. A zero in a UI export may mean unavailable rather than none.
 
-What it showed on Product B: AI-feature impressions rose from 14% of web impressions in June to 34% in September and October, concentrated on definition and compliance pages.
+What it showed on Product B: AI-feature impressions rose from 14% of web impressions to 34% about three months later, concentrated on definition and compliance pages.
 
 ## Analytics
 
@@ -66,7 +66,7 @@ Product A and Product B used PostHog with HogQL; the same traps apply to GA4 and
 - **Event definitions change.** Read each event's definition and the date it started or changed. Product B's "signup completed" event fired per user and overcounted organizations about 4x; net-new sign-ups are organizations. Product A's `download_started` event covered only 3% to 4% of GitHub downloads; its all-downloads total is a marketing number and human installs the internal one ("Analytics and Attribution", Product A, May 2026).
 - **Bots inflate counts.** Product A's "human" download users tripled in three weeks, 1,338 to 4,065 a week, while visitors fell: bot leakage, caught in the 2026-08-05 briefing. A count that rises while its upstream falls is a data problem until proven otherwise.
 - **Pageviews are floors.** Ad blockers drop some captures; server-side events do not. Never divide a server-side count by a client-side count to get a conversion rate.
-- **Know when the project starts.** Product B's analytics began 2026-04-28, website pageviews 2026-05-05, and its server-side sign-up event 2026-07-09. Nothing earlier exists, so say so instead of extrapolating.
+- **Know when the project starts.** Product B's analytics began in the first week of its rework, website pageviews a week later, and its server-side sign-up event about ten weeks after that. Nothing earlier exists, so say so instead of extrapolating.
 
 ## Repository history
 
@@ -74,7 +74,7 @@ The source for "what changed and when". Read it with `git log` and `git show` in
 
 - **Enumerate every change, never a sample.** Run `git log --first-parent --since=<start>` on the default branch over every path that produces a public page: site source, docs, metadata and schema, sitemaps, robots.txt, llms.txt, agent files, redirect configuration. Then list merged PRs for the same window.
 - **Reconcile commits to PRs.** Match each first-parent commit to its PR; match commits without a PR number through the hosting API; name direct commits. Squash-merging repositories keep per-commit times only in the PR's commit list.
-- **Date by live date when deploys are manual.** On a site that deploys by hand, a merge is not a launch. Date each change by the first successful deploy run whose head contains the PR's merge commit, read from the CI run history. Product B's foundation PR merged 2026-04-25 and went live 2026-05-06. One Product B PR merged and was reverted minutes later, before any deploy, and was never live. Where deploys run on merge, the merge date is the ship date.
+- **Date by live date when deploys are manual.** On a site that deploys by hand, a merge is not a launch. Date each change by the first successful deploy run whose head contains the PR's merge commit, read from the CI run history. Product B's foundation PR went live about two weeks after it merged. One Product B PR merged and was reverted before any deploy, and was never live. Where deploys run on merge, the merge date is the ship date.
 - **Say what git cannot show.** Redirects configured outside the repository, side-branch merges, and shared components (footer, head, homepage sections) that change many pages without a per-page diff. List them in the coverage appendix.
 - **Work sessions.** Rebuild them from every human commit on every branch plus PR open and merge times; events less than 2.5 hours apart form one session ([lessons-by-phase.md](lessons-by-phase.md#work-sessions-rebuilt-from-git)).
 
@@ -84,7 +84,7 @@ The "How did you find us?" answers are the only source that shows AI recommendat
 
 - **Access.** Connect with a read-only database role, inside read-only transactions with a statement timeout (60 seconds was used), and confirm a test write is refused before running anything. Find the answer field in the schema by searching the code for the question's wording.
 - **Aggregates only.** Return counts and shares by month and by answer. No names, emails, organization names or free-text answers leave the database.
-- **Find the dates the question changed.** Read the history of the sign-up form's code. Each change to the options breaks the series. Product B added an AI option on 2026-07-08 (before it, about 2% typed AI in as free text), and made "Other" require text on 2026-10-19. Shares from before and after a change are not comparable; label the break.
+- **Find the dates the question changed.** Read the history of the sign-up form's code. Each change to the options breaks the series. Product B added an AI option partway through its rework (before it, about 2% typed AI in as free text), and later made "Other" require text. Shares from before and after a change are not comparable; label the break.
 - **Fix one counting rule.** Count non-deleted organizations created in the window. Product B's warehouse had a burst of deleted organizations answering "Internet search" (spam or QA) that would have swung the shares.
 - **State the denominator.** The AI share of Product B sign-ups was about 4% by tracking, about 20% of all net-new sign-ups since the option, 25% to 28% of each month's answers, and 27% of answers on another base. All were correct for what they measured; quote the one you use with its base.
 

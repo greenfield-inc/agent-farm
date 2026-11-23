@@ -61,16 +61,12 @@ Each file's frontmatter holds `id`, `live` (optional), `read_21`, `read_42` and
 List every past-due read in the briefing with its experiment, read and due
 date. A read counts as done only when it was run the controlled way, so a
 quick look at the fresh numbers never fills `read_21` or `read_42`. When the
-briefing is asked to run a due read itself:
-- Read the experiment's pages for the window that ends 21 (or 42) days after
-  the ship date, and for the same number of days just before the ship date
-- Read the control the same way: every page with impressions before the
-  baseline window, minus the experiment's own pages
-- Credit the change only when it beat the control; a change that moved with
-  the control "moved with the site". Under 20 clicks the read is directional
-- Write the numbers, windows and verdict into the experiment file, then set
-  `read_21` (or `read_42`) to today's date. The verdict belongs to the 42-day
-  read; after it, set `status: read`.
+briefing is asked to run a due read itself, run it exactly as the Reads
+section of seo-experiments says (its windows, its control, which leaves out
+the homepage when brand searches dominate, and its credit rule), then write
+the read into the experiment file as that skill's "Writing a read" says and
+set `read_21` (or `read_42`) to today's date. When seo-experiments is not
+available to you, do not run the read: list it as due for the measurer.
 
 List experiments with no read due yet in the briefing under "Running
 Experiments", with the date each next read is due.
