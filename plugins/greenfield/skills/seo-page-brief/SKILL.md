@@ -63,7 +63,7 @@ Write each field. A field with no answer says why, and a missing fact goes to it
 ### Links
 
 - **Link in from pages that already earn traffic.** Of 41 Product A pages shipped Oct 5 to 10, the 17 indexed by Nov 3 had a median 7 inlinks, 5 of them from pages with 100+ impressions, and their linking pages totalled 4,424 impressions; the 24 unindexed ones had a median 3 inlinks, 2 from such pages, and 433 impressions on their linking pages. Word count and content overlap were the same in both groups. Name each linking page with its impressions, source and window, and add the hub, sitemap and `llms.txt` entries the site uses for the page type.
-- **Link only to pages already live.** A Product B page linked four pages six days before they existed; Google fetched a 404 and had not recrawled them 157 days later, though all four now return 200. A page that does not return 200 today gets no link; the brief lists the link for the PR that ships it.
+- **Link only to pages already live.** A Product B page linked several pages days before they existed; Google fetched a 404 and had not recrawled them more than five months later, though all of them now return 200. A page that does not return 200 today gets no link; the brief lists the link for the PR that ships it.
 - Keep ranking URLs. Moving a page that ranks loses its clicks at the old address; link to it instead. A redirect goes only to an intent-equivalent page, names the old URL's evidence and its destination, and never points everything at the homepage.
 
 ### Say each fact once
@@ -95,4 +95,4 @@ The same rules hold for every page a brief edits, including another page it name
 - "Superset is now Paradev, PR #242" (2026-11-15), "Homepage: say each fact once, PR #248" (2026-11-15), "Docs clarity audit and rewrite" (2026-11-15 to 2026-11-16).
 - "SEO: GSC Findings and Diagnosis" (2026-05-07), "Content Briefs" (2026-05-07 to 2026-05-14), "SEO Strategy" (2026-07-17): title rules, resolution framing, honest competitor copy.
 - "Batch 1 new-name pages and fact sheets" (facts verified 2026-11-05) and "Competitive pages: run progress" (2026-10-04): fact sheets with a verified date and a tick box for a person, vendor facts that changed.
-- A customer workflow starter (2026-11-03, method only): the commercial brief's decision path, fact ledger fields, acceptance checks and "a brief is not permission to publish".
+- A customer workflow starter (method only): the commercial brief's decision path, fact ledger fields, acceptance checks and "a brief is not permission to publish".

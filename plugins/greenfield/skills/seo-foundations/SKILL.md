@@ -214,7 +214,7 @@ them in turn. For each competitor record:
   ones you will compete with), and the URL patterns they do not have (a 404
   on `/glossary`, `/about`, `/changelog`, `/<x>-vs-<y>`).
 - **Titles and H1s** of the money pages, the keyword each targets, and your
-  own titles beside them. Product B ranked on page 1 for two category
+  own titles beside them. Product B ranked on page 1 for its core category
   queries and got almost no clicks because its title tag was only its
   brand name; competitors' titles named the benefit. Source: "Growth, phase
   by phase" (v2, 2026-11-04), Phase 0.
@@ -394,7 +394,7 @@ evidence below decides it. From most to least valuable for a new site:
     E-E-A-T only. Definitions get seen and not clicked: Product A's
     explainers ran at 0.87% CTR, its 14 new definition pages in October had
     1 indexed by 2026-11-03, and Product B's definition searches ran at
-    0.10% CTR while appearing in AI answers thousands of times. Build them
+    0.10% CTR while appearing often in AI answers. Build them
     for coverage, link them from money pages, and never count on them for
     traffic. Source: "Growth, phase by phase" (v2, 2026-11-04), Principles
     1, 2 and 5.
@@ -414,8 +414,8 @@ dependencies (what must exist before a page can be honest); add a wave-2
 section with the next set of alternatives, pairs, tools, and cookbooks so
 the plan does not stop at launch. Ship in small batches of one topic each,
 each new page linked from a page that already gets search traffic: Product
-B's 13 single-topic pages earned about four times the clicks of a 48-page
-templated batch, 22 of which never appeared in Google. Source: "Growth,
+B's single-topic batch earned about four times the clicks of a templated
+batch, almost half of which never appeared in Google. Source: "Growth,
 phase by phase" (v2, 2026-11-04), Principle 2.
 
 **Page rules every money page follows**:

@@ -46,7 +46,7 @@ Propose a workstream when a probe on this product shows the gap. Each entry give
 
 - Outcome: one price and one set of plan facts on every page, llms.txt and structured data, and third-party pages corrected to match.
 - Trigger: P9 finds pages disagreeing; P14 or P15 finds assistants or third-party pages stating a wrong, retired or "quote only" price.
-- Evidence: on one audited site, a pricing page hidden by noindex led AI answers to say prices were not public, and competitor and review pages kept a retired price. Assistants repeat whichever version they find.
+- Evidence: what P9, P14 and P15 find on this site. Assistants repeat whichever version of a fact they find, so a pricing page hidden by `noindex` or a retired price on a competitor or review page becomes a wrong answer.
 - First step: make the site's own pages agree (P9), then email each third-party owner the correction with a link to the pricing page.
 - Measure: the citation probe's wrong-fact count per month; each third-party page re-read at 30 days.
 
@@ -102,7 +102,7 @@ Propose a workstream when a probe on this product shows the gap. Each entry give
 
 - Outcome: one record per change with live date, pages, baseline, expected effect, control pages, and 3-week and 6-week reads, failures included.
 - Trigger: F3 finds none, or recent launches cannot be told apart.
-- Evidence: Product B's 11-day verdict reversed at 6 weeks; Product A's 95-page rewrite moved with the site.
+- Evidence: Product B's early title verdict reversed at 6 weeks; Product A's 95-page rewrite moved with the site.
 - First step: log every change in this audit's quick wins as it ships.
 - Measure: past-due reviews closed each month.
 

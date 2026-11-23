@@ -54,10 +54,10 @@ Put these in every starting message, by reference to this section, and hold ever
 | Live site | fetch the homepage, `robots.txt` and the sitemap | Public tier |
 | Search Console | the connected tool lists the site's property and returns one day of rows | Search tier |
 | Analytics | the connected tool returns one day of pageviews | Analytics tier |
-| Repository history | `git log --first-parent` over the public site's paths returns commits | Full tier, with the survey |
-| Sign-up survey | a read-only aggregate of answers by month | Full tier, with the repository |
+| Repository history | `git log --first-parent` over the public site's paths returns commits | Full tier (either this or the survey) |
+| Sign-up survey | a read-only aggregate of answers by month | Full tier (either this or the repository) |
 
-The tier is the highest one whose sources all answered. Pass the tier and the missing sources to every worker. The first role that opens a `.seo/` PR writes `.seo/access.md` (format in `seo-experiments`), including the review cadence: monthly by default, weekly when the product has weekly lead outcomes. When the request needs a missing source (a read-back needs Search Console), raise one question for the person naming the source, what it unlocks, and how to connect it, with "continue at the current tier" as the second option. Never estimate in its place.
+The tiers build on each other, as the quick-wins method defines them: Search adds Search Console, Analytics adds an analytics tool, and Full adds the repository or the sign-up survey (either one). The tier is the highest one reached. A check that needs a specific source (the history read-back needs the repository; survey answers need the survey) runs only when that source answered, whatever the tier. Pass the tier and the missing sources to every worker. The first role that opens a `.seo/` PR writes `.seo/access.md` (format in `seo-experiments`), including the review cadence: monthly by default, weekly when the product has weekly lead outcomes. When the request needs a missing source (a read-back needs Search Console), raise one question for the person naming the source, what it unlocks, and how to connect it, with "continue at the current tier" as the second option. Never estimate in its place.
 
 ## 1. Due read-backs first
 
@@ -67,7 +67,7 @@ On every start, before anything new, list what is due:
 node <seo-experiments skill directory>/scripts/due.mjs --repo <repo> --ref <default branch> --json
 ```
 
-Each record whose read is `due` becomes one measurer item: "Read <id> at <days> days". Records `too early` go on the status page with their dates. A legacy single-file `.seo/experiments.md` is imported into records by the measurer on its first `.seo/` PR, then the script sees them. When the person asked only what is due, report the list, the tier and the missing sources, and dispatch nothing.
+Each record whose read is `due` becomes one measurer item: "Read <id> at <days> days". Records `too early` go on the status page with their dates. Older experiment logs (a single `.seo/experiments.md`, or files the script lists as `legacy`) become one measurer item first: migrate them as `seo-experiments` says, so the script sees every experiment. A `closed` record is never dispatched. When the person asked only what is due, report the list, the tier and the missing sources, and dispatch nothing.
 
 ## 2. Route the steps
 

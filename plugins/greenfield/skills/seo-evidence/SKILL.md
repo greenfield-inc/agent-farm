@@ -12,7 +12,7 @@ The two products:
 - **Product A**: an open-source developer tool for running coding agents in parallel. A new domain from 2026-02-26. Its real numbers, page paths, competitor names and dates appear in full.
 - **Product B**: a B2B healthcare SaaS with a free plan. A known brand reworked from April 2026. It appears as ratios and percentages only.
 
-A few method lessons come from one customer engagement (a third site and its workflow starter). Only the method is used: never its names, numbers or domains.
+A few method lessons come from one customer engagement (its workflow starter). Only the method is used: never its names, numbers, findings or domains.
 
 ## Which file to open
 

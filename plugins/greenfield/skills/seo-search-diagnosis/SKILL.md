@@ -78,4 +78,4 @@ Lead with the answer in two sentences, then these sections. Keep the body to 400
 7. **The one measurement that would settle it**: the cheapest probe or test, with what each outcome would mean.
 8. **Exceptions**: cases that do not fit the explanation, listed.
 
-No fixes and no action list. Source for the method: "Growth, phase by phase" (v2, 2026-11-04), "What surprised us"; the three investigations of 2026-11-03 cited in `references/worked-investigation.md`; the search diagnosis in a customer workflow starter (confidential, method only, 2026-11).
+No fixes and no action list. Source for the method: "Growth, phase by phase" (v2, 2026-11-04), "What surprised us"; the three investigations of 2026-11-03 cited in `references/worked-investigation.md`; the search diagnosis in a customer workflow starter (confidential, method only).

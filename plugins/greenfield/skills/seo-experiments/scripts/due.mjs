@@ -4,10 +4,15 @@
 //
 //   node due.mjs [--repo <dir>] [--ref <git ref>] [--today YYYY-MM-DD] [--json]
 //
+// Records: with --ref, the records as they are on that ref (read through git), so a run from a feature branch
+// still sees what is due on the default branch; without --ref, the working tree, including local drafts.
 // Ship date: the record's `live` field when set, else the committer date (UTC) of the earliest first-parent
-// commit on --ref that added the record file. A record with neither is not shipped yet.
+// commit on the ref (default HEAD) that added the record file. A record with neither is not shipped yet.
 // Each read's window ends ship + N days and becomes runnable 3 days later (Search Console lag).
 // A read is "done" when read_N holds a date, "due" from its runnable date, and "too early" before it.
+// A record with status: closed keeps its dates, but its open reads are "closed": never due, no next read.
+// A Markdown file with no frontmatter is a legacy record from the older per-file format: it is listed as
+// "legacy" (needs migration) and the rest of the list still runs.
 // Exit 0 with the list; exit 1 on bad usage, an unparseable record, a bad date, or a git failure.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -23,7 +28,7 @@ function fail(message){
 }
 
 function parseArgs(argv){
-  const opts={repo:process.cwd(),ref:'HEAD',today:new Date().toISOString().slice(0,10),json:false};
+  const opts={repo:process.cwd(),ref:null,today:new Date().toISOString().slice(0,10),json:false};
   for(let i=0;i<argv.length;i++){
     const arg=argv[i];
     if(arg==='--json'){opts.json=true;continue;}
@@ -52,7 +57,7 @@ function addDays(date,days){
 // Frontmatter is the block between the first two `---` lines: `key: value` lines, where ` # ...` starts a comment.
 function parseFrontmatter(text,file){
   const lines=text.replace(/\r\n?/g,'\n').split('\n');
-  if(lines[0].trim()!=='---')fail(`${file}: no frontmatter (the file must start with a --- line)`);
+  if(lines[0].trim()!=='---')return null;
   const end=lines.indexOf('---',1);
   if(end===-1)fail(`${file}: frontmatter has no closing --- line`);
   const fields={};
@@ -82,24 +87,45 @@ function gitShipDate(repo,ref,rel){
   return new Date(dates[dates.length-1]).toISOString().slice(0,10);
 }
 
-function record(repo,ref,today,file){
-  const abs=path.join(repo,'.seo','experiments',file);
-  const rel=path.join('.seo','experiments',file);
-  const fields=parseFrontmatter(fs.readFileSync(abs,'utf8'),rel);
+function git(repo,args,what){
+  try{
+    return execFileSync('git',['-C',repo,...args],{encoding:'utf8',stdio:['ignore','pipe','pipe']});
+  }catch(error){
+    fail(`${what}: ${String(error.stderr||error.message).trim()}`);
+  }
+}
+
+function listRecords(repo,ref){
+  if(ref){
+    git(repo,['rev-parse','--verify','--quiet',`${ref}^{commit}`],`${ref} is not a commit`);
+    try{execFileSync('git',['-C',repo,'cat-file','-e',`${ref}:.seo/experiments`],{stdio:'ignore'});}catch{return [];}
+    const out=git(repo,['ls-tree','--name-only',`${ref}:.seo/experiments`],`cannot list .seo/experiments on ${ref}`);
+    return out.split('\n').filter(name=>name.endsWith('.md')).map(name=>({name,text:()=>git(repo,['show',`${ref}:.seo/experiments/${name}`],`cannot read ${name} on ${ref}`)}));
+  }
+  const dir=path.join(repo,'.seo','experiments');
+  if(!fs.existsSync(dir))return [];
+  return fs.readdirSync(dir).filter(name=>name.endsWith('.md')).map(name=>({name,text:()=>fs.readFileSync(path.join(dir,name),'utf8')}));
+}
+
+function record(repo,ref,today,entry){
+  const rel=path.join('.seo','experiments',entry.name);
+  const fields=parseFrontmatter(entry.text(),rel);
+  if(!fields)return {id:entry.name.replace(/\.md$/,''),file:rel.split(path.sep).join('/'),legacy:true,ship_date:null,ship_source:null,status:null,reads:[],next:null};
   let ship_date=null,ship_source=null;
   if(fields.live){ship_date=fields.live;ship_source='live';}
   else{
-    ship_date=gitShipDate(repo,ref,rel);
+    ship_date=gitShipDate(repo,ref||'HEAD',rel.split(path.sep).join('/'));
     if(ship_date)ship_source='git';
   }
+  const closed=fields.status==='closed';
   const reads=ship_date?READS.map(days=>{
     const window_end=addDays(ship_date,days);
     const runnable_from=addDays(window_end,LAG);
     const done=fields[`read_${days}`]||null;
-    const state=done?'done':today>=runnable_from?'due':'too early';
+    const state=done?'done':closed?'closed':today>=runnable_from?'due':'too early';
     return {days,window_end,runnable_from,done,state};
   }):[];
-  const open=reads.find(read=>!read.done);
+  const open=reads.find(read=>read.state==='due'||read.state==='too early');
   return {
     id:fields.id,
     file:rel.split(path.sep).join('/'),
@@ -112,9 +138,11 @@ function record(repo,ref,today,file){
 }
 
 function textLine(rec){
+  if(rec.legacy)return `${rec.id}  legacy record without frontmatter: migrate it (seo-experiments, Import a legacy log)`;
   if(!rec.ship_date)return `${rec.id}  not shipped`;
   const reads=rec.reads.map(read=>{
     if(read.state==='done')return `${read.days}d done ${read.done}`;
+    if(read.state==='closed')return `${read.days}d closed`;
     if(read.state==='due')return `${read.days}d DUE since ${read.runnable_from}`;
     return `${read.days}d too early, review ${read.runnable_from}`;
   });
@@ -123,9 +151,7 @@ function textLine(rec){
 
 const opts=parseArgs(process.argv.slice(2));
 const repo=path.resolve(opts.repo);
-const dir=path.join(repo,'.seo','experiments');
-const files=fs.existsSync(dir)?fs.readdirSync(dir).filter(name=>name.endsWith('.md')):[];
-const records=files.map(file=>record(repo,opts.ref,opts.today,file)).sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
+const records=listRecords(repo,opts.ref).map(entry=>record(repo,opts.ref,opts.today,entry)).sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
 
 if(opts.json){
   process.stdout.write(`${JSON.stringify(records,null,2)}\n`);
@@ -133,4 +159,6 @@ if(opts.json){
   for(const rec of records)process.stdout.write(`${textLine(rec)}\n`);
   const due=records.reduce((count,rec)=>count+rec.reads.filter(read=>read.state==='due').length,0);
   process.stdout.write(`Due now: ${due}\n`);
+  const legacy=records.filter(rec=>rec.legacy).length;
+  if(legacy)process.stdout.write(`Legacy records to migrate: ${legacy}\n`);
 }

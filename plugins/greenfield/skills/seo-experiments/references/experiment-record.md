@@ -176,17 +176,17 @@ The log's own lesson: verify impression demand before cloning a winning page pat
 
 ## 4. A title test, split or confounded
 
-Product B rewrote the titles and meta descriptions of eight pages on 2026-06-26, read them early, and reverted four. The log read it as a split result. A later read against a control found every group beat the control and called the test confounded, because the pages were only four to six weeks old and still ramping. Ratios only.
+Product B rewrote the titles and meta descriptions of a set of pages on 2026-06-26, read them early, and reverted half. The log read it as a split result. A later read against a control found every group beat the control and called the test confounded, because the pages were only four to six weeks old and still ramping. Ratios only.
 
 Source: "Product B growth deep dive" (2026-11-03), Experiments and "Earlier claims re-checked".
 
 | Group | 3 weeks: clicks vs control | 6 weeks: clicks vs control |
 |---|---|---|
-| All eight pages, from 2026-06-26 | +18% vs -16% (34 points ahead) | +115% vs -8% |
-| Four reverted, from 2026-07-09 | +38% vs +10%; impressions -42% vs -10%; position 7.6 to 10.1 | +15% vs -24% |
-| Four kept, from 2026-07-09 | +40% vs +7% | +80% vs -16% (96 points ahead) |
+| All pages in the test, from 2026-06-26 | +18% vs -16% (34 points ahead) | +115% vs -8% |
+| Reverted half, from 2026-07-09 | +38% vs +10%; impressions -42% vs -10%; position 7.6 to 10.1 | +15% vs -24% |
+| Kept half, from 2026-07-09 | +40% vs +7% | +80% vs -16% (96 points ahead) |
 
-- **The early decision.** The revert was decided at 11 days against a planned 25-day window.
+- **The early decision.** The revert was decided before half of the planned window had passed.
 - **The confounder.** Young pages rise on their own while Google settles their rank, so a pre-and-post baseline on them is not clean. Set a minimum page age before a title test, or use matched controls of the same age.
 - **What held either way.** No page in the test rose above 1.1% CTR. The intent of the query capped the click rate, and titles did not change it.
 

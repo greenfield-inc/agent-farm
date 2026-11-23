@@ -34,9 +34,9 @@ Reached through the connected Search Console tool, read-only.
 
 Reached through the same connected tool. Inspect the exact canonical form of each URL (with `www` if the site uses it).
 
-- Inspect every new URL, never a sample, at day 7 after it goes live. The October checks on Product A inspected all 41 pages; Product B inspected all 48 pages of its templated batch.
+- Inspect every new URL, never a sample, at day 7 after it goes live. The October checks on Product A inspected all 41 pages; Product B inspected every page of its templated batch.
 - "Discovered, currently not indexed" and "URL is unknown to Google" both mean Googlebot never fetched the page. Google has not judged its content, so do not rewrite the content in response; look at who links to the page.
-- A 404 with an old "last crawled" date names its referring page: that is how Product B traced four missing pages to a link shipped 6 days before them.
+- A 404 with an old "last crawled" date names its referring page: that is how Product B traced several missing pages to a link shipped days before them.
 - Before you diagnose code from an indexing report, check the submitted sitemap's exact URL and protocol and the age of any redirect. Product A's early "0 of 31 indexed" came from a sitemap submitted with an `http://` address, and its `www` split was index lag after a redirect ("SEO: GSC Findings and Diagnosis", data pulled 2026-05-07).
 - A page that returns 200 with a canonical and valid JSON is not proven indexed or rich-result eligible. Only the inspection says so.
 
@@ -74,7 +74,7 @@ The source for "what changed and when". Read it with `git log` and `git show` in
 
 - **Enumerate every change, never a sample.** Run `git log --first-parent --since=<start>` on the default branch over every path that produces a public page: site source, docs, metadata and schema, sitemaps, robots.txt, llms.txt, agent files, redirect configuration. Then list merged PRs for the same window.
 - **Reconcile commits to PRs.** Match each first-parent commit to its PR; match commits without a PR number through the hosting API; name direct commits. Squash-merging repositories keep per-commit times only in the PR's commit list.
-- **Date by live date when deploys are manual.** On a site that deploys by hand, a merge is not a launch. Date each change by the first successful deploy run whose head contains the PR's merge commit, read from the CI run history. Product B's foundation PR merged 2026-04-25 and went live 2026-05-06. One Product B PR merged and was reverted 82 minutes later, before any deploy, and was never live. Where deploys run on merge, the merge date is the ship date.
+- **Date by live date when deploys are manual.** On a site that deploys by hand, a merge is not a launch. Date each change by the first successful deploy run whose head contains the PR's merge commit, read from the CI run history. Product B's foundation PR merged 2026-04-25 and went live 2026-05-06. One Product B PR merged and was reverted minutes later, before any deploy, and was never live. Where deploys run on merge, the merge date is the ship date.
 - **Say what git cannot show.** Redirects configured outside the repository, side-branch merges, and shared components (footer, head, homepage sections) that change many pages without a per-page diff. List them in the coverage appendix.
 - **Work sessions.** Rebuild them from every human commit on every branch plus PR open and merge times; events less than 2.5 hours apart form one session ([lessons-by-phase.md](lessons-by-phase.md#work-sessions-rebuilt-from-git)).
 
@@ -94,7 +94,7 @@ Two free scanners score agent readiness: whether an agent could find, read and u
 
 - **is-agentic.** Run `npx is-agentic <domain> --json`. It returns a cached scan when one exists, so the scan date can be weeks older than your run: Product A's re-run on 2026-11-03 returned a scan dated 2026-08-31.
 - **Ora.** `POST https://ora.ai/api/scan` with `{"url": "https://<domain>"}`. It reports sub-scores (discovery, access, usability).
-- **Citing them.** Write each score with its scanner's name and its scan date, in the form "is-agentic 100/100 (scan dated 2026-08-31)" and "Ora 87/100 (2026-11-03)". Keep the two apart: a first pass on a third site reported Ora's score under is-agentic's name. Save the raw JSON with the run.
+- **Citing them.** Write each score with its scanner's name and its scan date, in the form "is-agentic 100/100 (scan dated 2026-08-31)" and "Ora 87/100 (2026-11-03)". Keep the two apart. Save the raw JSON with the run.
 - **Using them.** Check every gap a scanner reports against the live site before you repeat it, and keep only the gaps that matter for the site's buyers (corrections, entry 3).
 
 ## Live probes

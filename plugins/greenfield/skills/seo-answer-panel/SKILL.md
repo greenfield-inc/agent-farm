@@ -11,7 +11,7 @@ Read `references/protocol.md` before the first run. It holds the full protocol a
 
 ## Why it exists
 
-- AI answers carry visibility without clicks. On Product B (a B2B healthcare SaaS with a free plan), AI-feature impressions rose from 14% of regular web impressions in June to 34% in September and October 2026, and its definition and compliance pages appeared in AI answers thousands of times with very few clicks. Search Console counts those appearances; it does not say whether the answer named the product. The panel answers that. Source: "Growth, phase by phase" (v2, 2026-11-04), Principle 5.
+- AI answers carry visibility without clicks. On Product B (a B2B healthcare SaaS with a free plan), AI-feature impressions rose from 14% of regular web impressions in June to 34% in September and October 2026, and its definition and compliance pages appeared in AI answers far more often than they were clicked. Search Console counts those appearances; it does not say whether the answer named the product. The panel answers that. Source: "Growth, phase by phase" (v2, 2026-11-04), Principle 5.
 - Visitors from an AI answer land on the page the answer cited. On Product A (an open-source developer tool for running coding agents in parallel), Perplexity referrals rose from 2 to 24 pageviews over May 10 to 12, 2026 after the compare pages were rewritten, and those visitors landed on the cited compare pages and category hubs, never on the homepage or the llms files. So the cited URL is the page to improve, and the panel records every cited URL. Source: "Content Briefs" (Product A, 2026-05-12 entry); "SEO and growth catalog" (2026-11-21), the distribution step.
 - A readiness scanner score measures something else. Product A scored 100 on an agent-readiness scanner in August 2026 while its AI-assistant visits fell; the fall had started three weeks earlier, when assistants stopped linking its competitor compare pages. Report scanner scores as readiness, dated and named, beside the panel and never in place of it. Source: "Growth, phase by phase" (v2, 2026-11-04), "A perfect agent score, fewer AI visits".
 
@@ -63,4 +63,4 @@ Source: "Growth, phase by phase" (v2, 2026-11-04), The monthly loop step 4; "Why
 - Connect each finding to a page: a prompt where the engine cites a competitor's page and not ours points to the page to write or fix.
 - Report: the per-engine table, the factual errors found (claim, engine, cited URL, the fact it contradicts), and at most three proposed changes, each tied to a page.
 
-This method generalizes the independent answer panel in a customer workflow starter (confidential, method only, 2026-11). The lessons above come from `seo-evidence`.
+This method generalizes the independent answer panel in a customer workflow starter (confidential, method only). The lessons above come from `seo-evidence`.

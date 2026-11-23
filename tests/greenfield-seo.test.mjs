@@ -102,3 +102,35 @@ test('the due list reads each experiment at 21 and 42 days from its ship date, r
  // Not on the branch yet: not shipped, nothing due.
  assert.deepEqual([rows['d-draft'].ship_date,rows['d-draft'].reads,rows['d-draft'].next],[null,[],null]);
 });
+
+test('the answer-panel summary refuses a header packed into one quoted field and a slot captured twice',t=>{
+ const header='prompt_id,engine,repetition,run_date,status,mentioned,recommended,cited,citation_correct';
+ const quoted=panel(t,`"${header}"\np1,alpha,1,2026-11-01,answered,yes,no,no,\n`);
+ assert.equal(quoted.status,1);assert.match(quoted.stderr,/line 1: wrong header/);
+ const twice=panel(t,`${header}\np1,alpha,1,2026-11-01,answered,yes,no,no,\np2,alpha,1,2026-11-01,answered,no,no,no,\np1,alpha,1,2026-11-01,answered,no,no,no,\n`);
+ assert.equal(twice.status,1);assert.match(twice.stderr,/line 4: duplicate slot.*first on line 2/);
+});
+
+test('the due list reads the default branch\'s records from a feature branch, never schedules a closed record, and lists an old-format file for migration without stopping',t=>{
+ const repo=tempDir(t,'seo-due-ref-');
+ const env=date=>({...process.env,GIT_AUTHOR_DATE:date,GIT_COMMITTER_DATE:date,GIT_CONFIG_GLOBAL:'/dev/null',GIT_CONFIG_SYSTEM:'/dev/null'});
+ const git=(args,date='2026-09-01T12:00:00Z')=>execFileSync('git',args,{cwd:repo,env:env(date),encoding:'utf8'});
+ const write=(name,text)=>{fs.mkdirSync(path.join(repo,'.seo/experiments'),{recursive:true});fs.writeFileSync(path.join(repo,'.seo/experiments',name),text);};
+ git(['init','-q','-b','main']);git(['config','user.email','t@example.com']);git(['config','user.name','t']);
+ write('legacy-title-test.md','# Title test\n\nDate: 2026-07-01\nResult: pending\n');
+ git(['add','.']);git(['commit','-qm','old log']);
+ git(['branch','feature']);
+ write('on-main.md','---\nid: on-main\nread_21:\nread_42:\nstatus: running\n---\n');
+ write('reverted.md','---\nid: reverted\nread_21:\nread_42:\nstatus: closed\n---\nReverted before deploy.\n');
+ git(['add','.']);git(['commit','-qm','two records'],'2026-10-01T12:00:00Z');
+ git(['checkout','-q','feature']);
+ const due=(...args)=>{const run=spawnSync(process.execPath,[path.join(root,'skills/seo-experiments/scripts/due.mjs'),'--repo',repo,'--today','2026-11-21','--json',...args],{encoding:'utf8'});assert.equal(run.status,0,run.stderr);return Object.fromEntries(JSON.parse(run.stdout).map(r=>[r.id,r]));};
+ // The feature branch predates both records, so its working tree holds only the old-format file.
+ assert.deepEqual(Object.keys(due()),['legacy-title-test']);
+ const main=due('--ref','main');
+ // Merged 2026-10-01: windows end Oct 22 and Nov 12, runnable Oct 25 and Nov 15, both due on Nov 21.
+ assert.deepEqual(main['on-main'].reads.map(r=>[r.days,r.runnable_from,r.state]),[[21,'2026-10-25','due'],[42,'2026-11-15','due']]);
+ assert.deepEqual(main.reverted.reads.map(r=>r.state),['closed','closed']);
+ assert.equal(main.reverted.next,null);
+ assert.deepEqual([main['legacy-title-test'].legacy,main['legacy-title-test'].reads],[true,[]]);
+});

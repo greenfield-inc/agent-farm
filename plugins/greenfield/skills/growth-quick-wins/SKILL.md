@@ -75,7 +75,7 @@ Run a second pass over the same site and data before anyone else reads the page:
 - Re-run the probes whose result produced an item or a "left out" line, and every Public probe the first pass skipped.
 - List every issue the evidence shows, one line each, as covered (with its item number) or left out (with why).
 - List what the first pass got wrong or missed, with the fix made. When it found nothing, write "nothing" and name the checks that came back clean.
-- Check the page against the errors earlier audits made: a noindexed money page outside the sitemap (P3), a price conflict that was already fixed (P9), two scanner scores mixed up (P16), agent files recommended to a site whose buyers do not use agents (P17), and advice to move URLs that already earn traffic.
+- Check the page against the common audit errors: a noindexed money page outside the sitemap (P3), a price conflict that was already fixed (P9), two scanner scores mixed up (P16), agent files recommended to a site whose buyers do not use agents (P17), and advice to move URLs that already earn traffic.
 
 Put the second pass on the page in its own section.
 
@@ -94,4 +94,4 @@ The page then goes to review before the person sees it: the reviewer role (seo-r
 
 Each picked quick win or workstream that adds or changes a page becomes a brief through `seo-page-brief`, and each shipped change gets an experiment record through `seo-experiments`. This skill writes only the page.
 
-Provenance: ported on 2026-11-21 from greenfield-inc/skills#187 at commit ac05069 (2026-11-04). Changed on port: publishing goes to the document destination; the rerun and gap-check step and the review step were added; corrections point to `seo-evidence`; the second case is ratios only and the audited third-party site is unnamed; the top 10, review dates per item and the worked page were added; the first dry run's ten fixes are kept.
+Provenance: ported on 2026-11-21 from greenfield-inc/skills#187 at commit ac05069 (2026-11-04). Changed on port: publishing goes to the document destination; the rerun and gap-check step and the review step were added; corrections point to `seo-evidence`; the second case is ratios only and the customer method is generalized with no case attached; the top 10, review dates per item and the worked page were added; the first dry run's fixes are kept.

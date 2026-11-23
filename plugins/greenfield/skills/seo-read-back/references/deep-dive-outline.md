@@ -96,7 +96,7 @@ Opens with one sentence: "Every change to the public site since <start> was look
 - **Not readable from git**: redirects held outside the repository, PRs merged into side branches, shared components that change many pages without a per-page diff.
 - **Headline numbers re-verified**: which numbers a separate script recomputed from the raw pulls, and what it corrected.
 - **Not checked**: every source and question left out (citations by AI assistants, other search engines' webmaster tools, backlinks, revenue, data before a given date, experiment rows computed once and not re-run).
-- Where the commit-level list and raw pulls live (`.seo/archive/YYYY/MM/DD/data/`).
+- Where the commit-level list and raw pulls live: the run's private bundle, never the repository.
 
 ## Appendix: acquisition PR timeline
 

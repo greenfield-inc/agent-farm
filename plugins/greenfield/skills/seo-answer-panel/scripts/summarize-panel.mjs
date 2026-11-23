@@ -57,9 +57,10 @@ function summarize(text) {
   const records = parseCsv(text.replace(/^﻿/, ''));
   if (records.length === 0) throw new InputError('line 1: empty file, expected header ' + HEADER.join(','));
   const [head, ...rows] = records;
-  if (head.fields.map((f) => f.trim()).join(',') !== HEADER.join(','))
+  if (head.fields.length !== HEADER.length || head.fields.some((f, j) => f.trim() !== HEADER[j]))
     throw new InputError(`line ${head.line}: wrong header, expected ${HEADER.join(',')}`);
   const byEngine = new Map();
+  const slots = new Map();
   for (const {line, fields} of rows) {
     if (fields.length !== HEADER.length)
       throw new InputError(`line ${line}: expected ${HEADER.length} fields, found ${fields.length}`);
@@ -69,6 +70,10 @@ function summarize(text) {
     for (const k of OUTCOMES)
       if (!VALUES.has(row[k])) throw new InputError(`line ${line}: unknown ${k} "${row[k]}", expected yes, no or empty`);
     if (!row.engine) throw new InputError(`line ${line}: engine is empty`);
+    const slot = `${row.prompt_id}|${row.engine}|${row.repetition}`;
+    if (slots.has(slot))
+      throw new InputError(`line ${line}: duplicate slot (prompt ${row.prompt_id}, engine ${row.engine}, repetition ${row.repetition}), first on line ${slots.get(slot)}; each planned slot has exactly one row`);
+    slots.set(slot, line);
     if (!byEngine.has(row.engine)) byEngine.set(row.engine, []);
     byEngine.get(row.engine).push(row);
   }

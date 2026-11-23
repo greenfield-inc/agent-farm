@@ -13,7 +13,9 @@ Three jobs, one method:
 - **History mode**: reverse-engineer every merged change since a start date, for a product with no records yet or with records that stopped.
 - **Deep dive**: the product's write-up of what grew it, built on the history read, with a coverage appendix.
 
-Record format, windows and due dates come from `seo-experiments`. Evidence rules, lessons and corrections come from `seo-evidence`. Pull data through `seo-data-pull`; archive raw pulls through `seo-data-organize`.
+Record format, windows and due dates come from `seo-experiments`. Evidence rules, lessons and corrections come from `seo-evidence`. Pull data through `seo-data-pull`; organize what you pull through `seo-data-organize`.
+
+**Raw data stays private.** Raw Search Console, analytics and survey pulls (query rows, segments, per-organization or per-company rows) never go into a commit or a PR: a product repository and its draft PRs may be public. Keep them in the run's private working folder, or attach them to the run's bundle in the private document destination. The `.seo/` PR carries only reviewed aggregates: experiment records with their reads, coverage counts and the numbers the deep dive cites. Before you push, list what is staged and unstage any raw pull under `.seo/data/` or `.seo/archive/`, unless the person has said this repository may hold them.
 
 ## Rules
 
@@ -47,7 +49,7 @@ Product B's deep dive classified every PR merged in its window, more than five f
 
 - **Merge date** when the site deploys on merge.
 - **Live date** when deploys are manual: the first successful deploy run whose head contains the merge commit (`gh run list --workflow <deploy workflow> --status success`, then `git merge-base --is-ancestor <merge commit> <run head>`). One of Product B's PRs merged 2026-04-25 and went live 2026-05-06.
-- A PR reverted before any deploy was never live. Product B found one, reverted 82 minutes after merging.
+- A PR reverted before any deploy was never live. Product B found one, reverted minutes after merging.
 - `.seo/access.md` says which deploy mode applies.
 
 ### 3. Group into experiments
@@ -74,7 +76,7 @@ Rebuild when and how long the work happened, from git, so the write-up can show 
 - Tag each session with its phase (foundations, landing and pillar pages, templates, batches, indexing and agent layer, measurement) from its commits and PRs.
 - Tell the deep dive's story in that order: chronological, phase by phase, each phase with what was built, its sessions and hours, and what it earned after what lag.
 
-Product A: 69 growth sessions, 126 hours over eight months, median 66 minutes, 32 under an hour; most hours went to the indexing and agent layer (41.0) and batches (26.8). Product B took about the same hours in shorter sessions (median 44 minutes), and its sign-up flow took more hours than any content phase. On Product A, a 5.5-hour session built 44 pages on a branch that never merged. Growth took short sessions; waiting for the data was the slow part (Source: "Growth, phase by phase" (v2, 2026-11-04), "The short version"; Work sessions investigation (2026-11-03)).
+Product A: 69 growth sessions, 126 hours over eight months, median 66 minutes, 32 under an hour; most hours went to the indexing and agent layer (41.0) and batches (26.8). Product B's sessions were shorter still, and its sign-up flow took more hours than any content phase. On Product A, a 5.5-hour session built 44 pages on a branch that never merged. Growth took short sessions; waiting for the data was the slow part (Source: "Growth, phase by phase" (v2, 2026-11-04), "The short version"; Work sessions investigation (2026-11-03)).
 
 ## Agent discovery
 
@@ -93,11 +95,11 @@ Brand searches and the homepage click at high rates, so many new pages at lower 
 
 ## Deep dive
 
-Write the product's deep dive from [references/deep-dive-outline.md](references/deep-dive-outline.md) as a page with `page`, and keep its raw pulls and the commit-level coverage list under `.seo/archive/YYYY/MM/DD/data/` through `seo-data-organize`.
+Write the product's deep dive from [references/deep-dive-outline.md](references/deep-dive-outline.md) as a page with `page`, and keep its raw pulls and the commit-level coverage list with the run's private material, as **Raw data stays private** says.
 
 - **Open with a five-minute founder summary of actions**: what happened, what it proves, and the method step by step, in plain words any founder can copy. Numbers follow below it.
 - **End with the coverage appendix**: every merged PR classified with counts, the commit list and its reconciliation to PRs, what git cannot show (redirects outside the repo, side-branch merges, shared components that change many pages at once), headline numbers re-verified, and what was not checked.
-- **Re-verify headline numbers by a separate script** that recomputes every number in the summary from the raw pulls. Product B's check found three sums off by one and one mislabelled window.
+- **Re-verify headline numbers by a separate script** that recomputes every number in the summary from the raw pulls. Product B's check found sums off by one and a mislabelled window.
 - Use `swarm` to fan out the read-only pulls in parallel: the PR timeline, Search Console page-by-day and queries, analytics and referrals, and the scanners.
 - The orchestrator sends the finished deep dive to the reviewer for a claims check and a cold read before the person sees it.
 

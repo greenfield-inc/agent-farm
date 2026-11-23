@@ -50,7 +50,7 @@ Audit: P12 competitor sitemaps, P13, P14. Ship a new competitor's page within a 
 
 Large template batches get held back, and template pages wait until outside pages link in (principle 1).
 
-- Product B: a batch of hand-written single-topic pages earned about 4x the six-week clicks of a template batch almost four times its size. The single pages reached first impression in under a day; the batch took a median of 28 days, and 46% of it was never shown.
+- Product B: a batch of hand-written single-topic pages earned about 4x the six-week clicks of a template batch almost four times its size. The single pages reached first impression in under a day; the batch took a median of about four weeks, and 46% of it was never shown.
 - Product A: of 14 short definition pages shipped in one batch in October, Google indexed 1.
 
 Audit: P11. Ship 5 to 15 hand-written pages at a time; pause a template family until the last batch is indexed and linked from pages outside it.
@@ -92,14 +92,14 @@ Audit: P16, P17, P18. Fix wrong or missing facts first (price, when to use, enti
 
 ## 10. One fact, everywhere
 
-Assistants repeat whichever version of a price they find. A price that differs across pages becomes a wrong answer. On one audited site, a pricing page hidden by noindex led AI answers to say prices were not public, and third-party pages kept repeating a retired price.
+Assistants repeat whichever version of a price they find. A price that differs across pages becomes a wrong answer. A pricing page hidden by `noindex` leads AI answers to say prices are not public, and third-party pages keep repeating a retired price until someone asks them to change it.
 
 Audit: P8, P9, P15. Read today's pages before reporting a conflict.
 
 ## 11. Log every change and read it twice
 
 - Product A: rebuilding about 95 pages in October without changing URLs or titles moved with the rest of the site at 3 weeks.
-- Product B: a title test judged at 11 days looked like a win; at 3 and 6 weeks against untouched pages, the answer changed.
+- Product B: a title test judged early looked like a win; at 3 and 6 weeks against untouched pages, the answer changed.
 - Product A: analytics recorded nothing from Sep 9 to Oct 5, and an attribution job failed every run on an empty secret. Nobody noticed for weeks.
 
 Audit: F3, A2. Quick wins: an experiment log with baselines, control pages, and 3-week and 6-week reads; an alert when any measurement pipeline goes quiet for a day.

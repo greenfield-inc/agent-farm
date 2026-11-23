@@ -158,4 +158,4 @@ Hand computation, Perplexity (rows 7 to 12):
 
 Two mistakes this example guards against. Counting the unavailable slots as "not mentioned" would give ChatGPT 4/6 and Perplexity 4/6, and hide that Perplexity named the product every time it answered. Pooling the engines would give 8 of 9 answered slots mentioned, a number that describes neither engine.
 
-Source: method generalized from the independent answer panel in a customer workflow starter (confidential, method only, 2026-11); the monthly AI check in "Growth, phase by phase" (v2, 2026-11-04), The monthly loop step 4.
+Source: method generalized from the independent answer panel in a customer workflow starter (confidential, method only); the monthly AI check in "Growth, phase by phase" (v2, 2026-11-04), The monthly loop step 4.

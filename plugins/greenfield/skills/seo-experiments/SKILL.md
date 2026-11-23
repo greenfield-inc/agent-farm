@@ -113,7 +113,7 @@ Run the due script from the product repository at the start of every review and 
 node <this skill's folder>/scripts/due.mjs [--repo <dir>] [--ref <git ref>] [--today YYYY-MM-DD] [--json]
 ```
 
-- `--repo` defaults to the current directory; `--ref` defaults to `HEAD`. Pass the default branch (`--ref origin/main`) when you run it from a feature branch, so ship dates come from the default branch's first-parent history.
+- `--repo` defaults to the current directory. With `--ref <default branch>` (for example `--ref origin/main`) the script reads the records as they are on that branch, through git, and dates them from its first-parent history: use this from a feature branch, and in every review. Without `--ref` it reads the working tree, including records on your own branch that have not merged, and dates them from `HEAD`.
 - `--today` defaults to today in UTC. All dates are UTC.
 - The text output has one line per record and ends with `Due now: N`, the number of reads that are due:
 
@@ -124,7 +124,7 @@ node <this skill's folder>/scripts/due.mjs [--repo <dir>] [--ref <git ref>] [--t
 Due now: 1
 ```
 
-- `--json` gives an array sorted by id: `{id, file, ship_date, ship_source ("live", "git" or null), status, reads: [{days, window_end, runnable_from, done, state}], next: {days, date} | null}`. `state` is `done`, `due` or `too early`. `next` is the earliest read not yet done, dated by its runnable date.
+- `--json` gives an array sorted by id: `{id, file, ship_date, ship_source ("live", "git" or null), status, reads: [{days, window_end, runnable_from, done, state}], next: {days, date} | null}`. `state` is `done`, `due`, `too early` or `closed`. `next` is the earliest read still due or too early, dated by its runnable date. A record with `status: closed` keeps its dates, but its open reads are `closed`: never due, and `next` is null. A file with no frontmatter (the older per-file format) is listed with `legacy: true` and no reads, and the text output ends with `Legacy records to migrate: N`; migrate it as **Import a legacy log once** says.
 - "not shipped" means the record is not on the ref yet and has no `live` date: it gets no reads.
 - Exit 1 names the record with unparseable frontmatter or a bad date. Fix that record and run it again.
 
@@ -134,7 +134,7 @@ A first run on an existing product usually finds reads nobody did. On 2026-11-21
 
 ## Import a legacy log once
 
-Some repositories keep every bet in one file, `.seo/experiments.md`, with rows of date, type, target, baseline (with its window), action, expected impact and review date. The due script reads only the folder, so after one import the folder is the only format. On the measurer's first `.seo/` PR, import each row into its own record:
+Two older layouts exist. Some repositories keep every bet in one file, `.seo/experiments.md`, with rows of date, type, target, baseline (with its window), action, expected impact and review date. Others have one Markdown file per experiment in `.seo/experiments/` with no frontmatter. The due script reads only frontmatter records, so after one migration the folder is the only format. On the first `.seo/` PR, in one commit, give each row or old file its own record with frontmatter:
 
 - `id` and file name from the row's date and target; `live` from the row's ship date; `read_21` and `read_42` from any results already written back, else empty.
 - Copy baseline, action and expected impact into the matching sections, and any written result into Results with its original date.

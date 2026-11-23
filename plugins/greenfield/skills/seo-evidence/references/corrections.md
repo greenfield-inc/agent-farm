@@ -2,7 +2,7 @@
 
 Every belief this work held and later found wrong. Each entry gives the wrong belief, what is true, the evidence with its number, the source by title and date, and what you do instead. A belief listed here never reappears as advice in a page, brief, record or review. The reviewer checks every output against this list.
 
-Product A is an open-source developer tool for running coding agents in parallel (real numbers). Product B is a B2B healthcare SaaS with a free plan (ratios only). "A third site" and "the customer workflow starter" are the same customer engagement: its method is used, and none of its names, numbers or domains. One entry cites a document-sharing product for a general fact about crawling.
+Product A is an open-source developer tool for running coding agents in parallel (real numbers). Product B is a B2B healthcare SaaS with a free plan (ratios only). The customer workflow starter is a confidential engagement: its method is used, and none of its names, numbers, findings or domains. One entry cites a document-sharing product for a general fact about crawling.
 
 ## The ones agents repeat most
 
@@ -18,7 +18,7 @@ Product A is an open-source developer tool for running coding agents in parallel
 
 - **Believed:** a higher is-agentic or Ora score means assistants cite the site more or send more visitors.
 - **True:** a scanner scores whether an agent *could* find, read and use the site. It does not measure whether assistants cite it or send anyone. The score did not predict AI traffic in either direction.
-- **Evidence:** Product A reached is-agentic 100/100 (scan dated 2026-08-31) and Ora 87/100 (2026-11-03), and its AI-assistant pageviews fell from 606 in July to 247 in October (5.2% to 1.4% of pageviews). Product B scored is-agentic 64/100 (scan dated 2026-08-23) and Ora 65/100 (2026-11-04), and its AI-assistant visits about doubled from May to October. A first pass on a third site reported Ora's score under is-agentic's name.
+- **Evidence:** Product A reached is-agentic 100/100 (scan dated 2026-08-31) and Ora 87/100 (2026-11-03), and its AI-assistant pageviews fell from 606 in July to 247 in October (5.2% to 1.4% of pageviews). Product B scored is-agentic 64/100 (scan dated 2026-08-23) and Ora 65/100 (2026-11-04), and its AI-assistant visits about doubled from May to October.
 - **Source:** "Growth, phase by phase" (v2, 2026-11-04), Principle 6; "Agent-First Growth Playbook" (2026-11-03), "Where Product A stands with AI agents"; "Product B growth deep dive, April to November 2026" (2026-11-03), "Agent-readiness scanners".
 - **Do instead:** report each score with its scanner's name and its scan date (is-agentic can return a cached scan older than your run). Call it readiness. Measure AI discovery with AI referrals by assistant, the sign-up survey and an answer panel. Never set a score as a goal.
 
@@ -26,24 +26,24 @@ Product A is an open-source developer tool for running coding agents in parallel
 
 - **Believed:** every site should add an agents.md, Markdown copies and an MCP card.
 - **True:** these help only when the site's buyers use agents and the site actually serves what the file promises. A file that describes an endpoint the site does not serve is a broken promise, and scanners count it against the site.
-- **Evidence:** Product B's /agents.md described MCP and OAuth that no endpoint serves. Product A served Markdown only for `/` and `/docs`, and its /.well-known/mcp card described a local stdio server, so both scanners reported a failed handshake. A first pass on a third site recommended an agents.md, a developer file that site's buyers did not need; the gap check removed it.
-- **Source:** "Product B growth deep dive, April to November 2026" (2026-11-03), "Agent-readiness scanners"; "Agent-First Growth Playbook" (2026-11-03), "Where Product A stands with AI agents"; the third-site gap check (2026-11-03), method only.
+- **Evidence:** Product B's /agents.md described MCP and OAuth that no endpoint serves. Product A served Markdown only for `/` and `/docs`, and its /.well-known/mcp card described a local stdio server, so both scanners reported a failed handshake.
+- **Source:** "Product B growth deep dive, April to November 2026" (2026-11-03), "Agent-readiness scanners"; "Agent-First Growth Playbook" (2026-11-03), "Where Product A stands with AI agents".
 - **Do instead:** recommend agent files only when the buyers use agents (developer tools, API products, buyers who research through assistants) and name the evidence. Check what the site serves with `curl -H 'Accept: text/markdown'` and an agent user agent before you call anything missing. Remove or fix promises the site does not keep before adding new files.
 
 ### 4. A dated audit is not the live site
 
 - **Believed:** the numbers and problems in an existing audit describe the site today.
 - **True:** an audit is a snapshot. Sites fix things, prices change, pages move.
-- **Evidence:** a first pass on a third site repeated a price conflict from a dated audit that the live site had since fixed, and missed a money page that was marked noindex, absent from the sitemap and unlinked from navigation. The second pass, which checked every sitemap URL live, found both.
-- **Source:** the third-site gap check (2026-11-03), method only.
-- **Do instead:** label every number you take from an audit as the audit's, with its date. Re-check every "missing", "broken", "conflicting" or "not indexed" claim live and record the check date. The live check wins.
+- **Evidence:** Product A's competitor facts changed within days of the research that recorded them (entry 23), and an audit ages the same way.
+- **Source:** Product A competitor fact re-checks (2026-11-04 to 11-18); the customer workflow starter's gap-check method, method only.
+- **Do instead:** label every number you take from an audit as the audit's, with its date. Re-check every "missing", "broken", "conflicting" or "not indexed" claim live and record the check date. Check every sitemap URL live too, including money pages that navigation does not link, since a `noindex` on one of them hides it from every other check. The live check wins.
 
 ### 5. Moving indexed URLs resets them
 
 - **Believed:** moving comparison posts to a cleaner path is a safe structural fix.
-- **True:** a ranking URL carries its history. Moving it makes Google judge the new address again, and the old address loses its clicks. The address was not what limited those pages.
-- **Evidence:** on a third site, a first pass advised moving comparison posts out of `/blog/`; the second pass reversed it after finding that a post already moved had lost its clicks at the old address, with no evidence the new one recovered them. Product A keeps old slugs that rank when a competitor renames, and writes "New (formerly Old)" on the page. Product B's deliberate move of help articles onto docs pages with canonicals did shift signals as designed: the old pages lost 61% of impressions at three weeks against a 33% fall in the control.
-- **Source:** the third-site gap check (2026-11-03), method only; "Product B growth deep dive, April to November 2026" (2026-11-03), Experiments.
+- **True:** a ranking URL carries its history. Moving it makes Google judge the new address again, and the old address loses its clicks. The address is rarely what limits a page.
+- **Evidence:** Product A keeps old slugs that rank when a competitor renames, and writes "New (formerly Old)" on the page. Product B's deliberate move of help articles onto docs pages with canonicals did shift signals as designed: the old pages lost 61% of impressions at three weeks against a 33% fall in the control.
+- **Source:** "Product B growth deep dive, April to November 2026" (2026-11-03), Experiments.
 - **Do instead:** keep ranking URLs and link to them. When a move is unavoidable, redirect each old URL to its intent-equivalent new one, record the move as an experiment with its live date, and read it at 3 and 6 weeks.
 
 ### 6. AI-feature impressions are not in the Search Console API
@@ -92,7 +92,7 @@ Product A is an open-source developer tool for running coding agents in parallel
 
 - **Believed:** links to pages shipping next week cost nothing.
 - **True:** Google can follow the link first, record a 404, and not come back for months.
-- **Evidence:** a Product B calculator linked four compliance pages 6 days before they existed. Google got 404 on 2026-05-30 and had not recrawled 157 days later, though all four return 200; one targets the site's top compliance query.
+- **Evidence:** a Product B calculator linked several compliance pages days before they existed. Google got 404 and had not recrawled more than five months later, though all of them now return 200; one targets the site's top compliance query.
 - **Source:** "Growth, phase by phase" (v2, 2026-11-04), "Linking ahead caused months of errors"; "Product B growth deep dive, April to November 2026" (2026-11-03), Indexing.
 - **Do instead:** add a link only after its target is live. On a site that deploys by hand, live means deployed, not merged. If it already happened, request indexing for the targets and link them from pages with traffic.
 
@@ -116,8 +116,8 @@ Product A is an open-source developer tool for running coding agents in parallel
 
 - **Believed:** lost landing-page clicks mean lost rankings.
 - **True:** clicks can move with a migration. Count how many lost landing clicks sit on URLs that now redirect elsewhere before you diagnose ranking.
-- **Evidence:** the customer workflow starter keeps migration as one of five explanation classes in every search diagnosis, because redirected URLs carry lost landing clicks that look like a ranking loss. Method only; no numbers ship.
-- **Source:** the customer workflow starter's search-diagnosis method (2026), method only.
+- **Evidence:** the customer workflow starter keeps migration as one of five explanation classes in every search diagnosis, because redirected URLs carry lost landing clicks that look like a ranking loss. 
+- **Source:** the customer workflow starter's search-diagnosis method, method only.
 - **Do instead:** keep five explanations apart (demand, ranking, results-page presentation, migration, measurement), and reconcile redirects with their real migration dates before you call a ranking loss.
 
 ## Pages and content

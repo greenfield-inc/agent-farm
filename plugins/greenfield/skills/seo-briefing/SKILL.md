@@ -40,9 +40,12 @@ skip the pull and use the cached data.
 ### 2. Check for active experiments
 
 Experiments live in `.seo/experiments/`, one file per experiment. If the repo
-still has a single legacy `.seo/experiments.md`, import it once: split each
-entry into its own file under `.seo/experiments/`, then remove the legacy file
-in the same commit.
+still has an older layout, migrate it once, in one commit, before anything
+reads the folder: a single `.seo/experiments.md` is split into one file per
+entry, and a file in `.seo/experiments/` with no frontmatter (the older
+per-file format) gets frontmatter with the fields below. Either way, keep every original
+date and result, and set `live` to the date the change actually shipped,
+because the migration commit's date is not the ship date.
 
 Each file's frontmatter holds `id`, `live` (optional), `read_21`, `read_42` and
 `status`. Work out which reads are due:
@@ -55,13 +58,19 @@ Each file's frontmatter holds `id`, `live` (optional), `read_21`, `read_42` and
   empty, and `status` is `running`. Before its due date a read is too early;
   report the due date instead.
 
-For each past-due read:
-- Pull the current metrics for the same pages and queries from the fresh data,
-  for the window that ends 21 (or 42) days after the ship date
-- Compare them with the baseline recorded in the experiment
-- Report the result: improved, no change, or regressed
-- Add the result to the experiment file and set `read_21` (or `read_42`) to
-  today's date. After the 42-day read, set `status: read`.
+List every past-due read in the briefing with its experiment, read and due
+date. A read counts as done only when it was run the controlled way, so a
+quick look at the fresh numbers never fills `read_21` or `read_42`. When the
+briefing is asked to run a due read itself:
+- Read the experiment's pages for the window that ends 21 (or 42) days after
+  the ship date, and for the same number of days just before the ship date
+- Read the control the same way: every page with impressions before the
+  baseline window, minus the experiment's own pages
+- Credit the change only when it beat the control; a change that moved with
+  the control "moved with the site". Under 20 clicks the read is directional
+- Write the numbers, windows and verdict into the experiment file, then set
+  `read_21` (or `read_42`) to today's date. The verdict belongs to the 42-day
+  read; after it, set `status: read`.
 
 List experiments with no read due yet in the briefing under "Running
 Experiments", with the date each next read is due.

@@ -72,9 +72,12 @@ If `.seo/briefing.md` or `.seo/strategy.md` exist:
 ### 2. Track experiments
 
 Experiments live in `.seo/experiments/`, one file per experiment. If the repo
-still has a single legacy `.seo/experiments.md`, import it once: split each
-entry into its own file under `.seo/experiments/`, then remove the legacy file
-in the same commit.
+still has an older layout, migrate it once, in one commit, before anything
+reads the folder: a single `.seo/experiments.md` is split into one file per
+entry, and a file in `.seo/experiments/` with no frontmatter (the older
+per-file format) gets the frontmatter below. Either way, keep every original
+date and result, and set `live` to the date the change actually shipped,
+because the migration commit's date is not the ship date.
 
 Scan the current strategy and any PRs merged since the last organize run.
 For each new piece of content created or significant change made with no
@@ -82,6 +85,9 @@ experiment file yet:
 - Create an experiment file: `.seo/experiments/YYYY-MM-DD-short-name.md`
 - Record the hypothesis, the pages, the baseline (its source and date window),
   what stays unchanged, the control pages, and a link to the strategy
+- Set `live` to the date the change shipped (its PR's merge date, or the
+  deploy date when deploys happen by hand). A record written after the change
+  shipped would otherwise date its reads from the day the record was written
 
 Experiment files open with this frontmatter:
 
@@ -90,7 +96,7 @@ Experiment files open with this frontmatter:
 id: 2026-06-24-windows-landing-page
 hypothesis: <one sentence>
 pages: [/windows]
-live:            # optional: the ship date, only when deploys happen by hand
+live:            # the ship date; required when the record is written after the change shipped or deploys happen by hand
 read_21:         # empty until the 21-day read is done, then the date it was done
 read_42:         # same for the 42-day read
 status: running  # running | read | closed

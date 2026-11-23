@@ -37,8 +37,8 @@ Identify which content items are approved for creation.
 
 Ship in small batches: 5 to 15 pages per batch, one topic each, with the answer
 in the first paragraph. Small single-topic batches beat a big template batch:
-13 single-topic pages earned about 4x the clicks of a 48-page templated batch
-in six weeks, and 22 of the 48 template pages never appeared in Google.
+a single-topic batch earned about 4x the clicks of a templated batch in six
+weeks, and almost half of the template pages never appeared in Google.
 
 **Success criteria**: Clear list of content to create with target keywords and intent.
 
@@ -94,9 +94,9 @@ After all content is drafted, do a linking pass:
 - Glossary updated with any new terms introduced
 
 Add a link to a page only once that page is live and returns 200. A link to a
-page that does not exist yet costs months: one site linked four pages six days
+page that does not exist yet costs months: one site linked several pages days
 before they shipped, Google fetched them as 404, and it had not recrawled them
-157 days later. Add the links from existing pages in the same deploy as the new
+more than five months later. Add the links from existing pages in the same deploy as the new
 pages, or after it.
 
 **Success criteria**: Every new page links to at least 2-3 existing pages. Existing pages link back where relevant. Every linked page is live.
