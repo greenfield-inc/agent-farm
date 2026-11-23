@@ -788,7 +788,7 @@ test('greenfield 0.0.47 lets rare bugs stop blocking merge, weighs every fix by 
 });
 
 test('greenfield 0.0.64 grades security and data loss by reach, sends common Should-Fixes to the implementer, and keeps follow-ups on regressions',()=>{
- includesAll(['skills/review/CRITERIA.md'],['about 1 in 10,000 users, or a very unusual or complex application state','An older app version still in use is normal use','Security and data-loss problems are graded by reach like any other finding','a finding no user or agent acts on','One that would lead a person or agent to do the wrong thing is a Should-Fix','A rare security or data-loss problem takes the same fix, mitigate or let-go decision as any other rare finding']);
+ includesAll(['skills/review/CRITERIA.md'],['about 1 in 10,000 users, or a very unusual or complex application state','An older app version still in use is normal use','when someone outside the trust boundary can trigger it by sending something (a request, file, link, message or agent output), Reach is at least medium','Security and data-loss problems are graded by reach like any other finding','a finding no user or agent acts on','One that would lead a person or agent to do the wrong thing is a Should-Fix','A rare security or data-loss problem takes the same fix, mitigate or let-go decision as any other rare finding']);
  includesAll(['skills/orchestrate-sessions/SKILL.md'],['by the first row that matches','| Should-Fix (rare), a security or data-loss problem, not flagged | the PR\'s implementer when a fix round is open and its fix or mitigation is small; otherwise the person |','carries the reviewer\'s grading line (Harm · Reach · Recovery → level) word for word','When the budget is used with only Should-Fixes open, they go to the PR\'s notes and card, with no question','name its root cause and recommend fixing that']);
  includesAll(['instructions/standing-rules.md'],['or a Should-Fix that is not rare, starts a round','rerun the QA journeys whose code changed since they last ran']);
  includesAll(REVIEWERS,['Resolved means the finding\'s original failure scenario no longer happens','security and data loss included, goes under **Noticed, not raised**']);
@@ -797,7 +797,7 @@ test('greenfield 0.0.64 grades security and data loss by reach, sends common Sho
  for(const file of fs.readdirSync(root,{recursive:true}).map(String).filter(f=>/\.(md|html)$/.test(f))){
   const text=flatText(file);
   assert.doesNotMatch(text,/whatever the reach: any security|Security, PHI, data loss and public-contract problems are always fixed|only inside a fix round a Must-Fix already opened/,file);
-  if(file!=='skills/review/CRITERIA.md')assert.doesNotMatch(text,/PHI exposure is (always )?Must-Fix|PHI[^.]*always Must-Fix/,file);
+  if(file.split(path.sep).join('/')!=='skills/review/CRITERIA.md')assert.doesNotMatch(text,/PHI exposure is (always )?Must-Fix|PHI[^.]*always Must-Fix/,file);
  }
 });
 
