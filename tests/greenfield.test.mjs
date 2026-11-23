@@ -517,7 +517,7 @@ test('no Greenfield skill or rule asks for a secret in chat: the host secret pro
 });
 
 test('greenfield 0.0.53: with a host question mechanism, asking and relaying follow the host\'s injected instructions; needs_you carries why and summary (J9)',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.63$/m);
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.64$/m);
  const rules=flatText('instructions/standing-rules.md');
  for(const rule of ['**When the host has its own question mechanism**','its injected instructions decide which mechanism to use','these rules never restate them','"why": "Invoice PDFs are renamed on export','"summary": "/abs/bundle/options.html"','- `why`: why it matters, in one or two sentences of at most 240 characters','- `summary`: optional, the absolute path of an `.html` page','When the host has its own question mechanism, use it as its instructions say. Otherwise, on Claude, use the harness question tool (`AskUserQuestion`)'])assert.ok(rules.includes(rule),rule);
  // #205's ban on passing the status file is gone, and host card rules are not restated here.
@@ -787,7 +787,7 @@ test('greenfield 0.0.47 lets rare bugs stop blocking merge, weighs every fix by 
  }
 });
 
-test('greenfield 0.0.63 grades security and data loss by reach, sends common Should-Fixes to the implementer, and keeps follow-ups on regressions',()=>{
+test('greenfield 0.0.64 grades security and data loss by reach, sends common Should-Fixes to the implementer, and keeps follow-ups on regressions',()=>{
  includesAll(['skills/review/CRITERIA.md'],['about 1 in 10,000 users, or a very unusual or complex application state','An older app version still in use is normal use','Security and data-loss problems are graded by reach like any other finding','a finding no user or agent acts on','One that would lead a person or agent to do the wrong thing is a Should-Fix','A rare security or data-loss problem takes the same fix, mitigate or let-go decision as any other rare finding']);
  includesAll(['skills/orchestrate-sessions/SKILL.md'],['by the first row that matches','| Should-Fix (rare), a security or data-loss problem, not flagged | the PR\'s implementer when a fix round is open and its fix or mitigation is small; otherwise the person |','carries the reviewer\'s grading line (Harm · Reach · Recovery → level) word for word','When the budget is used with only Should-Fixes open, they go to the PR\'s notes and card, with no question','name its root cause and recommend fixing that']);
  includesAll(['instructions/standing-rules.md'],['or a Should-Fix that is not rare, starts a round','rerun the QA journeys whose code changed since they last ran']);
