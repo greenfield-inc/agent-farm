@@ -176,7 +176,7 @@ test('the pre-check answers in one line whether a read or the review is due, fro
  assert.deepEqual([fromWorktree.memory,fromWorktree.lock],[main.memory,main.lock]);
 });
 
-test('the pre-check delivers its whole JSON line and exit status to a reader that drains the pipe late',{timeout:30000},async t=>{
+test('the pre-check delivers its whole JSON line and exit status to a reader that drains the pipe late',{skip:process.platform==='win32'&&'needs a POSIX shell pipe'},t=>{
  const repo=tempDir(t,'seo-check-pipe-');
  const env={...process.env,GIT_AUTHOR_DATE:'2026-01-01T12:00:00Z',GIT_COMMITTER_DATE:'2026-01-01T12:00:00Z',GIT_CONFIG_GLOBAL:'/dev/null',GIT_CONFIG_SYSTEM:'/dev/null'};
  execFileSync('git',['init','-q','-b','main'],{cwd:repo,env});
@@ -184,13 +184,8 @@ test('the pre-check delivers its whole JSON line and exit status to a reader tha
  // 1,500 records live 2026-01-01, both reads due on 2026-03-01: about 100 KB of JSON, more than a pipe buffers.
  for(let i=0;i<1500;i++)fs.writeFileSync(path.join(repo,`.seo/experiments/r${String(i).padStart(4,'0')}.md`),`---\nid: r${String(i).padStart(4,'0')}\nlive: 2026-01-01\nstatus: running\n---\n`);
  execFileSync('git',['add','.'],{cwd:repo,env});execFileSync('git',['-c','user.email=t@example.com','-c','user.name=t','commit','-qm','records'],{cwd:repo,env});
- const {spawn}=await import('node:child_process');
- const child=spawn(process.execPath,[path.join(root,'skills/seo-experiments/scripts/due.mjs'),'--repo',repo,'--today','2026-03-01','--check'],{stdio:['ignore','pipe','pipe']});
- const closed=new Promise(resolve=>child.on('close',resolve));
- child.stdout.pause();
- await new Promise(resolve=>setTimeout(resolve,1500));
- const chunks=[];child.stdout.on('data',chunk=>chunks.push(chunk));child.stdout.resume();
- const code=await closed;
- const result=JSON.parse(Buffer.concat(chunks).toString('utf8'));
- assert.deepEqual([code,result.reads_due.length],[0,3000]);
+ // The reader sleeps a second before draining; pipefail keeps the script's own exit status.
+ const run=spawnSync('bash',['-c','set -o pipefail; "$0" "$1" --repo "$2" --today 2026-03-01 --check | (sleep 1; cat)',process.execPath,path.join(root,'skills/seo-experiments/scripts/due.mjs'),repo],{encoding:'utf8',maxBuffer:1<<24});
+ assert.equal(run.status,0,run.stderr);
+ assert.equal(JSON.parse(run.stdout).reads_due.length,3000);
 });
