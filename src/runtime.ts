@@ -993,20 +993,23 @@ export function nativeCommand(argv: string[], environment: NodeJS.ProcessEnv): s
   if (!script) throw new Error(`Unsupported launcher ${executable}; install ${name} as an .exe or an npm package`);
   return [process.execPath,path.resolve(path.dirname(executable),script),...argv.slice(1)];
 }
-/** Returns the spawned harness on Windows, which has no exec; POSIX never returns at all. A caller that would
- *  otherwise exit on its own must wait for that child, or it kills the harness it just started. */
-export function execute(argv: string[], cwd: string, environment: NodeJS.ProcessEnv): ChildProcess | undefined {
+/** Returns the spawned harness on Windows, which has no exec, or when `ignoreStdin` is set; otherwise POSIX never
+ *  returns at all. A caller that would otherwise exit on its own must wait for that child, or it kills the harness it just started. */
+export function execute(argv: string[], cwd: string, environment: NodeJS.ProcessEnv, options: {ignoreStdin?: boolean} = {}): ChildProcess | undefined {
   const env=Object.fromEntries(Object.entries(environment).filter((pair): pair is [string,string]=>pair[1]!==undefined));
   const [executable,...args]=nativeCommand(argv,env);
   if (!path.isAbsolute(executable!)) throw new Error(`Missing native harness: ${argv[0]}`);
-  if (process.platform==='win32') {
-    // Windows has no exec. The harness shares this console, so Ctrl+C reaches it directly; stay alive and pass on its exit status.
+  // exec cannot redirect stdin, so a harness that must not read it is spawned instead.
+  if (process.platform==='win32' || options.ignoreStdin) {
+    // The harness shares this terminal, so Ctrl+C reaches it directly; stay alive and pass on its exit status.
     process.on('SIGINT',()=>{});
     // Nothing here should compete with the harness for console input.
-    process.stdin.pause();
-    return spawn(executable!,args,{cwd,env,stdio:'inherit'})
+    if (!options.ignoreStdin) process.stdin.pause();
+    const child=spawn(executable!,args,{cwd,env,stdio:[options.ignoreStdin ? 'ignore' : 'inherit','inherit','inherit']})
       .on('error',e=>{console.error('error:',e.message);process.exitCode=1;})
       .on('exit',(code,signal)=>{process.exitCode=code ?? (signal ? 128+(os.constants.signals[signal] ?? 0) : 1);});
+    if (process.platform!=='win32') for (const signal of ['SIGTERM','SIGHUP'] as const) process.on(signal,()=>child.kill(signal));
+    return child;
   }
   if (!process.execve) throw new Error('Native launch requires Node 22.15+');
   process.chdir(cwd);
@@ -1039,7 +1042,9 @@ export function launchSession(manifest: Manifest, harness: 'claude'|'codex', res
 function reportUnavailable(unavailable: UnavailableConnection[]): void {
   for (const {connection,harness,login} of unavailable) console.error(`agent-farm: ${connection} is not signed in for ${harness}, so this session starts without it; sign in with: ${login} (for a connection set in an agent definition rather than the workspace, use ${harness}'s own MCP login instead)`);
 }
-export function run(bundle: string, route: string, args: string[], launchCommand: typeof command = command, configRoot?: string): ChildProcess | undefined {
+/** `dispatched` marks a parent agent's process child: given --message, it gets no stdin, so a parent that leaves
+ *  stdin open (a background shell) cannot stall a harness that reads stdin to EOF before starting, as `codex exec` does. */
+export function run(bundle: string, route: string, args: string[], launchCommand: typeof command = command, configRoot?: string, dispatched = false): ChildProcess | undefined {
   const {values,tokens}=parseArgs({args,options:{exec:{type:'boolean'},message:{type:'string'},explain:{type:'boolean'},'print-launch':{type:'boolean'},'print-acp':{type:'boolean'},'acp-adapter':{type:'string'},'native-arg':{type:'string',multiple:true},model:{type:'string'},reasoning:{type:'string'},speed:{type:'string'},arg:{type:'string',multiple:true},resume:{type:'string'},'strict-mcp':{type:'boolean'},'inherit-mcp':{type:'boolean'}},strict:true,allowPositionals:true,tokens:true});
   const separator=tokens.find(t=>t.kind==='option-terminator')?.index ?? args.length;
   if (tokens.some(t=>t.kind==='positional' && t.index<separator)) throw new Error('Native arguments must follow -- or use --native-arg');
@@ -1077,7 +1082,7 @@ export function run(bundle: string, route: string, args: string[], launchCommand
   if (!values.explain && !values['print-launch']) for (const warning of mcpWarnings(launch.mcp)) console.error(warning);
   if (values.explain) console.log(JSON.stringify({...metadata,argv:launch.argv,cwd:launch.cwd,bundle,launch:launch.launch},null,2));
   else if (values['print-launch']) console.log(JSON.stringify({...metadata,argv:launch.argv,cwd:launch.cwd,bundle,env:launch.envOverrides,launch:launch.launch},null,2));
-  else return execute(launch.argv,launch.cwd,launch.env);
+  else return execute(launch.argv,launch.cwd,launch.env,{ignoreStdin:dispatched && values.message!==undefined});
   return undefined;
 }
 

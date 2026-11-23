@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import {spawnSync} from 'node:child_process';
+import {spawn,spawnSync} from 'node:child_process';
+import {once} from 'node:events';
 import {fileURLToPath} from 'node:url';
 import {build} from '../dist/compiler.js';
 import {command,fileMap,verify} from '../dist/runtime.js';
@@ -108,6 +109,18 @@ test('native exec preserves args, cwd, environment and exit status; dispatch run
  const b=f.build();const child=spawnSync(process.execPath,[path.join(b,'main/dispatch/worker'),'--message',message],{env,encoding:'utf8'});
  assert.equal(child.status,7,child.stderr);result=JSON.parse(fs.readFileSync(out));assert.equal(result.cwd,f.target);assert.equal(result.args[0],'exec');assert.ok(result.args.includes('--yolo'));assert.deepEqual(result.args.slice(-2),['--',message]);
  assert.ok(result.home.includes(path.join('.cache','agent-farm','native-proof')));assert.equal(fs.existsSync(path.join(f.target,'NEVER')),false);verify(b);
+});
+test('a dispatched child given --message starts even when its stdin stays open',async t=>{
+ const f=fixture(t),bin=path.join(f.base,'bin'),home=path.join(f.base,'home');fs.mkdirSync(bin);fs.mkdirSync(path.join(home,'.codex'),{recursive:true});
+ const out=path.join(f.base,'record.json');
+ // Like `codex exec`, read stdin to EOF before starting when it is not a TTY.
+ writeHarness(bin,'codex',`#!${process.execPath}\nprocess.stdin.resume();process.stdin.on('end',()=>{require('node:fs').writeFileSync(process.env.RECORD,'started');process.exit(7);});\n`);
+ const env={...process.env,HOME:home,USERPROFILE:home,CODEX_HOME:path.join(home,'.codex'),AGENT_FARM_NATIVE_CODEX_HOME:path.join(home,'.codex'),PATH:bin+path.delimiter+process.env.PATH,RECORD:out};
+ const child=spawn(process.execPath,[path.join(f.build(),'main/dispatch/worker'),'--message','review this'],{env,stdio:['pipe','ignore','pipe']});
+ let stderr='';child.stderr.on('data',d=>stderr+=d);
+ const timer=setTimeout(()=>child.kill('SIGKILL'),15000);
+ const [code]=await once(child,'exit');clearTimeout(timer);child.stdin.destroy();
+ assert.equal(code,7,stderr);assert.equal(fs.readFileSync(out,'utf8'),'started');
 });
 test('profile model settings reach both native harnesses and override legacy entrypoints',t=>{
  const f=fixture(t);

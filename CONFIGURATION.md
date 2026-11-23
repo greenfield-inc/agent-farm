@@ -247,6 +247,9 @@ agent-farm run my-implementer \
 Process children's dispatchers accept the same flags. They forward only values
 passed to that dispatcher; a child never inherits its parent's overrides or
 arguments.
+A dispatcher given `--message` starts the child with no stdin, so it runs the
+same in the foreground or from a background shell that leaves stdin open.
+Without `--message`, the child reads its prompt from stdin.
 
 CLI model flags are reported as `override: ad hoc`; a saved model preset is
 reported as `override: preset`. Because agent instructions may be tuned for

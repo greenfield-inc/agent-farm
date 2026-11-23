@@ -91,7 +91,7 @@ agent-farm run greenfield/codebase-audit --directory /path/to/project \
 | Child | Bound to | Model and task |
 | --- | --- | --- |
 | `explorer`, `cold-reader` | implementer | Sonnet 5 medium, native (Sol 6.2 medium ultrafast under the Codex variants); codebase facts and a fresh read of prose |
-| `qa-and-verify` (agent `pr-qa`) | implementer | Opus 5.5 medium, native (Sol 6.2 medium ultrafast under the Codex variants); a full QA pass on a finished pull request |
+| `qa-and-verify` (agent `pr-qa`) | implementer | Sol 6.2 medium ultrafast on every variant: process under `:opus`, native under the Codex variants; a full QA pass on a finished pull request |
 | `refactor`, `cold-reader` | simplify-and-refactor | Sol 6.2 medium ultrafast under `:sol`; Opus 5.5 medium for `refactor` and Sonnet 5 medium for `cold-reader` under `:opus`; native. A fresh `refactor` runs each analysis, lens and adversarial pass |
 | `second-opinion` (agent `pr-reviewer`) | implementer | Sol 6.2 low ultrafast under `:opus`, Opus 5.5 medium under `:astra` / `:sol`, Sol 6.2 low ultrafast under `:codex`, process; an opt-in quick review with `review` |
 | `finder`, `codex-finder` (agent `smell-finder`) | code-smell-fixes | Sonnet 5.5 low, native, one per lens; Sol 6.2 medium ultrafast, process, one per pair of lenses. Read-only |

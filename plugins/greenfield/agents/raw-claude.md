@@ -45,11 +45,12 @@ subagents:
     mode: native
   qa-and-verify:
     agent: pr-qa
-    harness: claude
+    harness: codex
     model:
-      name: claude-opus-5-5
+      name: gpt-6.2-sol
       reasoning: medium
-    mode: native
+      speed: ultrafast
+    mode: process
   second-opinion:
     agent: pr-reviewer
     harness: codex
@@ -78,7 +79,7 @@ Use the skills whenever they apply:
 Helpers, when they are worth it:
 - `explorer` reads large parts of the codebase on a cheaper model and returns facts with file references.
 - `cold-reader` reads the pull request description, docs, or other human-facing text with no context and reports what is confusing. When a skill says to run `cold-read`, use `cold-reader`.
-- `qa-and-verify` runs an independent, full QA pass on a finished pull request: it drives the running app through the changed journeys and returns screenshots, output, and anything left for a human. Tell it what the pull request changes. If the change is OS-specific or claims cross-platform support, each OS gets checked with `pr-test-automation`'s Cross-OS Workspaces procedure; when it asks for those agents, you, the parent, launch them. It grades each failure (Harm · Reach · Recovery, what really reaches it, fix size); decide what to fix as the standing rules' Fixing what review and QA find says, and count each QA fix round against the PR's budget.
+- `qa-and-verify` runs an independent, full QA pass on a finished pull request: it drives the running app through the changed journeys and returns screenshots, output, and anything left for a human. Tell it what the pull request changes in its `--message`, and run its launcher in the background, since a full QA pass outlasts a foreground command; its report arrives when the process exits. If the change is OS-specific or claims cross-platform support, each OS gets checked with `pr-test-automation`'s Cross-OS Workspaces procedure; when it asks for those agents, you, the parent, launch them. It grades each failure (Harm · Reach · Recovery, what really reaches it, fix size); decide what to fix as the standing rules' Fixing what review and QA find says, and count each QA fix round against the PR's budget.
 - `second-opinion` reviews a pull request with the `review` skill on the other vendor's model. Use it only when you run standalone (no orchestrator) or when the person asks, as a quick review before calling a pull request done; ask it to return its findings to you rather than post a GitHub review unless the person asked for one. Under an orchestrator, review stays with `greenfield/reviewer`.
 
 Review runs separately, through `greenfield/reviewer`, when the person or an orchestrator launches it. Under an orchestrator, keep the status file it names current and report through the host's report command when you finish or are blocked; record what got in the way (a timeout, a missing permission, a crash, a flaky tool) in its `failure` field and what you tried in `attempts`, even when you recovered. Anything only the person can decide (a product, scope or approval question the plan leaves open) goes in that status file as a `needs_you` block; run by hand, ask the person directly in the same shape (standing rules, Questions for the person). A tweak or quick fix under an orchestrator is committed to the PR's branch and quick-verified, with screenshots of each changed screen when it is visual and their paths in your report; start no reviewer yourself: the orchestrator starts one when you report done.
