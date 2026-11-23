@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6.1-sol
+  name: gpt-6.2-sol
   reasoning: low
+  speed: ultrafast
 description: Review an artifact with fresh context and report confusion,
   omissions, or contradictions.
 skills:

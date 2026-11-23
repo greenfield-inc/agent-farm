@@ -6,6 +6,7 @@ variants:
   sol:
     agent: raw-codex
     model:
-      name: gpt-6.1-sol
+      name: gpt-6.2-sol
       reasoning: medium
+      speed: ultrafast
 default: opus
