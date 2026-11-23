@@ -97,28 +97,32 @@ The end-of-Session sweep: when refinements wind down and some PRs still have unr
 
 ## After a review
 
-Read the findings file. Every Must-Fix and Should-Fix carries `Scope: in | out`, `Approach/scope: no | yes`, a `Fix size:` and a `Decision:` (the reviewer's CRITERIA.md, Fix or let go and section 7). Route each finding once:
+Read the findings file. Every Must-Fix and Should-Fix carries `Scope: in | out`, `Approach/scope: no | yes`, a `Fix size:` and a `Decision:` (the reviewer's CRITERIA.md, Fix or let go and section 7). Route each finding once, by the first row that matches:
 
 | Finding | Goes to |
 | --- | --- |
 | Approach/scope: yes, at any level | the person, never the implementer: re-plan it (a new revision through the planner), fix it in this PR anyway, or accept it as is |
 | Must-Fix, not flagged | the PR's implementer, with no question |
-| Should-Fix, scope in, Decision: fix, Fix size: small | the PR's implementer, but only inside a fix round a Must-Fix already opened; otherwise the PR's notes and card |
+| Should-Fix (rare), a security or data-loss problem, not flagged | the PR's implementer when a fix round is open and its fix or mitigation is small; otherwise the person |
+| Should-Fix, scope in, Decision: fix, not rare | the PR's implementer; it can open a fix round |
+| Should-Fix (rare), scope in, Decision: fix, Fix size: small | the PR's implementer inside a fix round that is already open; otherwise the PR's notes and card |
 | Decision: mitigate or let go, not flagged | the PR's notes and card (the mitigation rides along if a fix round is open) |
 | Should-Fix, scope out | the person: re-plan it as follow-up work, fix it here anyway, or accept it |
 | Pre-existing | the card, as a proposed follow-up issue (security or PHI: the person) |
 | Suggestion | the map only |
 
+Every finding on a card or in a question carries the reviewer's grading line (Harm · Reach · Recovery → level) word for word.
+
 Send the implementer's share in one message, resumed in its session or, once that session has stopped, as a new implementer agent in the same workspace: `review: fix F-… (findings: <path>)`. Put the person's share to them as one relay message ([references/relay.md](references/relay.md)), each finding with its file:line and, for a flagged one, the plan change it would need; record their answers as D-n. A finding they send back to be fixed goes to the implementer in the next message, and a re-plan goes to the planner. The person can say "fix them" to send the Should-Fixes on the card too.
 
-The fix loop: when the implementer reports its fixes done, launch a follow-up reviewer, again as a new agent in that workspace, that checks only the F-n it was sent and the lines that fix round changed, plus any new Must-Fix in the lines that fix round changed, which it marks `fix-caused`. Its starting message names the F-n, the fix round's commit range and that exception. A follow-up is not sized again. What it notices outside that scope comes back under "Noticed, not raised" with no F-number: put it on the card, never to the implementer. After a conflict merge, a follow-up reviews only the conflict resolution. Route any F-n still open the same way. The loop ends when the latest review says `Mergeable as is: yes` (no Must-Fix open) and every finding sent to the person has its answer; a Must-Fix the person accepted counts as closed. Start a whole-PR review again only for a new trigger ("ready", a plan's end) or on the person's word.
+The fix loop: when the implementer reports its fixes done, launch a follow-up reviewer, again as a new agent in that workspace, that reads the lines that fix round changed for regressions first, then checks only the F-n it was sent. It raises only a new Must-Fix in the lines that fix round changed with Reach medium or high, which it marks `fix-caused`, or a PHI exposure. Its starting message names the F-n, the fix round's commit range and that exception. A follow-up is not sized again. What it notices outside that scope comes back under "Noticed, not raised" with no F-number: put it on the card, never to the implementer. After a conflict merge, a follow-up reviews only the conflict resolution. Route any F-n still open the same way. The loop ends when the latest review says `Mergeable as is: yes` (no Must-Fix open) and every finding sent to the person has its answer; a Must-Fix the person accepted counts as closed. Start a whole-PR review again only for a new trigger ("ready", a plan's end) or on the person's word.
 
-The round budget: each review gives its PR a budget of fix rounds, printed under its Size line: small 1, standard 2, large 3. A fix round is one batch of fixes sent to the implementer, for QA or review findings, plus its re-check; the first QA pass and the first review are free. QA rounds the implementer reports in its status file's `fix_rounds` count too. Keep `fix_rounds: {budget, used}` per PR in the ledger, adding QA and review rounds together, and show "Fix rounds 1 of 2" on its card. Before the PR's first review, take the budget from the implementer's `fix_rounds`, which sizes the PR the same way. A new review trigger opens a fresh budget for its range. Stop, send the implementer nothing more, and ask the person when:
+The round budget: each review gives its PR a budget of fix rounds, printed under its Size line: small 1, standard 2, large 3. A fix round is one batch of fixes sent to the implementer, for QA or review findings, plus its re-check; the first QA pass and the first review are free. QA rounds the implementer reports in its status file's `fix_rounds` count too. Keep `fix_rounds: {budget, used}` per PR in the ledger, adding QA and review rounds together, and show "Fix rounds 1 of 2" on its card. Before the PR's first review, take the budget from the implementer's `fix_rounds`, which sizes the PR the same way. A new review trigger opens a fresh budget for its range. When the budget is used with only Should-Fixes open, they go to the PR's notes and card, with no question. Stop, send the implementer nothing more, and ask the person when:
 
 - the budget is used and a Must-Fix is still open, or
 - a follow-up confirms a fix-caused Must-Fix.
 
-Put one question to the person naming the findings, the rounds and what each fix changed, with three options: more fix rounds (how many), re-plan, or accept as is.
+Put one question to the person naming the findings, the rounds and what each fix changed, with three options: more fix rounds (how many), re-plan, or accept as is. When one finding is still open after its second round, name its root cause and recommend fixing that.
 
 The simplify checkpoint is optional and off by default. When the user turns it on, launch one `greenfield/simplify-and-refactor:sol` agent per PR as a new agent in that PR's workspace after its implementer reports done and has stopped, before QA and review, since it may write the branch. Its starting message names the PR and says: plan, then wait for the user's approval of the merged plan. Relay the plan to the user; it applies only on their approval. When it reports done, the head has changed: QA and review run on the new head, and the implementer owns the branch again.
 

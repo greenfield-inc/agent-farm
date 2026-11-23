@@ -572,8 +572,8 @@ A boundary with no control is a finding. Every finding names the
 source, the sink, and the missing control (e.g. "source
 patient.diagnosis → sink logger.error → missing control redaction";
 "source query param q → sink exec() string → missing control argument
-array"). Drop any that cannot name all three. PHI reaching a sink
-without a control is always Must-Fix.
+array"). Drop any that cannot name all three. Grade a PHI finding by
+the PHI rule in the review skill's CRITERIA.md.
 
 OUTPUT: PASS/WARN/FAIL status, boundary map (source → sink → control,
 PHI included),

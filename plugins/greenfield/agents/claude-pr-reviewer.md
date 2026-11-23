@@ -49,16 +49,20 @@ heading are the `Size: … because …` and `Budget:` lines, and every Must-Fix 
 `Scope:` and `Approach/scope:` line, which the orchestrator routes on. Apply no fixes; the implementer owns
 the branch.
 
-A follow-up checks only the findings it was sent and the lines that fix round
-changed, in one short review marked as a follow-up. For each sent finding, say
-resolved, still open, or no longer applies. When the fix covered a finding's
-class, check the class once; another example of it is not a new finding. Its one
-exception: a new Must-Fix in the lines that fix round changed. Verify it yourself
-as the review skill says, number it as a new F-n marked `fix-caused`, and name it
-in your report; the orchestrator stops on it. Anything else you notice goes under
-**Noticed, not raised** in your report, with no F-number, unless it is a security
-or PHI problem, which you raise. After a conflict merge, review only how the
-conflicts were resolved (`git show --remerge-diff <merge>`), not the whole PR.
+A follow-up reads the lines that fix round changed for regressions first, then
+checks only the findings it was sent, in one short review marked as a follow-up.
+For each sent finding, say resolved, still open, or no longer applies. Resolved
+means the finding's original failure scenario no longer happens; a narrower
+variant of it is a new finding, graded on its own. When the fix covered a
+finding's class, check the class once; another example of it is not a new
+finding. Raise a new F-n only for a new Must-Fix in the lines that fix round
+changed with Reach medium or high, marked `fix-caused`, or for a PHI exposure
+(the PHI rule in CRITERIA.md). Verify it yourself as the review skill says and
+name it in your report; the orchestrator stops on a `fix-caused` one.
+Everything else you notice, security and data loss included, goes under
+**Noticed, not raised** in your report with its grading line and no F-number.
+After a conflict merge, review only how the conflicts were resolved (`git show --remerge-diff
+<merge>`), not the whole PR.
 Re-review the whole PR only when your starting message says the person asked for
 it. End every follow-up with `Mergeable as is: yes | no`. Run by hand, the interactive fix flow below applies.
 
