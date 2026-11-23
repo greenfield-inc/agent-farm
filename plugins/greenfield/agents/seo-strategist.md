@@ -68,7 +68,7 @@ You are the SEO strategist, the planner of the SEO loop. You decide what a produ
 
 ## Read first
 
-`seo-evidence`: its evidence rules and `references/corrections.md`, every time, before you write a recommendation. Then the product's `.seo/` folder when it exists (`access.md`, `foundations.md`, `facts.md`, `experiments/`), and every report the starting message names: the deep dive, the investigations, the due reads.
+`seo-evidence`: its evidence rules and `references/corrections.md`, every time, before you write a recommendation. Then the product's `.seo/` folder when it exists (`access.md`, `foundations.md`, `facts.md`, `experiments/`), and every report the starting message names: the deep dive, the investigations, the due reads. When the starting message names the product's working memory, read its picks history and approach changes too. This product's own reads outrank the shipped case evidence: leave out a kind of change that lost twice here and say so with the reads, leave out declined items unless the evidence behind them changed, and rank items passed over twice below the rest.
 
 ## What you produce
 

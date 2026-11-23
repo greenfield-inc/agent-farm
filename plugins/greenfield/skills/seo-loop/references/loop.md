@@ -60,5 +60,5 @@ Sources: the orchestrating session's transcript digest (2026-11-03 to 2026-11-04
 | One brief per worker in the Session folder, with a change log of later decisions | starting messages written to files; decisions as D-n in the decision log |
 | Review dates scattered across the playbook table, the quick-wins calendar items and the Session's next-action note | one record per experiment under `.seo/experiments/`; the due script computes every read date at each start |
 | An older single-file experiment log in the product repo | imported once into records |
-| Raw pulls archived under `.seo/archive/<date>/data/` on the deep dive's branch | raw pulls stay in the run's private bundle; the `.seo/` PR carries reviewed aggregates only |
+| Raw pulls archived under `.seo/archive/<date>/data/` on the deep dive's branch | raw pulls stay in the product's local raw store on this machine; the `.seo/` PR carries reviewed aggregates only |
 | Pages published to the document destination, v1 and v2 at the same link | the same: each run's bundle, updated in place |

@@ -1,6 +1,6 @@
 # Routing: each step, its worker and its starting message
 
-Every item is one workspace in the product's repository, created with its first worker as `orchestrate-sessions` says. Every starting message names: the source and its revision, the access tier and the missing sources, the status-file path, the document destination and the Session folder, the Session name, the validation level for a writer, and "follow the rules in seo-loop, Rules for the whole loop". Write it to an absolute file and pass that file as the message.
+Every item is one workspace in the product's repository, created with its first worker as `orchestrate-sessions` says. Every starting message names: the source and its revision, the access tier and the missing sources, the status-file path, the document destination and the Session folder, the Session name, the validation level for a writer, the product's local folder (the pre-check's `memory`; raw pulls go in its `data/`), and "follow the rules in seo-loop, Rules for the whole loop". A worker that opens a `.seo/` PR also gets the answers saved only in memory (autonomy, cadence, sources to go without, the loop decision) and writes them into `.seo/access.md` in that PR. Write it to an absolute file and pass that file as the message.
 
 The strategist, measurer and investigator also take `--arg source=<file>` and `--arg parent=<status file>`, and `--arg docs=<destination>` when the repository's workspace instructions name no document destination (see `orchestrate-sessions`, Document destinations).
 
@@ -37,7 +37,7 @@ The strategist, measurer and investigator also take `--arg source=<file>` and `-
 
 ## Step 7: the ranked page (strategist)
 
-- **Message:** "Build the ranked quick-wins page for <url> at the <tier> tier with growth-quick-wins: 25 to 50 quick wins and 10 to 15 workstreams, each with its action, time, category, evidence line and review date, opening with the top actions. Read the deep dive, the investigations and `seo-evidence` first. Then run the rerun and gap check and list what the first pass got wrong or missed. For a new site, run seo-foundations first."
+- **Message:** "Build the ranked quick-wins page for <url> at the <tier> tier with growth-quick-wins: 25 to 50 quick wins and 10 to 15 workstreams, each with its action, time, category, evidence line and review date, opening with the top actions. Read the deep dive, the investigations and `seo-evidence` first, then the picks history and approach changes at <memory path>: leave declined items out unless this product's evidence changed (say what changed), rank items not picked twice below the rest, and drop any kind of change that lost twice on this product, saying so with the reads. On a scheduled review, your `.seo/` PR also sets `last_review` in `.seo/access.md` to the review's date. Then run the rerun and gap check and list what the first pass got wrong or missed. For a new site, run seo-foundations first."
 - **Done when:** the page and its gap check are in the bundle, then the reviewer says `Ready for the person: yes`.
 
 ## Step 8: picks, briefs and the writer
@@ -56,3 +56,4 @@ A worker's `needs_you` reaches the person as `orchestrate-sessions` says. Three 
 | A source is missing | `seo.access`; when the person already chose "continue at the current tier" for this source, send that answer and record it |
 | Which drop to investigate first | the drop with the most lost clicks or sign-ups, unless the person ranked them |
 | Whether a fourth experiment may start this review | always the person: the cap is a rule of the loop |
+| Anything already answered | working memory's `questions` and `.seo/access.md`; never ask the person twice |

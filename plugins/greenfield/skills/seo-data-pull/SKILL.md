@@ -271,12 +271,33 @@ Commit the reviewed parts of `.seo/` to the working branch: foundations,
 strategy, briefing, the fact ledger, experiment records and the index. They
 are the record later runs measure against, so never leave them untracked.
 
-Raw pulls stay out of commits: `.seo/data/` and every `data/` folder under
-`.seo/archive/` hold query rows and analytics segments, and a product's
-repository and its PRs may be public. Add both to `.gitignore` and keep the
-raw files local or in the run's private documents. Commit them only when the
-person has said this repository may hold them. What a briefing or experiment
-record cites from them is a reviewed aggregate, and that is committed.
+Raw pulls live on this machine and never leave it through the repository.
+This is the one raw-data rule; the other SEO skills point here.
+
+- The raw store is the product's local folder: `data/` under the `memory`
+  path the SEO loop's due script prints with `--check`, and
+  `archive/YYYY/MM/DD/data/` there for dated copies. Without the due script,
+  it is `~/.local/state/agent-farm/seo/<repository name>/`. Later runs in
+  other worktrees diff against it instead of pulling again.
+- Before the first pull in a worktree, point `.seo/data` at the raw store.
+  When `.seo/data` is a real directory, move its untracked files into the
+  store's `data/` and remove the directory first; then run
+  `ln -s <store>/data .seo/data` and confirm `test -L .seo/data`. Write
+  nothing raw until that check passes.
+- Nothing raw is committed, pushed or put in a PR. `.seo/data` (no trailing
+  slash, so the link is ignored too) and `.seo/archive/**/data/` are in
+  `.gitignore`. When `git ls-files .seo/data .seo/archive` lists raw files
+  that an older run committed, remove them from the index
+  (`git rm -r --cached <path>`) in the next `.seo/` PR and say in it that
+  they stay in the repository's history.
+- Stage reviewed files by path, never `git add .seo` or `git add -A`. Before
+  every push, run `node <this skill's directory>/scripts/raw-guard.mjs --base
+  origin/<default branch>`. It checks every commit the push would publish, so
+  a raw file added in one commit and deleted in a later one still counts, and
+  it allows deleting raw files the default branch already has. When it exits
+  1, rewrite the branch so no commit adds the files it names, then push.
+- What a briefing, read or experiment record cites from a pull is a reviewed
+  aggregate, and that is committed.
 
 ## Analytics API Notes
 

@@ -42,7 +42,8 @@ product's repository:
    needs from the product, and the order to do them.
 
 The working data behind all of it (competitor crawls, search-result maps,
-demand pulls, surface checks) goes in `.seo/data/`. Before writing anything,
+demand pulls, surface checks) goes in `.seo/data/`, which must be the link to
+the product's local raw store: raw data is never committed or put in a PR. Before writing anything,
 start your own branch and open a draft PR for it; write `.seo/` only there,
 never on the default branch.
 
