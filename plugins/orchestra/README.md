@@ -14,12 +14,12 @@ Both variants also get Agent Farm's `babysit-pr`, `tdd`, `codebase-design`, `ses
 | Profile | Harness and model | What it loads |
 | --- | --- | --- |
 | `orchestra/overseer:claude` (default) | Claude, claude-opus-5-5 | The 11 Claude skills (codex, cold-read, create-brief, discussion, do, excalidraw-pr-diagrams, investigate, postmortem, postmortem-loop, prepare-pull-request, sentry-loop) plus arena and hillclimb, the 6 Claude agents as native subagents, Linear and Playwright MCP. Codex roles run through `codex exec` as in orchestra. |
-| `orchestra/overseer:codex` | Codex, gpt-6-astra (high) | The 13 Codex skills, with `do` and `investigate` in `codex-do` and `codex-investigate`, plus codex-hillclimb. |
+| `orchestra/overseer:codex` | Codex, gpt-6.2-sol (medium, ultrafast) | The 13 Codex skills, with `do` and `investigate` in `codex-do` and `codex-investigate`, plus codex-hillclimb. |
 
 Both variants select `references: orchestra`, which holds orchestra's `references/` folder, its Claude agent files under `claude-agents/`, and `templates/`.
 Skills cite `.references/<path>`; Agent Farm maps that to the bundled folder at launch.
 
-Text is copied unchanged except for 10 patches listed in the vendor script:
+Text is copied unchanged except for 26 patches listed in the vendor script:
 - `references/orchestra/verification-methods.md`: iOS simulator QA points to the bundled ios-simulators skill.
 - `references/orchestra/claude-agents/frontend-verifier.md`: the Claude frontend-verifier sets up iOS simulators with the bundled ios-simulators skill.
 - `skills/frontend-verifier/SKILL.md`: the Codex frontend-verifier sets up iOS simulators with the bundled ios-simulators skill.
@@ -30,6 +30,22 @@ Text is copied unchanged except for 10 patches listed in the vendor script:
 - `skills/do/SKILL.md`: /do browser preflight detects a daemon or local run; a local run without a browser records a note instead of stopping.
 - `skills/do/SKILL.md`: /do Step 5 accepts local run and attempt ids.
 - `references/orchestra/claude-agents/frontend-verifier.md`: frontend-verifier accepts a dispatch-supplied evidence directory on local runs.
+- `skills/codex/SKILL.md`: codex dispatches run gpt-6.2-sol on the ultrafast tier (Agent Farm default; upstream still names gpt-6.1-sol).
+- `skills/codex/SKILL.md`: codex dispatches run gpt-6.2-sol on the ultrafast tier.
+- `skills/codex/SKILL.md`: codex role efforts: reviewers low, every other role medium, all on gpt-6.2-sol ultrafast.
+- `skills/codex/SKILL.md`: codex dispatch command selects gpt-6.2-sol on the ultrafast tier.
+- `skills/codex/SKILL.md`: codex resume pins model, effort and tier, since resume otherwise takes the model from the user config.
+- `skills/backend-verifier/SKILL.md`: the backend-verifier role names its gpt-6.2-sol dispatch and effort.
+- `skills/implementer/SKILL.md`: the implementer role names its gpt-6.2-sol dispatch and effort.
+- `skills/investigator/SKILL.md`: the investigator role names its gpt-6.2-sol dispatch and effort.
+- `skills/code-researcher/SKILL.md`: the code-researcher role names its gpt-6.2-sol dispatch and effort.
+- `skills/code-reviewer/SKILL.md`: the code-reviewer role names its gpt-6.2-sol dispatch and effort.
+- `skills/plan-reviewer/SKILL.md`: the plan-reviewer role names its gpt-6.2-sol dispatch and effort.
+- `skills/refactor-deep/SKILL.md`: the refactor-deep role names its gpt-6.2-sol dispatch and effort.
+- `skills/refactor-simple/SKILL.md`: the refactor-simple role names its gpt-6.2-sol dispatch and effort.
+- `skills/codex-do/SKILL.md`: codex-do runs its implementer at medium effort.
+- `skills/codex-do/SKILL.md`: codex-do runs its implementer at medium effort (Step 2).
+- `references/orchestra/model-prices.md`: model prices say codex dispatches moved to gpt-6.2-sol, whose ultrafast rates are not recorded yet.
 
 Orchestra's Claude agents restrict their tools (reviewers and researchers are read-only). Agent Farm native subagents get a prompt, model, and effort only, so those allowlists are not enforced; the agents stay read-only by their written charters.
 

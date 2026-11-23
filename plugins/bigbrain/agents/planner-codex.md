@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6-astra
-  reasoning: high
+  name: gpt-6.2-sol
+  reasoning: medium
+  speed: ultrafast
 instructions_files:
   - ../instructions/standing-rules.md
   - ../instructions/contract.md
@@ -34,15 +35,17 @@ subagents:
     agent: explorer
     harness: codex
     model:
-      name: gpt-6.1-sol
-      reasoning: low
+      name: gpt-6.2-sol
+      reasoning: medium
+      speed: ultrafast
     mode: native
   researcher:
     agent: researcher
     harness: codex
     model:
-      name: gpt-6.1-sol
-      reasoning: low
+      name: gpt-6.2-sol
+      reasoning: medium
+      speed: ultrafast
     mode: native
   socrates:
     agent: socrates

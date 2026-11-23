@@ -144,6 +144,7 @@ async function createProfileFlow(configRoot: string): Promise<string | undefined
   // 3. Model — preset picker instead of text field
   const modelOptions: Record<string, {value: string; label: string; hint: string}[]> = {
     codex: [
+      {value: 'gpt-6.2-sol', label: 'gpt-6.2-sol', hint: 'Greenfield default'},
       {value: 'gpt-6-astra', label: 'gpt-6-astra', hint: 'flagship'},
       {value: 'gpt-6.1-sol', label: 'gpt-6.1-sol', hint: 'balanced'},
     ],

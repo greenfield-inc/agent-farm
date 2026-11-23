@@ -15,7 +15,7 @@ date here (this file is the history). Verify against
 | `claude-opus-4-8` / `-4-7` / `-4-6` | $5.00 | $25.00 | 0.1× | 1.25× / 2× | 2026-07-21 |
 | `claude-sonnet-5` | $3.00 ($2.00 intro through 2026-08-31) | $15.00 ($10.00 intro) | 0.1× | 1.25× / 2× | 2026-07-21 |
 | `claude-haiku-4-5` | $1.00 | $5.00 | 0.1× | 1.25× / 2× | 2026-07-21 |
-| `gpt-6.1-sol` (codex dispatches) | $2.00 | $10.00 | cached input 0.05× | 1.25× input | 2026-10-05 |
+| `gpt-6.1-sol` (former codex dispatch model; dispatches now run `gpt-6.2-sol` on the ultrafast tier, whose rates are not recorded here yet) | $2.00 | $10.00 | cached input 0.05× | 1.25× input | 2026-10-05 |
 | `gpt-5.5` (codex resume fallback; last published - no longer on OpenAI's current page) | $5.00 | $30.00 | cached input 0.1× | - | 2026-07-21 |
 
 Batch API bills every class at 50% on both providers. `gpt-5.5` requests

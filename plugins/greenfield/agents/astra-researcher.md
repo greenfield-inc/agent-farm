@@ -1,9 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6-astra
-  reasoning: high
-  speed: fast
+  name: gpt-6.2-sol
+  reasoning: medium
+  speed: ultrafast
 skills:
   - deep-dive
   - deep-dive-refresh

@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6-astra
-  reasoning: high
+  name: gpt-6.2-sol
+  reasoning: low
+  speed: ultrafast
 skills:
   - principled-review
   - review
@@ -108,9 +109,8 @@ Your priorities, ranked by consequence:
 
 Use the bundled principled-review skill to spawn parallel review agents for
 the principles the diff touches.
-Each sub-agent MUST use gpt-6.1-sol with reasoning: low — never the
-orchestrator's own model. Each agent checks one dimension of the diff
-independently.
+Each sub-agent MUST use gpt-6.2-sol with reasoning: low on the ultrafast speed.
+Each agent checks one dimension of the diff independently.
 
 After all agents report back, aggregate their findings into a unified report
 ranked by consequence — data loss and security first, wrong behavior second,

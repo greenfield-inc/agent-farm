@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6.1-sol
+  name: gpt-6.2-sol
   reasoning: medium
+  speed: ultrafast
 description: "The AI model on its own, plus a few good habits for pull requests, tickets, testing, and checking its work. Best for small, clear tasks."
 instructions_files:
   - ../instructions/standing-rules.md
@@ -42,8 +43,9 @@ subagents:
     agent: pr-reviewer
     harness: codex
     model:
-      name: gpt-6.1-sol
+      name: gpt-6.2-sol
       reasoning: low
+      speed: ultrafast
     mode: process
 ---
 

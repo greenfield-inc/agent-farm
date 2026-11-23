@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6-astra
+  name: gpt-6.2-sol
   reasoning: medium
+  speed: ultrafast
 description: "The AI model with no extra instructions, for quick questions and one-off tasks."
 ---
 

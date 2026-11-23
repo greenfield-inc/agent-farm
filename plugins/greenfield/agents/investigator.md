@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6.1-sol
-  reasoning: max
+  name: gpt-6.2-sol
+  reasoning: medium
+  speed: ultrafast
 description: Gather evidence for one question. Reproduce, trace code, collect logs, and name failing tests, with file references.
 skills:
   - gather-evidence

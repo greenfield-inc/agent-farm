@@ -1,5 +1,5 @@
 name: bigbrain
-version: 0.1.0
+version: 0.1.1
 cli_major: 0
 source:
   repository: https://github.com/greenfield-inc/agent-farm
@@ -7,17 +7,17 @@ source:
 checksums:
   agents/designer.md: 136934e54918120391232d4837f0d988cad2907a6a4ca9c3adc3412b442a478b
   agents/explorer.md: 1635f450fb53b7a435e550cdf8b91e44826512f23461836416a3da32f1dc5e6f
-  agents/implementer-codex.md: cc582fbfb4789a0178891ef11d6b23a1afaa0a59978fa6a39bc3405038603eb3
+  agents/implementer-codex.md: a87029f1b467beee876406e1adbb8467fc1140af60ada3b6c7005e999a08d39f
   agents/implementer-opus.md: c19e5ef85b93c87ce441aba8e1d3289c171913a18f8471ee795f0f627c88288e
-  agents/investigator-codex.md: 24ae6654ab05bea80fc0aba613c4c2ccde0c1a0fba76987ee86307dd7c5eb494
+  agents/investigator-codex.md: 153472a70423f04d546296d2f6d550995c2b7c852030751ab26e9e789da1a694
   agents/investigator.md: c70ea6e2d72e27364ae90ec79ee9b8dd7e8166cfa614276148b953087d6b9a42
   agents/orchestrator.md: 8095f0dbfb7b4272d30dd1da6bbed8630b550acf2d2be18311131b0033453210
-  agents/planner-codex.md: bde27ff41f34a0b34a2f0b0e9fcd9162fce5aaf9e190ac087a7c2c89d37457b4
+  agents/planner-codex.md: 50475e112785ada5e3c284d4458b9af7cba5a4c16c6ca2e7bb09b369555abf97
   agents/planner.md: 723761f6b7e1000d84b1e160509cccfbada7c90a563765f8dfae5a0864b8a402
   agents/researcher.md: 86f7bf38b996eddab4635cc9c7d0724d6ee776d4357a12d70e49a7ebf15fd032
   agents/review-worker.md: ee360aa62889dabc73bc1496f876d0bcf92e5f96285a00b2c602cf3e51a792d5
-  agents/reviewer-claude.md: 6e860c1c92dd66ce476540aee39c9320f812ee94957409787a6f1aeeae201fe9
-  agents/reviewer-codex.md: 0af668d9ebe5d9aa1940ba5f6529c58ecc8bbe92e879e8450d18c3439ccad6bb
+  agents/reviewer-claude.md: df984e67e51b4fbffae1a572c529bfb4b45ec43ccab047c2b6dd24909c5e1cdb
+  agents/reviewer-codex.md: 1d38dd2405619b203d901c34cf88754bb181c5cea8d5ad7d10c050efba7d571e
   agents/socrates.md: b893cb2283ead6cec8bb061841b25a750b007cace9f3c37ec21a13c27d9daf9c
   agents/teacher.md: 10e3470733058934fc5b5c1fd714188171eca454c919722dce9ab89d8547198a
   agents/verifier.md: 9da2a3c793c811d95f13e27739ebbedcdea625f6318f511a92f0df65b14ec76c
@@ -27,7 +27,7 @@ checksums:
   instructions/planner-identity.md: a184359f32525ff2439224e13ede4068d43903a63bb828d83115493760ed21fe
   instructions/standing-rules.md: 12a7e569376ccb10a461d2fcc0fa8cf6c1ea55bfcacb4733d874ada82a8c61c8
   profiles/designer.yaml: b7c18fd49fa3cf084380f0fd0feadcca2b5bfc92612a66cab0e518443ab5c086
-  profiles/implementer.yaml: 34921d2f97e5bf8d200f4ee88e30fddb759fd7eabf4f69e29e2ccd8eefa98d21
+  profiles/implementer.yaml: f735c872200652a6423fff8bba99d59abda2596f1d32a5f58af168b5ac7b6ee0
   profiles/investigator.yaml: d443c206b3bbf5d3311ed26b28664af56fba44a51b26b165d53336f51e2fda07
   profiles/orchestrator.yaml: f9ebf0007162d370f0ece1a3d240527c4d7654565657e42a4ccdb7f4d4dd00ea
   profiles/planner.yaml: dc49cc693d2cd1604cd04003642fcb9e9f545d1974a35d8be7e828e24139b014

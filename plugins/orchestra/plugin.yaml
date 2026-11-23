@@ -1,5 +1,5 @@
 name: orchestra
-version: 0.1.9
+version: 0.1.10
 cli_major: 0
 source:
   repository: https://github.com/dcouple/orchestra
@@ -7,7 +7,7 @@ source:
 checksums:
   agents/code-researcher.md: 102f108ede110dfbce5765cfad904e06e91cca837e5eb89173c34d1ef2ae5c32
   agents/code-reviewer.md: cc522a092937228c172cd5f4f30980b31f32219097453d245c1d384522c7c4fd
-  agents/codex-overseer.md: 286c05170182ccfa03cf4458665b8e8bb0e8a01f3a4df3465f75d6a418152d38
+  agents/codex-overseer.md: 8e17d40ff6cc5e76a1c0e9f490a1664fe1224d07a7a0541290c0b747ebcbc998
   agents/frontend-verifier.md: 8bf5e435c8f78fa260539719e781c70defc833e5f07f53c48d56ffc53c912b76
   agents/overseer.md: 7af2589ab95f66913aff1e6ee4adf110550c46df87a27db5e7924ec4fd88c62c
   agents/plan-reviewer.md: ab82b7bb841d4962c0365752fef280980ad10f23431201ee5917b95c88ec2699
@@ -45,7 +45,7 @@ checksums:
   references/orchestra/known-issues/README.md: 81712a0293a76517d357e5f61f9973a513569d75ac597de25a07e6af701705b0
   references/orchestra/known-issues/windows-github-runners.md: 3240ec42f30c0a31a4f13bd57b8cb9db45751c1ba3de5357531ddb4ff5dd5cdb
   references/orchestra/linear-agent-sessions.md: e32a71f9b23d3c849e08fd0e2ad9bcfe41f3c697a0d26f5625b73e17399f95c6
-  references/orchestra/model-prices.md: 08cd91d1f32541c2f504d4a3b39a709d0e1d5291487e09cf924b5f540768f829
+  references/orchestra/model-prices.md: 6880f3002f50ab1e1c7704b12999b9507840aa89ecc545e212d918118abdb3d9
   references/orchestra/notify.md: 468e093ff0b071c404f905f3b2fee2b229e5adb18ac1bf16ca5038816b272a8a
   references/orchestra/pr-writing.md: b14f171b40867c191abd285d0764aa6404269d08569e1680e91c2eaf33df936b
   references/orchestra/publish-work-item.md: d96a79d3b90983abc58b61fbf5b3879cbfaca737895e14c902079c99c904a5d2
@@ -71,16 +71,16 @@ checksums:
   skills/arena/SKILL.md: 7f5af3a32d0a3683f1e77b25b9a7bb1a46e20dbdfefc501b5f5854e27fad37e7
   skills/babysit-pr/SKILL.md: 8d4b8a43e4426bbc9072c9aaa65523f1cb25aec03b164105fce26b62c858fe2c
   skills/babysit-pr/metadata/codex.yaml: d9507221b14eeee91e4f46a39a69ab683b9b5f0959059232f1c1f785c96cddad
-  skills/backend-verifier/SKILL.md: f62ebaa7cdf9e5a68ffb0e51453946784af7cfe6260f739da502f569606442ec
-  skills/code-researcher/SKILL.md: 9b4fd2828f81af4caca9e40328823a99d696087ac94bfe738c0cb097b22849de
+  skills/backend-verifier/SKILL.md: 2d87a92cbd1a178fb8d2caf449fdbcc7f8848fe452b7302a8cd42767dad07ac2
+  skills/code-researcher/SKILL.md: a7b256f638b902a94a93e11c7ba21b479cf312d884dfbdce83af960584ace509
   skills/code-researcher/agents/openai.yaml: 96bb78d1776784cac6dfec7a59873c1cb656de3f2fff899fdc16ec3bf74ad19e
-  skills/code-reviewer/SKILL.md: 3db61c4fcafdb441fcd0c98a0664987b20111028d75a2b26b6e6cb88e2006da7
+  skills/code-reviewer/SKILL.md: f14674f28be2e3a8bcd9a178850e80fb8e817a597ba1f0b04a8e365d7843b96c
   skills/code-reviewer/agents/openai.yaml: c772911f452939b98f24523a1d12c0d31c08a024dc56d9a6b9152537c78a581d
   skills/codebase-design/DEEPENING.md: f3dd099ce99289bd213914d8ee3e2429b78309c3957ca4583f7659551b1d53c1
   skills/codebase-design/DESIGN-IT-TWICE.md: 8e740bf98446dbd4dfdc132ac4346d9a7eedaf93de6a495889171cf7f99f16bd
   skills/codebase-design/SKILL.md: 2c20617f87ec8af6a434859f381b2f061a69b530444e74eb39e78bb016a6d1e2
   skills/codebase-design/agents/openai.yaml: edebc9e4fcfe102114012575eaa9600b9b5fd08c311664f389c36e7bc717740f
-  skills/codex-do/SKILL.md: 66cd48dc2cc8214ca04c353002dd51c499b63f8799b64c7328717a8b3dbfa211
+  skills/codex-do/SKILL.md: 5499e9332548073b1bc8cdebd5f593801ee3a7364ba8ed55b8141fdfe83e5ea0
   skills/codex-do/references/implementation-plan.md: 2e6974cdd5d9d04b83742f39e763b71b426bff6982867db26f04559d6acc13fb
   skills/codex-do/references/pr-body.md: f7b683dca6f08c179b84228d934d606a5952bc9f27040995ecc490ec8864a2b8
   skills/codex-do/references/wrap-up-report.md: 79a35569dab13548b16621d48aa9f6d4a288a90db2df5cb665f5beaad8b1d3c8
@@ -88,7 +88,7 @@ checksums:
   skills/codex-investigate/SKILL.md: e3d217021b8393d9b4b14615aef90a15f9073c3f3dbedf4e96173e391a9a8d64
   skills/codex-security-scan/SKILL.md: 2ee7fa7a21430f27eae04dcd841e07bf743ea0e3198fd9af1c3e537c8f1ce654
   skills/codex-security-scan/agents/openai.yaml: 86b915144fcebbe16647588bf64b8fa2b112d8506a11770dd551543566c45bcc
-  skills/codex/SKILL.md: 08dd542ec534a8e7272bebf556ea3044d7a51b0196287f104b8a65ffd29d9a2c
+  skills/codex/SKILL.md: 93429ac7501f08e5d59b0a0e950dd94e18465cca5ee33b66964f9618d99c22b2
   skills/cold-read/SKILL.md: 4d3060f5ce7a93d8797adb9d801ce37b77909c7d83e56f0bd9d8b9e6ce5b4f77
   skills/create-brief/SKILL.md: 432e8502f983887abb2cb1a8f54176082c4fd865568623ccb152d587920615a9
   skills/discussion/SKILL.md: de249fd051f1e6bdce6dac954a066ba76538f81e8b1b119c97a65fcb4cc0e02f
@@ -106,13 +106,13 @@ checksums:
   skills/excalidraw-pr-diagrams/references/render_template.html: 5caa1087d0fa68cdc873103aa761590cb16d2ae888d67a08d517ebab01ca110d
   skills/frontend-verifier/SKILL.md: b22ebaeb39df9ce692d847654102579aab8f77cf02d7604764af525dd7278c22
   skills/hillclimb/SKILL.md: c49c61645ce6b837c4fa57c583a0104dfe958e39b61bd307de0bfbe51314acd4
-  skills/implementer/SKILL.md: f72a0d25cb9b9c4d0e063cc848e2dfa6ac69fbf4c22fba0907d4b4fbf7e611d8
+  skills/implementer/SKILL.md: a7b70edd5654615d376213acfccfb35083837f1dc83cb22b6e839e04e82efe27
   skills/implementer/agents/openai.yaml: 936cda21b99ad63b4337da3d0ab3cf693d54f343af639ee2d805f561a3d8d701
   skills/investigate/SKILL.md: d91030b7132abe3fda602f5e8a38c969296d306d3f826978dca070a98fb7fa22
-  skills/investigator/SKILL.md: 2b3337c9e6ec1a84350a6a46cad19f2960e7027115b296aed063c7ddd35b51dc
+  skills/investigator/SKILL.md: 13df22b8dc36ec32edd05247afe9662de580dd13610fa33cbf9897241e5fb770
   skills/investigator/agents/openai.yaml: 883b038adc53ff83659b3ce9f1acabf29cb8f25108171f6b9935a7c231cd7f1f
   skills/ios-simulators/SKILL.md: 8540725ef439bada91b5d3b891ca541fd13469cc685f02c10d58c7566312dab7
-  skills/plan-reviewer/SKILL.md: f9caccf08cd5cab15686b1f2a7914c2c1ed95516ddfa4429820ad1ab3562f8d9
+  skills/plan-reviewer/SKILL.md: 58202c15aed6cf06a456504d27c5dba7fb280c96b74daad7efc523eb4a00e2a9
   skills/plan-reviewer/agents/openai.yaml: e07936c66e5b09901e0b0161743b239cccb24d14f7cfe592246d0eecd2f98f67
   skills/postmortem-loop/SKILL.md: 3ef3f0825ff7a4e7666cc1b5db5ff56391e121d35798e94cd795f169ded6214f
   skills/postmortem/SKILL.md: fbd66fb5d4450cdcb512d92ad6639ed94eb0357d9bb0d75e13ef5bdac54796a0
@@ -121,8 +121,8 @@ checksums:
   skills/postmortem/references/run-timeline-template.html: e22d5eaae76bb6abef726c271e556b2c310bf8149e1606c7b29abdcc0f1d9a34
   skills/prepare-pull-request/SKILL.md: 1f2b54febe7f13ffad636840ab7150f0b6a81f3041ad416a760a3bbeba802cc9
   skills/prepare-pull-request/references/socratic-pr-gate.md: 5ea9343125a1f9c604f9f3787b1e8817601279d0e780a73f006c4c26069a069b
-  skills/refactor-deep/SKILL.md: ddb0e71b922a1595cc5d4e975ebb172885be1c565a825f666aaea69ca7b82f0e
-  skills/refactor-simple/SKILL.md: 9dc3dacdc443e9cf7d7a7078411f135c59a7aa739f87e78c68833a2e6a3f10d1
+  skills/refactor-deep/SKILL.md: c599ffb4dd7980ac1999dc318f2d19d2352c96c6576e8b982ba2cd209aa76fb2
+  skills/refactor-simple/SKILL.md: 9b763b3c058b9ba6f28bca268bfe32afb8f3aa1b0c8d902c36bb12c6fc537f80
   skills/sentry-loop/SKILL.md: a535a5388b508cec3fb79eb9b5f4e7ab152638b612ab4c82f77801a52c77dc30
   skills/session-trace/SKILL.md: 0a47bf7bb8a744d3164fb12cbc6dd487660cfe6889545bbe003f0e2f3a5a18c2
   skills/session-trace/references/page-guide.md: 312ccb7a66213566b5af78d008da7fa61fbaab65a534e83c4c4c72e68628acff

@@ -180,7 +180,7 @@ export function toml(value: unknown): string {
 }
 export interface Agent {
   source_file?: string; name: string; description?: string; mode?: 'native' | 'process'; harness: 'claude' | 'codex'; model: string;
-  speed?: 'fast' | 'standard'; reasoning_effort?: string; instructions?: string; skills: string[];
+  speed?: Speed; reasoning_effort?: string; instructions?: string; skills: string[];
   plugin?: string; plugin_version?: string; qualified_name?: string; skill_sources?: Record<string,string>;
   skill_plugins?: Record<string,{plugin?:string;version?:string}>;
   /** Selected shared reference folder, bundled at <route>/references. */
@@ -210,13 +210,17 @@ export function assertWorkspaceTrust(workspace:WorkspaceMetadata|undefined,home=
 export interface ArgumentDefinition { values?: string[]; type?: 'string' | 'path'; default?: string; description?: string }
 export type ModelSource = 'agent' | 'preset' | 'flag';
 export interface LaunchMetadata {
-  model: {name: string; reasoning?: string; speed?: 'fast' | 'standard'; sources: {name: ModelSource; reasoning: ModelSource | null; speed: ModelSource | null}};
+  model: {name: string; reasoning?: string; speed?: Speed; sources: {name: ModelSource; reasoning: ModelSource | null; speed: ModelSource | null}};
   arguments: Record<string,string>; preset?: string; override?: 'ad hoc' | 'preset'; headless: boolean;
 }
+export const speedValues = ['standard','fast','ultrafast'] as const;
+export type Speed = typeof speedValues[number];
+/** Codex `service_tier` for a speed: `standard` is Codex's `default` tier. */
+export const serviceTier = (speed: Speed | undefined): string => speed===undefined || speed==='standard' ? 'default' : speed;
 export interface ModelInput { name?: unknown; reasoning?: unknown; speed?: unknown }
 export const reasoningValues = (harness: Agent['harness']): string[] => harness==='claude' ? ['low','medium','high','xhigh','max'] : ['minimal','low','medium','high','xhigh','max'];
-export function validateModel(harness: Agent['harness'], input: ModelInput, agent='agent', requireName=true): {name?: string;reasoning?: string;speed?: 'fast'|'standard'} {
-  const result: {name?: string;reasoning?: string;speed?: 'fast'|'standard'}={};
+export function validateModel(harness: Agent['harness'], input: ModelInput, agent='agent', requireName=true): {name?: string;reasoning?: string;speed?: Speed} {
+  const result: {name?: string;reasoning?: string;speed?: Speed}={};
   if (input.name!==undefined) {
     if (typeof input.name!=='string' || !input.name.trim()) throw new Error(`Agent ${agent} requires a nonempty model name`);
     result.name=input.name;
@@ -227,9 +231,9 @@ export function validateModel(harness: Agent['harness'], input: ModelInput, agen
     result.reasoning=input.reasoning;
   }
   if (input.speed!==undefined) {
-    if (harness!=='codex') throw new Error('model.speed supports fast or standard for Codex only');
-    if (input.speed!=='fast' && input.speed!=='standard') throw new Error(`Agent ${agent} speed value ${JSON.stringify(input.speed)} is invalid for codex; accepted: fast, standard`);
-    result.speed=input.speed;
+    if (harness!=='codex') throw new Error(`Agent ${agent} sets model.speed ${JSON.stringify(input.speed)}, but model.speed is Codex-only (${speedValues.join(', ')}); Claude has no speed tier`);
+    if (!speedValues.includes(input.speed as Speed)) throw new Error(`Agent ${agent} speed value ${JSON.stringify(input.speed)} is invalid for codex; accepted: ${speedValues.join(', ')}`);
+    result.speed=input.speed as Speed;
   }
   return result;
 }
@@ -640,7 +644,7 @@ export function childPrompt(bundle: string, childRoute: string, child: Agent): s
 export function codexChildToml(alias: string, child: Agent, prompt: string): string {
   const lines=[`name = ${JSON.stringify(alias)}`,`description = ${JSON.stringify(child.description??child.name)}`,`model = ${JSON.stringify(child.model)}`,`developer_instructions = ${JSON.stringify(prompt)}`];
   if(child.reasoning_effort)lines.push(`model_reasoning_effort = ${JSON.stringify(child.reasoning_effort)}`);
-  lines.push(`service_tier = ${JSON.stringify(child.speed==='fast'?'fast':'default')}`);
+  lines.push(`service_tier = ${JSON.stringify(serviceTier(child.speed))}`);
   for(const [key,value] of Object.entries(child.connections)){lines.push(`[mcp_servers.${connectionName(key)}]`);for(const [field,setting] of Object.entries(codexConnection(value)))lines.push(`${field} = ${toml(setting)}`);}
   return lines.join('\n')+'\n';
 }
@@ -894,7 +898,7 @@ export function command(bundle: string, route: string, options: LaunchOptions = 
     for (const {alias,description,config_file} of resolved.nativeChildren) {
       argv.push('-c',`agents.${alias}.description=${JSON.stringify(description)}`,'-c',`agents.${alias}.config_file=${JSON.stringify(config_file)}`);
     }
-    if (launch.model.speed) argv.push('-c','service_tier='+JSON.stringify(launch.model.speed==='fast' ? 'fast' : 'default'));
+    if (launch.model.speed) argv.push('-c','service_tier='+JSON.stringify(serviceTier(launch.model.speed)));
     // These overrides replace a same-named server in the user's config, so the
     // profile's connection wins in either mode (McpMode).
     for (const [key,value] of Object.entries(agent.connections)) argv.push('-c',`mcp_servers.${connectionName(key)}=${toml(codexConnection(value))}`);
@@ -968,7 +972,7 @@ export function acpLaunch(bundle: string, route: string, options: AcpLaunchOptio
     const config: Record<string,unknown>={model:launch.model.name,developer_instructions:instructions};
     if (launch.model.reasoning) config.model_reasoning_effort=launch.model.reasoning;
     if (resolved.nativeChildren.length) config.agents=Object.fromEntries(resolved.nativeChildren.map(({alias,description,config_file})=>[alias,{description,config_file}]));
-    if (launch.model.speed) config.service_tier=launch.model.speed==='fast' ? 'fast' : 'default';
+    if (launch.model.speed) config.service_tier=serviceTier(launch.model.speed);
     const servers: Record<string,unknown>={...Object.fromEntries(Object.entries(agent.connections).map(([k,v])=>[connectionName(k),codexConnection(v)])),...(resolved.access?{[telemetryServerName]:codexConnection(resolved.telemetryConnection)}:{})};
     for (const {name,transport,value} of projectCodexDuplicates(manifest.directory,manifest.nodes[resolved.route]!.connections)) servers[name]={[transport]:value,enabled:false};
     if (Object.keys(servers).length) config.mcp_servers=servers;

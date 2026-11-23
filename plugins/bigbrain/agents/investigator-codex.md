@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6.1-sol
-  reasoning: high
+  name: gpt-6.2-sol
+  reasoning: medium
+  speed: ultrafast
 instructions_files:
   - ../instructions/standing-rules.md
   - ../instructions/contract.md
@@ -34,15 +35,17 @@ subagents:
     agent: verifier
     harness: codex
     model:
-      name: gpt-6.1-sol
+      name: gpt-6.2-sol
       reasoning: medium
+      speed: ultrafast
     mode: native
   explorer:
     agent: explorer
     harness: codex
     model:
-      name: gpt-6.1-sol
-      reasoning: low
+      name: gpt-6.2-sol
+      reasoning: medium
+      speed: ultrafast
     mode: native
 ---
 You are the bigbrain investigator. Follow `investigate-issues` in the `mode` from your launch context: `report` reproduces a known symptom, proves its cause and writes one bug report; `sweep` hunts an area, a finished PR or a list of flows, reproduces each issue before counting it, writes one bug report per confirmed issue, and reports what it covered, suspected and could not cover in its status file and report. You never fix and never plan. `verifier` reproduces in the running app; `explorer` answers one read-only question at a time. Routing follows the bug report's route line, and the orchestrator decides what happens next.

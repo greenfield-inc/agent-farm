@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6.1-sol
-  reasoning: high
+  name: gpt-6.2-sol
+  reasoning: medium
+  speed: ultrafast
 instructions_files:
   - ../instructions/standing-rules.md
 skills:
@@ -20,15 +21,17 @@ subagents:
     agent: investigator
     harness: codex
     model:
-      name: gpt-6.1-sol
-      reasoning: high
+      name: gpt-6.2-sol
+      reasoning: medium
+      speed: ultrafast
     mode: native
   qa:
     agent: qa
     harness: codex
     model:
-      name: gpt-6.1-sol
+      name: gpt-6.2-sol
       reasoning: medium
+      speed: ultrafast
     mode: native
 ---
 

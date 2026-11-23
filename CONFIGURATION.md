@@ -109,9 +109,9 @@ override and declared launch `args`:
 ```yaml
 agent: implementer
 model:
-  name: gpt-6-astra
+  name: gpt-6.2-sol
   reasoning: medium
-  speed: fast
+  speed: ultrafast
 args:
   mode: fast
 ```
@@ -161,7 +161,7 @@ gets no hint. Only the interactive menu (bare `agent-farm`) asks which variant
 to launch. The
 menu and `profiles list` show each variant with its model and reasoning,
 default first: `greenfield/planner (claude: claude-opus-5-5 high · codex:
-gpt-6-astra high)`. `run`, `inspect`, `load`, and `set
+gpt-6.2-sol medium ultrafast)`. `run`, `inspect`, `load`, and `set
 global` all accept `NAME:VARIANT`; `unload` and `unset global` also take it,
 and remove whichever variant of that profile is loaded.
 
@@ -232,13 +232,15 @@ not resolved or checked for existence.
 The repeatable `--arg key=value` flag sets declared arguments. `--model`,
 `--reasoning`, and `--speed` override only the entry agent's model for that
 launch; compiled child models do not change. Reasoning and speed use the same
-harness-specific validation as agent frontmatter, and speed is Codex-only.
+harness-specific validation as agent frontmatter. Speed is Codex-only and
+accepts `standard`, `fast`, or `ultrafast` (Codex's `service_tier`; `standard`
+is Codex's `default` tier); a Claude agent with a speed fails to load.
 
 For an agent that declares the arguments above:
 
 ```bash
 agent-farm run my-implementer \
-  --model gpt-6-astra --reasoning medium --speed fast \
+  --model gpt-6.2-sol --reasoning medium --speed ultrafast \
   --arg mode=fast --arg review=full
 ```
 
@@ -1094,7 +1096,8 @@ source of each model field. `--explain`, `--print-launch` and `--print-acp` add 
 launch metadata, including any flag sources and `ad hoc` override marker.
 
 `greenfield/implementer` has four variants: `opus` (the default), `astra`,
-`sol`, and `codex`. Both `sol` and `codex` use GPT-6.1 Sol; `codex` also keeps
+`sol`, and `codex`. `astra`, `sol` and `codex` all use GPT-6.2 Sol at medium
+effort on the ultrafast speed; `codex` also keeps
 its opt-in second opinion on Codex. See the [Greenfield guide](plugins/greenfield/README.md#orchestration)
 for Codex worker routing. It is the former `dcouple/raw`; its earlier `claude`, `standard`, and
 `fast` variants were removed. The `dcouple` plugin, which still ships for
