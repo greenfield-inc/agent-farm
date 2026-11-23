@@ -51,7 +51,7 @@ Over time, `.seo/` becomes a self-organized wiki of SEO data:
           briefing.md
           ...
 
-  experiments/                   # tracked experiments
+  experiments/                   # one file per experiment
     2026-06-24-windows-landing-page.md
     2026-06-10-remote-workspaces-blog-post.md
 
@@ -64,34 +64,52 @@ Over time, `.seo/` becomes a self-organized wiki of SEO data:
 
 If `.seo/briefing.md` or `.seo/strategy.md` exist:
 - Create the dated archive directory: `.seo/archive/YYYY/MM/DD/`
-- Copy `briefing.md`, `strategy.md`, and `data/*` into the archive
+- Copy `briefing.md`, `strategy.md`, and `data/*` into the archive. The
+  archived `data/` folder holds raw pulls: it stays out of commits, as the
+  data pull's **Persisting .seo/ data** section says
 - Don't move them. Copy. The working files stay for the next skill that needs them.
 
 **Success criteria**: Today's data is preserved in the archive. Working files still exist.
 
 ### 2. Track experiments
 
-Scan the current strategy and any PRs merged since the last organize run.
-For each new piece of content created or significant change made:
-- Create an experiment file: `.seo/experiments/YYYY-MM-DD-short-name.md`
-- Record: what was done, why (link to strategy), target keyword/metric, baseline data
-- If a prior experiment exists for the same page, append a "follow-up" section with current data
+Experiments live in `.seo/experiments/`, one file per experiment. If the repo
+still has an older layout, migrate it once, in one commit, before anything
+reads the folder: a single `.seo/experiments.md` is split into one file per
+entry, and a file in `.seo/experiments/` with no frontmatter (the older
+per-file format) gets the frontmatter below. Either way, keep every original
+date and result, and set `live` to the date the change actually shipped,
+because the migration commit's date is not the ship date.
 
-Experiment files use this format:
+Scan the current strategy and any PRs merged since the last organize run.
+For each new piece of content created or significant change made with no
+experiment file yet:
+- Create an experiment file: `.seo/experiments/YYYY-MM-DD-short-name.md`
+- Record the hypothesis, the pages, the baseline (its source and date window),
+  what stays unchanged, the control pages, and a link to the strategy
+- Set `live` to the date the change shipped (its PR's merge date, or the
+  deploy date when deploys happen by hand). A record written after the change
+  shipped would otherwise date its reads from the day the record was written
+
+Experiment files open with this frontmatter:
 
 ```markdown
-# [Short name]
-
-- **Date**: YYYY-MM-DD
-- **Type**: new page / rewrite / E-E-A-T / blog post
-- **Target**: [keyword or metric]
-- **Baseline**: [data from briefing at time of creation]
-- **Action**: [what was done]
-- **Strategy ref**: [link to .seo/archive/YYYY/MM/DD/strategy.md]
-
-## Follow-ups
-- YYYY-MM-DD: [updated data, outcome so far]
+---
+id: 2026-06-24-windows-landing-page
+hypothesis: <one sentence>
+pages: [/windows]
+live:            # the ship date; required when the record is written after the change shipped or deploys happen by hand
+read_21:         # empty until the 21-day read is done, then the date it was done
+read_42:         # same for the 42-day read
+status: running  # running | read | closed
+---
 ```
+
+The ship date is `live` when present. Otherwise it is the committer date of
+the first-parent commit on the default branch that added the file. A read is
+due from 21 or 42 days after the ship date plus 3 days of Search Console lag.
+A read is past due when it is due, its field is empty and `status` is
+`running`.
 
 **Success criteria**: Every content action from this cycle has an experiment file.
 
@@ -112,8 +130,8 @@ Regenerate `.seo/index.md` as a table of contents:
 - ...
 
 ## Active Experiments
-- [windows-landing-page](experiments/2026-06-24-windows-landing-page.md): tracking
-- [remote-workspaces-blog-post](experiments/2026-06-10-remote-workspaces-blog-post.md): tracking
+- [windows-landing-page](experiments/2026-06-24-windows-landing-page.md): running, 21-day read due 2026-07-18
+- [remote-workspaces-blog-post](experiments/2026-06-10-remote-workspaces-blog-post.md): running, 42-day read due 2026-07-25
 - ...
 
 ## Data Sources

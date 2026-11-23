@@ -32,6 +32,12 @@ For a one-page visual map of how work is routed, open [index.html](index.html). 
 | `free-range` (`free-range:claude`) / `free-range:codex` | Opus 5.5 high / Sol 6.2 medium ultrafast | Raw-model comparison profiles without the Greenfield workflow |
 | `orchestrator` (`orchestrator:claude`) / `orchestrator:codex` | Opus 5.5 medium / Sol 6.2 medium ultrafast | Experimental coordination of features, one workspace each, with every role a fresh agent in it. When a feature is ready for review, it offers an optional `pr-understanding-check` |
 | `customer-insights-loop` | Opus 5.5 medium | Researches a product's own usage data, ranks directions with mockups and competitor context, settles your picks in one sitting, then coordinates a build per pick and hands back every PR with a merge order. Claude only. See [Customer insights loop](#customer-insights-loop) |
+| `seo-orchestrator` | Opus 5.5 medium | Runs the SEO loop for a product or URL through the five SEO roles below: checks access, takes due read-backs first, and hands back a reviewed ranked page, draft PRs and the next due date. Claude only. See [SEO loop](#seo-loop) |
+| `seo-strategist` | Opus 5.5 high | The SEO planner: foundations, the ranked page of 25 to 50 quick wins and 10 to 15 workstreams, page briefs with a fact ledger, cover sheets for site-code work |
+| `seo-writer` | Opus 5.5 medium | Builds one picked brief into a draft PR with the page, its links, the indexing steps and the experiment record |
+| `seo-reviewer` | Opus 5.5 high | Re-checks every claim on an SEO page or PR live, applies the corrections list, runs a cold read, and writes greenfield's findings |
+| `seo-measurer` | Opus 5.5 high | Reads every shipped change against Search Console at 21 and 42 days with a control, writes the deep dive, and checks agent discovery and the answer panel |
+| `seo-investigator` | Opus 5.5 high | Finds why one number dropped, read-only, with ranked hypotheses and the measurement that would settle it |
 
 ```sh
 agent-farm plugin install
@@ -90,13 +96,14 @@ agent-farm run greenfield/codebase-audit --directory /path/to/project \
 | `second-opinion` (agent `pr-reviewer`) | implementer | Sol 6.2 low ultrafast under `:opus`, Opus 5.5 medium under `:astra` / `:sol`, Sol 6.2 low ultrafast under `:codex`, process; an opt-in quick review with `review` |
 | `finder`, `codex-finder` (agent `smell-finder`) | code-smell-fixes | Sonnet 5.5 low, native, one per lens; Sol 6.2 medium ultrafast, process, one per pair of lenses. Read-only |
 | `researcher` (agent `codebase-audit-researcher`), `curator` (agent `codebase-audit-curator`), `cold-reader` | codebase-audit | Sonnet 5.5 medium, native, one per research slice; Opus 5.5 medium, native, merges and verifies the 50 opportunities; Sonnet 5.5 medium, native, cold-reads the page. Read-only |
-| `codebase-explorer` | reviewer, qa-and-fix | Targeted repository questions; a process child under `reviewer:claude` |
+| `codebase-explorer` | reviewer, qa-and-fix, seo-reviewer | Targeted repository questions; a process child under `reviewer:claude` |
 | business reviewers, `cold-reader` | business | Context, research adversary, spec and artifact reviewers (Sol 6.2 low ultrafast for the spec and artifact reviewers under `:codex`) |
+| `cold-reader` | seo-strategist, seo-writer, seo-reviewer, seo-measurer, seo-investigator | Sonnet 5 medium, native; a stranger's read of every page before the person sees it |
 | `socrates` | planner | Opus 5.5 high (Sol 6.2 medium ultrafast under Codex planner); challenge unnecessary scope |
-| `investigator`, `researcher` | planner, customer-insights-loop; `investigator` also under bug-reporter | Opus 5.5 high (Sol 6.2 medium ultrafast under Codex planner and Codex bug-reporter); bounded evidence questions |
+| `investigator`, `researcher` | planner, customer-insights-loop, seo-strategist, seo-investigator; `investigator` also under bug-reporter and seo-measurer, where the SEO roles call it `evidence-gatherer` | Opus 5.5 high (Sol 6.2 medium ultrafast under Codex planner and Codex bug-reporter); bounded evidence questions |
 | `qa` | bug-reporter | Opus 5.5 medium (Sol 6.2 medium ultrafast under `:codex`); reproduce a bug in the app |
 | `lane`, `reconciler` (agent `lane-researcher`) | planning-and-prioritization | Opus 5.5 medium and Opus 5.5 high, native; one read-only source per lane, then one pass that verifies and reconciles the lanes |
-| `advisor` | orchestrator, customer-insights-loop | Sol 6.2 medium ultrafast, process; advice about session coordination |
+| `advisor` | orchestrator, customer-insights-loop, seo-orchestrator | Sol 6.2 medium ultrafast, process; advice about session coordination |
 
 Planners do not launch the implementer. When a cover sheet is approved, the planner gives the person the `agent-farm run greenfield/implementer` command; Agent Farm runs the default variant unless the command names another.
 
@@ -131,6 +138,7 @@ An orchestrator passes the planner its source as `source` and a status JSON path
 - `research-reconcile` supports planning-and-prioritization: saved lane prompts, a source registry with the account each source reads as, one shared JSON item record, a reconciler pass that checks systems of record against primary evidence before anything is ranked and proposes record fixes for the person to approve (it never writes them), and a ranked gap page. It reuses `swarm`, `interview` and `page`.
 - `bug-intake`, `gather-evidence`, `research-web`, and `orchestrate-sessions` support the other profiles.
 - `customer-insights-loop` supports the profile of the same name, with references for correcting the numbers, the study and directions pages, and the handoff's merge train. The orchestrators and `customer-insights-loop` share their coordination rules from `instructions/coordination.md`.
+- The SEO loop skills support the six `seo-*` roles: `seo-loop` (the orchestrator's steps, routing and the worked run), `seo-evidence` (the measured lessons by phase, the corrections list and the data-source traps, which every role reads), `growth-quick-wins` (ported from greenfield-inc/skills#187), `seo-page-brief`, `seo-experiments` (the `.seo/experiments/` record and `scripts/due.mjs`, which computes every due read from git), `seo-read-back`, `seo-answer-panel` (with `scripts/summarize-panel.mjs`), `seo-search-diagnosis` and `seo-claims-check`.
 - `tdd` and `codebase-design` remain vendored unchanged from [mattpocock/skills](https://github.com/mattpocock/skills/tree/c55ee46073ed/skills/engineering/tdd), MIT; see `THIRD_PARTY_NOTICES.md`.
 - `session-trace` supports requested trace artifacts; follow the session's explicit permission requirements for conversation capture/export.
 
@@ -172,6 +180,30 @@ agent-farm run greenfield/customer-insights-loop --directory /absolute/coordinat
 
 It finds the product's data sources (analytics, databases, logs, support exports), corrects the numbers before sharing any (automated and internal traffic removed, people counted rather than installs, the untracked share estimated with a range, tracking changes checked), runs one read-only study per question plus competitor notes, and writes a ranked directions page with a mockup per direction. You settle every pick in one sitting. Each pick then runs through `orchestrate-sessions` as a planner, an implementer and a reviewer, and every PR comes back together on the Session's status page with a merge order and a list of what was left open. It merges and releases only on your word.
 
+## SEO loop
+
+`greenfield/seo-orchestrator` runs the whole search and AI-discovery loop for one product, the way `greenfield/orchestrator` runs planner, implementer and reviewer for software. Launch it in the product's repository:
+
+```sh
+agent-farm run greenfield/seo-orchestrator --directory /absolute/product-repo \
+  --message "Run the SEO loop for https://example.com"
+```
+
+It asks how hands-on you want to be, probes each data source and states the run's access tier (Public, Search, Analytics or Full), asks you to connect a missing source instead of estimating, and lists every experiment read that is due. Then it routes eight steps to the SEO roles, each a fresh agent in its item's one workspace:
+
+1. Get the data in reach (the orchestrator's access check).
+2. Read back every merged change to a public page against Search Console at 21 and 42 days, with a control group (`seo-measurer`).
+3. Check agent discovery: scanners, AI referrals, the sign-up survey and the answer panel (`seo-measurer`).
+4. Ask why, one read-only investigation per unexplained drop (`seo-investigator`).
+5. Write the product's deep dive with its coverage appendix (`seo-measurer`, then `seo-reviewer`).
+6. Merge the evidence across products (`seo-strategist`).
+7. Build the ranked page of 25 to 50 quick wins and 10 to 15 workstreams, then rerun and gap-check it (`seo-strategist`).
+8. You pick; each pick gets a page brief and a `seo-writer` draft PR, reviewed by `seo-reviewer`.
+
+Every page that reaches you has passed the reviewer's live claims check, every claim carries its number and source, and nothing merges or goes live without you. The product's state lives in its repository under `.seo/` (access, the fact ledger, one record per experiment, the answer panel), written only on each role's branch and draft PR. Each run ends with the next due date and the command to run then; no scheduler is needed. The evidence the roles start from (measured lessons from an open-source developer tool and a B2B healthcare SaaS, the corrections list, worked examples) ships in `seo-evidence`.
+
+The older `greenfield/seo` profile, one agent with the SEO writing skills, stays as it was.
+
 ## Profile arguments
 
 Pass repeatable `--arg key=value` flags before the native-CLI `--` separator. Quote each complete argument when it contains spaces or shell metacharacters. Values may contain `=`. Only declared keys are accepted; enums reject unsupported values. Profile presets override agent defaults, and launch flags override presets. Arguments apply to the selected entry agent, not automatically to its children.
@@ -179,7 +211,8 @@ Pass repeatable `--arg key=value` flags before the native-CLI `--` separator. Qu
 | Profile | Accepted arguments |
 | --- | --- |
 | `planner`, `planner:codex` | `docs`, `source`, `parent` |
-| `orchestrator`, `customer-insights-loop` | `docs`, `host_policy` |
+| `seo-strategist`, `seo-measurer`, `seo-investigator` | `docs`, `source`, `parent` |
+| `orchestrator`, `customer-insights-loop`, `seo-orchestrator` | `docs`, `host_policy` |
 | `bug-reporter` | `source`, `parent` |
 | `planning-and-prioritization` | `topic`, `window`, `rank_by`, `docs`, `source`, `parent` |
 | `process-cleanup`, `process-cleanup:sol` | `machine`, `authorized` |

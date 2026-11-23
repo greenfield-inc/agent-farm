@@ -8,9 +8,6 @@ description: "(foundational) Audit and rewrite website copy for voice consistenc
 Audit and rewrite all product-facing website copy so it reads like the founder
 wrote it and a first-time reader can understand every page.
 
-**Important**: Run this skill with Claude Opus 4.6. It performs significantly
-better than 4.7 or 4.8 at copywriting and writing in specific voice styles.
-
 ## Prerequisites
 
 - **Writing process**: Follow `seo-writing-framework` when rewriting pages. Research examples, draft with reference, reader hat, edit, run the `good-writing-fundamentals` gate, score.
@@ -63,10 +60,10 @@ Produce a severity-ranked list: NEEDS WORK > MINOR ISSUES > FINE.
 
 **Page tier system (mandatory before any rewrite):**
 
-Before rewriting, classify each flagged page using `.seo/data/` (run `seo-data-pull` first if no data exists or if `.seo/data/manifest.md` is older than its freshness window (default 24 hours)):
+Before rewriting, classify each flagged page using `.seo/data/` (pull fresh data first with seo-data-pull if no data exists or if `.seo/data/manifest.md` is older than its freshness window (default 24 hours)):
 
 - **Tier 1 (top pages)**: Homepage, pricing, and any page with >500 monthly impressions or >100 monthly pageviews. These pages have established keyword positioning. Do NOT rewrite sentences wholesale. Fix only the specific flagged issue (swap the passive verb, remove the em dash, replace the jargon term) while preserving the surrounding sentence and its keywords. Present the before/after diff to the user for approval before committing.
-- **Tier 2 (mid pages)**: Pages with 50-500 monthly impressions. Rewrite sentences that need it, but preserve SEO query language (terms like "free plan", "HIPAA compliant", "works over SMS"). No approval gate required, but flag any keyword-bearing sentence you changed.
+- **Tier 2 (mid pages)**: Pages with 50-500 monthly impressions. Rewrite sentences that need it, but preserve SEO query language (terms like "free plan", "open source", "works offline"). No approval gate required, but flag any keyword-bearing sentence you changed.
 - **Tier 3 (new/low pages)**: Pages with <50 impressions or newly created. Rewrite freely following the voice guide.
 
 If `.seo/data/` is not available, treat any page that appears in the site's main navigation or footer as Tier 1.
@@ -84,13 +81,15 @@ Work through pages in priority order: most-visited/important pages first.
 
 **Success criteria**: All flagged pages rewritten. No jargon without context. No passive voice in explanatory sections.
 **Rules**:
+- On Tier 1 and Tier 2 pages, keep what search engines and links already point at: the URL, title, meta description, H1, section headings, card titles, FAQ questions, comparison tables, section order and JSON-LD. After the rewrite, check by script that every old link and schema block survives, in every locale the site ships.
+- Keep every old heading anchor working. When a heading's ID changes, keep the old ID as an alias: one docs rewrite dropped 83 heading IDs and broke bookmarks, search result links and agent citations.
 - Never lose technical accuracy while simplifying language
 - Preserve all links, code blocks, and interactive components
 - Don't add emojis
 - "Simple words for complex topics" is the north star
 - If a sentence sounds like it came from a spec or architecture doc, rewrite it
 - Respect the project's SEO safety rules (typically in CLAUDE.md). "Make the smallest replacement needed" always takes precedence over "rewrite for voice consistency" on pages with established search rankings.
-- When fixing a sentence on a Tier 1 page, never remove keywords that appear in the page's GSC query data. If a sentence contains "HIPAA compliant texting" and the fix is about passive voice, rewrite the verb structure while keeping those keywords in place.
+- When fixing a sentence on a Tier 1 page, never remove keywords that appear in the page's GSC query data. If a sentence contains "free invoice template" and the fix is about passive voice, rewrite the verb structure while keeping those keywords in place.
 
 ### 4. Identify comprehension gaps (humanity pass)
 
@@ -108,7 +107,7 @@ Produce a list of terms that need either:
 - A dedicated explainer page
 
 **Success criteria**: A list of terms needing definitions, categorized by inline vs dedicated page.
-**Artifacts**: This term list feeds into the content-authority-pass skill.
+**Artifacts**: This term list feeds into the seo-authority-pass skill.
 
 ### 5. Verify and commit
 

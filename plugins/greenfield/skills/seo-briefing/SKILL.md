@@ -8,15 +8,13 @@ description: "(proactive) Pull analytics from PostHog, GSC, and Ahrefs. Correlat
 Pull data from all connected analytics sources, correlate it, and produce a
 single actionable briefing. This is the CEO morning report for SEO.
 
-**Important**: Run with Claude Opus 4.6.
-
 ## Data sources
 
 The more sources connected, the better the briefing. At minimum, you need
 analytics (PostHog, GA4, Plausible, etc.) and search data (GSC). Keyword/backlink
 data (Ahrefs, Semrush) makes the briefing significantly more actionable.
 
-Check what's available via MCP tools, Composio integrations, or direct API access.
+Check what's available through the connected tools or direct API access.
 If a source isn't connected, skip that section and note the gap in the briefing
 so the user knows what they're missing.
 
@@ -41,14 +39,37 @@ skip the pull and use the cached data.
 
 ### 2. Check for active experiments
 
-Read the experiment files in `.seo/experiments/` if any exist. For any experiment past its review date:
-- Pull the current metrics for the same pages/queries from the fresh data
-- Compare current vs baseline metrics recorded in the experiment
-- Report the result: improved, no change, or regressed
-- Add a "Result" section to that experiment entry with the measured outcome
+Experiments live in `.seo/experiments/`, one file per experiment. If the repo
+still has an older layout, migrate it once, in one commit, before anything
+reads the folder: a single `.seo/experiments.md` is split into one file per
+entry, and a file in `.seo/experiments/` with no frontmatter (the older
+per-file format) gets frontmatter with the fields below. Either way, keep every original
+date and result, and set `live` to the date the change actually shipped,
+because the migration commit's date is not the ship date.
 
-For experiments not yet past their review date, note them in the briefing
-under a "Running Experiments" section so the user knows what's in flight.
+Each file's frontmatter holds `id`, `live` (optional), `read_21`, `read_42` and
+`status`. Work out which reads are due:
+- The ship date is `live` when present. Otherwise it is the date the record
+  landed on the default branch: the committer date of the first-parent commit
+  that added the file (`git log <default-branch> --first-parent --diff-filter=A --format=%cs -- <file>`).
+- The 21-day read is due from ship date + 21 days + 3 days, and the 42-day read
+  from ship date + 42 days + 3 days. The 3 days cover Search Console's data lag.
+- A read is past due when it is due, its field (`read_21` or `read_42`) is
+  empty, and `status` is `running`. Before its due date a read is too early;
+  report the due date instead.
+
+List every past-due read in the briefing with its experiment, read and due
+date. A read counts as done only when it was run the controlled way, so a
+quick look at the fresh numbers never fills `read_21` or `read_42`. When the
+briefing is asked to run a due read itself, run it exactly as the Reads
+section of seo-experiments says (its windows, its control, which leaves out
+the homepage when brand searches dominate, and its credit rule), then write
+the read into the experiment file as that skill's "Writing a read" says and
+set `read_21` (or `read_42`) to today's date. When seo-experiments is not
+available to you, do not run the read: list it as due for the measurer.
+
+List experiments with no read due yet in the briefing under "Running
+Experiments", with the date each next read is due.
 
 **Success criteria**: Every past-due experiment has a measured outcome. Active experiments are listed.
 
@@ -57,7 +78,7 @@ under a "Running Experiments" section so the user knows what's in flight.
 Cross-reference the three data sources:
 - Pages with high impressions but no clicks -> title/description problem
 - Pages with traffic drops + ranking drops -> content quality or competition
-- Pages not indexed -> submit for indexing
+- Pages not indexed -> list them with their URL Inspection links so the person can request indexing
 - New pages indexed + gaining traffic -> working, do more like this
 - Competitor keywords you don't rank for -> content gaps to fill
 - High-traffic pages with poor readability -> readability pass candidates
@@ -89,10 +110,10 @@ New/lost, referring domains, domain rating
 Keywords competitors rank for that we don't
 
 ## Running Experiments
-Active experiments from `.seo/experiments/` not yet past review date.
+Active experiments from `.seo/experiments/` with no read due yet, and the date each next read is due.
 
 ## Experiment Results
-Experiments past their review date with measured before/after metrics.
+Experiments with a 21-day or 42-day read done this run, with measured before/after metrics.
 
 ## Action Items (prioritized)
 1. [specific action]: [why], [expected impact]
@@ -104,6 +125,7 @@ Experiments past their review date with measured before/after metrics.
 
 ## Committing .seo/
 
-After writing the briefing, commit all `.seo/` changes to the working branch
-and push. This ensures other worktrees and future sessions can access the data,
-experiments, and briefing. Never add `.seo/` to `.gitignore`.
+After writing the briefing, commit `.seo/` to the working branch and push, as
+the data pull's **Persisting .seo/ data** section says: the briefing, the
+experiments and the other reviewed files, never the raw pulls under
+`.seo/data/` or `.seo/archive/`.

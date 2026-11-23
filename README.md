@@ -90,9 +90,12 @@ a running app, fixing its hover, focus and layout rough edges, and showing
 before and after screenshots,
 `customer-insights-loop` for turning a product's own usage data into ranked
 directions, then building the ones you pick and handing back every PR together,
-and `process-cleanup` for finding and stopping the leftover processes that
+`process-cleanup` for finding and stopping the leftover processes that
 slow down a machine running agents for days, including one you reach
-remotely.
+remotely,
+and `seo-orchestrator` for running the whole SEO loop on a product (measure what
+shipped, investigate drops, rank quick wins, write pages as draft PRs) through
+five SEO roles.
 
 These profiles used to live in the `dcouple` plugin, which still ships for
 existing installs. `dcouple/raw` became `greenfield/implementer`; `dcouple/ideate`

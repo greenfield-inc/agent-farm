@@ -1,0 +1,4 @@
+variants:
+  claude:
+    agent: seo-orchestrator
+default: claude
