@@ -16,9 +16,10 @@
 // --check answers "is anything due today" in one JSON line for a scheduled run: the due reads, records to migrate
 // (old-format files, and a single .seo/experiments.md log),
 // and the review, which is due when .seo/access.md is missing or its cadence (weekly 7 days, monthly 30, default
-// monthly) has passed since the last merged .seo/ change (the newest first-parent commit on the ref touching .seo/).
+// monthly) has passed since its last_review date, which each review's .seo/ PR writes.
 // It also names the product's local folder (working memory and raw pulls), one per repository whatever the worktree:
-// ~/.local/state/agent-farm/seo/<repository name>-<12 hex of the git common directory's sha256>.
+// ~/.local/state/agent-farm/seo/<repository name>-<12 hex of the git common directory's sha256>, and the lock name
+// that serializes runs writing it.
 // Exit 0 with the list; exit 1 on bad usage, an unparseable record, a bad date, or a git failure.
 // With --check: exit 0 when something is due, 3 when nothing is.
 import fs from 'node:fs';
@@ -122,33 +123,43 @@ function readFile(repo,ref,rel){
   return git(repo,['show',`${ref}:${rel}`],`cannot read ${rel} on ${ref}`);
 }
 
+// The review clock runs from last_review in .seo/access.md, which each review's .seo/ PR sets.
 function review(repo,ref,today){
   const text=readFile(repo,ref,'.seo/access.md');
-  const access=text===null?null:frontmatter(text,'.seo/access.md')||{};
-  const cadence=access?.cadence||'monthly';
+  if(text===null)return {access:null,review:{cadence:null,last:null,next:null,due:true,reason:'no .seo/access.md: first run'}};
+  const access=frontmatter(text,'.seo/access.md')||{};
+  const cadence=access.cadence||'monthly';
   if(!CADENCE[cadence])fail(`.seo/access.md: cadence must be weekly or monthly, got "${cadence}"`);
-  const out=git(repo,['log','-1','--first-parent','--format=%cI',ref||'HEAD','--','.seo'],'cannot read the .seo/ history').trim();
-  const last=out?new Date(out).toISOString().slice(0,10):null;
-  if(!access)return {access,review:{cadence:null,last,next:null,due:true,reason:'no .seo/access.md: first run'}};
-  const next=last?addDays(last,CADENCE[cadence]):null;
-  return {access,review:{cadence,last,next,due:!next||today>=next,reason:next?null:'no merged .seo/ change'}};
+  const last=access.last_review||null;
+  if(last&&!validDate(last))fail(`.seo/access.md: last_review must be a real date in YYYY-MM-DD form, got "${last}"`);
+  if(!last)return {access,review:{cadence,last,next:null,due:true,reason:'no last_review in .seo/access.md'}};
+  const next=addDays(last,CADENCE[cadence]);
+  return {access,review:{cadence,last,next,due:today>=next,reason:null}};
+}
+
+// A single-file log is migrated once its body is one line pointing to .seo/experiments/.
+function legacyLog(repo,ref){
+  const text=readFile(repo,ref,'.seo/experiments.md');
+  if(text===null)return false;
+  const lines=text.split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
+  return !(lines.length===1&&lines[0].includes('.seo/experiments/'));
 }
 
 function memoryDir(repo){
   const common=fs.realpathSync(path.resolve(repo,git(repo,['rev-parse','--git-common-dir'],'not a git repository').trim()));
   const name=(path.basename(common)==='.git'?path.basename(path.dirname(common)):path.basename(common,'.git')).replace(/[^A-Za-z0-9._-]/g,'-');
   const key=`${name}-${createHash('sha256').update(common).digest('hex').slice(0,12)}`;
-  return path.join(os.homedir(),'.local','state','agent-farm','seo',key);
+  return {memory:path.join(os.homedir(),'.local','state','agent-farm','seo',key),lock:`seo-loop-${key}`};
 }
 
 function check(records,repo,ref,today){
   const {access,review:rev}=review(repo,ref,today);
   const reads_due=records.flatMap(rec=>rec.reads.filter(read=>read.state==='due').map(read=>({id:rec.id,days:read.days,since:read.runnable_from})));
   const legacy=records.filter(rec=>rec.legacy).map(rec=>rec.id);
-  if(readFile(repo,ref,'.seo/experiments.md')!==null)legacy.push('.seo/experiments.md');
+  if(legacyLog(repo,ref))legacy.push('.seo/experiments.md');
   const later=[...records.flatMap(rec=>rec.reads.filter(read=>read.state==='too early').map(read=>read.runnable_from)),...(rev.due?[]:[rev.next])].sort();
   const due=reads_due.length>0||legacy.length>0||rev.due;
-  return {today,due,reads_due,legacy,review:rev,next_due:later[0]||null,access,memory:memoryDir(repo)};
+  return {today,due,reads_due,legacy,review:rev,next_due:later[0]||null,access,...memoryDir(repo)};
 }
 
 function listRecords(repo,ref){
@@ -212,7 +223,7 @@ const records=listRecords(repo,opts.ref).map(entry=>record(repo,opts.ref,opts.to
 if(opts.check){
   const result=check(records,repo,opts.ref,opts.today);
   process.stdout.write(`${JSON.stringify(result)}\n`);
-  process.exit(result.due?0:3);
+  process.exitCode=result.due?0:3;
 }else if(opts.json){
   process.stdout.write(`${JSON.stringify(records,null,2)}\n`);
 }else{

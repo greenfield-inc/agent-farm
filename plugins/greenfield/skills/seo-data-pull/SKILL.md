@@ -274,16 +274,26 @@ are the record later runs measure against, so never leave them untracked.
 Raw pulls live on this machine and never leave it through the repository.
 This is the one raw-data rule; the other SEO skills point here.
 
-- Keep every raw pull (Search Console and analytics exports, scanner output,
-  survey answers, notes) in the product's local folder, `data/` under the
-  `memory` path the SEO loop's due script prints with `--check`, so later
-  runs in other worktrees diff against it instead of pulling again. Link
-  `.seo/data` to that folder (`ln -s <memory>/data .seo/data`). Without the
-  due script, `.seo/data/` stays a local folder.
-- Nothing raw is committed, pushed or put in a PR: `.seo/data` and every
-  `data/` folder under `.seo/archive/` are in `.gitignore` (write `.seo/data`
-  without a trailing slash so the link is ignored too). Before pushing, list
-  what is staged and unstage any raw file.
+- The raw store is the product's local folder: `data/` under the `memory`
+  path the SEO loop's due script prints with `--check`, and
+  `archive/YYYY/MM/DD/data/` there for dated copies. Without the due script,
+  it is `~/.local/state/agent-farm/seo/<repository name>/`. Later runs in
+  other worktrees diff against it instead of pulling again.
+- Before the first pull in a worktree, point `.seo/data` at the raw store.
+  When `.seo/data` is a real directory, move its untracked files into the
+  store's `data/` and remove the directory first; then run
+  `ln -s <store>/data .seo/data` and confirm `test -L .seo/data`. Write
+  nothing raw until that check passes.
+- Nothing raw is committed, pushed or put in a PR. `.seo/data` (no trailing
+  slash, so the link is ignored too) and `.seo/archive/**/data/` are in
+  `.gitignore`. When `git ls-files .seo/data .seo/archive` lists raw files
+  that an older run committed, remove them from the index
+  (`git rm -r --cached <path>`) in the next `.seo/` PR and say in it that
+  they stay in the repository's history.
+- Stage reviewed files by path, never `git add .seo` or `git add -A`. Before
+  every push, `git diff --name-only origin/<default branch>...HEAD` must list
+  no path under `.seo/data` or a `data/` folder in `.seo/archive/`; if it
+  does, remove it from the branch before pushing.
 - What a briefing, read or experiment record cites from a pull is a reviewed
   aggregate, and that is committed.
 

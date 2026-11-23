@@ -9,7 +9,7 @@ The run's message starts with the fixed phrase `Scheduled SEO loop tick`. That p
 ## Run a tick
 
 1. **Another tick still working?** A tick message that arrives while an earlier tick in this session is still working gets one line, "Another tick is working: <what it is doing>.", and the earlier tick carries on.
-2. **Pre-check.** After `git fetch origin`, run `node <seo-experiments skill directory>/scripts/due.mjs --check --repo <repo> --ref origin/<default branch>`. Keep its `memory`.
+2. **Pre-check.** After `git fetch origin`, run `node <seo-experiments skill directory>/scripts/due.mjs --check --repo <repo> --ref origin/<default branch>`. Keep its `memory` and `lock`.
 3. **Load working memory** ([memory.md](memory.md)), append this tick with `finished: null`, and reconcile it with the repository. Read the host's inbox for reports and answers that arrived while this session was down.
 4. **Classify the tick**, taking the first row that applies:
 
@@ -18,23 +18,24 @@ The run's message starts with the fixed phrase `Scheduled SEO loop tick`. That p
 | 1 | an approval from an earlier tick is still unanswered | asks nothing new and dispatches nothing new; its line names the question and how long it has waited, and it still collects finished workers |
 | 2 | an answer came back that no run has acted on | acts on it: picks become briefs and writers, access answers go into the next `.seo/` PR, an approach choice is recorded |
 | 3 | items in flight | collects the finished ones and sends each to its next step (review, the person, the investigator) |
-| 4 | a read came back with an unexplained drop | starts one investigator item per drop, without asking |
-| 5 | reads are due | one measurer item per due read, as section 1 says; a read already in flight is not dispatched again |
-| 6 | the review date has passed | the review (below), then the picks approval |
-| 7 | a needed source is missing | one access approval, asked once per product |
-| 8 | nothing due, no review due, nothing waiting | the quiet tick |
-| 9 | anything else | one approval saying what it found, with options |
+| 4 | a read came back with an unexplained drop | starts one investigator item per drop that has none yet, without asking, and records it on the drop's `results` entry |
+| 5 | records to migrate (`legacy`) | one measurer item, key `migrate:<file>`, before any read; reads wait until its PR merges |
+| 6 | reads are due | one measurer item per due read, as section 1 says. A read whose key is in flight or has an open `results` entry is waiting on its PR: the line says so and nothing is dispatched for it |
+| 7 | the review is due and memory's `review_done` and `review_skipped_until` do not cover today | the review (below) |
+| 8 | a needed source is missing | one access approval, asked once per product |
+| 9 | nothing due, no review due, nothing waiting | the quiet tick |
+| 10 | anything else | one approval saying what it found, with options |
 
-Rows 3 to 5 run together in one tick. A missed or skipped tick changes nothing: every due date is computed from the repository.
+Rows 3 to 6 run together in one tick. A missed or skipped tick changes nothing: every due date is computed from the repository.
 
 **The quiet tick** asks nothing and dispatches nothing. Its line is "Nothing due. Next: <next_due>."
 
-**The review.** Before a full review, compare its expected cost with what changed since the last one. When no read has come back and nothing material moved (no new merged change, no drop), skip it, say so in the line, and set memory's `review_skipped_until` to one cadence later; until then the review counts as not due. Otherwise run steps 3, 7 and 8 of section 2, then put the picks to the person.
+**The review.** Before a full review, compare its expected cost with what changed since the last one. When no read has come back and nothing material moved (no new merged change, no drop), skip it, say so in the line, and set memory's `review_skipped_until` to one cadence later; until then the review counts as not due. Otherwise run steps 3 and 7 of section 2 and the ranked page's review (section 3), then post one picks approval (section 4). Set memory's `review_done` to today; the review's `.seo/` PR (the strategist's) sets `last_review` in `.seo/access.md` to the same date, which restarts the cadence once it merges.
 
 5. **Keep going while it pays.** A tick that dispatched work watches it as `orchestrate-sessions` says, until each item reports, blocks or is handed to the person. An approval is posted without blocking the session; its answer arrives as the host delivers it and is acted on then, as row 2.
-6. **End.** Fill the tick's entry and write memory. Write the tick's line as the status page's summary and as the tick's last message: what this tick was, what it did, what it waits on, the next due date, and the cost of this tick and of the month so far when the host reports them. For example: "Read due: dispatched the 42-day read of 2026-10-06-retitle-pricing. Waiting on: nothing. Next: 2026-12-01. Cost $0.41 (month $3.10)."
+6. **End.** Fill the tick's entry and write memory. Write the tick's line as the status page's summary, with the open approvals' Q-ids and how long each has waited, and as the tick's last message: what this tick was, what it did, what it waits on, the next due date, and the cost of this tick and of the month so far when the host reports them. For example: "Read due: dispatched the 42-day read of 2026-10-06-retitle-pricing. Waiting on: nothing. Next: 2026-12-01. Cost $0.41 (month $3.10)."
 
-Under a scheduled run, autonomy is fully automatic up to the picks unless `.seo/access.md` saves another level. Nothing merges and nothing is shared or published beyond the private document destination.
+Under a scheduled run, autonomy is fully automatic up to the picks unless `.seo/access.md` saves another level. A tick never merges a PR and never shares or publishes beyond the private document destination.
 
 ## Questions as approvals
 
@@ -46,7 +47,7 @@ Every question goes to the person through the host's approvals as one card with 
 | Missing source | connect it (how, and what it unlocks); continue at the current tier |
 | Autonomy | fully automatic up to the picks; review pages first; choose checkpoints |
 | Cover sheet | approve; revise (what to change); drop the workstream |
-| Merge | merge now; leave it as a draft; close it |
+| A draft is ready | you merge it (PR linked); leave it as a draft; close it. The tick only reports it |
 | Three losses in a row | the different lever the loop names; investigate first; pause new experiments and keep measuring |
 | Loop setup | weekly check; daily check; no loop |
 | Anything else | what the tick found, with its options |
@@ -59,10 +60,10 @@ Record every item offered with its outcome: picked, declined (with the reason wh
 
 The product's own results outrank the shipped case evidence.
 
-- Two experiments of the same kind (title rewrite, new page family, internal links, schema) read as Failed or "moved with the site" on this product: the strategist stops proposing that kind and says so on the next ranked page, citing the reads.
-- Three experiments in a row read that way: the tick picks nothing and sends one approval naming the pattern, with the options in the table above.
+- Two experiments of the same kind (title rewrite, new page family, internal links, schema) read as Failed on this product: the strategist stops proposing that kind and says so on the next ranked page, citing the reads.
+- Three experiments in a row read as Failed or "moved with the site": the tick picks nothing and sends one approval naming the pattern, with the options in the table above.
 
-Record each change of approach in memory's `approach` with its evidence.
+Record each change of approach in memory's `approach` with its evidence and the experiment ids that triggered it (`streak`). A streak already decided never triggers again; ask again only when a newer result that is not in a recorded streak extends the losses.
 
 ## Cost
 

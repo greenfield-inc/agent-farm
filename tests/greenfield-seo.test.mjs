@@ -135,37 +135,61 @@ test('the due list reads the default branch\'s records from a feature branch, ne
  assert.deepEqual([main['legacy-title-test'].legacy,main['legacy-title-test'].reads],[true,[]]);
 });
 
-test('the pre-check answers in one line whether a read or the review is due, from the records, the cadence in .seo/access.md and the last merged .seo/ change',t=>{
+test('the pre-check answers in one line whether a read or the review is due, from the records and the cadence and last review in .seo/access.md',t=>{
  const repo=tempDir(t,'seo-check-');
  const git=(args,date='2026-08-01T12:00:00Z')=>execFileSync('git',args,{cwd:repo,env:{...process.env,GIT_AUTHOR_DATE:date,GIT_COMMITTER_DATE:date,GIT_CONFIG_GLOBAL:'/dev/null',GIT_CONFIG_SYSTEM:'/dev/null'},encoding:'utf8'});
  const write=(rel,text)=>{fs.mkdirSync(path.dirname(path.join(repo,rel)),{recursive:true});fs.writeFileSync(path.join(repo,rel),text);};
  const commit=(tag,date)=>{git(['add','.']);git(['commit','-qm',tag],date);git(['tag',tag]);};
  const record=(read21='',read42='',status='running')=>write('.seo/experiments/a.md',`---\nid: a\nread_21: ${read21}\nread_42: ${read42}\nstatus: ${status}\n---\n`);
+ const accessFile=last=>write('.seo/access.md',`---\ntier: Search\ncadence: monthly   # monthly | weekly\nautonomy: fully automatic\nlast_review: ${last}\n---\n`);
  git(['init','-q','-b','main']);git(['config','user.email','t@example.com']);git(['config','user.name','t']);
  write('README.md','site\n');commit('t0','2026-08-01T12:00:00Z');
- write('.seo/access.md','---\ntier: Search\ncadence: monthly   # monthly | weekly\nautonomy: fully automatic\n---\n');record();commit('t1','2026-09-01T12:00:00Z');
+ accessFile('2026-09-01');record();commit('t1','2026-09-01T12:00:00Z');
  record('2026-09-27');commit('t2','2026-09-28T12:00:00Z');
- record('2026-09-27','2026-10-17','read');commit('t3','2026-10-18T12:00:00Z');
+ accessFile('2026-10-05');commit('t3','2026-10-05T12:00:00Z');
+ record('2026-09-27','2026-10-17','read');commit('t4','2026-10-25T12:00:00Z');
  const home=tempDir(t,'seo-check-home-');
  const run=(dir,ref,today)=>{const out=spawnSync(process.execPath,[path.join(root,'skills/seo-experiments/scripts/due.mjs'),'--repo',dir,'--ref',ref,'--today',today,'--check'],{encoding:'utf8',env:{...process.env,HOME:home,USERPROFILE:home}});assert.equal(out.stdout.split('\n').filter(Boolean).length,1,out.stderr);return [out.status,JSON.parse(out.stdout)];};
- const check=(ref,today)=>{const [status,{memory,...rest}]=run(repo,ref,today);return [status,rest];};
- const access={tier:'Search',cadence:'monthly',autonomy:'fully automatic'};
- // Shipped 2026-09-01: the 21-day read is runnable 09-25 and the 42-day read 10-16. Monthly is 30 days from the last .seo/ change.
- assert.deepEqual(check('t1','2026-09-20'),[3,{today:'2026-09-20',due:false,reads_due:[],legacy:[],review:{cadence:'monthly',last:'2026-09-01',next:'2026-10-01',due:false,reason:null},next_due:'2026-09-25',access}]);
- assert.deepEqual(check('t1','2026-09-26'),[0,{today:'2026-09-26',due:true,reads_due:[{id:'a',days:21,since:'2026-09-25'}],legacy:[],review:{cadence:'monthly',last:'2026-09-01',next:'2026-10-01',due:false,reason:null},next_due:'2026-10-01',access}]);
- // The 21-day read merged 09-28, which moves the review to 10-28.
- assert.deepEqual(check('t2','2026-10-20'),[0,{today:'2026-10-20',due:true,reads_due:[{id:'a',days:42,since:'2026-10-16'}],legacy:[],review:{cadence:'monthly',last:'2026-09-28',next:'2026-10-28',due:false,reason:null},next_due:'2026-10-28',access}]);
- // Both reads done, last merged 10-18: the review is due from 11-17 with no read due.
- assert.deepEqual(check('t3','2026-11-20'),[0,{today:'2026-11-20',due:true,reads_due:[],legacy:[],review:{cadence:'monthly',last:'2026-10-18',next:'2026-11-17',due:true,reason:null},next_due:null,access}]);
+ const check=(ref,today)=>{const [status,{memory,lock,...rest}]=run(repo,ref,today);return [status,rest];};
+ const access=last=>({tier:'Search',cadence:'monthly',autonomy:'fully automatic',last_review:last});
+ const reviewed=(last,next,due)=>({cadence:'monthly',last,next,due,reason:null});
+ // Shipped 2026-09-01: the 21-day read is runnable 09-25 and the 42-day read 10-16. Reviewed 09-01, so the next review is 10-01.
+ assert.deepEqual(check('t1','2026-09-20'),[3,{today:'2026-09-20',due:false,reads_due:[],legacy:[],review:reviewed('2026-09-01','2026-10-01',false),next_due:'2026-09-25',access:access('2026-09-01')}]);
+ assert.deepEqual(check('t1','2026-09-26'),[0,{today:'2026-09-26',due:true,reads_due:[{id:'a',days:21,since:'2026-09-25'}],legacy:[],review:reviewed('2026-09-01','2026-10-01',false),next_due:'2026-10-01',access:access('2026-09-01')}]);
+ // The 21-day read merged 09-28 and leaves the review clock where it was.
+ assert.deepEqual(check('t2','2026-09-30'),[3,{today:'2026-09-30',due:false,reads_due:[],legacy:[],review:reviewed('2026-09-01','2026-10-01',false),next_due:'2026-10-01',access:access('2026-09-01')}]);
+ // The review merged 10-05 sets last_review, so on 10-20 only the 42-day read is due.
+ assert.deepEqual(check('t3','2026-10-20'),[0,{today:'2026-10-20',due:true,reads_due:[{id:'a',days:42,since:'2026-10-16'}],legacy:[],review:reviewed('2026-10-05','2026-11-04',false),next_due:'2026-11-04',access:access('2026-10-05')}]);
+ // Both reads done: the review is due from 11-04 with no read due.
+ assert.deepEqual(check('t4','2026-11-10'),[0,{today:'2026-11-10',due:true,reads_due:[],legacy:[],review:reviewed('2026-10-05','2026-11-04',true),next_due:null,access:access('2026-10-05')}]);
  // No .seo/ yet: a first run is due.
  assert.deepEqual(check('t0','2026-09-20'),[0,{today:'2026-09-20',due:true,reads_due:[],legacy:[],review:{cadence:null,last:null,next:null,due:true,reason:'no .seo/access.md: first run'},next_due:null,access:null}]);
- // A single-file experiment log hides its reads from the script, so it is due for migration.
- fs.writeFileSync(path.join(repo,'.seo/experiments.md'),'| date | target | review |\n| 2026-07-10 | /pricing | 2026-08-11 |\n');commit('t4','2026-11-01T12:00:00Z');
- const [status4,{legacy,due}]=run(repo,'t4','2026-11-02');
- assert.deepEqual([status4,due,legacy],[0,true,['.seo/experiments.md']]);
- // Every worktree of the product shares one local folder, under Agent Farm's state directory.
- const other=path.join(tempDir(t,'seo-check-wt-'),'run');git(['worktree','add','-q','--detach',other,'t3']);
- const [,main]=run(repo,'t3','2026-11-20'),[,fromWorktree]=run(other,'t3','2026-11-20');
+ // A single-file experiment log hides its reads, so it is due for migration until its body is the one-line pointer.
+ write('.seo/experiments.md','| date | target | review |\n| 2026-07-10 | /pricing | 2026-08-11 |\n');commit('t5','2026-10-26T12:00:00Z');
+ write('.seo/experiments.md','Moved to .seo/experiments/, one record per experiment.\n');commit('t6','2026-10-27T12:00:00Z');
+ assert.deepEqual(check('t5','2026-10-30').map((v,i)=>i?[v.due,v.legacy]:v),[0,[true,['.seo/experiments.md']]]);
+ assert.deepEqual(check('t6','2026-10-30').map((v,i)=>i?[v.due,v.legacy]:v),[3,[false,[]]]);
+ // Every worktree of the product shares one local folder and one lock name, under Agent Farm's state directory.
+ const other=path.join(tempDir(t,'seo-check-wt-'),'run');git(['worktree','add','-q','--detach',other,'t4']);
+ const [,main]=run(repo,'t4','2026-11-10'),[,fromWorktree]=run(other,'t4','2026-11-10');
  assert.ok(main.memory.startsWith(path.join(home,'.local/state/agent-farm/seo',path.basename(repo)+'-')),main.memory);
- assert.equal(fromWorktree.memory,main.memory);
+ assert.deepEqual([fromWorktree.memory,fromWorktree.lock],[main.memory,main.lock]);
+});
+
+test('the pre-check delivers its whole JSON line and exit status to a reader that drains the pipe late',{timeout:30000},async t=>{
+ const repo=tempDir(t,'seo-check-pipe-');
+ const env={...process.env,GIT_AUTHOR_DATE:'2026-01-01T12:00:00Z',GIT_COMMITTER_DATE:'2026-01-01T12:00:00Z',GIT_CONFIG_GLOBAL:'/dev/null',GIT_CONFIG_SYSTEM:'/dev/null'};
+ execFileSync('git',['init','-q','-b','main'],{cwd:repo,env});
+ fs.mkdirSync(path.join(repo,'.seo/experiments'),{recursive:true});
+ // 1,500 records live 2026-01-01, both reads due on 2026-03-01: about 100 KB of JSON, more than a pipe buffers.
+ for(let i=0;i<1500;i++)fs.writeFileSync(path.join(repo,`.seo/experiments/r${String(i).padStart(4,'0')}.md`),`---\nid: r${String(i).padStart(4,'0')}\nlive: 2026-01-01\nstatus: running\n---\n`);
+ execFileSync('git',['add','.'],{cwd:repo,env});execFileSync('git',['-c','user.email=t@example.com','-c','user.name=t','commit','-qm','records'],{cwd:repo,env});
+ const {spawn}=await import('node:child_process');
+ const child=spawn(process.execPath,[path.join(root,'skills/seo-experiments/scripts/due.mjs'),'--repo',repo,'--today','2026-03-01','--check'],{stdio:['ignore','pipe','pipe']});
+ child.stdout.pause();
+ await new Promise(resolve=>setTimeout(resolve,1500));
+ const chunks=[];child.stdout.on('data',chunk=>chunks.push(chunk));child.stdout.resume();
+ const code=await new Promise(resolve=>child.on('close',resolve));
+ const result=JSON.parse(Buffer.concat(chunks).toString('utf8'));
+ assert.deepEqual([code,result.reads_due.length],[0,3000]);
 });

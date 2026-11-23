@@ -64,9 +64,10 @@ Over time, `.seo/` becomes a self-organized wiki of SEO data:
 
 If `.seo/briefing.md` or `.seo/strategy.md` exist:
 - Create the dated archive directory: `.seo/archive/YYYY/MM/DD/`
-- Copy `briefing.md`, `strategy.md`, and `data/*` into the archive. The
-  archived `data/` folder holds raw pulls: it stays out of commits, as the
-  data pull's **Persisting .seo/ data** section says
+- Copy `briefing.md` and `strategy.md` into the archive. Copy `data/*` to the
+  raw store's `archive/YYYY/MM/DD/data/` instead: it holds raw pulls, which
+  stay on this machine, as the data pull's **Persisting .seo/ data** section
+  says
 - Don't move them. Copy. The working files stay for the next skill that needs them.
 
 **Success criteria**: Today's data is preserved in the archive. Working files still exist.
