@@ -150,7 +150,7 @@ test('the pre-check answers in one line whether a read or the review is due, fro
  record('2026-09-27','2026-10-17','read');commit('t4','2026-10-25T12:00:00Z');
  const home=tempDir(t,'seo-check-home-');
  const run=(dir,ref,today)=>{const out=spawnSync(process.execPath,[path.join(root,'skills/seo-experiments/scripts/due.mjs'),'--repo',dir,'--ref',ref,'--today',today,'--check'],{encoding:'utf8',env:{...process.env,HOME:home,USERPROFILE:home}});assert.equal(out.stdout.split('\n').filter(Boolean).length,1,out.stderr);return [out.status,JSON.parse(out.stdout)];};
- const check=(ref,today)=>{const [status,{memory,lock,...rest}]=run(repo,ref,today);return [status,rest];};
+ const check=(ref,today)=>{const [status,{memory,...rest}]=run(repo,ref,today);return [status,rest];};
  const access=last=>({tier:'Search',cadence:'monthly',autonomy:'fully automatic',last_review:last});
  const reviewed=(last,next,due)=>({cadence:'monthly',last,next,due,reason:null});
  // Shipped 2026-09-01: the 21-day read is runnable 09-25 and the 42-day read 10-16. Reviewed 09-01, so the next review is 10-01.
@@ -169,11 +169,11 @@ test('the pre-check answers in one line whether a read or the review is due, fro
  write('.seo/experiments.md','Moved to .seo/experiments/, one record per experiment.\n');commit('t6','2026-10-27T12:00:00Z');
  assert.deepEqual(check('t5','2026-10-30').map((v,i)=>i?[v.due,v.legacy]:v),[0,[true,['.seo/experiments.md']]]);
  assert.deepEqual(check('t6','2026-10-30').map((v,i)=>i?[v.due,v.legacy]:v),[3,[false,[]]]);
- // Every worktree of the product shares one local folder and one lock name, under Agent Farm's state directory.
+ // Every worktree of the product shares one local folder, under Agent Farm's state directory.
  const other=path.join(tempDir(t,'seo-check-wt-'),'run');git(['worktree','add','-q','--detach',other,'t4']);
  const [,main]=run(repo,'t4','2026-11-10'),[,fromWorktree]=run(other,'t4','2026-11-10');
  assert.ok(main.memory.startsWith(path.join(home,'.local/state/agent-farm/seo',path.basename(repo)+'-')),main.memory);
- assert.deepEqual([fromWorktree.memory,fromWorktree.lock],[main.memory,main.lock]);
+ assert.equal(fromWorktree.memory,main.memory);
 });
 
 test('the pre-check delivers its whole JSON line and exit status to a reader that drains the pipe late',{skip:process.platform==='win32'&&'needs a POSIX shell pipe'},t=>{
@@ -188,4 +188,42 @@ test('the pre-check delivers its whole JSON line and exit status to a reader tha
  const run=spawnSync('bash',['-c','set -o pipefail; "$0" "$1" --repo "$2" --today 2026-03-01 --check | (sleep 1; cat)',process.execPath,path.join(root,'skills/seo-experiments/scripts/due.mjs'),repo],{encoding:'utf8',maxBuffer:1<<24});
  assert.equal(run.status,0,run.stderr);
  assert.equal(JSON.parse(run.stdout).reads_due.length,3000);
+});
+
+test('the raw guard refuses a push whose commits add raw data, even when a later commit removes it, and allows removing raw files the default branch already has',t=>{
+ const repo=tempDir(t,'seo-raw-guard-');
+ const git=(...args)=>execFileSync('git',args,{cwd:repo,env:{...process.env,GIT_CONFIG_GLOBAL:'/dev/null',GIT_CONFIG_SYSTEM:'/dev/null'},encoding:'utf8'});
+ const write=(rel,text)=>{fs.mkdirSync(path.dirname(path.join(repo,rel)),{recursive:true});fs.writeFileSync(path.join(repo,rel),text);};
+ const commit=message=>{git('add','-A');git('commit','-qm',message);return git('rev-parse','--short=12','HEAD').trim();};
+ git('init','-q','-b','main');git('config','user.email','t@example.com');git('config','user.name','t');
+ // An older run committed a raw pull to the default branch.
+ write('.seo/data/old-gsc.csv','query,clicks\nexample,3\n');write('.seo/briefing.md','# Briefing\n');commit('legacy');
+ const guard=head=>spawnSync(process.execPath,[path.join(root,'skills/seo-data-pull/scripts/raw-guard.mjs'),'--repo',repo,'--base','main','--head',head],{encoding:'utf8'});
+ // Cleanup only: removing the tracked raw file and changing a reviewed file publishes nothing raw.
+ git('checkout','-q','-b','cleanup');git('rm','-q','--cached','.seo/data/old-gsc.csv');write('.seo/briefing.md','# Briefing v2\n');commit('untrack raw, update briefing');
+ assert.deepEqual([guard('cleanup').status,guard('cleanup').stderr],[0,'']);
+ // Exposure: a raw export added in one commit and removed in the next is still in what the push publishes.
+ git('checkout','-q','-b','exposed','main');
+ write('.seo/archive/2026/11/20/data/ga4.json','{"rows":[]}\n');const added=commit('add archive');
+ fs.rmSync(path.join(repo,'.seo/archive'),{recursive:true});commit('remove archive');
+ const exposed=guard('exposed');
+ assert.equal(exposed.status,1);
+ assert.match(exposed.stderr,new RegExp(`^  ${added} A \\.seo/archive/2026/11/20/data/ga4\\.json$`,'m'));
+ assert.doesNotMatch(exposed.stderr,/old-gsc/);
+});
+
+test('the memory lock admits one run at a time, renews for its owner, ignores a release by another run, and lets a run take over a lock left stale by a dead one',t=>{
+ const dir=tempDir(t,'seo-lock-');
+ const lock=(...args)=>{const run=spawnSync(process.execPath,[path.join(root,'skills/seo-loop/scripts/lock.mjs'),...args,'--dir',dir],{encoding:'utf8'});return [run.status,JSON.parse(run.stdout)];};
+ assert.deepEqual(lock('acquire','--owner','tick-1','--wait','0'),[0,{ok:true,owner:'tick-1'}]);
+ assert.deepEqual(lock('acquire','--owner','tick-1','--wait','0'),[0,{ok:true,owner:'tick-1'}]);
+ const [status,busy]=lock('acquire','--owner','person-run','--wait','0');
+ assert.deepEqual([status,busy.ok,busy.holder],[2,false,'tick-1']);
+ assert.deepEqual(lock('release','--owner','person-run'),[0,{ok:true,released:false}]);
+ assert.deepEqual(lock('release','--owner','tick-1'),[0,{ok:true,released:true}]);
+ assert.deepEqual(lock('acquire','--owner','person-run','--wait','0'),[0,{ok:true,owner:'person-run'}]);
+ // A holder that last renewed an hour ago is past the 30-minute default and taken to have died.
+ fs.writeFileSync(path.join(dir,'lock','owner.json'),JSON.stringify({owner:'person-run',at:new Date(Date.now()-3600e3).toISOString()}));
+ assert.deepEqual(lock('acquire','--owner','tick-2','--wait','0'),[0,{ok:true,owner:'tick-2'}]);
+ assert.equal(JSON.parse(fs.readFileSync(path.join(dir,'lock','owner.json'),'utf8')).owner,'tick-2');
 });

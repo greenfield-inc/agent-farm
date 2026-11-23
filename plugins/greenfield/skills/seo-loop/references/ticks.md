@@ -9,30 +9,28 @@ The run's message starts with the fixed phrase `Scheduled SEO loop tick`. That p
 ## Run a tick
 
 1. **Another tick still working?** A tick message that arrives while an earlier tick in this session is still working gets one line, "Another tick is working: <what it is doing>.", and the earlier tick carries on.
-2. **Pre-check.** After `git fetch origin`, run `node <seo-experiments skill directory>/scripts/due.mjs --check --repo <repo> --ref origin/<default branch>`. Keep its `memory` and `lock`.
+2. **Pre-check.** After `git fetch origin`, run `node <seo-experiments skill directory>/scripts/due.mjs --check --repo <repo> --ref origin/<default branch>`. Keep its `memory`.
 3. **Load working memory** ([memory.md](memory.md)), append this tick with `finished: null`, and reconcile it with the repository. Read the host's inbox for reports and answers that arrived while this session was down.
-4. **Classify the tick**, taking the first row that applies:
+4. **Work through the rows**, every one in order. A row acts only on work that can move now. Work that is known and waiting (an approval not yet answered, a read or migration whose key is in flight or has an open `results` entry, a worker still running) goes in the tick's line as waiting and never stops the rows after it. A tick posts at most one new approval and never asks a question that is already open; a second question waits for the next tick.
 
-| # | When | The tick |
+| # | Work that can move now | The tick |
 | --- | --- | --- |
-| 1 | an approval from an earlier tick is still unanswered | asks nothing new and dispatches nothing new; its line names the question and how long it has waited, and it still collects finished workers |
-| 2 | an answer came back that no run has acted on | acts on it: picks become briefs and writers, access answers go into the next `.seo/` PR, an approach choice is recorded |
-| 3 | items in flight | collects the finished ones and sends each to its next step (review, the person, the investigator) |
-| 4 | a read came back with an unexplained drop | starts one investigator item per drop that has none yet, without asking, and records it on the drop's `results` entry |
-| 5 | records to migrate (`legacy`) | one measurer item, key `migrate:<file>`, before any read; reads wait until its PR merges |
-| 6 | reads are due | one measurer item per due read, as section 1 says. A read whose key is in flight or has an open `results` entry is waiting on its PR: the line says so and nothing is dispatched for it |
-| 7 | the review is due and memory's `review_done` and `review_skipped_until` do not cover today | the review (below) |
-| 8 | a needed source is missing | one access approval, asked once per product |
-| 9 | nothing due, no review due, nothing waiting | the quiet tick |
-| 10 | anything else | one approval saying what it found, with options |
+| 1 | answers no run has acted on | acts on each: picks become briefs and writers, access answers go into the next `.seo/` PR, an approach choice is recorded |
+| 2 | items in flight that have finished | collects each and sends it to its next step (review, the person, the investigator) |
+| 3 | unexplained drops with no investigator yet | one investigator item per drop, without asking, recorded on the drop's `results` entry |
+| 4 | records to migrate (`legacy`) not already in flight or waiting on a PR | one measurer item, key `migrate:<file>`; until its PR merges, due reads count as waiting on it |
+| 5 | due reads that are not in flight, not waiting on a PR and not waiting on a migration | one measurer item per read, as section 1 says |
+| 6 | the review, when due and not covered by memory's `review_done` or `review_skipped_until` | the review (below) |
+| 7 | a needed source that is missing and was never asked about | one access approval |
+| 8 | anything found that fits no row | one approval saying what it found, with options |
 
-Rows 3 to 6 run together in one tick. A missed or skipped tick changes nothing: every due date is computed from the repository.
+When no row acted, the tick is quiet. A missed or skipped tick changes nothing: every due date is computed from the repository.
 
-**The quiet tick** asks nothing and dispatches nothing. Its line is "Nothing due. Next: <next_due>."
+**The quiet tick** asks nothing and dispatches nothing. Its line is "Nothing due. Next: <next_due>." when nothing waits, or "Waiting: <each item and since when>. Next: <next_due>."
 
 **The review.** Before a full review, compare its expected cost with what changed since the last one. When no read has come back and nothing material moved (no new merged change, no drop), skip it, say so in the line, and set memory's `review_skipped_until` to one cadence later; until then the review counts as not due. Otherwise run steps 3 and 7 of section 2 and the ranked page's review (section 3), then post one picks approval (section 4). Set memory's `review_done` to today; the review's `.seo/` PR (the strategist's) sets `last_review` in `.seo/access.md` to the same date, which restarts the cadence once it merges.
 
-5. **Keep going while it pays.** A tick that dispatched work watches it as `orchestrate-sessions` says, until each item reports, blocks or is handed to the person. An approval is posted without blocking the session; its answer arrives as the host delivers it and is acted on then, as row 2.
+5. **Keep going while it pays.** A tick that dispatched work watches it as `orchestrate-sessions` says, until each item reports, blocks or is handed to the person. An approval is posted without blocking the session; its answer arrives as the host delivers it and is acted on then, as row 1.
 6. **End.** Fill the tick's entry and write memory. Write the tick's line as the status page's summary, with the open approvals' Q-ids and how long each has waited, and as the tick's last message: what this tick was, what it did, what it waits on, the next due date, and the cost of this tick and of the month so far when the host reports them. For example: "Read due: dispatched the 42-day read of 2026-10-06-retitle-pricing. Waiting on: nothing. Next: 2026-12-01. Cost $0.41 (month $3.10)."
 
 Under a scheduled run, autonomy is fully automatic up to the picks unless `.seo/access.md` saves another level. A tick never merges a PR and never shares or publishes beyond the private document destination.

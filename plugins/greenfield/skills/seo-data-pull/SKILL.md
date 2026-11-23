@@ -291,9 +291,11 @@ This is the one raw-data rule; the other SEO skills point here.
   (`git rm -r --cached <path>`) in the next `.seo/` PR and say in it that
   they stay in the repository's history.
 - Stage reviewed files by path, never `git add .seo` or `git add -A`. Before
-  every push, `git diff --name-only origin/<default branch>...HEAD` must list
-  no path under `.seo/data` or a `data/` folder in `.seo/archive/`; if it
-  does, remove it from the branch before pushing.
+  every push, run `node <this skill's directory>/scripts/raw-guard.mjs --base
+  origin/<default branch>`. It checks every commit the push would publish, so
+  a raw file added in one commit and deleted in a later one still counts, and
+  it allows deleting raw files the default branch already has. When it exits
+  1, rewrite the branch so no commit adds the files it names, then push.
 - What a briefing, read or experiment record cites from a pull is a reviewed
   aggregate, and that is committed.
 

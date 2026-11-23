@@ -18,8 +18,7 @@
 // and the review, which is due when .seo/access.md is missing or its cadence (weekly 7 days, monthly 30, default
 // monthly) has passed since its last_review date, which each review's .seo/ PR writes.
 // It also names the product's local folder (working memory and raw pulls), one per repository whatever the worktree:
-// ~/.local/state/agent-farm/seo/<repository name>-<12 hex of the git common directory's sha256>, and the lock name
-// that serializes runs writing it.
+// ~/.local/state/agent-farm/seo/<repository name>-<12 hex of the git common directory's sha256>.
 // Exit 0 with the list; exit 1 on bad usage, an unparseable record, a bad date, or a git failure.
 // With --check: exit 0 when something is due, 3 when nothing is.
 import fs from 'node:fs';
@@ -149,7 +148,7 @@ function memoryDir(repo){
   const common=fs.realpathSync(path.resolve(repo,git(repo,['rev-parse','--git-common-dir'],'not a git repository').trim()));
   const name=(path.basename(common)==='.git'?path.basename(path.dirname(common)):path.basename(common,'.git')).replace(/[^A-Za-z0-9._-]/g,'-');
   const key=`${name}-${createHash('sha256').update(common).digest('hex').slice(0,12)}`;
-  return {memory:path.join(os.homedir(),'.local','state','agent-farm','seo',key),lock:`seo-loop-${key}`};
+  return {memory:path.join(os.homedir(),'.local','state','agent-farm','seo',key)};
 }
 
 function check(records,repo,ref,today){
