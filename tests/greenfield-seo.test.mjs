@@ -147,7 +147,7 @@ test('the pre-check answers in one line whether a read or the review is due, fro
  record('2026-09-27');commit('t2','2026-09-28T12:00:00Z');
  record('2026-09-27','2026-10-17','read');commit('t3','2026-10-18T12:00:00Z');
  const home=tempDir(t,'seo-check-home-');
- const run=(dir,ref,today)=>{const out=spawnSync(process.execPath,[path.join(root,'skills/seo-experiments/scripts/due.mjs'),'--repo',dir,'--ref',ref,'--today',today,'--check'],{encoding:'utf8',env:{...process.env,HOME:home}});assert.equal(out.stdout.split('\n').filter(Boolean).length,1,out.stderr);return [out.status,JSON.parse(out.stdout)];};
+ const run=(dir,ref,today)=>{const out=spawnSync(process.execPath,[path.join(root,'skills/seo-experiments/scripts/due.mjs'),'--repo',dir,'--ref',ref,'--today',today,'--check'],{encoding:'utf8',env:{...process.env,HOME:home,USERPROFILE:home}});assert.equal(out.stdout.split('\n').filter(Boolean).length,1,out.stderr);return [out.status,JSON.parse(out.stdout)];};
  const check=(ref,today)=>{const [status,{memory,...rest}]=run(repo,ref,today);return [status,rest];};
  const access={tier:'Search',cadence:'monthly',autonomy:'fully automatic'};
  // Shipped 2026-09-01: the 21-day read is runnable 09-25 and the 42-day read 10-16. Monthly is 30 days from the last .seo/ change.
