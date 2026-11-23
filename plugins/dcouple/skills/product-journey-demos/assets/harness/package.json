@@ -1,0 +1,12 @@
+{
+  "name": "journey-demos-harness",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test guard.test.mjs",
+    "selftest": "node selftest/run.mjs"
+  },
+  "dependencies": {
+    "playwright": "1.55.0"
+  }
+}

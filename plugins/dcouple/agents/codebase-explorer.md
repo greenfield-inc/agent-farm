@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6.1-sol
-  reasoning: low
+  name: gpt-6.2-sol
+  reasoning: medium
+  speed: ultrafast
 description: Inspect the repository and return facts with file references.
 skills:
   - codebase-explorer

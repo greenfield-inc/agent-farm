@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6-astra
-  reasoning: low
+  name: gpt-6.2-sol
+  reasoning: medium
+  speed: ultrafast
 description: "Find outdated issues, pull requests, and docs, and suggest what to close or update. Changes nothing until you approve."
 skills:
   - audits

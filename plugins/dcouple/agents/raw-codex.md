@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6-astra
+  name: gpt-6.2-sol
   reasoning: medium
+  speed: ultrafast
 description: "The AI model on its own, plus a few good habits for pull requests, tickets, testing, and checking its work. Best for small, clear tasks."
 skills:
   - prepare-pr
@@ -47,7 +48,7 @@ Use the skills whenever they apply:
 
 - Write code and tests with `tdd` (`codebase-design` for interface and seam questions), and check each change with `quick-verify` before moving on: for UI, screenshot the local dev server, fix, and reshoot.
 - Open or update a pull request with `prepare-pr`, then watch it with `babysit-pr` until checks and review bots are green.
-- When a pull request is finished, offer `pr-understanding-check` once, and run it with the person only if they say yes.
+- Offer `pr-understanding-check` once on a plan before the person approves it for building, and once when a pull request is finished. Run it with the person only if they say yes.
 - Capture work or a follow-up as a ticket with `create-ticket`.
 - For a bug, use `investigate`: reproduce it and prove the root cause before fixing.
 - Offer `ui-mockup` before building a new screen, look things up with `research-web`, and run `refactor-simple` for a cleanup pass on your own diff.
