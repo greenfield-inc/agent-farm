@@ -797,7 +797,7 @@ test('greenfield 0.0.63 grades security and data loss by reach, sends common Sho
  for(const file of fs.readdirSync(root,{recursive:true}).map(String).filter(f=>/\.(md|html)$/.test(f))){
   const text=flatText(file);
   assert.doesNotMatch(text,/whatever the reach: any security|Security, PHI, data loss and public-contract problems are always fixed|only inside a fix round a Must-Fix already opened/,file);
-  if(file!=='skills/review/CRITERIA.md')assert.doesNotMatch(text,/PHI exposure is (always )?Must-Fix/,file);
+  if(file!=='skills/review/CRITERIA.md')assert.doesNotMatch(text,/PHI exposure is (always )?Must-Fix|PHI[^.]*always Must-Fix/,file);
  }
 });
 
