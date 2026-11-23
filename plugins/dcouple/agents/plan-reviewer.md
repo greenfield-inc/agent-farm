@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6.1-sol
+  name: gpt-6.2-sol
   reasoning: low
+  speed: ultrafast
 description: Review a plan for completeness and repository accuracy.
 skills:
   - plan-reviewer

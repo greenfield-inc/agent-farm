@@ -1,9 +1,9 @@
 name: dcouple
-version: 0.1.27
+version: 0.1.29
 cli_major: 0
 source:
   repository: https://github.com/greenfield-inc/skills.git
-  commit: 31eeb54058bbdf25dc4909f2a774ff62b855bd24
+  commit: 8e244f33b72e5d421f285ea57eed41b26c12951f
 checksums:
   profiles/audits.yaml: b2be432724574ff46929c836f1aeb90487a87a131fde62d93c49708417e97cbd
   profiles/business.yaml: e4bf2f9c0e2bec0254cfb70848c39e4a5d8a98d727e5ec3a879539456e92852a
@@ -11,48 +11,52 @@ checksums:
   profiles/implementer.yaml: 105ab9475ee5f7883256e18e545f5b761bcd9a95a90f3522f37e5cc6b3a5e42e
   profiles/product-researcher.yaml: 68fcabd293fb504b9946dbc2e46006c2981630a622b5aa7ebab962a327eec319
   profiles/qa-and-fix.yaml: 9b98ce72deadaa729a1f7ce5d264857f7778ef5e7db5df58f118102744e42f34
-  profiles/raw.yaml: 4716665b7f1522d51f2e4dd93a597e72209a021914246ee0fab493d50752772f
+  profiles/raw.yaml: 48a3243034852325fa474bef3bbcaf5a102a27b5c81816cc11a417c62887d2ee
   profiles/reviewer.yaml: 61ab5550917b4f3126b1cd75a51ebca80a5b763b63fada221feeb24c0965fd11
   profiles/seo.yaml: e114a2b8250b55d3ce588f5c14421c276d8186be2520e7514e55ab44d0182e2a
-  agents/astra-audits.md: eb69bda686bf225b5d318bc65065e2a5296465d0e4c406b0dcce47d74d7f3f23
-  agents/astra-implementer-high.md: 621b3389a9ede6965147366e359a6814057bf74c6e015a5d650d444392648b4a
-  agents/astra-researcher-reader.md: fd7ae198e8d27dfc99253e6418764208964f36ffab98783130238a49d5ae6d13
-  agents/astra-researcher.md: 4db9944ad5d65eae1943c5304e0b15a14a76e93c9275ca3146e232da045da0a6
-  agents/astra-socrates.md: 941d4f74a47846e02471ea14fdd1a90b7855f89a68d9c19b7c05c4184c5740cc
+  profiles/standup-prep.yaml: 9c39c2699867c647001ea76fd73c77d3c2f7db8e48d3c3ac9cfa3e2d22f18a15
+  agents/astra-audits.md: d205a856aa1d30a506840b2ad58b6c5a82d49f369c0894db82c22c60e831e0d6
+  agents/astra-implementer-high.md: 71667ff9afb807323a2f42dbe56b705cc7b0d45464084b79e123f3ee12b04fad
+  agents/astra-researcher-reader.md: 4d93edddb12f2320255111c4876e9961bd943d288afd54a16d4e7ee536602608
+  agents/astra-researcher.md: 0de5fc3c9343085f4a5797f4449b2d42195964002c846e110e1015658d639546
+  agents/astra-socrates.md: d7bf23177bec707cce0cf1d956f6885d9ba929a2b458f9165305c99bbaa555ec
   agents/audits.md: 3a40b0eec0f7fccfb7895675150e3b194dbc0c9ab447accb692e3f5910ca78e3
   agents/business-artifact-reviewer.md: 2b3a689c9268a3058d5f44bda73df4e6b86623b19c7f654cd83b151f5774f52b
-  agents/business-codex.md: 2afcb4ee44613ae25f7510d3eb9faf9f39cb374858a688f91edb750cf51f013f
+  agents/business-codex.md: 5c9c67d637429470096662b6dd69b297ebae988fd1ed29d7eb3a28f93628eaa8
   agents/business-context.md: 5170f16b973722e1665e5229d884d7e5fe4e68226f34942812625cf36f7d48f9
   agents/business-research-adversary.md: 52270d252b5541c9fa7407f0315411e2a1867928d687569437ec8ef29b9c2357
   agents/business-spec-reviewer.md: f2e73087890e6c849758f97876904d91d13841137a43f85334711bea4ab0c9e2
   agents/business.md: dbf321d5bb4b72e827c2947f91a0b68a3ff58510b73e5e66f59883b38eb72e24
   agents/claude-pr-reviewer.md: 5f14a5dbb0f366f2902d1b41644d0c9dacc7a9d3dc5c7d4a70d7d344cda9ffa7
-  agents/codebase-explorer.md: c3a06b065f1745a8a4ac49a269051e3ae249591c474846a3bdb3b42ca3d285f5
-  agents/codex-pr-reviewer.md: 672b7adc558377902fd0d48e1cf2efdc5b75f19f26d83255d3dfc4e047bcb416
-  agents/cold-reader.md: b99e81c8aab6bc404266eb55b73ae5be51b58eb46a4ee52cf4ce8d1ca3c4430e
-  agents/correctness-reviewer.md: 53a03d190330e10797c5fd0acc91dcb9e7bade058a93ba0022f38449c4766054
-  agents/ideate-astra.md: 0907b26c9f4ff121e3d49d5bf591711e0193a25fcdf840d4466dc3015c7d2436
+  agents/codebase-explorer.md: fc57e4e256083f3a3f09d9c623351fd80e4c6a5ee8e848659eb247621a126926
+  agents/codex-pr-reviewer.md: 459ba9a6488c1d785ba0c4d65b3ac5d3b8b9d59c82f26513a1b9ecbb776e8d07
+  agents/cold-reader.md: 9faff218b66b59aa81a7e606983339b2b8d321fa9262f0bf335911c290e71f0e
+  agents/correctness-reviewer.md: 5e0077a05fc30516f41deff1b76f4391413a254b7dce66c00b761247b07e2364
+  agents/ideate-astra.md: 1d85762af8aa1cffcf878c08beeee688a1ef5bab7e0f78cc6d3efe157ece1d3f
   agents/ideate.md: e38c606a5e19192a462490e4996b81add10a514823e1dc94f8369c1220dd2f8e
-  agents/implementation-reviewer.md: b0caf17fc2e209c7f445c32a6494fee3e038c03f740988ea5ed59e3fd625b08a
-  agents/implementer.md: bd2add8f4d91e55c40d5b3179a39881f148cc47199b08c9c64ee7f4e8ffaca33
-  agents/integration-reviewer.md: cf600e74a7595ad40fb180b2f06fcb6f48820615b897100a6fc94dde91c78f45
-  agents/intent-reviewer.md: de434aaaf61d3c0b1d8027946567e46197ec2cf83e4528504176726f6461ff52
-  agents/plan-reviewer.md: 81631b4cf8c3d78c29e39a6b014e6f16749c0a9e732d6e31cb76114759837913
-  agents/pr-preparer.md: d91299363590359ebf673be6393e0b3b1678f1d8bba8ebba99885f07f8d6621e
-  agents/pr-reviewer.md: 45d3a9df1b21707ca6daf67934f1ae2c6c4b7d4fa0a2a8f094424a4fbdca8986
+  agents/implementation-reviewer.md: 6395eeb78af6b0fbaa01e0d7a13f188733bf33c7cbfd52ab33a032c6d8a00a79
+  agents/implementer.md: 71667ff9afb807323a2f42dbe56b705cc7b0d45464084b79e123f3ee12b04fad
+  agents/integration-reviewer.md: 1f35fa16a7511e2c9a4de23a40cb9d5d2848b46f672be6f534f90f87d004e9ad
+  agents/intent-reviewer.md: cbafdb4e238d4c55d55440fcdaabbbc5d62c1cfbec60ff8a294acb89619cfca7
+  agents/plan-reviewer.md: 4bcb8dc3b8e7f48daee1140f2bbaa81ebd62cd59e42f9fe898ef5554c87cfc19
+  agents/pr-preparer.md: 9489029cfafa0a439a5506ba6304789e1ebaa9a94e4e1cd7f4454751d0e6a2dd
+  agents/pr-reviewer.md: f4b358504367fb0f5648de2cacb95590cee3b139db2fa55bde39579a1d1dd110
   agents/product-researcher-claude.md: 67bacc7680e3de2d654f3a5c5d5f5337d8e1c5b22ec05d93ccec1358919a76ac
-  agents/qa-lead-codex.md: f24cf2d9aa9599fe56140e34858d1c3f201e72133082a703c133021a568ef11d
-  agents/qa-lead.md: bc9dc4677e0da1d6329650799360be903ccf83e7104d94de7df64d53ba098117
-  agents/qa.md: 2d21b9fec2c44ae27d3ede0f4cc2ed67e33956205cf86cdabb57bc55596f5a7d
-  agents/raw-claude.md: 2da2c62836c57c5cb48f48a1dfaff9e5b0f0fd2ba77c3d96f42310bc6fafbf11
-  agents/raw-codex.md: 9fd1dc3ca6bf99593868c3cc3657b73cc397bb0bdd24e72e7d5e8ac1645e67cb
-  agents/refactor.md: a3e89715a5bb651d3cc993417a7a7ca7b7ce12a354cb602a15b1c1f31e1bcf4c
-  agents/researcher.md: 7cd648ce586ba2905bf74886af847ad384c047938554ebf7d7f938c06ee2b018
-  agents/seo-codex.md: c7eb0f84dfc630dc3d1dd7a2986ec585d8310c5a628e6d7f1d7129fc4f642432
+  agents/qa-lead-codex.md: 541a7664ee8f9d56fc0d5c7783963008145266eaa6164415252d01b2c29fdc5b
+  agents/qa-lead.md: 89a0d4a4749bcd5cc92a2286e493195abc103d864d5f39e632706c156674edd7
+  agents/qa.md: 7c047c33c339e06e2e47a3a6613e0aad79f462f2fd79407f51303415d8426e54
+  agents/raw-claude.md: 6c9319bb77cdc994bf4b1c140715c886eeb8281820751e0d840cb332c60da48e
+  agents/raw-codex.md: 8a7bbea6cfb0988b0f6ee1708e5c0dc29f655eebc484ebdbd4d20b85954f103d
+  agents/refactor.md: 2fe7b49a5cd9167600b4f8f1d3788d5233fbce4d335602e30a8db5e2f41390e6
+  agents/researcher.md: 9dd7211fa8df7fbc5f9c4d63cb1c382c89a86c2131f4668ed2ec6d2d6943e379
+  agents/seo-codex.md: 66737a87fed518e3e83dbe9c67ec690eb039f3da41f2dc755fe71c7035585e8b
   agents/seo.md: 68f0e83e286b5f3d9db7755d9c818128596625bcf9329ef810198476d8f65863
   agents/socrates.md: c20efe0c4aedc55729b704964deda9ec618dfa3e69908ef028c8cb83e6fe5223
-  agents/worker.md: 2b4cc9b1c2015a059347ef64071c21fb9da5aac0c058a5155540352f556481ad
-  skills/astra-ticket/SKILL.md: 469af4851b4ef05f25fb2f4f26d74513400340debf6b8eccdbfd454d95a6e13b
+  agents/standup-gatherer.md: 86ccacab3f8b5c65a68196af0ac48e2e71b33bce9c80378af66723117e1d1713
+  agents/standup-prep-codex.md: 47c0a41b99f13d0d934f17c3a488bbde15f886b56298044dd5d1134474348981
+  agents/standup-prep.md: 986f81ff21a4009eff5f34a06a6f63bb32db40c100876bc04a79d97267ef1f2c
+  agents/worker.md: ee1e917fe43b323546c2787e8b74f43c1aa2b372d5ca489ef17468f822bd5e08
+  skills/astra-ticket/SKILL.md: 10386d276b10814ac435df0d6153d5d1634e7ed06161b7de302697ec22e4f7d3
   skills/audits/CRITERIA.md: cf7110b4c7de828b5b9137c6f189fc68cecb5beab13d74be22c2b301100c7841
   skills/audits/metadata/codex.yaml: 4c543c8345d9744cce5bf33b02c6f541fed473f227c1f376defd1c17eaa54f2c
   skills/audits/SKILL.md: 4546afbc16125d03d6bab35f8889f486ba50d6bf059a7d747fb9680f8e282b4b
@@ -76,6 +80,40 @@ checksums:
   skills/create-ticket/references/intent-handoff.md: 808cdc7b199455bbb50e5c34f4afafdbc8b52307591418aa906103b8e6cd20f0
   skills/create-ticket/references/socrates.md: f70a000f7d1a3ee5b291fd398c78d1e9fb9832c0e90a37af2b76726c36f7d49a
   skills/create-ticket/SKILL.md: 4022d565e0bf485dd28fbc2fad68f5d1ad48610f511b18f5a667c7853253a9d8
+  skills/customer-demo-gallery/assets/gallery.css: b3f53a2131ad7010707e66747cf19622f4a052d3e48c5973407ef0a18720e055
+  skills/customer-demo-gallery/assets/gallery.html: 177cb31a4457f83645682e0b4caca8208dc8e677a25b5c2c893d61b7493b0165
+  skills/customer-demo-gallery/examples/booking-guide.html: ec7ec0c9f40d4105e4745a664784f052bc0650d5f8cd974c10b4df12cc01f002
+  skills/customer-demo-gallery/examples/gallery.json: 5f2ff621eea46ef32b2cc17c5c875b2e41b3316a3da7650cb0b69b8f56c2aa8a
+  skills/customer-demo-gallery/examples/index.html: 0cae1126af71acf22312ce6ae6957099b6ecc5bbb4f09903c7f7c52260afa4e8
+  skills/customer-demo-gallery/examples/intake.md: 025f0a6971b84a4bc5a8f0df35422c59463d134b3c01510a5be8816b00aac6f8
+  skills/customer-demo-gallery/examples/media/guide-cover.svg: e193016088fbb64062c2207ffcd6dab252a0413ae9c7ec81402c2cd8d1fcdbcb
+  skills/customer-demo-gallery/examples/media/player-poster.svg: 26361445c480f90283a17670a417e8f2808e36a4d31a487931c9cf7c0d51c6f3
+  skills/customer-demo-gallery/examples/media/player-sample.mp4: 7c64268514710db21f4e529a8617d6815361ad3ccbb4f85882f439f878986cd3
+  skills/customer-demo-gallery/references/gallery.md: 12f7579759dbcd8b9ee79e81b32978cc3e7c822aae962c35635cbd3d1ed1ac70
+  skills/customer-demo-gallery/references/visual-design.md: 692a3975e9b8d2f382cca507e7f4fb4ac7df1ecc1385e693a51c8334cff3c439
+  skills/customer-demo-gallery/scripts/gallery.mjs: 5454bf07fd049b5ff064612dbf20a05cd39c4a1128df7ad30d9add6f9892f4ea
+  skills/customer-demo-gallery/scripts/player.mjs: 18edeae2b2135a971715a45fb07d2d062e56c68ae299e030d526c8ec968d5131
+  skills/customer-demo-gallery/scripts/player.test.mjs: 27d5fb0c7801a8b262dc07acd67af78292e46e7a25cbac8d5fdf15d7458c4e67
+  skills/customer-demo-gallery/scripts/render.mjs: cdac16bcb8ace47cd9630d71f138f63968127c8d5579af6e14e725d6355ae84c
+  skills/customer-demo-gallery/scripts/render.test.mjs: f0b0b0d2c2d32a4190d160dcf25ecd66ba8cfdc4e4aa7caf116211619c9d9f23
+  skills/customer-demo-gallery/SKILL.md: a5f871f831663ddc32e74dd1816147d02302e1838e0bfb98588659296e724bb3
+  skills/customer-demo-gallery/templates/evidence.json: 198f25e39f4361b79f40865a23e7ed28d7c9a79cf550af0919648482a8f839ca
+  skills/customer-demo-gallery/templates/intake.md: 68858662eb18a90ec81957dd1db1afd0c57af788680c7902d1197c3d9aeca5e7
+  skills/customer-demo-gallery/templates/product-adapter.md: 414dc07e87f351663fd2294a59f89ee5d6ec5498617ba9cba7a34fd546bcddd2
+  skills/daydiff-standup-prep/references/brief.md: fb181a3d317000089e77951a87b46ac157d9c0c4e10d7c5d11f626f6c02a0921
+  skills/daydiff-standup-prep/references/example.html: e8b9abd1432b8e79f357cb24b861ed7b11d2694aa697e86c2e5616f8e1ab569b
+  skills/daydiff-standup-prep/scripts/attio.mjs: da6045f8c24138fc48b4b98a5be49f303e9fc47a7465a7248ee2620b26042ae8
+  skills/daydiff-standup-prep/scripts/calendar.mjs: 5264fc9636a7f8754c955595d93f179a8b20d1e5d82fe52d42467603879811d7
+  skills/daydiff-standup-prep/scripts/fireflies.mjs: f1d0de029f63f2b5f64cab47ecd548175029629485c34363fd085ace3314c523
+  skills/daydiff-standup-prep/scripts/gather.mjs: 2b00e497bef8eaf3c62e9409adf627661e1c48fb4babea390bd5102f16b526df
+  skills/daydiff-standup-prep/scripts/github.mjs: 0175060cee09168fc35331221c074287c5cb8b78c7e1326fdfa3d1114de573d3
+  skills/daydiff-standup-prep/scripts/gmail.mjs: 0567e5e83aedaea4aa4eee7ab3f9dfa06331c2a5b13bae03d3bd30a49fa000a6
+  skills/daydiff-standup-prep/scripts/grain.mjs: 038e248952344fd07f0fe3001b846dc3cb1a3a2c65b79f9c1e368bafc72bec30
+  skills/daydiff-standup-prep/scripts/lib.mjs: 739df44b1ab334896ffe388a44e7b02357363e5d9d0ef974b6b6d5d45a2acd61
+  skills/daydiff-standup-prep/scripts/page.mjs: e3567d96171e49b32812d9566a36c1c86a521bb8fed74492ce4c7944114cccb0
+  skills/daydiff-standup-prep/scripts/sessions.mjs: 895aa40eedda6973765d240ec0f03655c55cbdec83a09298737b37028e4ea810
+  skills/daydiff-standup-prep/scripts/zendesk.mjs: 8ca1288da3c390659603308e039f8fc278551a42ec94b4e4fd78eb791cb3d9d3
+  skills/daydiff-standup-prep/SKILL.md: e8360cf29e33279438f26b384a3cbaee045c9a1de9594cee8c82d21db6ece484
   skills/deep-dive/metadata/codex.yaml: 5d62f049a521dda2788db54e8d714e916178a5e251dbca2078ecf16d35ac0493
   skills/deep-dive/references/bright-data.md: 4dec85c1ae55f534643e1c03e14747245f3b51f2fd21bd07a28c310f4a4e874a
   skills/deep-dive/references/reddit.md: f6e7b1f7f764a1a6dde07ea3d1bb5038bb238771a99097298cd1d84ddd1d4c37
@@ -84,14 +122,14 @@ checksums:
   skills/deep-dive-refresh/metadata/codex.yaml: 9639dbb116ed734678c85e89bab065fd4009928d05e8830dcf5a1e4b3974e6bd
   skills/deep-dive-refresh/SKILL.md: 7f2c7ad24334a6abbe7b548c122de41ff06703871f75906ab66834672839f4b8
   skills/eli5/SKILL.md: df17e7f3989fdde3e12206e058ed932bc7d1a86ad75a940fd030b003fe1b90d7
-  skills/excalidraw-pr-diagrams/README.md: a2830d1948b03db2c0d4e72f2bb9870f855bd7d945dfcc4d05fe9aab49a1711a
+  skills/excalidraw-pr-diagrams/README.md: 7da1d4a66c311fe60ea176b5a918e28d0e62a98dc1ff5470e5ac24f3f8727ce7
   skills/excalidraw-pr-diagrams/references/color-palette.md: 275164ffee5b1c2c36ddeb5bbdbd73765aa8b337bd1bfe8b02a5a8d5f9581c7c
   skills/excalidraw-pr-diagrams/references/element-templates.md: 11234630e5642779a0baa2380c913125f15084dcd05d553db2899182d66f22aa
   skills/excalidraw-pr-diagrams/references/json-schema.md: 9048830015f3c0c4e075aa983763990d2a3d19fa32f0577917b6bfb49aeb9bd7
   skills/excalidraw-pr-diagrams/references/pyproject.toml: b68f2d373a50b623bb04f3f96e9ce12118d89b01d5ac7a538820f64e7fbdcdd0
-  skills/excalidraw-pr-diagrams/references/render_excalidraw.py: f178207993afcc6b19e8b6954036ff2e8f03e6489062451f6dcd9f21d5999478
+  skills/excalidraw-pr-diagrams/references/render_excalidraw.py: c8c703455044faa84bbad2585b900c67e436e0c9772d45f32d4fce591f9d9120
   skills/excalidraw-pr-diagrams/references/render_template.html: 5caa1087d0fa68cdc873103aa761590cb16d2ae888d67a08d517ebab01ca110d
-  skills/excalidraw-pr-diagrams/SKILL.md: 8f0ef8cee660fa8262425fc3db6031c77b97023dc95757056c1cd454870e4b7e
+  skills/excalidraw-pr-diagrams/SKILL.md: abc1cdca48c2cc0a5feda95d10e315dd2c5e7adcfe4fe88c4a64139ca8fc8147
   skills/explain-visually/metadata/codex.yaml: c4e2fe19e755367a5dd3b230696ee8a582c3d915851effab497d694a55afe5b1
   skills/explain-visually/SKILL.md: 4b9b6c36bdbcbda41f03af784d2a0043cc27fb7b6b2f5ea7ac0774fdd55de7ba
   skills/good-writing-fundamentals/eval.md: 5c77d2c7da277c2f4ff5e2fac923243da663a3a7660cd05b7d595b09268e35eb
@@ -107,16 +145,48 @@ checksums:
   skills/pr-test-automation/metadata/codex.yaml: 77406b135582b47bee2701089371eb3cb574936fba1c2975d6ee0b8bc14c5dd7
   skills/pr-test-automation/references/cross-os-workspaces.md: 21dfce0f2a2d529110638e842cd7f0c58a6be78057009645db4d91845b682276
   skills/pr-test-automation/SKILL.md: 8c5532c4f8ce358aad8cf9ad1c42ef3f7f98c3bda8b9ff1418f2cbdce8348de7
-  skills/pr-understanding-check/metadata/codex.yaml: 5a8ee4946dce63da189414e4aec7a1e5eea79ae59b848c540da4bf7f52d270a0
-  skills/pr-understanding-check/references/iceberg-template.html: 8e35a661ef59cabe51345bf9301c581a6e5193e69357dd957f45a1a47d2acef6
+  skills/pr-understanding-check/metadata/codex.yaml: 32939625addae7ce6875f1feb426dd3e4f682836740eeabc7ab444f924ab4340
+  skills/pr-understanding-check/references/iceberg-template.html: 2e28183484f894db3121c3ce171133a9b3daf84dd879e86864aaabb60c2ae7f5
   skills/pr-understanding-check/references/worked-example.md: 8242044eff317f213ad304d1a472c2e0c00b4de032c905cd074111895ab3f8ca
-  skills/pr-understanding-check/SKILL.md: 20d9c1e612151138a39e47bede46947eacc147bb7b3ed162de46c3c632f18712
+  skills/pr-understanding-check/SKILL.md: 52112a66e9839b33cc397bff5539e6519be9748135eba94ceee935c7f972403f
   skills/prepare-pr/assets/pr-walkthrough.html: d3028a699a3d3db47b1fd715042ce383a133dd10ce1bbfec5a6c1580f26e139a
   skills/prepare-pr/references/writing-guide.md: 16b34fde6e45c9a3f163efe5e31dcb1cbedd31bbdde9823977fe84d9a62013f3
   skills/prepare-pr/SKILL.md: 0a1625816f4bc10a09fee7bb1d432163e708a3a3ed71d7d6b8cbc28c2f609a39
-  skills/principled-review/SKILL.md: 6c912ac03fecdf4ebf628a28f97e8b1644b7492b50c31fe0a2403ac4ec8c7f32
+  skills/principled-review/SKILL.md: a03e839d8aec798d6507b3b0fd29190ea7675e468c02b7aa1bb6c37969c5b045
   skills/product-compare/metadata/codex.yaml: 0495b94cd57246a5676d1ae10712341587d96e85a12b985403f7424afa8349ae
   skills/product-compare/SKILL.md: 484ffd10d695baf8af0b8462e4afb999b9cae42e9aac38563265330abe64c34f
+  skills/product-journey-demos/assets/harness/encode_webp.py: 40241e485fd2016553239ef294ce65fe32ba776bd00601599de1bbd4e6bc55a0
+  skills/product-journey-demos/assets/harness/gitignore.txt: 4ea5fee709cd925f2d45284e4cab5a1c98c84b88b78a1e6e338fc3b58f7bee4c
+  skills/product-journey-demos/assets/harness/guard.mjs: 5c29d18e0c4398e464821fd8920040c08f6226f5997087959541302e100919bf
+  skills/product-journey-demos/assets/harness/guard.test.mjs: a0411f60c94b98f807b98274f6e354e210fa30d318db22edaca37b607194e027
+  skills/product-journey-demos/assets/harness/login.mjs: 1630dff478779556f0129b49391534c04628c9d5b811767950311296470f7f0f
+  skills/product-journey-demos/assets/harness/overlay.js: c45c02f27ff345ff638619b59883e3d689e055e307eeeb7433c37f888aebc646
+  skills/product-journey-demos/assets/harness/package.json: 0fc1459742742b496924194a9c0b0e036993c8aefecddd3feca6ac535f45316e
+  skills/product-journey-demos/assets/harness/project.mjs: 8853ec4905db414d9643244a2473f8be35fbc7dd980880f79b841c8ec070b119
+  skills/product-journey-demos/assets/harness/report.py: efe239409823f92ce557d74b3c57f257e66e28860ec50eaf4aeef6b5d7010f99
+  skills/product-journey-demos/assets/harness/runner.mjs: 2e138bb475bc60d07381b1b6548305197f47dd6f687c21a89df1e73c77494151
+  skills/product-journey-demos/assets/harness/selftest/adapter.mjs: 8feba83199b0c4bc08c159e639a57a7e2b153640a7ad48ec4caa0508cdc2d23a
+  skills/product-journey-demos/assets/harness/selftest/app.html: 715f5ba9fedf8214d51c22539297e9f4d72ce02f2075249a0f796727e5e78433
+  skills/product-journey-demos/assets/harness/selftest/journeys/j01.mjs: 2cbf5e09572e78756201d2538994f4acdac69acbd890f7e30eb636f20e155c5e
+  skills/product-journey-demos/assets/harness/selftest/journeys.html: 43229310a2e0fd50353f777281d43dd94368d6179322aef414ffbf2d36068013
+  skills/product-journey-demos/assets/harness/selftest/run.mjs: 32190ab3228fd34f1de8c12af0f92582753ab9b5ef85896a8f11f3cda9b0f7e7
+  skills/product-journey-demos/assets/harness/tour.css: 3b998f5476a7c45d26a2b54a308ee2059b7e6dde564b4371ba1f6577572373ec
+  skills/product-journey-demos/references/adapter-interface.md: 59baa896fd6ed365f7a4d63739e0c4428c7d82b6cf7325165ce027b86a8b9c8c
+  skills/product-journey-demos/references/contextual-data.md: ab8880576841f4abe9982dffa633fe88c0701aeadd5f59c2dde32888621fa476
+  skills/product-journey-demos/references/example-bloomtext.md: 13e58a287d77c1ed054d174ace68663460476f73529986f0caee3ab049891027
+  skills/product-journey-demos/references/harness.md: df685f591a1a0f13ff1aae26b484f25c74ffd2cb4bc54fe734c83459fcc09464
+  skills/product-journey-demos/references/journey-map.md: 0c0386da8131fc302af84c24181daed39ed19a3b4a05812f9d27be8b0b7805ad
+  skills/product-journey-demos/references/workflow.md: 29c4eae2a63d5cd350cf05f4e3b8823e77909c39cb99b20dc004a7bf9c79e1fb
+  skills/product-journey-demos/SKILL.md: 9a2ac7f3ede1ec98c8a1dfbbc103158411b555e53c209757adeef1349f6425e4
+  skills/product-journey-demos/templates/adapter.template.mjs: 1ece4a9547d940372657c334e11f840c9c49c1f7138479d12b8c4201f79ca2cd
+  skills/product-journey-demos/templates/audit-checklist.md: 4aa4c01b85d7d4a0f84f586eb4e211618010a75648baee0fee1e3531fa2bd812
+  skills/product-journey-demos/templates/briefs/audit.md: ef3df77659090ac3fdd12a0b2ee27264e543111d4fd58bcb2ef922a2612a476e
+  skills/product-journey-demos/templates/briefs/doc-sync.md: d948ec30b6dd035447c6436fc2f80f7335daf4fc116877cb666d61c930c87871
+  skills/product-journey-demos/templates/briefs/fan-out.md: 93216e9e782b6cc91b0aa432fed6622f1387c09e91ad41c9b7411b04619fd7f9
+  skills/product-journey-demos/templates/briefs/file-features.md: 51f668990f6ed70ed232c6123b67d126f0328f6fefd3b56170ad233efca610ec
+  skills/product-journey-demos/templates/briefs/fix.md: 2b5e31e43f2b04e441ce4563cbf77b453ecadbc0aac58ca1ad11921c3516cd30
+  skills/product-journey-demos/templates/briefs/re-record.md: 7e831a9505accee7f0430c179c14e72eb0df1b1a17b2148630ebd32ddc6df3c7
+  skills/product-journey-demos/templates/journey.template.mjs: a7095e5252a9fec0f77adfd9f622922157a703c347dbf90e351c1518725c3608
   skills/quick-verify/metadata/codex.yaml: f6786d928d9220b0b05c85352c44daa631b1c72b1709438251b3c3d23d4a37e8
   skills/quick-verify/SKILL.md: f1a6912e6188654d456f50018a5b99ce0afbd8000bcbec895621ff62696b645a
   skills/refactor/references/specialist-review.md: 49b816712457891ef1b8a6da15abe759ffa8646692dc68bd0060292e623e5bab
@@ -151,6 +221,7 @@ checksums:
   skills/tech-deep-dive/references/bright-data.md: 22e4a2d85b6fa5e405e007dff23aa08ef0281bcf8d6bc4d852786b196dbea1d7
   skills/tech-deep-dive/references/reddit.md: 98c59ca2e5244834c2ebbc41b391b9116a4ef22b6ce3f24af66e5d39a758f823
   skills/tech-deep-dive/SKILL.md: 078e77e0fa52d10de29f31835c1c5e9f312a6654a0ecd2101ed14630f907eb1b
-  skills/ui-mockup/metadata/codex.yaml: c4d429511137c9dc38631c01586ec9b474b3547bc5e597559da1e7fcd994d135
-  skills/ui-mockup/SKILL.md: c2e908da3ec9076babf9fe1185605bc2d2ca54e64a67630004705dba52169fc5
+  skills/ui-mockup/metadata/codex.yaml: d7c6179c4188084c993908dadb75ff8298e886747e621c3fd0f41b003a76f8cc
+  skills/ui-mockup/references/compare.html: 880e032dc9d611ca7bd0a56b0691cd6772a32d55dff818d04c5f3ffa1d1edca0
+  skills/ui-mockup/SKILL.md: d2f7d86bee4e52964ce988fa02bbf3711a3d6bb8be5b0c8816fefedec5d3fd94
   skills/ui-options/SKILL.md: 21794c63aad4c49692097b0830c7c4182c66a0c6a52a6cd4d9994cf3eb20b36f

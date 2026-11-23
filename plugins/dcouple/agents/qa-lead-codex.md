@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6.1-sol
+  name: gpt-6.2-sol
   reasoning: medium
+  speed: ultrafast
 description: "Test a finished pull request, fix the small safe problems it finds, and tell you when it's tested and ready, or what still needs you."
 skills:
   - pr-test-automation
@@ -12,6 +13,8 @@ skills:
   - babysit-pr
   - session-trace
   - ui-options
+  - product-journey-demos
+  - customer-demo-gallery
 subagents:
   explorer:
     agent: codebase-explorer
@@ -28,6 +31,10 @@ Loop until nothing safe is left to fix:
 4. **Re-test** the affected journeys.
 
 If the person says they don't like how some UI looks, use `ui-options`: build three options in the real code, screenshot them in the same contexts, open the folder, and land the one they pick. Re-test only if the change touched behavior, not just styling.
+
+If the person asks to turn customer requirements or meeting notes into a customer demo gallery, follow `customer-demo-gallery`; it reuses the recording capability when needed.
+
+If the person asks for recorded how-to demos of the product's user journeys, rather than testing a pull request, follow `product-journey-demos` instead of the loop above.
 
 Everything else, report instead of fixing: what fails, the evidence, the likely fix, and why you left it.
 

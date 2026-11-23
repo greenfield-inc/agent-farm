@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<style>{{STYLE}}</style>
+</head>
+<body>
+<main>
+<header>{{BRAND}}</header>
+{{CUSTOMER}}
+<h1>{{TITLE}}</h1>
+<p class="intro">{{DESCRIPTION}}</p>
+<div class="tabs" role="tablist" aria-label="Choose presentation view" hidden>
+  <button id="requirement-tab" type="button" role="tab" aria-selected="true" aria-controls="requirement-view" data-view="requirement-view">By requirement</button>
+  <button id="demos-tab" type="button" role="tab" aria-selected="false" aria-controls="walkthroughs" tabindex="-1" data-view="walkthroughs">All demos</button>
+</div>
+<noscript><nav class="tabs" aria-label="Gallery views"><a href="#requirement-view">By requirement</a><a href="#walkthroughs">All demos</a></nav></noscript>
+<section id="requirement-view" role="tabpanel" aria-labelledby="requirement-tab">{{REQUIREMENTS}}</section>
+<section id="walkthroughs" role="tabpanel" aria-labelledby="demos-tab">
+{{FILTERS}}
+<div class="grid" id="library">{{DEMOS}}</div>
+{{EMPTY_DEMOS}}
+</section>
+<footer>{{FOOTER}}</footer>
+</main>
+<script>{{SCRIPT}}</script>
+</body>
+</html>

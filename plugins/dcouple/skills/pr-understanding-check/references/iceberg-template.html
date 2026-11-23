@@ -769,7 +769,12 @@ ul.checks li::before { content: ""; position: absolute; left: 0; top: 4px; width
     red: ["Still ambiguous", "Wrong or unsure even after the correction, or the code itself leaves it unclear."],
     untested: ["Not asked", "The check did not cover it."]
   };
-  var KINDS = { "new": "New in this PR", existing: "Already in production", decision: "Decision", hotspot: "Hotspot" };
+  var pr = data.pr || {};
+  var target = pr.kind === "brief" || pr.kind === "plan" ? pr.kind : "pr";
+  var T = target === "pr"
+    ? { check: "PR understanding check", fallback: "Pull request", fresh: "New in this PR", above: "Above water: new in this PR", untouched: "A hotspot this PR does not touch.", actions: "Before you merge" }
+    : { check: target === "brief" ? "Brief understanding check" : "Plan understanding check", fallback: target === "brief" ? "Brief" : "Plan", fresh: "Proposed in this " + target, above: "Above water: proposed in this " + target, untouched: "A hotspot this " + target + " does not touch.", actions: target === "brief" ? "Before planning" : "Before building" };
+  var KINDS = { "new": T.fresh, existing: "Already in production", decision: "Decision", hotspot: "Hotspot" };
   items.forEach(function (it) { if (!Object.prototype.hasOwnProperty.call(KINDS, it.kind)) it.kind = "new"; });
   var nodeEls = Object.create(null), selected = null;
 
@@ -801,16 +806,15 @@ ul.checks li::before { content: ""; position: absolute; left: 0; top: 4px; width
   }
 
   // Masthead
-  var pr = data.pr || {};
-  document.title = (pr.title || "Pull request") + ": understanding check";
-  app.appendChild(el("p", { "class": "eyebrow" }, "PR understanding check"));
+  document.title = (pr.title || T.fallback) + ": understanding check";
+  app.appendChild(el("p", { "class": "eyebrow" }, T.check));
   app.appendChild(el("h1", { text: pr.title || "" }));
   app.appendChild(el("p", { "class": "standfirst", text: data.summary || "" }));
   var meta = el("p", { "class": "meta" });
-  var prLabel = (pr.repo || "") + "#" + (pr.number || "");
+  var prLabel = target === "pr" ? (pr.repo || "") + "#" + (pr.number || "") : T.fallback + (pr.repo ? " for " + pr.repo : "");
   meta.appendChild(safeUrl(pr.url) ? el("a", { href: pr.url }, prLabel) : document.createTextNode(prLabel));
   meta.appendChild(document.createTextNode(" · "));
-  meta.appendChild(el("code", null, (pr.base || "") + "..." + (pr.head || "")));
+  meta.appendChild(el("code", null, target === "pr" ? (pr.base || "") + "..." + (pr.head || "") : (pr.head || "")));
   (data.prs || pr.prs || []).forEach(function (x) { meta.appendChild(document.createTextNode(" · ")); meta.appendChild(safeUrl(x.url) ? el("a", { href: x.url }, x.label || x.url) : document.createTextNode(x.label || "")); });
   meta.appendChild(document.createTextNode(" · " + (pr.date || "") + " · checked with " + (pr.person || "")));
   app.appendChild(meta);
@@ -821,7 +825,7 @@ ul.checks li::before { content: ""; position: absolute; left: 0; top: 4px; width
   items.forEach(function (it) { counts[u(it)]++; });
   var legend = el("ul", { "class": "legend" });
   ["green", "yellow", "red", "untested", "untouched"].forEach(function (k) {
-    var info = k === "untouched" ? ["Not touched", "A hotspot this PR does not touch."] : COLORS[k];
+    var info = k === "untouched" ? ["Not touched", T.untouched] : COLORS[k];
     if (k === "untouched" && !counts[k]) return;
     legend.appendChild(el("li", { "class": "u-" + k, title: info[1] }, el("span", { "class": "count" }, String(counts[k])), el("span", { "class": "dot" }), el("span", null, info[0])));
   });
@@ -852,7 +856,7 @@ ul.checks li::before { content: ""; position: absolute; left: 0; top: 4px; width
   var berg = el("div", { "class": "berg" });
   var svgNS = "http://www.w3.org/2000/svg";
   var svg = document.createElementNS(svgNS, "svg"); svg.setAttribute("class", "edges"); svg.setAttribute("aria-hidden", "true");
-  var sky = el("div", { "class": "sky" }, el("p", { "class": "zone-label" }, "Above water: new in this PR"));
+  var sky = el("div", { "class": "sky" }, el("p", { "class": "zone-label" }, T.above));
   var skyRow = el("div", { "class": "row" }); above.forEach(function (it) { skyRow.appendChild(nodeButton(it)); }); sky.appendChild(skyRow);
   var sea = el("div", { "class": "sea" });
   var seaRow = el("div", { "class": "row" }); below.forEach(function (it) { seaRow.appendChild(nodeButton(it)); }); sea.appendChild(seaRow);
@@ -1039,7 +1043,7 @@ ul.checks li::before { content: ""; position: absolute; left: 0; top: 4px; width
   }
   if (data.actions && data.actions.length) {
     var ul2 = el("ul", { "class": "checks" }); data.actions.forEach(function (a) { ul2.appendChild(el("li", { text: a })); });
-    app.appendChild(el("section", null, el("p", { "class": "eyebrow" }, "Before you merge"), el("h2", null, "Action items and places to look"), ul2));
+    app.appendChild(el("section", null, el("p", { "class": "eyebrow" }, T.actions), el("h2", null, "Action items and places to look"), ul2));
   }
 
   function fromHash() { try { return decodeURIComponent((location.hash || "").slice(1)); } catch (e) { return ""; } }

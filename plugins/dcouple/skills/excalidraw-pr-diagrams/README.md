@@ -34,12 +34,10 @@ Just tell your agent: *"Set up the Excalidraw diagram skill renderer by followin
 **Option B: Manual**
 
 ```bash
-cd <skill-directory>/references
-uv sync
-uv run playwright install chromium
+uv run --no-project --with "playwright>=1.40.0" playwright install chromium
 ```
 
-Replace `<skill-directory>` with the loaded skill directory reported by Agent Farm.
+Run it from any directory. `--no-project` keeps uv's environment in its own cache, so the skill folder stays unmodified.
 
 ## Usage
 
@@ -68,5 +66,5 @@ excalidraw-pr-diagrams/
     json-schema.md                  # Excalidraw JSON format reference
     render_excalidraw.py            # Render .excalidraw to PNG
     render_template.html            # Browser template for rendering
-    pyproject.toml                  # Python dependencies (playwright)
+    pyproject.toml                  # Python dependency record (the uv commands pin playwright themselves)
 ```

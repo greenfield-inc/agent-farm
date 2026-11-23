@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6.1-sol
-  reasoning: low
+  name: gpt-6.2-sol
+  reasoning: medium
+  speed: ultrafast
 description: Prepare the branch and open or update its PR under the parent
   workflow overrides. Never merge.
 skills:

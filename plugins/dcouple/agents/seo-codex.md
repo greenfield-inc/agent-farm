@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6-astra
-  reasoning: high
+  name: gpt-6.2-sol
+  reasoning: medium
+  speed: ultrafast
 description: "Improve how a site shows up in search: learn what people look for, plan pages, and write clear content."
 skills:
   - good-writing-fundamentals
