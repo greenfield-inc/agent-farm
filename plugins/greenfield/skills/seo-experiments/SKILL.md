@@ -15,11 +15,32 @@ The product's repository holds all SEO state under `.seo/`. Roles write it only 
 
 | Path | Holds | Written by |
 |---|---|---|
-| `.seo/access.md` | Access tier (Public, Search, Analytics, Full), each data source and whether it is connected, the review cadence, the default branch, and whether deploys happen on merge or by hand | The first role that opens a `.seo/` PR |
+| `.seo/access.md` | The answers asked once per product (format below): tier, cadence, autonomy, sources to go without, the loop, the default branch, deploys; then each data source and whether it is connected | The first role that opens a `.seo/` PR; later `.seo/` PRs update it |
 | `.seo/facts.md` | The fact ledger: claim, source, date, owner, approval, allowed wording | Strategist, from page briefs |
 | `.seo/experiments/<YYYY-MM-DD>-<slug>.md` | One experiment record per file (this skill) | Writer on the change's PR; measurer for results |
 | `.seo/answer-panel/` | The frozen answer-panel definition and its dated runs | Measurer |
 | `.seo/foundations.md`, `.seo/data/`, `.seo/briefing.md`, `.seo/strategy.md`, `.seo/archive/YYYY/MM/DD/`, `.seo/index.md` | Foundations, data pulls, briefings, strategy and their dated archive | The existing SEO skills, as they already do |
+
+### .seo/access.md
+
+Frontmatter that the due script and the orchestrator read, then one line per source:
+
+```
+---
+tier: Search                # Public | Search | Analytics | Full
+cadence: monthly            # monthly | weekly
+autonomy: fully automatic   # fully automatic | review pages first | choose checkpoints
+checkpoints:                # with choose checkpoints: after access, after the read-back, after the ranked page, per brief, per PR
+continue_without: [Analytics]   # sources the person chose to go without
+loop: weekly                # weekly | daily | none; empty until asked
+budget:                     # optional monthly spend cap in USD
+default_branch: main
+deploys: on merge           # on merge | by hand
+---
+
+- Search Console: connected, checked 2026-11-22
+- Analytics: not connected, checked 2026-11-22
+```
 
 ## Choosing what to test
 
@@ -110,7 +131,7 @@ Add a subsection under Results for each read, then set `read_21` or `read_42` to
 Run the due script from the product repository at the start of every review and every orchestrator run:
 
 ```
-node <this skill's folder>/scripts/due.mjs [--repo <dir>] [--ref <git ref>] [--today YYYY-MM-DD] [--json]
+node <this skill's folder>/scripts/due.mjs [--repo <dir>] [--ref <git ref>] [--today YYYY-MM-DD] [--json | --check]
 ```
 
 - `--repo` defaults to the current directory. With `--ref <default branch>` (for example `--ref origin/main`) the script reads the records as they are on that branch, through git, and dates them from its first-parent history: use this from a feature branch, and in every review. Without `--ref` it reads the working tree, including records on your own branch that have not merged, and dates them from `HEAD`.
@@ -127,6 +148,7 @@ Due now: 1
 - `--json` gives an array sorted by id: `{id, file, ship_date, ship_source ("live", "git" or null), status, reads: [{days, window_end, runnable_from, done, state}], next: {days, date} | null}`. `state` is `done`, `due`, `too early` or `closed`. `next` is the earliest read still due or too early, dated by its runnable date. A record with `status: closed` keeps its dates, but its open reads are `closed`: never due, and `next` is null. A file with no frontmatter (the older per-file format) is listed with `legacy: true` and no reads, and the text output ends with `Legacy records to migrate: N`; migrate it as **Import a legacy log once** says.
 - "not shipped" means the record is not on the ref yet and has no `live` date: it gets no reads.
 - Exit 1 names the record with unparseable frontmatter or a bad date. Fix that record and run it again.
+- `--check` answers "is anything due today" in one JSON line and exits 0 when something is due, 3 when nothing is: `{today, due, reads_due: [{id, days, since}], legacy, review: {cadence, last, next, due, reason}, next_due, access, memory}`. The review is due when `.seo/access.md` is missing (a first run) or when its cadence (weekly 7 days, monthly 30, monthly by default) has passed since `last`, the committer date of the newest first-parent commit on the ref that touched `.seo/`. `next_due` is the earliest date something becomes due. `access` is `.seo/access.md`'s frontmatter. `memory` is the product's local folder (working memory and raw pulls), the same for every worktree of the repository.
 
 Due reads go first in any review, before new work. Every run ends with the next due date and this command.
 

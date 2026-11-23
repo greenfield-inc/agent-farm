@@ -271,12 +271,21 @@ Commit the reviewed parts of `.seo/` to the working branch: foundations,
 strategy, briefing, the fact ledger, experiment records and the index. They
 are the record later runs measure against, so never leave them untracked.
 
-Raw pulls stay out of commits: `.seo/data/` and every `data/` folder under
-`.seo/archive/` hold query rows and analytics segments, and a product's
-repository and its PRs may be public. Add both to `.gitignore` and keep the
-raw files local or in the run's private documents. Commit them only when the
-person has said this repository may hold them. What a briefing or experiment
-record cites from them is a reviewed aggregate, and that is committed.
+Raw pulls live on this machine and never leave it through the repository.
+This is the one raw-data rule; the other SEO skills point here.
+
+- Keep every raw pull (Search Console and analytics exports, scanner output,
+  survey answers, notes) in the product's local folder, `data/` under the
+  `memory` path the SEO loop's due script prints with `--check`, so later
+  runs in other worktrees diff against it instead of pulling again. Link
+  `.seo/data` to that folder (`ln -s <memory>/data .seo/data`). Without the
+  due script, `.seo/data/` stays a local folder.
+- Nothing raw is committed, pushed or put in a PR: `.seo/data` and every
+  `data/` folder under `.seo/archive/` are in `.gitignore` (write `.seo/data`
+  without a trailing slash so the link is ignored too). Before pushing, list
+  what is staged and unstage any raw file.
+- What a briefing, read or experiment record cites from a pull is a reviewed
+  aggregate, and that is committed.
 
 ## Analytics API Notes
 

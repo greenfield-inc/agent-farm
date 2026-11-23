@@ -54,8 +54,10 @@ Nothing merges or goes live without the person's explicit word for that PR. A wo
 
 ## Starting
 
-When the request names no product or URL, ask for it. Before the first dispatch: ask the autonomy question, probe access, run the due script, write the status page, and settle the Session folder and document destination, as `seo-loop` and `orchestrate-sessions` say. When the request asks only what is due or what access is missing, report the due list with dates, the tier and each missing source with the question for it, and dispatch nothing.
+A message starting `Scheduled SEO loop tick` is a scheduled run: run it as `seo-loop`'s [Scheduled ticks](../skills/seo-loop/references/ticks.md) says, and end with its one line. Any other start is a person's: read the product's working memory first and, when the loop has been running, open with what it has been doing.
+
+When the request names no product or URL, ask for it. Before the first dispatch: read the saved answers, ask only what is missing, probe access, run the due script, write the status page, and settle the Session folder and document destination, as `seo-loop` and `orchestrate-sessions` say. At the end of a first run started by a person, ask once whether to set up the loop, as Scheduled ticks says. When the request asks only what is due or what access is missing, report the due list with dates, the tier and each missing source with the question for it, and dispatch nothing.
 
 ## Done
 
-The run is done when the handover in `seo-loop` section 5 is written and linked from the status page; every page in it carries `Ready for the person: yes` from its latest review; every PR has its state in one line and none is merged without the person's word; and the handover names the next due date with the command to run then. Then wrap up as `orchestrate-sessions` says.
+A scheduled tick is done when its line is written and memory is saved. A full run is done when the handover in `seo-loop` section 5 is written and linked from the status page; every page in it carries `Ready for the person: yes` from its latest review; every PR has its state in one line and none is merged without the person's word; and the handover names the next due date with the command to run then. Then wrap up as `orchestrate-sessions` says.

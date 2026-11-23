@@ -134,3 +134,34 @@ test('the due list reads the default branch\'s records from a feature branch, ne
  assert.equal(main.reverted.next,null);
  assert.deepEqual([main['legacy-title-test'].legacy,main['legacy-title-test'].reads],[true,[]]);
 });
+
+test('the pre-check answers in one line whether a read or the review is due, from the records, the cadence in .seo/access.md and the last merged .seo/ change',t=>{
+ const repo=tempDir(t,'seo-check-');
+ const git=(args,date='2026-08-01T12:00:00Z')=>execFileSync('git',args,{cwd:repo,env:{...process.env,GIT_AUTHOR_DATE:date,GIT_COMMITTER_DATE:date,GIT_CONFIG_GLOBAL:'/dev/null',GIT_CONFIG_SYSTEM:'/dev/null'},encoding:'utf8'});
+ const write=(rel,text)=>{fs.mkdirSync(path.dirname(path.join(repo,rel)),{recursive:true});fs.writeFileSync(path.join(repo,rel),text);};
+ const commit=(tag,date)=>{git(['add','.']);git(['commit','-qm',tag],date);git(['tag',tag]);};
+ const record=(read21='',read42='',status='running')=>write('.seo/experiments/a.md',`---\nid: a\nread_21: ${read21}\nread_42: ${read42}\nstatus: ${status}\n---\n`);
+ git(['init','-q','-b','main']);
+ write('README.md','site\n');commit('t0','2026-08-01T12:00:00Z');
+ write('.seo/access.md','---\ntier: Search\ncadence: monthly   # monthly | weekly\nautonomy: fully automatic\n---\n');record();commit('t1','2026-09-01T12:00:00Z');
+ record('2026-09-27');commit('t2','2026-09-28T12:00:00Z');
+ record('2026-09-27','2026-10-17','read');commit('t3','2026-10-18T12:00:00Z');
+ const home=tempDir(t,'seo-check-home-');
+ const run=(dir,ref,today)=>{const out=spawnSync(process.execPath,[path.join(root,'skills/seo-experiments/scripts/due.mjs'),'--repo',dir,'--ref',ref,'--today',today,'--check'],{encoding:'utf8',env:{...process.env,HOME:home}});assert.equal(out.stdout.split('\n').filter(Boolean).length,1,out.stderr);return [out.status,JSON.parse(out.stdout)];};
+ const check=(ref,today)=>{const [status,{memory,...rest}]=run(repo,ref,today);return [status,rest];};
+ const access={tier:'Search',cadence:'monthly',autonomy:'fully automatic'};
+ // Shipped 2026-09-01: the 21-day read is runnable 09-25 and the 42-day read 10-16. Monthly is 30 days from the last .seo/ change.
+ assert.deepEqual(check('t1','2026-09-20'),[3,{today:'2026-09-20',due:false,reads_due:[],legacy:[],review:{cadence:'monthly',last:'2026-09-01',next:'2026-10-01',due:false,reason:null},next_due:'2026-09-25',access}]);
+ assert.deepEqual(check('t1','2026-09-26'),[0,{today:'2026-09-26',due:true,reads_due:[{id:'a',days:21,since:'2026-09-25'}],legacy:[],review:{cadence:'monthly',last:'2026-09-01',next:'2026-10-01',due:false,reason:null},next_due:'2026-10-01',access}]);
+ // The 21-day read merged 09-28, which moves the review to 10-28.
+ assert.deepEqual(check('t2','2026-10-20'),[0,{today:'2026-10-20',due:true,reads_due:[{id:'a',days:42,since:'2026-10-16'}],legacy:[],review:{cadence:'monthly',last:'2026-09-28',next:'2026-10-28',due:false,reason:null},next_due:'2026-10-28',access}]);
+ // Both reads done, last merged 10-18: the review is due from 11-17 with no read due.
+ assert.deepEqual(check('t3','2026-11-20'),[0,{today:'2026-11-20',due:true,reads_due:[],legacy:[],review:{cadence:'monthly',last:'2026-10-18',next:'2026-11-17',due:true,reason:null},next_due:null,access}]);
+ // No .seo/ yet: a first run is due.
+ assert.deepEqual(check('t0','2026-09-20'),[0,{today:'2026-09-20',due:true,reads_due:[],legacy:[],review:{cadence:null,last:null,next:null,due:true,reason:'no .seo/access.md: first run'},next_due:null,access:null}]);
+ // Every worktree of the product shares one local folder, under Agent Farm's state directory.
+ const other=path.join(tempDir(t,'seo-check-wt-'),'run');git(['worktree','add','-q','--detach',other,'t3']);
+ const [,main]=run(repo,'t3','2026-11-20'),[,fromWorktree]=run(other,'t3','2026-11-20');
+ assert.ok(main.memory.startsWith(path.join(home,'.local/state/agent-farm/seo',path.basename(repo)+'-')),main.memory);
+ assert.equal(fromWorktree.memory,main.memory);
+});

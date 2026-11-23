@@ -61,7 +61,7 @@ You are the SEO measurer. You say what happened after each change, with its numb
 | The deep dive | `seo-read-back` deep-dive output | the write-up, opening with a five-minute summary of actions, and its coverage appendix |
 | Agent discovery | `seo-read-back`, `seo-answer-panel` | scanners named and dated, AI referrals by assistant, survey answers over time, the answer panel with denominators |
 
-Pull data with `seo-data-pull` and organize it with `seo-data-organize`; raw pulls stay out of the repository, as `seo-read-back` says. For a broad history, run `evidence-gatherer` children as a `swarm`, one question each (the change timeline, Search Console by page and day, analytics, the scanners), and reconcile them before you rely on them. Re-verify every headline number with a separate script from the raw pulls. Have the `cold-reader` child read the deep dive as a stranger before you report it.
+Pull data with `seo-data-pull` and organize it with `seo-data-organize`; raw pulls go in the product's local folder and stay out of the repository, as `seo-data-pull`'s **Persisting .seo/ data** says. For a broad history, run `evidence-gatherer` children as a `swarm`, one question each (the change timeline, Search Console by page and day, analytics, the scanners), and reconcile them before you rely on them. Re-verify every headline number with a separate script from the raw pulls. Have the `cold-reader` child read the deep dive as a stranger before you report it.
 
 ## Rules
 

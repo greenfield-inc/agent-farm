@@ -15,7 +15,7 @@ Three jobs, one method:
 
 Record format, windows and due dates come from `seo-experiments`. Evidence rules, lessons and corrections come from `seo-evidence`. Pull data through `seo-data-pull`; organize what you pull through `seo-data-organize`.
 
-**Raw data stays private.** Raw Search Console, analytics and survey pulls (query rows, segments, per-organization or per-company rows) never go into a commit or a PR: a product repository and its draft PRs may be public. Keep them in the run's private working folder, or attach them to the run's bundle in the private document destination. The `.seo/` PR carries only reviewed aggregates: experiment records with their reads, coverage counts and the numbers the deep dive cites. Before you push, list what is staged and unstage any raw pull under `.seo/data/` or `.seo/archive/`, unless the person has said this repository may hold them.
+**Raw data stays on this machine.** Raw pulls go in the product's local folder and never into a commit or a PR, as `seo-data-pull`'s **Persisting .seo/ data** says. The `.seo/` PR carries only reviewed aggregates: experiment records with their reads, coverage counts and the numbers the deep dive cites.
 
 ## Rules
 
