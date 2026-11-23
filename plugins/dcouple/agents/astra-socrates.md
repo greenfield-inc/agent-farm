@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6.1-sol
+  name: gpt-6.2-sol
   reasoning: low
+  speed: ultrafast
 description: Review the premise and intent of a proposed ticket or plan before finalization.
 skills:
   - create-ticket

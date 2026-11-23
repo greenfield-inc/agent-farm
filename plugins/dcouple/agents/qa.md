@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6.1-sol
+  name: gpt-6.2-sol
   reasoning: medium
+  speed: ultrafast
 description: Run the authorized end-to-end PR QA and report checks, screenshots,
   and unresolved failures.
 skills:

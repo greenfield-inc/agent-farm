@@ -1,8 +1,9 @@
 ---
 harness: codex
 model:
-  name: gpt-6.1-sol
-  reasoning: low
+  name: gpt-6.2-sol
+  reasoning: medium
+  speed: ultrafast
 description: Analyze, review, or apply an approved refactor using the assigned mode and scope.
 skills:
   - refactor

@@ -16,8 +16,8 @@ and PR links to the source that owns the item.
 
 ## Execution contract
 
-- Verify the parent is `gpt-6-astra` using authoritative runtime/session metadata. Defaults and user assertions are not proof; stop if different or unverified.
-- Use `gpt-6.1-sol` at `low` for every child except QA, which uses `gpt-6.1-sol` at `medium`. Verify support and set model/effort explicitly. Never substitute models.
+- Verify the parent is `gpt-6.2-sol` using authoritative runtime/session metadata. Defaults and user assertions are not proof; stop if different or unverified.
+- Use `gpt-6.2-sol` at speed `ultrafast` for every child: reasoning `low` for reviewers (socrates, plan, implementation, correctness, integration, intent, PR, and cold-reader) and `medium` for every other child. Verify support and set model/effort explicitly. Never substitute models.
 - Give every child its role, ticket/plan, exact base and head SHA, workspace, skill paths, overrides, evidence destination, and output contract. Instruct every child never to archive any thread and never to merge. Only the parent may archive completed children.
 - Keep one code writer and one serialized fix queue. Reviewers and evidence collectors do not edit code, commit, push, rebase, or change PR readiness. Finish branch preparation before freezing the validation SHA.
 - Run independent work concurrently, using waves when slots are limited. Preserve separate reviewer contexts and assignments; do not collapse them into a single omnibus review or promise a fixed completion time.

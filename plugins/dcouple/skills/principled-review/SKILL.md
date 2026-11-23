@@ -66,7 +66,7 @@ agent the branch name, changed file list, and the PROJECT_CONTEXT block.
 
 **Sub-agent model rules (hard requirement):**
 - Claude harness: each sub-agent uses claude-sonnet-5-5 with reasoning: medium
-- Codex harness: each sub-agent uses gpt-6.1-sol with reasoning: low
+- Codex harness: each sub-agent uses gpt-6.2-sol with reasoning: low and speed: ultrafast
 
 ### Principle 1: Reuse Over Recreation
 

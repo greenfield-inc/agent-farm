@@ -1,0 +1,113 @@
+{
+  "product": "Workshop Atlas",
+  "title": "See Workshop Atlas in action.",
+  "description": "Explore reservations, checkout and volunteer handovers.",
+  "filters": true,
+  "requirements": [
+    {
+      "title": "Reserve a tool for a time slot",
+      "wording": "We must reserve a tool for a member's chosen time slot.",
+      "kind": "explicit",
+      "priority": "must",
+      "evidence": [
+        "booking-guide"
+      ]
+    },
+    {
+      "title": "See who has each tool",
+      "wording": "We must see who currently has each tool.",
+      "kind": "explicit",
+      "priority": "must",
+      "evidence": [
+        "booking-guide"
+      ]
+    },
+    {
+      "title": "Collect a reserved tool",
+      "wording": "We must record collection when a member picks up a tool.",
+      "kind": "explicit",
+      "priority": "must",
+      "evidence": [
+        "booking-guide",
+        "guide-cover"
+      ]
+    },
+    {
+      "title": "Record returned equipment",
+      "wording": "We must know when a borrowed tool is returned.",
+      "kind": "explicit",
+      "priority": "must",
+      "evidence": [
+        "booking-guide"
+      ]
+    },
+    {
+      "title": "Share guidance with volunteers",
+      "wording": "We may want a shared booking guide for volunteers.",
+      "kind": "explicit",
+      "priority": "may",
+      "evidence": [
+        "guide-cover",
+        "booking-guide"
+      ]
+    },
+    {
+      "title": "Review reservations at handover",
+      "wording": "A shared reservation review may help volunteers hand over the desk.",
+      "kind": "inferred",
+      "priority": "unknown",
+      "evidence": [
+        "booking-guide"
+      ]
+    },
+    {
+      "title": "Preview the walkthrough format",
+      "wording": "An illustrative player sample can help us choose the presentation format.",
+      "kind": "inferred",
+      "priority": "unknown",
+      "evidence": [
+        "player-preview"
+      ]
+    }
+  ],
+  "demos": [
+    {
+      "key": "booking-guide",
+      "title": "Booking and checkout guide",
+      "description": "Follow the reservation and checkout steps in this fictional example guide.",
+      "kind": "document",
+      "href": "booking-guide.html",
+      "linkLabel": "Read the booking guide",
+      "tags": [
+        "Reservations",
+        "Checkout"
+      ]
+    },
+    {
+      "key": "guide-cover",
+      "kind": "image",
+      "title": "Booking guide at a glance",
+      "description": "A shared reference for reserving, collecting and returning tools.",
+      "src": "media/guide-cover.svg",
+      "alt": "Illustrative booking and checkout guide cover.",
+      "tags": [
+        "Reservations",
+        "Checkout"
+      ]
+    },
+    {
+      "key": "player-preview",
+      "kind": "video",
+      "title": "Preview the walkthrough format",
+      "description": "A short illustrative clip for trying the player.",
+      "src": "media/player-sample.mp4",
+      "poster": "media/player-poster.svg",
+      "transcript": "An abstract purple field is shown for two seconds.",
+      "tags": [
+        "Walkthroughs"
+      ]
+    }
+  ],
+  "customer": "Cedar Shed",
+  "footer": "Fictional reference featuring sample documents and illustrative media."
+}
