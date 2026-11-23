@@ -89,7 +89,7 @@ After all content is drafted, do a linking pass:
 - New pages link to relevant existing docs, explainers, and glossary
 - Existing pages that mention concepts covered by new pages get links added
 - Footer or navigation updated if new pages are primary surfaces
-- Footer navigation MUST be updated for new pages. Do not defer this to a separate authority pass. Put each new page in the footer column that matches its type (for example alternatives pages with comparisons, solutions pages under solutions).
+- Footer navigation MUST be updated for new pages, unless the run is scoped to named pages (an SEO writer building one brief), in which case it is listed as a follow-up. Otherwise do not defer this to a separate authority pass. Put each new page in the footer column that matches its type (for example alternatives pages with comparisons, solutions pages under solutions).
 - Check if the project has CDN invalidation entries in deploy workflows (e.g., `.github/workflows/*-deploy.yml`) and add entries for every new page URL.
 - Glossary updated with any new terms introduced
 
@@ -134,7 +134,10 @@ Report which URLs were inspected, their status, and any IndexNow response.
 ### 7. Record experiments
 
 Record each change as an experiment, one file per experiment in
-`.seo/experiments/`, named `YYYY-MM-DD-short-name.md`. Each record states:
+`.seo/experiments/`, named `YYYY-MM-DD-short-name.md`. When the experiment
+record format is bundled with you, follow it in full (it adds confounders, the
+minimum window, expectations and the stop, continue or expand rule). At least,
+each record states:
 - The hypothesis, in one sentence
 - The pages it changes
 - The baseline: its source and date window, taken from `.seo/data/` at the time of the change
@@ -147,9 +150,9 @@ Open each record with frontmatter: `id` (the file name without `.md`),
 hand), `read_21` and `read_42` (empty until each read is done), and
 `status: running`.
 
-Commit all `.seo/` changes alongside the content changes and push. Do NOT
-leave `.seo/` as local-only files. Never add `.seo/` to `.gitignore`. This
-ensures future briefing runs can measure the impact of content changes.
+Commit the experiment records alongside the content changes and push, so
+later runs can measure them. Raw pulls under `.seo/data/` and `.seo/archive/`
+stay out of commits; a record cites only the aggregate numbers it needs.
 
 **Success criteria**: Every content action has an experiment record with a
 hypothesis, baseline, control and read dates. `.seo/` is committed and pushed.

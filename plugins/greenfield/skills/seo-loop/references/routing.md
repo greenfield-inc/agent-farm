@@ -2,7 +2,7 @@
 
 Every item is one workspace in the product's repository, created with its first worker as `orchestrate-sessions` says. Every starting message names: the source and its revision, the access tier and the missing sources, the status-file path, the document destination and the Session folder, the Session name, the validation level for a writer, and "follow the rules in seo-loop, Rules for the whole loop". Write it to an absolute file and pass that file as the message.
 
-The strategist, measurer and investigator also take `--arg source=<file>` and `--arg parent=<status file>`, and `--arg docs=<destination>` when the repository names none.
+The strategist, measurer and investigator also take `--arg source=<file>` and `--arg parent=<status file>`, and `--arg docs=<destination>` when the repository's workspace instructions name no document destination (see `orchestrate-sessions`, Document destinations).
 
 ## Step 2: history read-back (measurer)
 

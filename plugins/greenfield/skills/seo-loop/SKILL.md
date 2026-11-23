@@ -13,7 +13,7 @@ Wherever the coordination rules and `orchestrate-sessions` say planner, implemen
 
 | Coordination rules say | SEO role | Profile | Does | Writes |
 | --- | --- | --- | --- | --- |
-| planner | strategist | `greenfield/seo-strategist:claude` | foundations for a new site, the ranked quick-wins page with its rerun and gap check, the evidence merge, page briefs, and a cover sheet for any workstream that changes site code | its bundle; `.seo/facts.md` and briefs only on its own branch |
+| planner | strategist | `greenfield/seo-strategist:claude` | foundations for a new site, the ranked quick-wins page with its rerun and gap check, the evidence merge, page briefs, and a cover sheet for any workstream that changes site code | its bundle; `.seo/` foundations, briefing, strategy and `facts.md`, only on its own branch |
 | implementer | writer | `greenfield/seo-writer:claude` | builds one picked brief or approved cover sheet: pages, metadata, links, indexing steps, the experiment record, a draft PR | its branch and draft PR |
 | reviewer | reviewer | `greenfield/seo-reviewer:claude` | claims check and cold read of every page that goes to the person, and a principled review plus claims check of every writer PR | one findings file; one `COMMENT` review on a PR |
 | (none) | measurer | `greenfield/seo-measurer:claude` | history read-back and deep dive, due 21 and 42 day reads, agent discovery and the answer panel | its bundle; `.seo/` only, on its own branch and draft PR |

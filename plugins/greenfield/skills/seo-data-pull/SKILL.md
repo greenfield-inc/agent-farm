@@ -267,14 +267,16 @@ If it's older, re-run from Step 1.
 
 ## Persisting .seo/ data
 
-The `.seo/` directory MUST be committed to the repo after every pull. This is
-not optional. If `.seo/` stays local-only, future worktrees and sessions lose
-access to prior snapshots, breaking delta comparisons and experiment tracking.
+Commit the reviewed parts of `.seo/` to the working branch: foundations,
+strategy, briefing, the fact ledger, experiment records and the index. They
+are the record later runs measure against, so never leave them untracked.
 
-After writing data files, stage and commit `.seo/` as part of the normal
-workflow. If there's a PR flow, include it in the PR. If pushing directly,
-commit it alongside content changes. Never leave `.seo/` as untracked local
-files.
+Raw pulls stay out of commits: `.seo/data/` and every `data/` folder under
+`.seo/archive/` hold query rows and analytics segments, and a product's
+repository and its PRs may be public. Add both to `.gitignore` and keep the
+raw files local or in the run's private documents. Commit them only when the
+person has said this repository may hold them. What a briefing or experiment
+record cites from them is a reviewed aggregate, and that is committed.
 
 ## Analytics API Notes
 
@@ -285,6 +287,4 @@ before reporting the source as unavailable.
 
 ## Committing .seo/
 
-Always commit the `.seo/` directory to the working branch after a data pull.
-Git history provides the historical record that future briefings use to measure
-experiment impact. Never add `.seo/` to `.gitignore`.
+Commit `.seo/` as **Persisting .seo/ data** says: the reviewed files, never the raw pulls.

@@ -129,6 +129,7 @@ Experiments with a 21-day or 42-day read done this run, with measured before/aft
 
 ## Committing .seo/
 
-After writing the briefing, commit all `.seo/` changes to the working branch
-and push. This ensures other worktrees and future sessions can access the data,
-experiments, and briefing. Never add `.seo/` to `.gitignore`.
+After writing the briefing, commit `.seo/` to the working branch and push, as
+the data pull's **Persisting .seo/ data** section says: the briefing, the
+experiments and the other reviewed files, never the raw pulls under
+`.seo/data/` or `.seo/archive/`.
