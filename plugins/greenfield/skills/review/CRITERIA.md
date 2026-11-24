@@ -125,8 +125,8 @@ questions, since a correct widget in the wrong place still costs every user.
   lives beside the item; global actions live in a global bar.
 - **Progressive disclosure.** A surface appears when it can show something
   and stays hidden otherwise. Detection beats a toggle.
-- **Scoped to the panels it concerns.** A control for one agent or tool
-  shows only where that agent runs, never on every panel type.
+- **Scoped to the views it concerns.** A control for one agent or tool
+  shows only where that agent runs, never on every view type.
 - **One way to reach it.** A hidden toggle plus a persisted preference plus
   an auto-open is three behaviours to discover; one predictable path is the
   standard.

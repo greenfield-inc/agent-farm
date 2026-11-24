@@ -36,7 +36,7 @@ Follow the research-and-product-design skill's rules, plus:
 ## Output
 Write under <root>/<feature-slug>/, in the layout the
 research-and-product-design skill sets. Start no servers on shared ports, and
-stop any process you start. Don't publish, open panels or message anyone; the
+stop any process you start. Don't publish, open anything beside the person or message anyone; the
 orchestrator reviews first. Return a summary: the files, your recommendation,
 the open questions, and the fidelity limits.
 ```

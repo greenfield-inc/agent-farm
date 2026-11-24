@@ -98,7 +98,7 @@ For each page ask: "Would someone who has never heard of this product understand
 
 Flag every term or concept that a first-timer would need explained:
 - Technical terms (daemon, worktree, CLI, SSH, etc.)
-- Product-specific terms (workspace, panel, orchestrator, etc.)
+- Product-specific terms (workspace, profile, orchestrator, etc.)
 - Multi-word concepts (worktree isolation, agent loop, agent-agnostic, etc.)
 - Industry terms that sound obvious to insiders but aren't
 

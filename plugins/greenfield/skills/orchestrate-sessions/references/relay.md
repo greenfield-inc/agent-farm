@@ -6,7 +6,7 @@ When the host has its own way of asking the person, ask and relay the way its in
 
 ## Asked by the worker itself
 
-A block with `"asked": "notify"` already reached the person: the worker asked it itself through the host. Never relay it while the host still holds it. The status pages show it only by count, and on its item page as a Waiting row that links the asking worker (status-board.md).
+A block with `"asked": "self"` already reached the person: the worker asked it itself through the host. Never relay it while the host still holds it. The status pages show it only by count, and on its item page as a Waiting row that links the asking worker (status-board.md).
 
 - **Answered** (`answers` is not empty): assign the block the next free Q-n and each answer the next free D-n, record them as for an answer below, and send `recorded: Q-n → <answer>. Recorded as D-n.` to the asking worker only, with one `→ <answer>` and one D-n per question in order when the block has several. On the next rewrite its row moves to Decisions.
 - **The question is gone** (a crash, an interrupt or a restart): when `answers` is empty and the host shows the worker's agent in any state other than blocked on two checks at least a minute apart, relay the block as below. One check is not enough: a worker that is told to wait runs briefly before it asks again.

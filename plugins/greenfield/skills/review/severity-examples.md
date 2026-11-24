@@ -4,7 +4,7 @@ Worked gradings for the rubric in [CRITERIA.md](CRITERIA.md#severity-how-bad-a-f
 
 | Finding | Harm | Reach | Recovery | Level |
 |---|---|---|---|---|
-| A wait-for-idle command (`panels wait --for idle`) succeeds after the agent process has exited | High: an orchestrator treats a dead worker as alive and waits on it | High: any agent that exits | Silent | Must-Fix |
+| A wait-for-idle command succeeds after the agent process has exited | High: an orchestrator treats a dead worker as alive and waits on it | High: any agent that exits | Silent | Must-Fix |
 | Two concurrent resumes of the same session both type the launch command | High: stray input lands in a fresh agent | Low: needs two resumes at the same moment | Visible | Should-Fix |
 | An HTML preview doesn't reload when Preview is pressed a second time | Medium: shows stale content | High: every edit-then-preview | Visible; reopening works | Should-Fix |
 | A secondary client (the Python CLI) returns a generic error code (`ERR_CLI_FAILED` instead of `ERR_SESSION_PAYLOAD_INVALID`) and lists only the first payload problem | Medium: an agent that branches on the code takes the wrong path | Low: that client only | Visible | Must-Fix (public contract: error codes) |

@@ -48,7 +48,6 @@ Use host durable state when available; otherwise `.agent/ledger.json`. Keep one 
       "workers": [
         {
           "role": "planner | implementer | reviewer | bug-reporter | simplify-and-refactor",
-          "panel_id": null,
           "host_worker_id": null,
           "profile": "greenfield/implementer:opus",
           "status_file": "../worktrees/invoice-pdf/.agent/status.json",
