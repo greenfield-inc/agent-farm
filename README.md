@@ -167,10 +167,21 @@ duplicate read-only plugin profiles. It opens a browser, not an agent session.
 Choose a profile to select an agent's harness, model, and instructions. Agent Farm
 combines that definition with shared skills, child agent definitions, and optional
 workspace MCP connections into a launch bundle in `.agent-farm/generated/` under
-the launch directory, then opens Claude Code or Codex to work there. Whether MCP
-servers you set up yourself also load is covered in
-[Your own MCP servers](CONFIGURATION.md#your-own-mcp-servers). Add
+the launch directory, then opens Claude Code or Codex to work there. Add
 `.agent-farm/generated/` to your repository's `.gitignore`.
+
+**Your own MCP servers stay out by default.** A launch loads only the profile's
+and workspace's connections, so the MCP servers and connectors you set up in
+Claude or Codex yourself (Gmail, Attio, Notion and so on) are missing, and the
+agent reports them as not connected. Add `--inherit-mcp` to load them too:
+
+```sh
+agent-farm run greenfield/orchestrator --inherit-mcp
+```
+
+To make that the default, set `{ "mcp": "inherit" }` in your host
+`settings.json`. Read [Your own MCP servers](CONFIGURATION.md#your-own-mcp-servers)
+first: inherited project servers start without Claude's approval prompt.
 
 - **Profile** — a saved setup. "When I say *planner*, I mean: use this agent, optionally with these model fields and launch arguments." Like choosing which worker to send.
 - **Agent** — the worker definition. Which AI brain, what it knows, what instructions it follows, who it can delegate to.
