@@ -506,6 +506,9 @@ test('workers raise numbered needs_you blocks, standalone workers ask in the sam
  includesAll(['instructions/planner-identity.md'],['Raise each question for the person as a `needs_you`','record each `answer:` or `recorded:` line\'s D-n']);
  includesAll(['skills/orchestrate-sessions/SKILL.md'],['[references/relay.md](references/relay.md)','`[Needs you · <role> · <feature>]`','to the asking worker only']);
  includesAll(['skills/orchestrate-sessions/references/relay.md'],['newest blocking question first','open them without asking','Recorded as D-n.` Nobody else gets it','even when you can answer it yourself','Q-n stays open and nothing is recorded','(raised as Q-3)','Never relay it while the host still holds it','`recorded: Q-n → <answer>. Recorded as D-n.`','in any state other than blocked on two checks at least a minute apart','never put the same question to the person a second way: relay that one with the host\'s relay command']);
+ // A status file written before 0.0.65 says `notify` for a worker-owned block; a resumed orchestrator keeps it worker-owned, pending or answered.
+ includesAll(['skills/orchestrate-sessions/references/relay.md'],['A block whose `asked` holds `notify`, the name Greenfield 0.0.64 and earlier used, is the same worker-owned block: treat it as `self` whether it is pending or answered, keep its answers, and never relay or re-ask it for that value alone.']);
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['(`"asked": "self"`, or `notify` in status files written by Greenfield 0.0.64 and earlier, which you treat the same way)']);
 });
 
 test('no Greenfield skill or rule asks for a secret in chat: the host secret prompt when the host has one, local setup confirmed without its value elsewhere (review F-1)',()=>{
