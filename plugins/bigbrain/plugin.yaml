@@ -1,5 +1,5 @@
 name: bigbrain
-version: 0.1.1
+version: 0.1.2
 cli_major: 0
 source:
   repository: https://github.com/greenfield-inc/agent-farm
@@ -103,11 +103,11 @@ checksums:
   skills/quick-verify/SKILL.md: 83e90401872be4f96434fc9abe64b7df1499502808b82f7c410f1867dc18de05
   skills/quick-verify/metadata/codex.yaml: f6786d928d9220b0b05c85352c44daa631b1c72b1709438251b3c3d23d4a37e8
   skills/research-web/SKILL.md: 78d297d404434e7f4ae8346d64bfb408465e751a58342f1480c7089271dace26
-  skills/review/CRITERIA.md: a944b16a14b3610d261c1d0564a1fbc0235050b69a384ec75a4aa6115cc60b74
+  skills/review/CRITERIA.md: bd98705478803fbc263de24aba1c2e02bc2396e3decbee77c92e95ec588950e5
   skills/review/SKILL.md: 4e8e035da625fb11685732ef571fe2293a9b6855a3f0c55060dc846a6991ecb9
   skills/review/references/findings.md: b2a0002e23ac8e1bfdb5e7a79859380d935c55dbcbc0e0b0b8719f065511bdc3
   skills/review/references/worker-briefs.md: 320f6caa3f8a9d9c64954288335f3e3a5668b66d77c55850911c3da17c19b35e
-  skills/review/severity-examples.md: 8f322f2c08fa8a0557c7e117d23a269ef0272debde0fbe9d5468cf3b13d0b3fa
+  skills/review/severity-examples.md: 8618e72b2305e06bd8942efd67607cf007d658adad876a17a7c981fcb2409324
   skills/session-trace/SKILL.md: acd50a36a893ebebcf17939846fc049e01c65e930ceeeeb2b541df4528b5b690
   skills/session-trace/references/page-guide.md: 2e6074da875c317c21b062ff3d1bc28231cf1c7fc95a24cab6fcde0d12633797
   skills/session-trace/scripts/build-trace.mjs: cd3a596dc0e37b7c4e4138900acde36349bd1af73ecb32f77554ee9c6f7ead0d
