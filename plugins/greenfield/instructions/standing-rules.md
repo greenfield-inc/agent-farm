@@ -84,11 +84,11 @@ A worker that needs a decision, an approval or a fact only the person has asks i
 
 - `id`: the next Q-n not used in the work's decision log or the status files beside yours, or `null` when `asked` is `self`. Q-n are unique per Session and never reused; when yours clashes, the orchestrator relays it under the next free one and answers `answer: Q-9 (raised as Q-3) → …`.
 - `title`: what you need, in one line; a host that shows the question uses it as the title.
-- `why`: why it matters, in one or two sentences of at most 240 characters; a host that shows the question may use it as the subtitle. Each question's own `why` gives its reasons.
+- `why`: a brief explanation of why the round matters. Each question's own `why` gives its reasons. Follow the host's instructions for any length or display limits.
 - `asked`: `self` when you ask the person yourself through the host, `relay` when the orchestrator relays it (a report the host turns into a question included).
 - `answers`: one entry per question, in order, each the result the host returned; `[]` until answered, and always `[]` for a relayed question.
 - `kind`: `question` (an open product or design question), `choice` (pick an option on a page), `approval` (approve a page or plan), or `fyi` (no answer needed, never blocking).
 - `questions`: one round of 1 to 4, most consequential first. Each option is short, the recommended one first and marked `(recommended)`; reasons go in `why`.
 - `files`: absolute paths or links, with `#anchor` when useful, that the person should see while answering.
-- `summary`: optional, the absolute path of an `.html` page that explains the question in full; a host that shows the question may link it. Leave it out when `why` and `files` say enough.
+- `summary`: an optional reference to a document that explains the question in full. Use the format the host's instructions accept. Leave it out when `why` and `files` say enough.
 
