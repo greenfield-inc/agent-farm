@@ -68,8 +68,9 @@ qualified names unchanged:
 }
 ```
 
-`agent-farm profiles list` prints each qualified name, plugin version, and an
-ambiguity marker. `inspect`, `--explain`, `--print-launch`, bundle manifests, and
+`agent-farm profiles list` prints each qualified name, plugin version, an
+ambiguity marker, and `| unlisted` for a [`listed: false`](#listed) profile;
+`--json` prints the same entries as JSON. `inspect`, `--explain`, `--print-launch`, bundle manifests, and
 each bundled `agent.json` include plugin/version metadata. The trace identity is
 `plugin/profile@version`; local definitions use `local/profile@local`.
 
@@ -116,11 +117,30 @@ args:
   mode: fast
 ```
 
-Only `agent`, `model`, and `args` are accepted. A model preset may contain any
-of `name`, `reasoning`, and `speed`; omitted fields keep the agent value. A
+Only `agent`, `model`, `args`, and `listed` are accepted. A model preset may
+contain any of `name`, `reasoning`, and `speed`; omitted fields keep the agent
+value. A
 profile still cannot override the harness, tools, instructions, skills,
 connections, or children. Command-line flags take precedence over the profile
 preset, which takes precedence over agent defaults.
+
+### Listed
+
+`listed: false` hides a profile from pickers in hosts like Pane; it still runs.
+
+```yaml
+listed: false
+agent: reviewer
+```
+
+`listed` is optional and defaults to `true`; any value other than `true` or
+`false` fails validation. Use it for profiles that an orchestrator starts by
+name rather than a person picking them. It changes nothing about the launch:
+`agent-farm run`, `inspect`, child launches, and the interactive menu treat the
+profile exactly as before, and `agent-farm profiles list` still shows it, marked
+`| unlisted` (`"listed": false` with `--json`). It sits at the top of the file,
+beside `variants` and `default` when the profile has variants, and applies to
+all of them.
 
 ### Variants
 
@@ -138,8 +158,8 @@ variants:
 default: claude
 ```
 
-Each variant accepts exactly the fields above (`agent`, `model`, `args`). A
-profile with `variants` has no top-level `agent`, `model`, or `args`, and
+Each variant accepts exactly `agent`, `model`, and `args`. A profile with
+`variants` has no top-level `agent`, `model`, or `args` (`listed` may stay), and
 `default` must name one of its variants. Variant names follow the configuration
 name rule. The Claude and Codex variants still point at separate agent files,
 because instructions are tuned per harness; the profile only groups them.
@@ -1090,7 +1110,8 @@ in Git; Agent Farm prints a one-time hint if it is not ignored.
 ## Inspection and compatibility names
 
 `agent-farm profiles list` displays each entry point's qualified name, plugin and
-version, ambiguity status, and resolved model settings.
+version, ambiguity status, resolved model settings, and whether it is
+[listed](#listed); add `--json` for machine-readable output.
 `agent-farm inspect PROFILE --directory PATH` returns the full resolved
 configuration graph and source paths without generating output. It reports
 configured MCP endpoints, not credentials or a live connection status. It also

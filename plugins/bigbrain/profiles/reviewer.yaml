@@ -1,3 +1,4 @@
+listed: false
 variants:
   codex:
     agent: reviewer-codex

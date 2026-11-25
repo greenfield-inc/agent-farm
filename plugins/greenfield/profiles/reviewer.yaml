@@ -1,3 +1,4 @@
+listed: false
 variants:
   claude:
     agent: claude-pr-reviewer

@@ -1,3 +1,4 @@
+listed: false
 variants:
   sol:
     agent: simplify-and-refactor

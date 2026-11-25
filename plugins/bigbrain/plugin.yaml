@@ -1,5 +1,5 @@
 name: bigbrain
-version: 0.1.2
+version: 0.1.3
 cli_major: 0
 source:
   repository: https://github.com/greenfield-inc/agent-farm
@@ -26,13 +26,13 @@ checksums:
   instructions/planner-documents.md: 6ad39e2e2a649bd660de49d472b37b816d2ffd79af78a7f46956b1cb62e8fea4
   instructions/planner-identity.md: a184359f32525ff2439224e13ede4068d43903a63bb828d83115493760ed21fe
   instructions/standing-rules.md: 12a7e569376ccb10a461d2fcc0fa8cf6c1ea55bfcacb4733d874ada82a8c61c8
-  profiles/designer.yaml: b7c18fd49fa3cf084380f0fd0feadcca2b5bfc92612a66cab0e518443ab5c086
-  profiles/implementer.yaml: f735c872200652a6423fff8bba99d59abda2596f1d32a5f58af168b5ac7b6ee0
-  profiles/investigator.yaml: d443c206b3bbf5d3311ed26b28664af56fba44a51b26b165d53336f51e2fda07
+  profiles/designer.yaml: 67cc86793e4dd03840d8ffc95ccb3ca487b97ad4c89d4650b10fdafe9880d53a
+  profiles/implementer.yaml: 2355d6166067e2d726245a5151091e85f36f8f6023892e90b94ce694655dc681
+  profiles/investigator.yaml: 6e53e526994519a2b735bb54a928ba1f6de079119cadae3e7ebe02941acd5635
   profiles/orchestrator.yaml: f9ebf0007162d370f0ece1a3d240527c4d7654565657e42a4ccdb7f4d4dd00ea
-  profiles/planner.yaml: dc49cc693d2cd1604cd04003642fcb9e9f545d1974a35d8be7e828e24139b014
-  profiles/reviewer.yaml: ae1a2e7a75e61b46c5601400fd5b87c273e9c68b370ed1577468003ccb9492a5
-  profiles/teacher.yaml: 1b34caec476761d15036e1471e2aa7ac76bedb85068c5b948e0d163213e92683
+  profiles/planner.yaml: 07cea82dc436286d9d8cf5ae9637028b3d5d51a9ef45e3fc3e3c9f89c7db782b
+  profiles/reviewer.yaml: ce9ea8e55b75ccbea90989090f4be2ac1214e7b52995003cc3b1934e3d18e617
+  profiles/teacher.yaml: 03499be12c9043422638db56fcd8c194e1b395198ff81c369f2eab835bf76b05
   skills/architecture-diagram/SKILL.md: 714fde10cc037f62d25e74e36b248d04cee690797a3251e0d7bbaa89a1f53096
   skills/architecture-diagram/references/diagram-kit.html: b85314ba47c621e7a79f86c3dd5391f6ededa53691221f458ad584d8490bd4e8
   skills/architecture-diagram/references/layout.md: cf9bb0f42c2e9d6c1833852e4c31adc52a03487523278d36955f7a8e644dd770

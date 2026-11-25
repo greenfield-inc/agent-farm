@@ -70,14 +70,16 @@ export const commands: Command[] = [
   },
   {
     name: 'profiles list',
-    usage: 'agent-farm profiles list',
+    usage: 'agent-farm profiles list [--json]',
     group: 'inspect',
-    description: 'List local and installed profiles with qualified name, plugin/version, ambiguity, agent, harness, and model.',
+    description: 'List local and installed profiles with qualified name, plugin/version, ambiguity, agent, harness, model, and whether each is listed in host pickers.',
     flags: [
+      {name: 'json', description: 'Print the profiles as JSON, each with "listed": true or false', type: 'boolean'},
       {name: 'config-root', description: 'Configuration directory', type: 'string', default: '~/.config/agent-farm'},
     ],
     examples: [
       'agent-farm profiles list',
+      'agent-farm profiles list --json',
     ],
   },
   {
