@@ -530,8 +530,14 @@ function managedLink(destination: string, source?: string): string | null | unde
   }
 }
 const codexHomes=(home: string)=>path.join(home,'.cache/agent-farm/native-proof');
+/** A recorded Codex home, when it is one of Agent Farm's own and still exists. */
+function ownCodexHome(recorded: string|undefined, home: string): string|undefined {
+  if (!recorded) return undefined;
+  const resolved=path.resolve(recorded);
+  return path.dirname(resolved)===codexHomes(home) && fs.existsSync(resolved) ? resolved : undefined;
+}
 /** `inherit`: the MCP server names this launch registers, when it also loads the user's own servers (McpMode).
- *  `recorded`: the home a resumed launch recorded; reused only when it is one of Agent Farm's own and still exists. */
+ *  `recorded`: the home a resumed launch recorded; reused only when it is one of Agent Farm's own (ownCodexHome). */
 export function codexHome(bundle: string, route: string, env: NodeJS.ProcessEnv, home = os.homedir(), provider?: Provider, inherit?: string[], recorded?: string): string {
   const manifest: Manifest=JSON.parse(fs.readFileSync(path.join(bundle,'manifest.json'),'utf8'));
   const native=nativeCodexHome(env,home);
@@ -543,7 +549,7 @@ export function codexHome(bundle: string, route: string, env: NodeJS.ProcessEnv,
   // Agent Farm 0.2.44 and earlier also keyed it by profile; sessions recorded there keep resuming in that home.
   // Under a provider, inherit writes a different config.toml, so it gets its own home; strict keeps the default one.
   const identity={workspace:manifest.workspace_source?.source ?? null,directory:manifest.directory,route,...(provider && inherit ? {mcp:'inherit'} : {})};
-  const runtime = recorded && path.dirname(path.resolve(recorded))===codexHomes(home) && fs.existsSync(recorded) ? path.resolve(recorded) : path.join(codexHomes(home),hash(canonical(identity)).slice(0,24));
+  const runtime = ownCodexHome(recorded,home) ?? path.join(codexHomes(home),hash(canonical(identity)).slice(0,24));
   fs.mkdirSync(runtime,{recursive:true,mode:0o700});
   codexConfig(original,runtime,provider,inherit);
   for (const item of ['auth.json','.credentials.json','AGENTS.md','AGENTS.override.md','rules','plugins','mcp-oauth-locks']) link(path.join(original,item),path.join(runtime,item));
@@ -1036,13 +1042,15 @@ export function launchSession(manifest: Manifest, harness: 'claude'|'codex', res
   // An ID Agent Farm did not record is a native session ID; hand it to the harness as is.
   if (!record) return {resume,report:resume};
   if (record.profile!==manifest.profile || record.harness!==harness) throw new Error(`Session ${resume} was launched as ${record.profile}${record.variant?':'+record.variant:''} on ${record.harness}; resume it with that profile and variant`);
-  const native=record.native_session_id ?? (harness==='claude' ? (claudeTranscriptExists(record.id,env,home) ? record.id : undefined) : codexSession(record));
+  // Only a home Agent Farm made is searched or reused; any other recorded path falls back to this directory's home.
+  const recordedHome=ownCodexHome(record.codex_home,home);
+  const native=record.native_session_id ?? (harness==='claude' ? (claudeTranscriptExists(record.id,env,home) ? record.id : undefined) : codexSession({...record,codex_home:recordedHome}));
   if (!native) {
     // Nothing was said before the panel closed; start fresh under the same ID so the host keeps one handle.
     console.error(`agent-farm: no saved conversation for ${resume}; starting a new one`);
     return {...fresh(record.id),record:{...record,started_at:new Date().toISOString()}};
   }
-  return {resume:native,report:resume,launch:record.id,record:record.native_session_id ? undefined : {...record,native_session_id:native},...(record.codex_home?{codexHome:record.codex_home}:{})};
+  return {resume:native,report:resume,launch:record.id,record:record.native_session_id ? undefined : {...record,native_session_id:native},...(recordedHome?{codexHome:recordedHome}:{})};
 }
 /** One line on stderr per connection a launch left out, with the command that signs in. */
 function reportUnavailable(unavailable: UnavailableConnection[]): void {

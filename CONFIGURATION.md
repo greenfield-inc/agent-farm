@@ -171,9 +171,12 @@ telemetry `agent_access.profiles` entries are shared by a profile's variants.
 Codex launches in the same directory share one private Codex home whatever
 their profile or variant (see
 [Prepared launches and native arguments](#prepared-launches-and-native-arguments)),
-so don't run two of them with different skill sets in the same directory at the
-same time. Plugin validation resolves every variant, not only the default. The profile editor in `agent-farm ui` edits single-agent profiles;
-edit variants in the YAML source.
+so don't run two of them at the same time in the same directory when they
+differ in skills or in whether a [host provider](#host-provider-target) routes
+them: the later launch replaces the earlier one's `skills/` and `config.toml`.
+Process children with the same name share a home the same way. Plugin
+validation resolves every variant, not only the default. The profile editor in
+`agent-farm ui` edits single-agent profiles; edit variants in the YAML source.
 
 `agent-farm run NAME` launches the complete identity. `agent-farm set global NAME` loads
 only its selected top-level skills into the native user skill directory.
@@ -366,10 +369,11 @@ agent-farm run my-profile --print-launch --message 'Summarize this project' -- -
 
 For the same workspace and canonical repository directory, Agent Farm keeps the
 runtime Codex home and its session files stable across plugin updates, profile
-edits, profile switches, and Agent Farm upgrades, so a later launch, under the
-same profile or another one, can resume the same thread. Each launch relinks
+edits, profile switches, and Agent Farm upgrades, so a later launch can resume
+the same thread, under the same profile or, by its native Codex session ID (for
+example through ACP `session/load`), under another one. Each launch relinks
 only its own profile's skills there. A different workspace or directory uses a
-different home; process child routes also have separate homes. Agent Farm 0.2.44
+different home; a process child gets a home separate from its parent's. Agent Farm 0.2.44
 and earlier also kept a separate home per profile; `--resume` reopens a session
 recorded there in that home. Bundles remain content-addressed
 and integrity-checked, while skill links in the runtime home refresh on launch.

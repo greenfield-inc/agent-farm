@@ -97,11 +97,12 @@ test('a Codex session recorded in an older per-profile home resumes in that home
  assert.equal(r.status,0,r.stderr);
  assert.deepEqual(r.launched.argv.slice(0,2),['resume','44444444-4444-4444-4444-444444444444']);
  assert.equal(r.launched.codex_home,legacy);assert.equal(f.launches()[0].codex_home,legacy);
- // A recorded home outside Agent Farm's cache is never reused.
- fs.writeFileSync(file,JSON.stringify({...record,codex_home:path.join(f.base,'elsewhere'),native_session_id:'55555555-5555-5555-5555-555555555555'}));
- fs.mkdirSync(path.join(f.base,'elsewhere'));
+ // A recorded home outside Agent Farm's cache is never reused, or searched for the thread to resume.
+ const elsewhere=path.join(f.base,'elsewhere');fs.cpSync(legacy,elsewhere,{recursive:true});
+ fs.writeFileSync(file,JSON.stringify({...record,codex_home:elsewhere}));
  const outside=f.invoke('planner',['--resume',id]);
  assert.equal(outside.status,0,outside.stderr);assert.equal(outside.launched.codex_home,current);
+ assert.equal(outside.launched.argv.includes('resume'),false);assert.match(outside.stderr,/no saved conversation/);
 });
 
 test('an unrecorded ID is handed to the harness as a native session ID',t=>{
