@@ -529,17 +529,21 @@ function managedLink(destination: string, source?: string): string | null | unde
     }
   }
 }
-/** `inherit`: the MCP server names this launch registers, when it also loads the user's own servers (McpMode). */
-export function codexHome(bundle: string, route: string, env: NodeJS.ProcessEnv, home = os.homedir(), provider?: Provider, inherit?: string[]): string {
+const codexHomes=(home: string)=>path.join(home,'.cache/agent-farm/native-proof');
+/** `inherit`: the MCP server names this launch registers, when it also loads the user's own servers (McpMode).
+ *  `recorded`: the home a resumed launch recorded; reused only when it is one of Agent Farm's own and still exists. */
+export function codexHome(bundle: string, route: string, env: NodeJS.ProcessEnv, home = os.homedir(), provider?: Provider, inherit?: string[], recorded?: string): string {
   const manifest: Manifest=JSON.parse(fs.readFileSync(path.join(bundle,'manifest.json'),'utf8'));
   const native=nativeCodexHome(env,home);
   // Without a provider, the runtime home mirrors the native one, so create it the way Codex would on first run.
   if (!provider) fs.mkdirSync(native,{recursive:true,mode:0o700});
   const original = provider && !fs.existsSync(native) ? path.resolve(native) : fs.realpathSync(native);
-  // Resume identity must survive bundle rebuilds and changes to the selected agent.
+  // Resume identity must survive bundle rebuilds and changes to the selected agent or profile, so a thread
+  // started under one profile resumes under another in the same directory (a host's profile switch).
+  // Agent Farm 0.2.44 and earlier also keyed it by profile; sessions recorded there keep resuming in that home.
   // Under a provider, inherit writes a different config.toml, so it gets its own home; strict keeps the default one.
-  const identity={profile:manifest.profile,workspace:manifest.workspace_source?.source ?? null,directory:manifest.directory,route,...(provider && inherit ? {mcp:'inherit'} : {})};
-  const runtime = path.join(home,'.cache/agent-farm/native-proof',hash(canonical(identity)).slice(0,24));
+  const identity={workspace:manifest.workspace_source?.source ?? null,directory:manifest.directory,route,...(provider && inherit ? {mcp:'inherit'} : {})};
+  const runtime = recorded && path.dirname(path.resolve(recorded))===codexHomes(home) && fs.existsSync(recorded) ? path.resolve(recorded) : path.join(codexHomes(home),hash(canonical(identity)).slice(0,24));
   fs.mkdirSync(runtime,{recursive:true,mode:0o700});
   codexConfig(original,runtime,provider,inherit);
   for (const item of ['auth.json','.credentials.json','AGENTS.md','AGENTS.override.md','rules','plugins','mcp-oauth-locks']) link(path.join(original,item),path.join(runtime,item));
@@ -666,7 +670,9 @@ export interface LaunchOptions { headless?: boolean; nativeArgs?: string[]; mess
   /** How to ask the harness about sign-ins; false skips the check. Unprepared launches (--explain) never check. */
   signIns?: SignInCheck|false;
   /** A per-launch MCP mode from --strict-mcp or --inherit-mcp; wins over AGENT_FARM_MCP and settings.json. */
-  mcp?: McpMode }
+  mcp?: McpMode;
+  /** The Codex home a resumed launch recorded, so a session from an older per-profile home resumes there. */
+  codexHome?: string }
 
 /** What an interactive launch used, so `--resume <id>` can reopen the same native session without asking again. */
 export interface LaunchRecord { id: string; profile: string; variant?: string; harness: 'claude'|'codex'; directory: string; started_at: string; codex_home?: string; native_session_id?: string }
@@ -819,7 +825,7 @@ export function resolveLaunchFor(bundle: string, route: string, options: LaunchO
       for (const alias of ['HAIKU','SONNET','OPUS','FABLE']) envOverrides[`ANTHROPIC_DEFAULT_${alias}_MODEL`]=launch.model.name;
     }
   } else if (options.prepare!==false) {
-    codexHome(bundle,route,env,options.home,provider,mcp.mode==='inherit' ? [...profileServers,...(access ? [telemetryServerName] : [])] : undefined);
+    codexHome(bundle,route,env,options.home,provider,mcp.mode==='inherit' ? [...profileServers,...(access ? [telemetryServerName] : [])] : undefined,options.codexHome);
     envOverrides.CODEX_HOME=env.CODEX_HOME!;
     envOverrides.AGENT_FARM_NATIVE_CODEX_HOME=env.AGENT_FARM_NATIVE_CODEX_HOME!;
   }
@@ -1018,7 +1024,7 @@ export function execute(argv: string[], cwd: string, environment: NodeJS.Process
   throw new Error('Native exec unexpectedly returned');
 }
 /** Chooses the native session for an interactive launch: a new recorded one, or the one `--resume <id>` names. */
-export interface LaunchSession { resume?: string; sessionId?: string; report?: string; record?: LaunchRecord; launch?: string }
+export interface LaunchSession { resume?: string; sessionId?: string; report?: string; record?: LaunchRecord; launch?: string; codexHome?: string }
 export function launchSession(manifest: Manifest, harness: 'claude'|'codex', resume: string|undefined, context: {interactive: boolean; nativeArgs: string[]; env?: NodeJS.ProcessEnv; home?: string}): LaunchSession {
   const env=context.env ?? process.env,home=context.home ?? os.homedir();
   const fresh=(id:string=randomUUID()):LaunchSession=>({report:id,launch:id,...(harness==='claude'?{sessionId:id}:{}),record:{id,profile:manifest.profile,...(manifest.variant?{variant:manifest.variant}:{}),harness,directory:manifest.directory,started_at:new Date().toISOString()}});
@@ -1036,7 +1042,7 @@ export function launchSession(manifest: Manifest, harness: 'claude'|'codex', res
     console.error(`agent-farm: no saved conversation for ${resume}; starting a new one`);
     return {...fresh(record.id),record:{...record,started_at:new Date().toISOString()}};
   }
-  return {resume:native,report:resume,launch:record.id,record:record.native_session_id ? undefined : {...record,native_session_id:native}};
+  return {resume:native,report:resume,launch:record.id,record:record.native_session_id ? undefined : {...record,native_session_id:native},...(record.codex_home?{codexHome:record.codex_home}:{})};
 }
 /** One line on stderr per connection a launch left out, with the command that signs in. */
 function reportUnavailable(unavailable: UnavailableConnection[]): void {
@@ -1069,7 +1075,7 @@ export function run(bundle: string, route: string, args: string[], launchCommand
   }
   const nativeArgs=[...(values['native-arg'] ?? []),...args.slice(separator+1)];
   const session=launchSession(manifest,selected.harness,values.resume,{interactive:!requested.headless && !values.explain,nativeArgs});
-  const launch=launchCommand(bundle,route,{...requested,nativeArgs,message:values.message,prepare:!values.explain,configRoot,resume:session.resume,sessionId:session.sessionId,launchId:session.launch,mcp});
+  const launch=launchCommand(bundle,route,{...requested,nativeArgs,message:values.message,prepare:!values.explain,configRoot,resume:session.resume,sessionId:session.sessionId,launchId:session.launch,mcp,codexHome:session.codexHome});
   if (session.record && !values.explain) {
     if (session.record.harness==='codex') session.record.codex_home=launch.env.CODEX_HOME;
     writeLaunchRecord(session.record);
