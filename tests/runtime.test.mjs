@@ -159,20 +159,35 @@ test('resume identity survives profile retargeting and compiler/runtime upgrades
  assert.equal(fs.readFileSync(session,'utf8'),'thread');
 });
 
-test('profiles, workspaces, canonical directories and process child routes isolate homes',t=>{
+test('workspaces, canonical directories and process child routes isolate homes; profiles in one directory share one',t=>{
  const f=fixture(t);fs.mkdirSync(path.join(f.root,'profiles'));
  for(const profile of ['a','b'])fs.writeFileSync(path.join(f.root,'profiles',profile+'.yaml'),'agent: planner\n');
  fs.writeFileSync(path.join(f.root,'workspace.yaml'),'connections: {}\n');
  const other=path.join(f.base,'other repo');fs.mkdirSync(other);
  const alias=path.join(f.base,'repo alias');writeLink(f.target,alias);
  const home=(profile,target=f.target,workspace)=>command(build(f.root,profile,target,workspace),'main',{home:f.home,env:f.env}).env.CODEX_HOME;
- const first=home('a');assert.notEqual(home('b'),first);
+ const first=home('a');assert.equal(home('b'),first);
  assert.notEqual(home('a',other),first);assert.notEqual(home('a',f.target,noWorkspace()),first);
  assert.equal(home('a',alias),first);
  fs.appendFileSync(path.join(f.root,'agents/planner.yaml'),'subagents: {worker: {agent: implementer, mode: process}}\n');
  const bundle=build(f.root,'a',f.target);
  assert.equal(command(bundle,'main',{home:f.home,env:f.env}).env.CODEX_HOME,first);
  assert.notEqual(command(bundle,'main/children/worker',{home:f.home,env:f.env}).env.CODEX_HOME,first);
+});
+
+test('switching to another Codex profile in the same directory keeps its threads and links only the new profile\'s skills',t=>{
+ const f=fixture(t);
+ fs.mkdirSync(path.join(f.root,'skills/review'));fs.writeFileSync(path.join(f.root,'skills/review/SKILL.md'),'Review skill');
+ fs.writeFileSync(path.join(f.root,'agents/reviewer.yaml'),'harness: codex\nmodel: test\nskills: [review]\n');
+ const launch=profile=>command(build(f.root,profile,f.target),'main',{home:f.home,env:{...f.env}}).env.CODEX_HOME;
+ const runtime=launch('planner'),thread=path.join(runtime,'sessions/2026/11/25/rollout-thread.jsonl');
+ fs.mkdirSync(path.dirname(thread),{recursive:true});fs.writeFileSync(thread,'planner thread');
+ assert.equal(launch('reviewer'),runtime);
+ assert.equal(fs.readFileSync(thread,'utf8'),'planner thread');
+ assert.deepEqual(fs.readdirSync(path.join(runtime,'skills')).sort(),['review']);
+ assert.equal(fs.readFileSync(path.join(runtime,'skills/review/SKILL.md'),'utf8'),'Review skill');
+ assert.equal(launch('planner'),runtime);
+ assert.deepEqual(fs.readdirSync(path.join(runtime,'skills')).sort(),['proof']);
 });
 
 test('reused homes refresh overlays, restore native skills and remove obsolete or dangling links',t=>{

@@ -167,12 +167,16 @@ and remove whichever variant of that profile is loaded.
 
 The manifest records the variant, and the trace identity becomes
 `plugin/profile:variant@version`. `profile` itself stays the profile name, so
-telemetry `agent_access.profiles` entries and Codex resume state are shared by
-a profile's variants. Codex variants of one profile also share one private
-Codex home, so don't run two of them with different skill sets in the same
-directory at the same time. Plugin validation resolves every variant, not only
-the default. The profile editor in `agent-farm ui` edits single-agent profiles;
-edit variants in the YAML source.
+telemetry `agent_access.profiles` entries are shared by a profile's variants.
+Codex launches in the same directory share one private Codex home whatever
+their profile or variant (see
+[Prepared launches and native arguments](#prepared-launches-and-native-arguments)),
+so don't run two of them at the same time in the same directory when they
+differ in skills or in whether a [host provider](#host-provider-target) routes
+them: the later launch replaces the earlier one's `skills/` and `config.toml`.
+Process children with the same name share a home the same way. Plugin
+validation resolves every variant, not only the default. The profile editor in
+`agent-farm ui` edits single-agent profiles; edit variants in the YAML source.
 
 `agent-farm run NAME` launches the complete identity. `agent-farm set global NAME` loads
 only its selected top-level skills into the native user skill directory.
@@ -363,11 +367,15 @@ assume `argv[0]` is the harness binary.
 agent-farm run my-profile --print-launch --message 'Summarize this project' -- -p --output-format json
 ```
 
-For the same profile, workspace, and canonical repository directory, Agent Farm
-keeps the runtime Codex home and its session files stable across plugin updates,
-profile edits, and Agent Farm upgrades, so later launches can resume the same
-thread. A different profile, workspace, or directory uses a different home;
-process child routes also have separate homes. Bundles remain content-addressed
+For the same workspace and canonical repository directory, Agent Farm keeps the
+runtime Codex home and its session files stable across plugin updates, profile
+edits, profile switches, and Agent Farm upgrades, so a later launch can resume
+the same thread, under the same profile or, by its native Codex session ID (for
+example through ACP `session/load`), under another one. Each launch relinks
+only its own profile's skills there. A different workspace or directory uses a
+different home; a process child gets a home separate from its parent's. Agent Farm 0.2.44
+and earlier also kept a separate home per profile; `--resume` reopens a session
+recorded there in that home. Bundles remain content-addressed
 and integrity-checked, while skill links in the runtime home refresh on launch.
 The check ignores caches a skill leaves in its bundled folder (`.venv`,
 `__pycache__`, `.pytest_cache`, `node_modules/.cache` and an untracked
@@ -378,8 +386,12 @@ The check ignores caches a skill leaves in its bundled folder (`.venv`,
 Every interactive launch gets a session ID, recorded with the profile, variant,
 harness and directory under `~/.local/state/agent-farm/launches/`. Claude uses
 that ID as its own session ID. Codex picks its own, so Agent Farm finds the
-top-level Codex session the launch started in its runtime Codex home.
-`--resume ID` reopens that conversation:
+top-level Codex session the launch started in its runtime Codex home. Because
+launches in one directory share that home, Agent Farm skips threads another
+launch has already claimed. When another launch in that directory started at
+nearly the same time, it can't tell which thread is this launch's, so `--resume`
+stops, lists the candidate Codex session IDs, and asks you to pass one of them
+instead. `--resume ID` reopens that conversation:
 
 ```bash
 agent-farm run greenfield/free-range --resume 0c6d0d57-2f8b-4c8e-9a47-5b1f9e2f3a10
