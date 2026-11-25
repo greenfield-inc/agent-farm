@@ -386,8 +386,12 @@ The check ignores caches a skill leaves in its bundled folder (`.venv`,
 Every interactive launch gets a session ID, recorded with the profile, variant,
 harness and directory under `~/.local/state/agent-farm/launches/`. Claude uses
 that ID as its own session ID. Codex picks its own, so Agent Farm finds the
-top-level Codex session the launch started in its runtime Codex home.
-`--resume ID` reopens that conversation:
+top-level Codex session the launch started in its runtime Codex home. Because
+launches in one directory share that home, Agent Farm skips threads another
+launch has already claimed. When another launch in that directory started at
+nearly the same time, it can't tell which thread is this launch's, so `--resume`
+stops, lists the candidate Codex session IDs, and asks you to pass one of them
+instead. `--resume ID` reopens that conversation:
 
 ```bash
 agent-farm run greenfield/free-range --resume 0c6d0d57-2f8b-4c8e-9a47-5b1f9e2f3a10

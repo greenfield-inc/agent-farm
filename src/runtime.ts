@@ -703,8 +703,11 @@ function claudeTranscriptExists(id: string, env: NodeJS.ProcessEnv, home: string
   const projects=path.join(env.CLAUDE_CONFIG_DIR ?? path.join(home,'.claude'),'projects');
   try { return fs.readdirSync(projects).some(folder=>fs.existsSync(path.join(projects,folder,id+'.jsonl'))); } catch { return false; }
 }
-/** Codex picks its own session ID, so find the top-level session this launch started in its Codex home. */
-function codexSession(record: LaunchRecord): string|undefined {
+/** Codex picks its own session ID, so find the top-level session this launch started in its Codex home.
+ *  Profiles in one directory share that home, so a thread is taken only when no other launch could own it:
+ *  threads other records claimed are skipped, and two close candidates, or another recorded launch that
+ *  started before the chosen thread appeared, stop the resume rather than guess. */
+function codexSession(record: LaunchRecord, home: string): string|undefined {
   if (!record.codex_home) return undefined;
   const started=Date.parse(record.started_at)-5000,candidates:{id:string;at:number}[]=[];
   const walk=(folder:string)=>{
@@ -722,7 +725,16 @@ function codexSession(record: LaunchRecord): string|undefined {
     }
   };
   walk(path.join(record.codex_home,'sessions'));
-  return candidates.sort((a,b)=>a.at-b.at)[0]?.id;
+  const others:LaunchRecord[]=[];
+  try { for (const name of fs.readdirSync(launchRecords(home))) { const other=readLaunchRecord(name.replace(/\.json$/,''),home); if (other && other.id!==record.id && other.codex_home===record.codex_home && other.directory===record.directory) others.push(other); } } catch { /* No other launches recorded. */ }
+  const claimed=new Set(others.map(other=>other.native_session_id).filter(Boolean));
+  const open=candidates.filter(candidate=>!claimed.has(candidate.id)).sort((a,b)=>a.at-b.at);
+  const chosen=open[0];
+  if (!chosen) return undefined;
+  const window=chosen.at+5000;
+  const rival=open.length>1 && open[1]!.at<=window || others.some(other=>!other.native_session_id && Date.parse(other.started_at)>=started && Date.parse(other.started_at)<=window);
+  if (rival) throw new Error(`agent-farm cannot tell which Codex conversation launch ${record.id} started: another launch in ${record.directory} began at nearly the same time. Resume it by its Codex session ID instead (agent-farm run ${record.profile}${record.variant?':'+record.variant:''} --resume <codex-session-id>). Candidates: ${open.map(candidate=>`${candidate.id} (${new Date(candidate.at).toISOString()})`).join(', ')}`);
+  return chosen.id;
 }
 export interface AgentTelemetryAccess {enabled?:boolean;scope?:'project'|'machine';profiles?:string[]}
 export interface TelemetrySettings {enabled?:boolean;directory?:string;capture_content?:boolean;agent_access?:AgentTelemetryAccess}
@@ -1044,7 +1056,7 @@ export function launchSession(manifest: Manifest, harness: 'claude'|'codex', res
   if (record.profile!==manifest.profile || record.harness!==harness) throw new Error(`Session ${resume} was launched as ${record.profile}${record.variant?':'+record.variant:''} on ${record.harness}; resume it with that profile and variant`);
   // Only a home Agent Farm made is searched or reused; any other recorded path falls back to this directory's home.
   const recordedHome=ownCodexHome(record.codex_home,home);
-  const native=record.native_session_id ?? (harness==='claude' ? (claudeTranscriptExists(record.id,env,home) ? record.id : undefined) : codexSession({...record,codex_home:recordedHome}));
+  const native=record.native_session_id ?? (harness==='claude' ? (claudeTranscriptExists(record.id,env,home) ? record.id : undefined) : codexSession({...record,codex_home:recordedHome},home));
   if (!native) {
     // Nothing was said before the panel closed; start fresh under the same ID so the host keeps one handle.
     console.error(`agent-farm: no saved conversation for ${resume}; starting a new one`);

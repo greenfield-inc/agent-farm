@@ -105,6 +105,31 @@ test('a Codex session recorded in an older per-profile home resumes in that home
  assert.equal(outside.launched.argv.includes('resume'),false);assert.match(outside.stderr,/no saved conversation/);
 });
 
+test('a Codex resume refuses, without caching, a thread another profile\'s launch in the shared home could own',t=>{
+ const f=fixture(t);
+ fs.writeFileSync(path.join(f.root,'agents/reviewer-codex.md'),'---\nharness: codex\nmodel: gpt-6-astra\n---\nCodex reviewer.\n');
+ fs.writeFileSync(path.join(f.root,'profiles/reviewer.yaml'),'agent: reviewer-codex\n');
+ const alpha=f.invoke('planner'),beta=f.invoke('reviewer');assert.equal(alpha.status,0,alpha.stderr);assert.equal(beta.status,0,beta.stderr);
+ const records=Object.fromEntries(f.launches().map(r=>[r.profile,r]));
+ assert.equal(records.planner.codex_home,records.reviewer.codex_home,'profiles in one directory share a Codex home');
+ const day=path.join(records.planner.codex_home,'sessions','2026','11','25');fs.mkdirSync(day,{recursive:true});
+ const thread=(id,at)=>fs.writeFileSync(path.join(day,`rollout-${id}.jsonl`),JSON.stringify({type:'session_meta',payload:{id,timestamp:new Date(at).toISOString(),cwd:f.target,thread_source:'user'}})+'\n');
+ // The two launches ran moments apart, so each thread falls in the other's window.
+ thread('11111111-1111-1111-1111-111111111111',Date.parse(records.planner.started_at)+100);
+ thread('22222222-2222-2222-2222-222222222222',Date.parse(records.reviewer.started_at)+3000);
+ const r=f.invoke('reviewer',['--resume',beta.reported[0]]);
+ assert.equal(r.status,1);assert.equal(r.launched,undefined);
+ assert.match(r.stderr,/cannot tell which Codex conversation/);
+ assert.match(r.stderr,/11111111-1111-1111-1111-111111111111/);assert.match(r.stderr,/22222222-2222-2222-2222-222222222222/);
+ assert.equal(Object.fromEntries(f.launches().map(x=>[x.profile,x])).reviewer.native_session_id,undefined);
+ // A thread another record already claimed is never offered; the remaining one resumes.
+ const planner=path.join(f.home,'.local/state/agent-farm/launches',alpha.reported[0]+'.json');
+ fs.writeFileSync(planner,JSON.stringify({...records.planner,native_session_id:'11111111-1111-1111-1111-111111111111'}));
+ const claimed=f.invoke('reviewer',['--resume',beta.reported[0]]);
+ assert.equal(claimed.status,0,claimed.stderr);
+ assert.deepEqual(claimed.launched.argv.slice(0,2),['resume','22222222-2222-2222-2222-222222222222']);
+});
+
 test('an unrecorded ID is handed to the harness as a native session ID',t=>{
  const f=fixture(t),r=f.invoke('planner:claude',['--resume','native-session']);
  assert.equal(r.status,0,r.stderr);assert.equal(r.launched.argv[r.launched.argv.indexOf('--resume')+1],'native-session');
