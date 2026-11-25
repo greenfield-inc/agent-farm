@@ -73,7 +73,7 @@ test('listed must be a boolean and only sits at the top of a profile',t=>{
  }
  f.put('profiles/hidden.yaml','agent: worker\n');
  f.put('profiles/hidden-variants.yaml','variants:\n  claude:\n    agent: worker\n    listed: false\ndefault: claude\n');
- assert.throws(()=>validatePlugin(f.root),/Unsupported prototype fields: listed/);
+ assert.throws(()=>validatePlugin(f.root),/Profile fixture\/hidden-variants sets listed inside variant claude; put listed at the top of the file/);
  f.put('profiles/hidden-variants.yaml','listed: false\nvariants:\n  claude:\n    agent: worker\ndefault: claude\n');
  const cliResult=spawnSync(process.execPath,[cli,'plugin','validate',f.root,'--config-root',path.join(f.base,'empty')],{encoding:'utf8',env:{...process.env,HOME:f.base,AGENT_FARM_TELEMETRY:'off'}});
  assert.equal(cliResult.status,0,cliResult.stderr);

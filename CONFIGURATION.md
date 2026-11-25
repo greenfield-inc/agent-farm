@@ -69,8 +69,9 @@ qualified names unchanged:
 ```
 
 `agent-farm profiles list` prints each qualified name, plugin version, an
-ambiguity marker, and `| unlisted` for a [`listed: false`](#listed) profile;
-`--json` prints the same entries as JSON. `inspect`, `--explain`, `--print-launch`, bundle manifests, and
+ambiguity marker, and `| unlisted` for a [`listed: false`](#listed) profile.
+`--json` prints every entry as JSON, with `listed`, `description`, `source_file`,
+and each variant's model. `inspect`, `--explain`, `--print-launch`, bundle manifests, and
 each bundled `agent.json` include plugin/version metadata. The trace identity is
 `plugin/profile@version`; local definitions use `local/profile@local`.
 
@@ -117,11 +118,10 @@ args:
   mode: fast
 ```
 
-Only `agent`, `model`, `args`, and `listed` are accepted. A model preset may
-contain any of `name`, `reasoning`, and `speed`; omitted fields keep the agent
-value. A
-profile still cannot override the harness, tools, instructions, skills,
-connections, or children. Command-line flags take precedence over the profile
+Only `agent`, `model`, `args`, and [`listed`](#listed) are accepted. A model
+preset may contain any of `name`, `reasoning`, and `speed`; omitted fields keep
+the agent value. A profile still cannot override the harness, tools,
+instructions, skills, connections, or children. Command-line flags take precedence over the profile
 preset, which takes precedence over agent defaults.
 
 ### Listed
@@ -138,7 +138,8 @@ agent: reviewer
 name rather than a person picking them. It changes nothing about the launch:
 `agent-farm run`, `inspect`, child launches, and the interactive menu treat the
 profile exactly as before, and `agent-farm profiles list` still shows it, marked
-`| unlisted` (`"listed": false` with `--json`). It sits at the top of the file,
+`| unlisted`. `profiles list --json`, `inspect`, and `plugin validate` report
+`"listed": true` or `false` for every profile. It sits at the top of the file,
 beside `variants` and `default` when the profile has variants, and applies to
 all of them.
 

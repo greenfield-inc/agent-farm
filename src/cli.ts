@@ -204,7 +204,7 @@ try {
     else if(operation==='uninstall'&&positionals.length===3)console.log(JSON.stringify(uninstallPlugin(positionals[2]!,path.resolve(values['config-root']!)),null,2));
     else throw new Error('Use: agent-farm plugin validate SOURCE | pack SOURCE OUTPUT | install [SOURCE|BUNDLED-NAME] | list | uninstall NAME');
   } else if (positionals[0]==='profiles' || positionals[0]==='inspect') {
-    if (positionals.length!==2 || (positionals[0]==='profiles' && positionals[1]!=='list')) throw new Error('Use: agent-farm profiles list or agent-farm inspect NAME');
+    if (positionals.length!==2 || (positionals[0]==='profiles' && positionals[1]!=='list')) throw new Error('Use: agent-farm profiles list [--json] or agent-farm inspect NAME');
     if (values.harness || values.message!==undefined || values.build || values.exec || values.explain) throw new Error('Inspection does not accept launch options');
     const root=path.resolve(values['config-root']!);
     if (positionals[0]==='inspect') console.log(JSON.stringify(inspectProfile(root,positionals[1]!,{directory:values.directory,noWorkspace:values['no-workspace']}),null,2));
