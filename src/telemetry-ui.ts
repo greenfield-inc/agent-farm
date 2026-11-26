@@ -9,7 +9,7 @@ export async function startTelemetryUI(options:QueryOptions,port=0,management?:{
   const store=new TelemetryStore(options),token=randomBytes(24).toString('hex');let origin='';
   const profiles=management?new ProfileManager(management.configRoot,management.projectDirectory):undefined;
   const server=http.createServer(async(req,res)=>{
-    res.setHeader('Cache-Control','no-store');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Content-Security-Policy',"default-src 'none'; script-src 'self'; connect-src 'self'; style-src 'unsafe-inline'; frame-ancestors 'none'; base-uri 'none'");
+    res.setHeader('Cache-Control','no-store');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Content-Security-Policy',"default-src 'none'; script-src 'self'; connect-src 'self'; img-src 'self'; style-src 'unsafe-inline'; frame-ancestors 'none'; base-uri 'none'");
     const send=(status:number,value:unknown)=>{res.writeHead(status,{'Content-Type':'application/json'});res.end(JSON.stringify(value));};
     if(req.headers.host!==new URL(origin).host||(req.headers.origin&&req.headers.origin!==origin)){send(403,{error:'Forbidden origin'});return;}
     if((req.url?.length??0)>8192){send(414,{error:'URL too long'});return;}
@@ -22,6 +22,8 @@ export async function startTelemetryUI(options:QueryOptions,port=0,management?:{
         const action=route.slice('api/profiles/'.length);
         if(req.method==='GET'&&action==='list'){send(200,{profiles:profiles.list(),agents:profiles.agents(),project:management!.projectDirectory});return;}
         if(req.method==='GET'&&action==='get'){send(200,profiles.get(url.searchParams.get('name')??''));return;}
+        // Checked again on every read; shown only as <img>, under a CSP that runs and loads nothing.
+        if(req.method==='GET'&&action==='photo'){const photo=profiles.photo(url.searchParams.get('name')??'');res.writeHead(200,{'Content-Type':'image/svg+xml','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'",'X-Content-Type-Options':'nosniff','Cache-Control':'no-store'});res.end(photo);return;}
         if(req.method!=='POST'){send(405,{error:'Method not allowed'});return;}
         if(req.headers.origin!==origin||req.headers['x-agent-farm-ui']!=='1'||req.headers['content-type']!=='application/json'){send(403,{error:'Same-origin JSON request required'});return;}
         if(!['preview','save','duplicate','compose'].includes(action)){send(404,{error:'Not found'});return;}

@@ -71,14 +71,31 @@ export const commands: Command[] = [
   },
   {
     name: 'profiles list',
-    usage: 'agent-farm profiles list',
+    usage: 'agent-farm profiles list [--json]',
     group: 'inspect',
-    description: 'List local and installed profiles with qualified name, plugin/version, ambiguity, agent, harness, and model.',
+    description: 'List local and installed profiles with qualified name, plugin/version, ambiguity, agent, harness, and model. --json adds each profile\'s title, description, SVG photo path (local overrides merged in), variants and subagent tree, for hosts such as Pane.',
     flags: [
+      {name: 'json', description: 'Print the listing as JSON (schema 1), with display fields and the subagent tree', type: 'boolean'},
       {name: 'config-root', description: 'Configuration directory', type: 'string', default: '~/.config/agent-farm'},
     ],
     examples: [
       'agent-farm profiles list',
+      'agent-farm profiles list --json',
+    ],
+  },
+  {
+    name: 'profiles set',
+    usage: 'agent-farm profiles set [PLUGIN/]NAME [--title TEXT] [--description TEXT] [--photo FILE.svg]',
+    group: 'configure',
+    description: 'Change a profile\'s title, description or SVG photo. A local profile\'s file is edited; an installed plugin\'s profile gets a local display override in the config root, which survives plugin reinstalls. An empty value removes the field. Photos must pass the SVG check (CONFIGURATION.md, Profile display fields).',
+    flags: [
+      {name: 'title', description: 'One line, at most 80 characters', type: 'string'},
+      {name: 'description', description: 'At most 1000 characters', type: 'string'},
+      {name: 'photo', description: 'An SVG file, at most 64 KB, that passes the allowlist check', type: 'string'},
+      {name: 'config-root', description: 'Configuration directory', type: 'string', default: '~/.config/agent-farm'},
+    ],
+    examples: [
+      'agent-farm profiles set greenfield/orchestrator --title "Orchestrator" --photo ./orchestrator.svg',
     ],
   },
   {
