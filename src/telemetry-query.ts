@@ -119,6 +119,9 @@ function argumentsFor(name:string,input:unknown):ObjectMap {
   return input;
 }
 
+/** A session's parent for display: the session of the launch that started it, when the recorded (inherited) one is
+ *  missing or belongs to another launch; else the recorded one. */
+const parentOf=(s:{parent_session_id?:string;launch_parent_session_id?:string})=>s.launch_parent_session_id??s.parent_session_id;
 export class TelemetryStore {
   readonly project:ReturnType<typeof telemetryProject>;
   constructor(readonly options:QueryOptions){
@@ -148,7 +151,7 @@ export class TelemetryStore {
   }
   private view(s:ObjectMap){
     const a=Object.fromEntries(Object.entries(s.attributes as ObjectMap).map(([key,value])=>[key,typeof value==='string'?value.slice(0,512):undefined])),finished=s.state==='finished';
-    return {id:s.id,parent_session_id:a['agent_farm.parent.session.id'],launch_id:a['agent_farm.launch.id'],trace_id:s.traceId,span_id:s.spanId,parent_span_id:s.parentSpanId,started_at:new Date(Number(BigInt(s.startTimeUnixNano)/1000000n)).toISOString(),duration_ms:duration(s.startTimeUnixNano,s.endTimeUnixNano),status:finished?(s.exitCode===0&&!s.signal&&!s.error?'success':'failed'):'unfinished',completion_recorded:finished,harness:a['agent_farm.harness'],profile:a['agent_farm.profile'],variant:a['agent_farm.profile.variant'],model:a['gen_ai.request.model'],user:a['process.owner'],project:a['agent_farm.project.directory']??a['process.working_directory'],worktree:a['vcs.worktree']??a['process.working_directory'],exit_code:s.exitCode,signal:s.signal};
+    return {id:s.id,parent_session_id:a['agent_farm.parent.session.id'],launch_id:a['agent_farm.launch.id'],parent_launch_id:a['agent_farm.parent.launch.id'],launch_parent_session_id:undefined as string|undefined,entry_kind:a['agent_farm.entry.kind'],link:a['agent_farm.link'],trace_id:s.traceId,span_id:s.spanId,parent_span_id:s.parentSpanId,started_at:new Date(Number(BigInt(s.startTimeUnixNano)/1000000n)).toISOString(),duration_ms:duration(s.startTimeUnixNano,s.endTimeUnixNano),status:finished?(s.exitCode===0&&!s.signal&&!s.error?'success':'failed'):'unfinished',completion_recorded:finished,harness:a['agent_farm.harness'],profile:a['agent_farm.profile'],variant:a['agent_farm.profile.variant'],model:a['gen_ai.request.model'],user:a['process.owner'],project:a['agent_farm.project.directory']??a['process.working_directory'],worktree:a['vcs.worktree']??a['process.working_directory'],exit_code:s.exitCode,signal:s.signal};
   }
   private sessions(a:ObjectMap){
     const warnings:string[]=[],sessions:ReturnType<TelemetryStore['view']>[]= [];
@@ -158,15 +161,20 @@ export class TelemetryStore {
       if(++visited>maxSessions){partial=true;warnings.push('Session scan capped at 5000 directory entries; results may omit sessions.');break;}
       if(!entry.isDirectory()||!uuid.test(entry.name))continue;
       try {
-        const s=this.view(this.read(entry.name));
-        if(a.project_id&&s.project!==a.project_id)continue;
-        if(a.harness&&s.harness!==a.harness||a.profile&&s.profile!==a.profile||a.variant&&s.variant!==a.variant||a.status&&s.status!==a.status||a.project&&!String(s.project).toLowerCase().includes(a.project.toLowerCase()))continue;
-        if(a.from&&Date.parse(s.started_at)<Date.parse(a.from)||a.to&&Date.parse(s.started_at)>Date.parse(a.to))continue;
-        sessions.push(s);
+        sessions.push(this.view(this.read(entry.name)));
       }catch(e){if((e as Error).message!=='Session not found in configured scope'&&!warnings.includes('Some unreadable or invalid session files were skipped.'))warnings.push('Some unreadable or invalid session files were skipped.');}
     }}finally{entries.closeSync();}
-    sessions.sort((a,b)=>b.started_at.localeCompare(a.started_at)||a.id.localeCompare(b.id));
-    return {sessions,warnings,partial};
+    // A launch started with --parent (a host tab) inherits no session ID; its parent is the first session recorded
+    // under the parent's launch ID. Kept apart from parent_session_id so exports still follow only recorded edges.
+    const firstOfLaunch=new Map<string,{id:string;at:string}>();
+    for(const s of sessions)if(s.launch_id){const seen=firstOfLaunch.get(s.launch_id);if(!seen||s.started_at<seen.at)firstOfLaunch.set(s.launch_id,{id:s.id,at:s.started_at});}
+    // A recorded session parent from another launch (--parent named a different launch than the shell's, or a
+    // resume ran inside another agent's shell) gives way to the launch parent for display; exports keep it.
+    const launchOf=new Map(sessions.map(s=>[s.id,s.launch_id]));
+    for(const s of sessions)if(s.parent_launch_id&&(!s.parent_session_id||launchOf.get(s.parent_session_id)!==s.parent_launch_id)){const parent=firstOfLaunch.get(s.parent_launch_id);if(parent&&parent.id!==s.id)s.launch_parent_session_id=parent.id;}
+    const filtered=sessions.filter(s=>!(a.project_id&&s.project!==a.project_id)&&!(a.harness&&s.harness!==a.harness||a.profile&&s.profile!==a.profile||a.variant&&s.variant!==a.variant||a.status&&s.status!==a.status||a.project&&!String(s.project).toLowerCase().includes(a.project.toLowerCase()))&&!(a.from&&Date.parse(s.started_at)<Date.parse(a.from)||a.to&&Date.parse(s.started_at)>Date.parse(a.to)));
+    filtered.sort((a,b)=>b.started_at.localeCompare(a.started_at)||a.id.localeCompare(b.id));
+    return {sessions:filtered,warnings,partial};
   }
   private sessionId(input:unknown):string {
     const id=input===undefined||input==='current'?this.options.currentSession:input;
@@ -257,13 +265,13 @@ export class TelemetryStore {
   async runs(input:unknown={}) {
     const args=argumentsFor('list_sessions',input),all=this.sessions({}),matching=new Set(this.sessions(args).sessions.map(s=>s.id));
     const index=new Map(all.sessions.map(s=>[s.id,s]));
-    const rootOf=(s:typeof all.sessions[number])=>{const chain=[s];let current=s;while(current.parent_session_id&&index.has(current.parent_session_id)){const next=index.get(current.parent_session_id)!;if(chain.some(s=>s.id===next.id))return [...chain].sort((a,b)=>a.id.localeCompare(b.id))[0]!;chain.push(next);current=next;}return current;};
+    const rootOf=(s:typeof all.sessions[number])=>{const chain=[s];let current=s;while(parentOf(current)&&index.has(parentOf(current)!)){const next=index.get(parentOf(current)!)!;if(chain.some(s=>s.id===next.id))return [...chain].sort((a,b)=>a.id.localeCompare(b.id))[0]!;chain.push(next);current=next;}return current;};
     const groups=new Map<string,{session:typeof all.sessions[number];count:number;matched:boolean}>();
     for(const s of all.sessions){const root=rootOf(s),group=groups.get(root.id)??{session:root,count:0,matched:false};group.count++;group.matched ||= matching.has(s.id);groups.set(root.id,group);}
     const results=[...groups.values()].filter(g=>g.matched).sort((a,b)=>b.session.started_at.localeCompare(a.session.started_at)||a.session.id.localeCompare(b.session.id));
     const offset=Number(args.cursor??0),limit=args.limit??25;
     const projects=[...new Set(all.sessions.map(s=>s.project).filter((p):p is string=>typeof p==='string'))].sort().map(id=>{const folder=id.replace(/\\/g,'/').replace(/\/\.git\/?$/,'');return {id,label:folder.split('/').filter(Boolean).pop()??id};});
-    return {projects,scope:this.options.scope,items:results.slice(offset,offset+limit).map(g=>({...g.session,child_sessions:g.count-1,ancestry_unavailable:!!g.session.parent_session_id})),total_matching:results.length,next_cursor:offset+limit<results.length?String(offset+limit):null,partial:all.partial,warnings:all.warnings};
+    return {projects,scope:this.options.scope,items:results.slice(offset,offset+limit).map(g=>({...g.session,child_sessions:g.count-1,ancestry_unavailable:!!parentOf(g.session)})),total_matching:results.length,next_cursor:offset+limit<results.length?String(offset+limit):null,partial:all.partial,warnings:all.warnings};
   }
   async explorer(input:unknown={}) {
     if(!object(input)||Object.keys(input).some(k=>!['session_id','node_id','cursor','limit'].includes(k)))throw new Error('Invalid explorer arguments');
@@ -271,7 +279,7 @@ export class TelemetryStore {
     if(node_id!==undefined&&(typeof node_id!=='string'||node_id.length>1000))throw new Error('Invalid node ID');
     try{this.read(id);}catch{throw new Error('Session not found in configured scope or unreadable');}
     const scan=this.sessions({}),family=new Set([id]);let changed=true;
-    while(changed){changed=false;for(const s of scan.sessions)if(s.parent_session_id&&family.has(s.parent_session_id)&&!family.has(s.id)){family.add(s.id);changed=true;}}
+    while(changed){changed=false;for(const s of scan.sessions){const parent=parentOf(s);if(parent&&family.has(parent)&&!family.has(s.id)){family.add(s.id);changed=true;}}}
     const members=scan.sessions.filter(s=>family.has(s.id)).sort((a,b)=>a.id===id?-1:b.id===id?1:a.started_at.localeCompare(b.started_at));
     const datasets:Dataset[]=[],warnings=[...scan.warnings];let partial=scan.partial,spanBudget=4000,eventBudget=8000;
     if(members.length>16){partial=true;warnings.push('Explorer limited to 16 linked sessions. Open a child session directly to inspect more.');}

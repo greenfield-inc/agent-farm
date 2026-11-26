@@ -12,8 +12,10 @@ import {telemetryProject} from './telemetry-query.js';
 import {exportTelemetry} from './telemetry-export.js';
 
 interface Descriptor {directory:string;bundle:string;route:string;harness:'claude'|'codex';launch:LaunchMetadata;captureContent?:boolean;
-  /** The `agent-farm run` launch ID, when the launch has one (interactive launches). */
+  /** The `agent-farm run` launch ID. */
   launchId?:string;
+  /** profile or agent, the parent's launch ID and ref (--parent or an inherited token), and the link it used. */
+  entryKind?:'profile'|'agent';parentLaunchId?:string;parentRef?:string;link?:string;
   /** Set when the wrapped command is an ACP adapter that starts the harness itself (`--print-acp`). */
   acp?:{adapter:string}}
 type Attribute = {key:string;value:Record<string,unknown>};
@@ -64,7 +66,8 @@ export async function startSession(descriptor:Descriptor,argv:string[],env:NodeJ
   fs.mkdirSync(directory,{mode:0o700});
   const user=os.userInfo();
   const metadata={
-    'agent_farm.session.id':id,'agent_farm.parent.session.id':env.AGENT_FARM_SESSION_ID,'agent_farm.launch.id':descriptor.launchId,
+    'agent_farm.session.id':id,'agent_farm.parent.session.id':env.AGENT_FARM_SESSION_ID||undefined,'agent_farm.launch.id':descriptor.launchId,
+    'agent_farm.entry.kind':descriptor.entryKind,'agent_farm.parent.launch.id':descriptor.parentLaunchId,'agent_farm.parent.ref':descriptor.parentRef,'agent_farm.link':descriptor.link,
     'agent_farm.capture_content':descriptor.captureContent===true,
     'agent_farm.session.trace_id':traceId,'agent_farm.session.span_id':spanId,
     'agent_farm.profile':manifest.profile,'agent_farm.profile.variant':manifest.variant,'agent_farm.plugin':agent.plugin??manifest.plugin,
