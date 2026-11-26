@@ -389,7 +389,9 @@ the files each installed plugin's receipt lists, and the receipt without its
 source path; the config root's own `agents/`, `profiles/`, `skills/`,
 `instructions/` and `references/`, with a symlink copied as the file or folder
 it points to; and `default_plugin`. Files left in a plugin folder that its
-receipt doesn't list (caches, a `.venv`) are not copied.
+receipt doesn't list (caches, a `.venv`) are not copied, nor are `.DS_Store`,
+`Thumbs.db` and `desktop.ini` files a receipt does list, nor a listed file
+deleted from the folder.
 It lives at `<launch directory>/.agent-farm/snapshots/<digest>/`, reads as a
 config root, and is never changed once written: the same installed files give
 the same folder. It sits outside `.agent-farm/generated/`, so a Pane Session move
@@ -401,10 +403,10 @@ this order:
 
 1. `--snapshot PATH`.
 2. On `--resume ID`, the snapshot in the launch record.
-3. An inherited `AGENT_FARM_SNAPSHOT` (empty counts as unset). The launch then
-   prints `Resolving from AGENT_FARM_SNAPSHOT=PATH (set AGENT_FARM_SNAPSHOT= to
-   resolve from --config-root)` on stderr, because the snapshot wins over
-   `--config-root`.
+3. An inherited `AGENT_FARM_SNAPSHOT` (empty counts as unset). When the command
+   also passes `--config-root`, the launch prints `Resolving from
+   AGENT_FARM_SNAPSHOT=PATH (set AGENT_FARM_SNAPSHOT= to resolve from
+   --config-root)` on stderr, because the snapshot wins over it.
 4. Otherwise a new snapshot of what is installed, in the launch directory.
 
 `--resume ID --reload` skips the first three and takes a new snapshot of what

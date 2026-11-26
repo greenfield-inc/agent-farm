@@ -83,7 +83,8 @@ function launchArguments(values:Record<string,string|boolean|string[]|undefined>
 /** A record's snapshot. A relative one resolves against this launch's directory first, so a resume still finds it
  *  after the directory (a Pane Session folder) moved, then against the directory the record saved. */
 function recordedSnapshot(reference:string,directory:string,recorded:string|undefined):Snapshot{
-  if (path.isAbsolute(reference) || !recorded || fs.existsSync(path.resolve(directory,reference))) return openSnapshot(reference,directory);
+  // When it is in neither place, the error names where this launch looked first.
+  if (path.isAbsolute(reference) || !recorded || fs.existsSync(path.resolve(directory,reference)) || !fs.existsSync(path.resolve(recorded,reference))) return openSnapshot(reference,directory);
   return openSnapshot(reference,recorded);
 }
 /** A resume that can't be honoured; printed as is, without the variant hint. */
@@ -290,11 +291,13 @@ try {
     const record=values.resume!==undefined ? readLaunchRecord(values.resume) : undefined;
     // The snapshot this launch resolves from (D-2): --snapshot, the resumed record's, an inherited AGENT_FARM_SNAPSHOT,
     // else a new one of what is installed. --reload always takes a new one. One that can't be read is refused (D-3).
-    const inherited=process.env[snapshotVariable] || undefined;
+    const inherited=process.env[snapshotVariable] || undefined,explicitRoot=tokens.some(t=>t.kind==='option' && t.name==='config-root');
     const snapshot:Snapshot=values.reload ? createSnapshot(realRoot,directory)
       : values.snapshot!==undefined ? openSnapshot(values.snapshot,directory)
       : record?.snapshot ? recordedSnapshot(record.snapshot,directory,record.directory)
-      : inherited ? (console.error(`Resolving from ${snapshotVariable}=${inherited} (set ${snapshotVariable}= to resolve from --config-root)`),openSnapshot(inherited,directory))
+      // Said only when --config-root was passed, the one case where the person expects another source; a Pane
+      // Session sets the variable in every tab (D-4), where it is meant.
+      : inherited ? (explicitRoot && console.error(`Resolving from ${snapshotVariable}=${inherited} (set ${snapshotVariable}= to resolve from --config-root)`),openSnapshot(inherited,directory))
       : createSnapshot(realRoot,directory);
     const root=snapshot.path,built={snapshot:{path:snapshot.path,digest:snapshot.digest}};
     // A resume whose recorded name no longer resolves (a removed profile, agent or variant) starts nothing: there is

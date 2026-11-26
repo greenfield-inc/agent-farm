@@ -79,7 +79,13 @@ export function createSnapshot(configRoot:string,directory:string):Snapshot{
     plugins[item.plugin]=item.version!;
     // Only the files the plugin's receipt lists: never caches, virtualenvs or other files left in the folder.
     const receipt=JSON.parse(fs.readFileSync(path.join(root,'.plugins',item.plugin+'.json'),'utf8')) as {checksums?:Record<string,string>};
-    for(const relative of Object.keys(receipt.checksums??{}).sort())sources.set(`plugins/${item.plugin}/${relative}`,path.join(item.root,relative));
+    // OS metadata a receipt recorded is left out, as walk() leaves it out; a listed file deleted from the folder is
+    // skipped rather than failing every launch (a name that needs it still fails to resolve, naming it).
+    for(const relative of Object.keys(receipt.checksums??{}).sort()){
+      const file=path.join(item.root,...relative.split('/'));
+      if(osMetadata.has(path.posix.basename(relative))||!fs.statSync(file,{throwIfNoEntry:false})?.isFile())continue;
+      sources.set(`plugins/${item.plugin}/${relative}`,file);
+    }
     written.set(`.plugins/${item.plugin}.json`,Buffer.from(JSON.stringify({name:item.plugin,version:item.version,layout:2,checksums:receipt.checksums??{}},null,2)+'\n'));
   }
   const preferred=loadHostSettings(root).default_plugin;
@@ -93,9 +99,11 @@ export function createSnapshot(configRoot:string,directory:string):Snapshot{
   // A folder at the name is used only when it is intact and its checksums are exactly the files hashed now.
   const reuse=():Snapshot|undefined=>{
     if(!fs.existsSync(target))return undefined;
-    let opened:Snapshot;try{opened=openSnapshot(target,directory);}catch(error){if(error instanceof SnapshotUnreadable)return undefined;throw error;}
-    const found=JSON.parse(fs.readFileSync(path.join(target,'checksums.json'),'utf8'));delete found['snapshot.json'];
-    return canonical(found)===canonical(expected) ? opened : undefined;
+    // Another launch may be moving a bad folder aside while this one reads it: a vanished file means "not reusable".
+    try{
+      const opened=openSnapshot(target,directory),found=JSON.parse(fs.readFileSync(path.join(target,'checksums.json'),'utf8'));delete found['snapshot.json'];
+      return canonical(found)===canonical(expected) ? opened : undefined;
+    }catch(error){if(error instanceof SnapshotUnreadable||(error as NodeJS.ErrnoException).code==='ENOENT')return undefined;throw error;}
   };
   const existing=reuse();if(existing)return existing;
   generatedHint(directory,undefined,'snapshots');

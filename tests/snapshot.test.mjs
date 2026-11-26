@@ -282,3 +282,43 @@ test('two launches creating the same snapshot at once agree; create repairs a da
  const info=JSON.parse(results[0].out);fs.rmSync(path.join(info.path,'plugins/team/agents/helper.md'));
  assert.equal(createSnapshot(f.root,f.target).path,info.path);assert.ok(fs.existsSync(path.join(info.path,'plugins/team/agents/helper.md')));
 });
+
+test('OS metadata a receipt lists is left out, and a receipt-listed file missing on disk is skipped (F-12)',t=>{
+ const f=fixture(t),source=path.join(f.base,'plugin-1');
+ fs.writeFileSync(path.join(source,'agents/.DS_Store'),'finder');f.install(1);
+ assert.ok('agents/.DS_Store' in JSON.parse(fs.readFileSync(path.join(f.root,'.plugins/team.json'),'utf8')).checksums,'the receipt records it');
+ assert.equal(f.invoke(['team/lead','--exec']).status,0);
+ const created=f.invoke(['snapshot','create','--json']);assert.equal(created.status,0,created.stderr);
+ assert.equal(fs.existsSync(path.join(JSON.parse(created.stdout).path,'plugins/team/agents/.DS_Store')),false);
+ fs.rmSync(path.join(f.root,'plugins/team/agents/.DS_Store'));fs.rmSync(path.join(f.root,'plugins/team/agents/writer.md'),{force:true});
+ fs.rmSync(path.join(f.root,'plugins/team/agents/helper.md'));
+ const r=f.invoke(['team/reviewer','--exec']);assert.equal(r.status,0,r.stderr);assert.doesNotMatch(r.stderr,/ENOENT/);
+});
+
+test('the inherited-snapshot line prints only with an explicit --config-root (D-4 tabs stay quiet)',t=>{
+ const f=fixture(t),v1=createSnapshot(f.root,f.target);
+ const quiet=spawnSync(process.execPath,[cli,'run','team/reviewer','--explain','--directory',f.target,'--no-workspace'],{encoding:'utf8',env:{...f.env,AGENT_FARM_SNAPSHOT:v1.path}});
+ assert.equal(quiet.status,0,quiet.stderr);assert.doesNotMatch(quiet.stderr,/Resolving from AGENT_FARM_SNAPSHOT/);
+ assert.match(f.invoke(['team/reviewer','--explain'],{AGENT_FARM_SNAPSHOT:v1.path}).stderr,/Resolving from AGENT_FARM_SNAPSHOT=/);
+});
+
+test('a moved resume whose snapshot is gone everywhere names the current directory',t=>{
+ const f=fixture(t);
+ assert.equal(f.invoke(['team/lead']).status,0);
+ const [record]=f.records(),moved=path.join(f.base,'moved-session');fs.renameSync(f.target,moved);
+ fs.rmSync(path.join(moved,record.snapshot),{recursive:true});
+ const r=f.invoke(['team/lead','--resume',record.id],{},moved);assert.equal(r.status,1);
+ assert.ok(r.stderr.includes(`Snapshot ${path.join(moved,record.snapshot)} is missing`),r.stderr);
+});
+
+test('concurrent fresh launches over a damaged folder never crash with a raw ENOENT (review note a)',async t=>{
+ const f=fixture(t),{spawn}=await import('node:child_process');
+ for(let round=0;round<3;round++){
+  const info=createSnapshot(f.root,f.target);fs.appendFileSync(path.join(info.path,'plugins/team/agents/lead.md'),'\nDamaged.\n');
+  const one=()=>new Promise(resolve=>{const c=spawn(process.execPath,[cli,'snapshot','create','--json','--config-root',f.root,'--directory',f.target],{env:f.env});let err='';c.stderr.on('data',d=>err+=d);c.on('close',code=>resolve({code,err}));});
+  const results=await Promise.all(Array.from({length:6},one));
+  for(const r of results)assert.doesNotMatch(r.err,/ENOENT/,r.err);
+  assert.ok(results.some(r=>r.code===0));
+  assert.doesNotMatch(fs.readFileSync(path.join(info.path,'plugins/team/agents/lead.md'),'utf8'),/Damaged/);
+ }
+});
