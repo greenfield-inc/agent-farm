@@ -135,21 +135,27 @@ variants: …
 ```
 
 The photo travels with the plugin (everything under `profiles/` is packed and
-checksummed). It must pass an allowlist check, which `plugin validate`, every
-resolve and `profiles set` all run, with no extra dependency; when in doubt it
+checksummed). It must pass an allowlist check, which `plugin validate`,
+`profiles list --json`, `profiles set` and `agent-farm ui` run before using it
+(a launch never reads the photo), with no extra dependency; when in doubt it
 refuses and names the reason. A photo is UTF-8, at most 64 KB, with a root
 `<svg>` that has a `viewBox`. It may use only shapes (`path`, `rect`, `circle`,
 `ellipse`, `line`, `polyline`, `polygon`), `text` and `tspan`, `g`, gradients
 (`linearGradient`, `radialGradient`, `stop`), `title`, `desc`, `defs`, `style`
 and `use`. It may not contain `<script>`, `<foreignObject>`, `<image>`, an `on…`
 attribute, a DOCTYPE or entity declaration, an `href` or `xlink:href` other than
-`#fragment`, or `@import` or an external `url(` in a style. Hosts should show
+`#fragment`, or, in a style, a CSS escape or comment, `@import`, `image-set(`,
+`src(` or an external `url(`. Character references are decoded before these
+checks, so `&#x75;rl(` counts as `url(`. The photo must be a regular file (not a
+link) next to the profile, read with its size bounded. Hosts should show
 photos only as `<img>`, which runs no script and loads nothing; `agent-farm ui`
 does.
 
 `agent-farm profiles set REF --title … --description … --photo FILE.svg`
 changes them. For a local profile it edits the profile file (keeping its
-comments) and copies the photo next to it. For an installed plugin's profile it
+comments and permissions) and copies the photo next to it as `<name>.svg`, or
+`<name>-2.svg` when another local profile uses that file; nothing changes if the
+edit fails. For an installed plugin's profile it
 writes a display override to `profile-overrides/<plugin>/<name>.json` (and the
 photo beside it) in the config root, so the edit survives a reinstall of the
 plugin, which never sees it. An empty value removes the field.
@@ -160,12 +166,12 @@ prints `{"schema": 1, "profiles": [...]}`, one entry per profile:
 | Field | Meaning |
 | --- | --- |
 | `ref`, `name`, `plugin`, `version` | Identity |
-| `title`, `description`, `photo` | Display fields with overrides merged in; `photo` is an absolute path or null |
+| `title`, `description`, `photo` | Display fields with overrides merged in; `photo` is an absolute path, or null when there is none or it fails its check (then `photo_error` says why) |
 | `sources` | For each display field: `plugin`, `file` (a local profile), `override`, or `default` |
 | `editable` | `via: file` (a local profile) or `override`, and the profile file |
-| `variants`, `default_variant` | Each variant's agent, harness and model, default first; `null` for a single-agent profile, which has `agent`, `harness` and `model` instead |
+| `variants`, `default` | Each variant's agent, harness and model, default first; `null` for a single-agent profile, which has `agent`, `harness` and `model` instead |
 | `command` | `agent-farm run REF` |
-| `tree` | The default variant's subagents: each node has `alias`, `agent`, `mode` (`native`, `process` or `launch`), its `variant` or `variants`, `description`, a `command` for process and launch nodes (no `--parent`: a person needs none), and `children`. A link back to an agent already on the path has `cycle: true` and no children; an `any: true` link has `any` and `plugin`; a target that doesn't resolve has `error` |
+| `tree` | The default variant's subagents: each node has `alias`, `agent`, `mode` (`native`, `process` or `launch`), its `variant` or `variants` and `default`, `description`, a `command` for process and launch nodes (no `--parent`: a person needs none), and `children`. A link back to an agent already on the path has `cycle: true` and no children; an `any: true` link has `any` and `plugin`; a target that doesn't resolve has `error` |
 
 An entry that fails to resolve has `ref`, `name`, `plugin`, `version` and `error` only. The text output of
 `profiles list` is unchanged.

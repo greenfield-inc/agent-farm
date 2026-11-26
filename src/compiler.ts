@@ -6,7 +6,6 @@ import path from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {parseDocument} from 'yaml';
 import {skillFiles} from './skill-layout.js';
-import {checkSvg} from './svg.js';
 import {configurationName,loadHostSettings,namespaces,qualifiedName,type Namespace} from './config.js';
 import {canonical,childPrompt,codexChildToml,command,execute,type LaunchLink,claudeConnection,codexConnection,connectionName,toml,files,fileMap,hash,verify,referencesNote,validateModel,type Agent,type ArgumentDefinition,type Connection,type Manifest,type ModelSource} from './runtime.js';
 export {command,execute};
@@ -45,13 +44,15 @@ function selectVariant(definition:Record<string,unknown>,shown:string,requested?
 }
 
 export interface ProfileDisplay{title?:string;description?:string;photo?:string}
-/** A profile's display fields: an optional one-line title, a description, and an SVG photo next to the profile
- *  file that passes the allowlist check (svg.ts). Returns undefined when none is set. */
+/** A profile's display fields: an optional one-line title, a description, and the path of an SVG photo next to
+ *  the profile file. Returns undefined when none is set. */
 export function profileDisplay(input:{title?:unknown;description?:unknown;photo?:unknown},file:string,shown:string):ProfileDisplay|undefined{
  const result:ProfileDisplay={};
  if(input.title!==undefined){if(typeof input.title!=='string'||!input.title.trim()||input.title.length>80||/[\r\n]/.test(input.title))throw new Error(`${shown} title must be one line of text, at most 80 characters`);result.title=input.title;}
  if(input.description!==undefined){if(typeof input.description!=='string'||!input.description.trim()||input.description.length>1000)throw new Error(`${shown} description must be text, at most 1000 characters`);result.description=input.description;}
- if(input.photo!==undefined){if(typeof input.photo!=='string'||!/^[A-Za-z0-9][A-Za-z0-9._-]{0,95}\.svg$/.test(input.photo))throw new Error(`${shown} photo must name an .svg file next to the profile, such as ${path.basename(file,'.yaml')}.svg (photos are SVG only)`);const photo=path.join(path.dirname(file),input.photo);if(!fs.existsSync(photo))throw new Error(`${shown} photo ${input.photo} is missing: ${photo}`);checkSvg(fs.readFileSync(photo),`photo ${input.photo} of ${shown.replace(/^Profile /,'profile ')}`);result.photo=photo;}
+ // Only the name is checked here: resolving runs on every launch, so the photo itself is read and checked by
+ // plugin validate, profiles list --json, profiles set and the UI (svg.ts readPhoto), never by a launch.
+ if(input.photo!==undefined){if(typeof input.photo!=='string'||!/^[A-Za-z0-9][A-Za-z0-9._-]{0,95}\.svg$/.test(input.photo))throw new Error(`${shown} photo must name an .svg file next to the profile, such as ${path.basename(file,'.yaml')}.svg (photos are SVG only)`);result.photo=path.join(path.dirname(file),input.photo);}
  return Object.keys(result).length?result:undefined;
 }
 export interface Resolution{nodes:Record<string,Agent>;profile:string;profile_name:string;

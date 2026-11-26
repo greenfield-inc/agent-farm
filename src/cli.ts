@@ -89,7 +89,7 @@ try {
     'config-root':{type:'string',default:path.join(os.homedir(),'.config/agent-farm')},
     save:{type:'string'},model:{type:'string'},reasoning:{type:'string'},speed:{type:'string'},arg:{type:'string',multiple:true},harness:{type:'string'},'no-workspace':{type:'boolean'},yes:{type:'boolean'},directory:{type:'string',default:process.cwd()},'base-url':{type:'string'},'api-key-env':{type:'string'},
     build:{type:'boolean'},exec:{type:'boolean'},message:{type:'string'},explain:{type:'boolean'},
-    'print-launch':{type:'boolean'},'print-acp':{type:'boolean'},'acp-adapter':{type:'string'},'native-arg':{type:'string',multiple:true},resume:{type:'string'},'strict-mcp':{type:'boolean'},'inherit-mcp':{type:'boolean'},parent:{type:'string'},json:{type:'boolean'},title:{type:'string'},description:{type:'string'},photo:{type:'string'}
+    'print-launch':{type:'boolean'},'print-acp':{type:'boolean'},'acp-adapter':{type:'string'},'native-arg':{type:'string',multiple:true},resume:{type:'string'},'strict-mcp':{type:'boolean'},'inherit-mcp':{type:'boolean'},parent:{type:'string'},'agent-only':{type:'boolean'},json:{type:'boolean'},title:{type:'string'},description:{type:'string'},photo:{type:'string'}
   }});
   const separator=tokens.find(t=>t.kind==='option-terminator')?.index ?? rawArgs.length;
   const positionals=tokens.flatMap(t=>t.kind==='positional' && t.index<separator ? [t.value] : []);
@@ -98,6 +98,7 @@ try {
   if ((values['print-launch'] || values['print-acp'] || values['acp-adapter']!==undefined || values['native-arg'] || values.resume!==undefined || separator<rawArgs.length) && !['run','agent'].includes(positionals[0] ?? '')) throw new Error('Prepared launches, --resume and native arguments require run or agent');
   if ((values['strict-mcp'] || values['inherit-mcp']) && !['run','agent'].includes(positionals[0] ?? '')) throw new Error('--strict-mcp and --inherit-mcp require run or agent');
   if (values.parent!==undefined && !runCommand) throw new Error('--parent requires run or agent');
+  if (values['agent-only'] && !runCommand) throw new Error('--agent-only requires run or agent');
   if (values.json && !(positionals[0]==='profiles' && positionals[1]==='list')) throw new Error('--json is only supported by profiles list');
   if ((values.title!==undefined || values.description!==undefined || values.photo!==undefined) && !(positionals[0]==='profiles' && positionals[1]==='set')) throw new Error('--title, --description and --photo are only supported by profiles set');
   const globalCommand=['set','unset','status'].includes(positionals[0] ?? '') && positionals[1]==='global';
@@ -283,7 +284,8 @@ try {
       const args=['--exec',...launchArguments(values,nativeArgs)];
       run(bundle,checked.route,args,undefined,root,true,{context,cli});
     } else {
-    const resolveOptions=checked?.kind==='entry' ? checked.options : linked?.options ?? {};
+    // --agent-only looks NAME up as an agent even when a profile has its name (the commands a profile tree prints).
+    const resolveOptions={...(checked?.kind==='entry' ? checked.options : linked?.options ?? {}),...(values['agent-only']?{agentOnly:true}:{})};
     if (checked?.kind==='entry') requested=checked.requested;
     const launches=!values.build && !values.explain && !values['print-launch'] && !values['print-acp'];
     if (launches && values.resume===undefined) launching={root,requested,workspace};

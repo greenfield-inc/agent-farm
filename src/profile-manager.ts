@@ -6,8 +6,8 @@ import {configurationName,namespaces,qualifiedName} from './config.js';
 import {resolveProfile} from './compiler.js';
 import {resolveWorkspace} from './workspaces.js';
 import {resolveTelemetry,telemetryAccess} from './runtime.js';
-import {profilesJson} from './profile-display.js';
-import {checkSvg} from './svg.js';
+import {profileJson,profileTitles} from './profile-display.js';
+import {readPhoto} from './svg.js';
 
 const revision=(text:string)=>createHash('sha256').update(text).digest('hex');
 function document(text:unknown){
@@ -23,12 +23,12 @@ export class ProfileManager{
   private context(name:string){const parsed=qualifiedName(name),context=this.catalog().find(c=>c.plugin===parsed.plugin);if(!context)throw Error('Profile namespace not found');return {context,name:parsed.name};}
   private source(file:string){const stat=fs.lstatSync(file);if(!stat.isFile()||stat.size>65536)throw Error('Profile must be a regular file at most 64 KiB');return fs.readFileSync(file,'utf8');}
   /** Display fields as `profiles list --json` reports them (local overrides merged in), keyed by qualified name. */
-  private displays(){const map=new Map<string,Record<string,unknown>>();try{for(const p of profilesJson(this.root).profiles)map.set(p.ref,p as Record<string,unknown>);}catch{/* Listing still works without them. */}return map;}
+
   /** The profile's SVG photo, checked again before it is served. */
-  photo(name:string){const entry=this.displays().get(name);if(!entry||typeof entry.photo!=='string')throw Error('This profile has no photo');const content=fs.readFileSync(entry.photo);checkSvg(content);return content;}
-  list(){const displays=this.displays();return this.catalog().flatMap(context=>{const dir=path.join(context.root,'profiles');if(!fs.existsSync(dir))return [];return fs.readdirSync(dir).filter(f=>f.endsWith('.yaml')).sort().map(file=>{const name=file.slice(0,-5),qualified=context.plugin?context.plugin+'/'+name:name;try{const r=resolveProfile(this.root,name,undefined,{namespace:context}),a=r.nodes.main!,d=displays.get(qualified);return {name:qualified,plugin:context.plugin,harness:a.harness,model:a.model,agent:a.qualified_name,title:d?.title,photo:typeof d?.photo==='string'};}catch(e){return {name:qualified,plugin:context.plugin,error:(e as Error).message};}});});}
+  photo(name:string){const entry=profileJson(this.root,name,{tree:false}) as Record<string,unknown>;if(typeof entry.photo!=='string')throw Error('This profile has no photo');return readPhoto(entry.photo,`photo of profile ${name}`,path.dirname(entry.photo));}
+  list(){const displays=profileTitles(this.root);return this.catalog().flatMap(context=>{const dir=path.join(context.root,'profiles');if(!fs.existsSync(dir))return [];return fs.readdirSync(dir).filter(f=>f.endsWith('.yaml')).sort().map(file=>{const name=file.slice(0,-5),qualified=context.plugin?context.plugin+'/'+name:name;try{const r=resolveProfile(this.root,name,undefined,{namespace:context}),a=r.nodes.main!,d=displays.get(qualified);return {name:qualified,plugin:context.plugin,harness:a.harness,model:a.model,agent:a.qualified_name,title:d?.title,photo:!!d?.photo};}catch(e){return {name:qualified,plugin:context.plugin,error:(e as Error).message};}});});}
   agents(){return this.catalog().flatMap(context=>{const dir=path.join(context.root,'agents');if(!fs.existsSync(dir))return [];return fs.readdirSync(dir,{withFileTypes:true}).flatMap(e=>{const name=e.isDirectory()&&fs.existsSync(path.join(dir,e.name,'agent.yaml'))?e.name:e.isFile()&&/\.(md|yaml)$/.test(e.name)?e.name.replace(/\.(md|yaml)$/,''):undefined;return name?[context.plugin?context.plugin+'/'+name:name]:[];});}).sort();}
-  get(name:string){const {context,name:local}=this.context(name),file=path.join(context.root,'profiles',local+'.yaml'),source=this.source(file);let resolved:unknown,definition:unknown,error:string|undefined;try{definition=document(source);resolved=this.resolve(local,definition as Record<string,unknown>,context);}catch(e){error=(e as Error).message;}const d=this.displays().get(name);return {name,source,definition,revision:revision(source),readOnly:!context.local,file,resolved,error,display:d?{title:d.title,description:d.description,photo:typeof d.photo==='string',sources:d.sources}:undefined};}
+  get(name:string){const {context,name:local}=this.context(name),file=path.join(context.root,'profiles',local+'.yaml'),source=this.source(file);let resolved:unknown,definition:unknown,error:string|undefined;try{definition=document(source);resolved=this.resolve(local,definition as Record<string,unknown>,context);}catch(e){error=(e as Error).message;}let d:Record<string,any>|undefined;try{d=profileJson(this.root,name,{tree:false}) as Record<string,any>;}catch{d=undefined;}return {name,source,definition,revision:revision(source),readOnly:!context.local,file,resolved,error,display:d&&!d.error?{title:d.title,description:d.description,photo:typeof d.photo==='string',sources:d.sources}:undefined};}
   compose(input:{source:string;agent:string;model:string;reasoning:string;speed:string;args:string}){
     if(document(input.source).variants!==undefined)throw Error('This profile has variants; edit them in the YAML source');qualifiedName(input.agent);
     const doc=parseDocument(input.source,{uniqueKeys:true});doc.set('agent',input.agent);
@@ -47,7 +47,8 @@ export class ProfileManager{
   duplicate(name:string){const current=this.get(name),{context}=this.context(name),value=document(current.source);
     // A copy lands in the local namespace, so plugin agents it names must be qualified, including every variant's.
     const qualify=(entry:Record<string,unknown>)=>{if(context.plugin&&typeof entry.agent==='string'&&!entry.agent.includes('/'))entry.agent=context.plugin+'/'+entry.agent;};
-    qualify(value);if(value.variants&&typeof value.variants==='object')for(const entry of Object.values(value.variants as Record<string,unknown>))if(entry&&typeof entry==='object')qualify(entry as Record<string,unknown>);
+    // The photo file stays with the plugin, so a local copy starts without one.
+    delete value.photo;qualify(value);if(value.variants&&typeof value.variants==='object')for(const entry of Object.values(value.variants as Record<string,unknown>))if(entry&&typeof entry==='object')qualify(entry as Record<string,unknown>);
     return {source:stringify(value)};}
   preview(input:{name:string;source:string;revision:string|null}){
     const name=configurationName(input.name,'profile name'),value=document(input.source);

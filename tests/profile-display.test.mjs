@@ -24,13 +24,22 @@ test('the SVG check accepts plain shapes and refuses anything it does not unders
   [svg('<image href="#x"/>'),/an <image> element/],
   ['<!DOCTYPE svg [<!ENTITY x "y">]><svg viewBox="0 0 1 1">&x;</svg>',/DOCTYPE or entity declaration/],
   [svg('<text>&x;</text>'),/entity other than/],
-  [svg('<style>@import url(https://evil.example/a.css);</style>'),/@import or an external url\(/],
-  [svg('<rect fill="url(https://evil.example/a)" width="1" height="1"/>'),/loads an external url\(/],
+  [svg("<style>@import url(https://evil.example/a.css);</style>"),/uses @import/],
+  [svg('<rect fill="url(https://evil.example/a)" width="1" height="1"/>'),/loads an external url\(|not a #fragment/],
   [svg('<rect width="1" height="1"/>'.repeat(3000)),/the limit is 65536 \(64 KB\)/],
   [Buffer.from([0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a,0xff,0xfe]),/not UTF-8 text, so not an SVG/],
   ['<svg width="1"></svg>',/no viewBox/],
   ['<html viewBox="0 0 1 1"></html>',/a <html> element/],
   [svg('<rect width="1"'),/never closed|not a plain element tag/],
+  [svg('<rect fill="&#x75;rl(https://evil.example/a)" width="1" height="1"/>'),/loads an external url\(|not a #fragment/],
+  [svg('<style>rect{fill:u\\72l(https://evil.example/a)}</style>'),/a CSS escape/],
+  [svg('<style>@im/**/port "x.css";</style>'),/a CSS comment|@import|an at-rule/],
+  [svg('<style>@font-face{font-family:x}</style>'),/an at-rule/],
+  [svg('<style>rect{background:image-set("https://e.example/a.png" 1x)}</style>'),/image-set\( or src\(/],
+  [svg('<rect style="fill:url(&#x27;https://e.example&#x27;)" width="1" height="1"/>'),/external url\(|not a #fragment/],
+  [svg('<g xml:base="https://evil.example/"><use href="#g"/></g>'),/sets xml:base/],
+  [svg('<rect width="1" width="2" height="1"/>'),/repeats the width attribute/],
+  [svg('<use href="#g&#x22; onload=&#x22;x"/>'),/points outside the file/],
   ['<svg viewBox="0 0 1 1"></svg><svg viewBox="0 0 1 1"></svg>',/content after the <svg> element/]]){
   assert.throws(()=>checkSvg(content),reason,String(reason));
  }
@@ -57,11 +66,15 @@ function fixture(t){
  return {base,source,root,put};
 }
 
-test('profiles carry a title, description and checked SVG photo; a bad photo fails plugin validate',t=>{
+test('profiles carry a title, description and checked SVG photo; a bad photo fails plugin validate but not a launch',t=>{
  const f=fixture(t),r=resolveProfile(f.root,'team/lead');
  assert.deepEqual(r.display,{title:'Lead',description:'Software work, start to finish.',photo:path.join(f.root,'plugins/team/profiles/lead.svg')});
  f.put('profiles/lead.svg',svg('<script>x</script>'));
  assert.throws(()=>validatePlugin(f.source),/The photo lead\.svg of profile team\/lead is refused: it has a <script> element/);
+ // The installed copy's photo is missing: the profile still resolves and lists, with the photo left out.
+ fs.rmSync(path.join(f.root,'plugins/team/profiles/lead.svg'));
+ assert.equal(resolveProfile(f.root,'team/lead').nodes.main.name,'lead');
+ const listed=profilesJson(f.root).profiles.find(p=>p.ref==='team/lead');assert.equal(listed.photo,null);assert.match(listed.photo_error,/is missing/);
  f.put('profiles/lead.yaml','photo: lead.png\nagent: lead\n');
  assert.throws(()=>validatePlugin(f.source),/photo must name an \.svg file next to the profile, such as lead\.svg \(photos are SVG only\)/);
  f.put('profiles/lead.yaml','title: "two\\nlines"\nagent: lead\n');
@@ -72,15 +85,15 @@ test('profiles list --json gives display fields, variants and a tree that stops 
  const f=fixture(t),{schema,profiles}=profilesJson(f.root),lead=profiles.find(p=>p.ref==='team/lead'),plain=profiles.find(p=>p.ref==='team/plain');
  assert.equal(schema,1);
  assert.deepEqual([lead.title,lead.description,lead.photo,lead.sources],['Lead','Software work, start to finish.',path.join(f.root,'plugins/team/profiles/lead.svg'),{title:'plugin',description:'plugin',photo:'plugin'}]);
- assert.deepEqual([plain.title,plain.description,plain.photo,plain.sources.title,plain.variants,plain.harness],['plain',null,null,'default',null,'codex']);
- assert.deepEqual(Object.keys(lead.variants),['claude','codex']);assert.equal(lead.variants.codex.agent,'team/lead-codex');assert.equal(lead.default_variant,'claude');
+ assert.deepEqual([plain.title,plain.description,plain.photo,plain.sources.title,plain.variants,plain.default,plain.harness],['plain',null,null,'default',null,null,'codex']);
+ assert.deepEqual(Object.keys(lead.variants),['claude','codex']);assert.equal(lead.variants.codex.agent,'team/lead-codex');assert.equal(lead.default,'claude');
  assert.deepEqual(lead.editable.via,'override');
  const by=(nodes,alias)=>nodes.find(n=>n.alias===alias);
  const reviewer=by(lead.tree,'reviewer');
- assert.deepEqual([reviewer.mode,reviewer.agent,reviewer.command,reviewer.variants,reviewer.description],['launch','team/reviewer','agent-farm run team/reviewer',['claude','codex'],'Reviews a PR']);
- const implementer=by(reviewer.children,'implementer');assert.equal(implementer.command,'agent-farm run team/implementer');
+ assert.deepEqual([reviewer.mode,reviewer.agent,reviewer.command,reviewer.variants,reviewer.default,reviewer.description],['launch','team/reviewer','agent-farm run team/reviewer --agent-only',['claude','codex'],'claude','Reviews a PR']);
+ const implementer=by(reviewer.children,'implementer');assert.equal(implementer.command,'agent-farm run team/implementer --agent-only');
  const back=by(implementer.children,'reviewer');assert.equal(back.cycle,true);assert.deepEqual(back.children,[]);
- assert.deepEqual([by(lead.tree,'helper').mode,by(lead.tree,'helper').command],['process','agent-farm run team/helper']);
+ assert.deepEqual([by(lead.tree,'helper').mode,by(lead.tree,'helper').command],['process','agent-farm run team/helper --agent-only']);
  assert.deepEqual([by(lead.tree,'notes').mode,by(lead.tree,'notes').command],['native',undefined]);
  assert.deepEqual([by(lead.tree,'anyone').any,by(lead.tree,'anyone').plugin],[true,'team']);
  const result=spawnSync(process.execPath,[cli,'profiles','list','--json','--config-root',f.root],{encoding:'utf8'});
@@ -120,4 +133,40 @@ test('profiles set edits a local profile file in place',t=>{
  const manager=new ProfileManager(f.root,f.base),got=manager.get('mine');
  assert.deepEqual([got.display.title,got.display.photo],['Mine',true]);assert.match(manager.photo('mine').toString(),/<svg/);
  assert.equal(manager.list().find(p=>p.name==='mine').title,'Mine');
+});
+
+test('the tree lists launch links under native nodes, and its commands open the agent even past a same-name profile',t=>{
+ const f=fixture(t);
+ f.put('agents/notes.md','---\nharness: claude\nmodel: claude-sonnet-5\nsubagents:\n  writer: {agent: helper, mode: launch}\n---\nN.\n');
+ f.put('profiles/reviewer.yaml','agent: helper\n');installPlugin(f.source,f.root);
+ const lead=profilesJson(f.root).profiles.find(p=>p.ref==='team/lead'),notes=lead.tree.find(n=>n.alias==='notes');
+ assert.deepEqual([notes.command,notes.children.map(c=>[c.alias,c.mode,c.agent])],[undefined,[['writer','launch','team/helper']]]);
+ const command=lead.tree.find(n=>n.alias==='reviewer').command.split(' ').slice(2);
+ const r=spawnSync(process.execPath,[cli,'run',...command,'--explain','--config-root',f.root,'--directory',f.base,'--no-workspace'],{encoding:'utf8'});
+ assert.equal(r.status,0,r.stderr);assert.equal(JSON.parse(r.stdout).trace_identity,'team/reviewer:claude@1.0.0');
+});
+
+test('a local photo edit keeps permissions, never changes another profile\'s photo, and changes nothing when it fails',{skip:process.platform==='win32'&&'POSIX modes'},t=>{
+ const f=fixture(t),profiles=path.join(f.root,'profiles');fs.mkdirSync(profiles,{recursive:true});
+ const blue=path.join(f.base,'blue.svg'),green=path.join(f.base,'green.svg');fs.writeFileSync(blue,svg('<circle cx="1" cy="1" r="1" fill="#00f"/>'));fs.writeFileSync(green,svg('<circle cx="1" cy="1" r="1" fill="#0f0"/>'));
+ fs.writeFileSync(path.join(profiles,'mine.yaml'),'agent: team/helper\n',{mode:0o600});fs.chmodSync(path.join(profiles,'mine.yaml'),0o600);
+ fs.writeFileSync(path.join(profiles,'mine.svg'),fs.readFileSync(blue));fs.writeFileSync(path.join(profiles,'other.yaml'),'agent: team/helper\nphoto: mine.svg\n');
+ setProfileDisplay(f.root,'mine',{title:'Mine',photo:green});
+ assert.equal(fs.statSync(path.join(profiles,'mine.yaml')).mode&0o777,0o600);
+ assert.match(fs.readFileSync(path.join(profiles,'mine.yaml'),'utf8'),/photo: mine-2\.svg/);
+ assert.equal(fs.readFileSync(path.join(profiles,'mine.svg'),'utf8'),fs.readFileSync(blue,'utf8'));
+ fs.writeFileSync(path.join(profiles,'broken.yaml'),'agent: team/missing\n');
+ assert.throws(()=>setProfileDisplay(f.root,'broken',{photo:green}),/missing/);
+ assert.deepEqual(fs.readdirSync(profiles).sort(),['broken.yaml','mine-2.svg','mine.svg','mine.yaml','other.yaml']);
+ // A photo must be a regular file, not a link, and is read with its size bounded.
+ fs.symlinkSync(green,path.join(f.base,'link.svg'));
+ assert.throws(()=>setProfileDisplay(f.root,'mine',{photo:path.join(f.base,'link.svg')}),/not a regular file/);
+ const override=setProfileDisplay(f.root,'team/lead',{title:'Private'});
+ assert.equal(fs.statSync(path.join(f.root,'profile-overrides/team/lead.json')).mode&0o777,0o600);assert.equal(override.title,'Private');
+});
+
+test('Duplicate to local leaves the plugin photo behind, so preview works',t=>{
+ const f=fixture(t),manager=new ProfileManager(f.root,f.base),{source}=manager.duplicate('team/lead');
+ assert.doesNotMatch(source,/photo:/);assert.match(source,/title: Lead/);
+ assert.equal(manager.preview({name:'my-lead',source,revision:null}).resolved.agent,'team/lead');
 });
