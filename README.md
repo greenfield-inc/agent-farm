@@ -37,7 +37,9 @@ plugin (its profiles and skills), explains how everything fits together, and
 offers to launch your first session. The `orchestra` and `machine-security` plugins ship in the same
 package but are installed only when you ask for them. After
 upgrading Agent Farm, rerun `agent-farm plugin install` and
-`agent-farm plugin install NAME` for each plugin you use, to pick up new profiles.
+`agent-farm plugin install NAME` for each other bundled plugin you use (`orchestra`,
+`machine-security`), to pick up new profiles. A plugin that is no longer in the
+package stays installed as it is until you run `agent-farm plugin uninstall NAME`.
 
 Launched agents run without permission prompts (Claude
 `--dangerously-skip-permissions`, Codex `--yolo`). Read

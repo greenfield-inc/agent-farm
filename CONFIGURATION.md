@@ -479,7 +479,8 @@ references: orchestra
 ```
 
 `references` names exactly one folder, `references/<name>/`, in the agent's own
-plugin (or the local namespace). A qualified name such as `orchestra/orchestra`
+plugin (or the local namespace). A qualified name such as `orchestra/orchestra` (the `orchestra` plugin's
+`references/orchestra/` folder, used from any other plugin)
 selects another plugin's folder, following the same cross-plugin rules as
 skills. The folder must exist and contain at least one file. Agents without the
 field get no references; children do not inherit them, so select the folder on
