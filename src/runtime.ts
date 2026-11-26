@@ -655,7 +655,9 @@ export function gcloudIdentities(env: NodeJS.ProcessEnv, home=os.homedir()): Arr
 /** gcloud output that means the identity needs a new sign-in, by class; anything else is `unknown`. */
 const gcloudLapses: Array<[string,RegExp]>=[
   ['reauth',/reauth|invalid_grant|invalid_rapt|refresh.{0,20}token|token.{0,20}(expired|revoked)|gcloud auth (application-default )?login/i],
-  ['no-credentials',/no credentialed accounts|do not currently have an active account|could not automatically determine credentials|was not found|no such file/i]];
+  ['no-credentials',/no credentialed accounts|do not currently have an active account|could not automatically determine credentials|was not found|no such file/i],
+  // A credentials file gcloud cannot read (truncated JSON, wrong type) is fixed by the same new sign-in, which rewrites it.
+  ['invalid-credentials',/is not a valid json file|does not have a valid type/i]];
 /** Asks gcloud for a token per identity (all at once, each stopped after `timeout` ms) and keeps only the exit
  *  status and the class of its error: the token on stdout is never read. A missing gcloud, a timeout or an
  *  unrecognised error is `unknown`, and a launch goes on without a note. */

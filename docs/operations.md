@@ -90,7 +90,8 @@ When the launch environment sets `CLOUDSDK_ACTIVE_CONFIG_NAME` or
 `gcloud auth print-access-token` for the configuration and
 `gcloud auth application-default print-access-token` for the credentials file,
 both at once, each stopped after 10 seconds. The token gcloud prints is discarded
-unread. An identity whose error says it needs a new sign-in is lapsed: the agent's
+unread. An identity whose error says it needs a new sign-in, or that its credentials
+file is not valid credentials, is lapsed: the agent's
 instructions (and its native subagents') say gcloud is unavailable, not to run or
 retry it, and to report blocked once asking the person to sign in again, and the
 launch prints one line on stderr naming each lapsed identity. Agent Farm does not

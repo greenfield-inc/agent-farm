@@ -39,6 +39,13 @@ test('gcloud: a reauth error marks the identity lapsed; the application-default 
  const adc=f.calls().find(c=>c.kind==='adc');
  assert.deepEqual([adc.args.join(' '),adc.adc],['auth application-default print-access-token','/creds/work.json']);
 });
+test('gcloud: an application-default file gcloud cannot read as credentials is lapsed',t=>{
+ const f=setup(t);writeHarness(f.bin,'gcloud',fakeGcloud);
+ for(const stderr of ['ERROR: (gcloud.auth.application-default.print-access-token) File /creds/work.json is not a valid json file.\n','ERROR: (gcloud.auth.application-default.print-access-token) The file /creds/work.json does not have a valid type. Type is None, expected one of (\'authorized_user\', \'service_account\').\n']){
+  const result=nativeGcloud({...f.env,GOOGLE_APPLICATION_CREDENTIALS:'/creds/work.json',FAKE_FAIL:'adc',FAKE_STDERR:stderr},f.home,{refresh:true,now:Date.now()});
+  assert.deepEqual(result.map(({state})=>state),['lapsed'],stderr);
+ }
+});
 test('gcloud: an error that is not about the sign-in is unknown, not lapsed',t=>{
  const f=setup(t);writeHarness(f.bin,'gcloud',fakeGcloud);
  const result=nativeGcloud({...f.env,CLOUDSDK_ACTIVE_CONFIG_NAME:'work',FAKE_FAIL:'cli',FAKE_STDERR:'ERROR: network unreachable\n'},f.home);
