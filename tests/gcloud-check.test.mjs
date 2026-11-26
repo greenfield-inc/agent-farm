@@ -128,7 +128,7 @@ test('gcloud: --print-launch prints one stderr line naming the lapsed identities
  const f=project(t);writeHarness(f.bin,'gcloud',fakeGcloud);
  const config=path.join(f.home,'.config/gcloud/configurations');fs.mkdirSync(config,{recursive:true});
  fs.writeFileSync(path.join(config,'config_work'),'[core]\naccount = person@example.com\nproject = demo\n');
- const r=spawnSync(process.execPath,[cli,'run','main','--print-launch','--directory',f.directory],{cwd:f.directory,encoding:'utf8',env:{...f.env,CLOUDSDK_ACTIVE_CONFIG_NAME:'work',GOOGLE_APPLICATION_CREDENTIALS:'/creds/work.json',FAKE_FAIL:'cli,adc'}});
+ const r=spawnSync(process.execPath,[cli,'run','main','--print-launch','--directory',f.directory],{cwd:f.directory,encoding:'utf8',env:{...f.env,CLOUDSDK_CONFIG:path.dirname(config),CLOUDSDK_ACTIVE_CONFIG_NAME:'work',GOOGLE_APPLICATION_CREDENTIALS:'/creds/work.json',FAKE_FAIL:'cli,adc'}});
  assert.equal(r.status,0,r.stderr);
  assert.equal(r.stderr.trim(),'agent-farm: gcloud sign-in has lapsed for the gcloud configuration "work" (person@example.com) and the application-default credentials at /creds/work.json; sign in again for them with your own gcloud sign-in command. Agents started now are told not to use gcloud.');
  assert.ok(!r.stdout.includes('SECRET_TOKEN'));
