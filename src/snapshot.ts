@@ -120,7 +120,9 @@ export function createSnapshot(configRoot:string,directory:string):Snapshot{
     if(fs.existsSync(target)&&!reuse()){const aside=path.join(parent,`.replaced-${randomUUID()}`);try{fs.renameSync(target,aside);fs.rmSync(aside,{recursive:true,force:true});}catch{/* Another launch replaced it first. */}}
     try{fs.renameSync(staging,target);}catch(error){if(!fs.existsSync(target))throw error;/* Another launch wrote it first; check that copy below. */}
   }finally{fs.rmSync(staging,{recursive:true,force:true});}
-  return reuse() ?? refuse(target,'does not hold the files its name was computed from, and could not be replaced');
+  // Launches racing to replace a bad folder can briefly leave the name empty or mid-swap; wait for the winner's copy.
+  for(let attempt=0;attempt<40;attempt++){const found=reuse();if(found)return found;Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,50);}
+  return refuse(target,'does not hold the files its name was computed from, and could not be replaced');
 }
 
 /** Opens the snapshot a launch was given. A relative path resolves against the launch directory. It is refused,

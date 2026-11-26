@@ -313,12 +313,11 @@ test('a moved resume whose snapshot is gone everywhere names the current directo
 
 test('concurrent fresh launches over a damaged folder never crash with a raw ENOENT (review note a)',async t=>{
  const f=fixture(t),{spawn}=await import('node:child_process');
- for(let round=0;round<3;round++){
+ for(let round=0;round<6;round++){
   const info=createSnapshot(f.root,f.target);fs.appendFileSync(path.join(info.path,'plugins/team/agents/lead.md'),'\nDamaged.\n');
   const one=()=>new Promise(resolve=>{const c=spawn(process.execPath,[cli,'snapshot','create','--json','--config-root',f.root,'--directory',f.target],{env:f.env});let err='';c.stderr.on('data',d=>err+=d);c.on('close',code=>resolve({code,err}));});
-  const results=await Promise.all(Array.from({length:6},one));
-  for(const r of results)assert.doesNotMatch(r.err,/ENOENT/,r.err);
-  assert.ok(results.some(r=>r.code===0));
+  const results=await Promise.all(Array.from({length:8},one));
+  for(const r of results){assert.doesNotMatch(r.err,/ENOENT/,r.err);assert.equal(r.code,0,r.err);}
   assert.doesNotMatch(fs.readFileSync(path.join(info.path,'plugins/team/agents/lead.md'),'utf8'),/Damaged/);
  }
 });
