@@ -1,0 +1,11 @@
+name: shared
+version: 2.0.0
+cli_major: 0
+source:
+  repository: https://example.com/shared-fixture.git
+  commit: 0000000000000000000000000000000000000000
+checksums:
+  profiles/implementer.yaml: 3ddddf7340aceb017a41106802360ffe8154a75575c919d4c5ba63b7469edb4a
+  agents/implementer.md: 9c484257c226484efea6b30f0887101ea374f9423f4436d9993efebad7d7a28f
+  agents/socrates.md: 3f03893b9bdc68de4939559109783d69a839cc84b99e2d3f36d7633f5afca756
+  skills/review/SKILL.md: 6faf959f67c1a470bc7a955d5a69fe23eaba15dcfcc75d0b265a7dd434554093

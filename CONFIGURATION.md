@@ -282,8 +282,8 @@ same resolved launch metadata as `--explain`, `--print-launch` and `--print-acp`
 
 Within a plugin, bare profile-agent, child-agent, and skill references resolve
 only in that plugin, regardless of what else is installed. A child may explicitly
-use another plugin (`agent: dcouple/socrates`), and a skill entry may do the same
-(`dcouple/review`). Missing dependencies fail validation and launch with the
+use another plugin (`agent: shared/socrates`), and a skill entry may do the same
+(`shared/review`). Missing dependencies fail validation and launch with the
 plugin name; `inspect` records resolved cross-plugin dependencies. Cycles,
 connection merging, native-child harness matching, and the one-level native-child
 limit apply across namespace boundaries. Instruction paths stay inside the
@@ -328,7 +328,7 @@ references: orchestra
 ```
 
 `references` names exactly one folder, `references/<name>/`, in the agent's own
-plugin (or the local namespace). A qualified name such as `dcouple/orchestra`
+plugin (or the local namespace). A qualified name such as `orchestra/orchestra`
 selects another plugin's folder, following the same cross-plugin rules as
 skills. The folder must exist and contain at least one file. Agents without the
 field get no references; children do not inherit them, so select the folder on
@@ -1102,10 +1102,7 @@ launch metadata, including any flag sources and `ad hoc` override marker.
 `sol`, and `codex`. `astra`, `sol` and `codex` all use GPT-6.2 Sol at medium
 effort on the ultrafast speed; `codex` also keeps
 its opt-in second opinion on Codex. See the [Greenfield guide](plugins/greenfield/README.md#orchestration)
-for Codex worker routing. It is the former `dcouple/raw`; its earlier `claude`, `standard`, and
-`fast` variants were removed. The `dcouple` plugin, which still ships for
-existing installs, also has an `implementer` profile, so use the qualified name
-when both plugins are installed. `agent-farm plugin uninstall dcouple` removes it.
+for Codex worker routing.
 
 ## Local MCP servers and native sign-in
 

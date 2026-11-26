@@ -20,10 +20,16 @@ test('relative links and anchors in tracked Markdown resolve',()=>{
    if(/^[a-z][a-z0-9+.-]*:/i.test(link))continue;
    const [target,anchor]=link.split('#');
    const resolved=target?path.join(root,path.dirname(file),target):path.join(root,file);
-   // bigbrain's quick-verify is a byte-identical greenfield copy; bigbrain does not ship the pr-test-automation it links to.
-   if(!fs.existsSync(resolved)){if(`${file}: ${link}`!=='plugins/bigbrain/skills/quick-verify/SKILL.md: ../pr-test-automation/references/cross-os-workspaces.md')broken.push(`${file}: ${link}`);}
+   if(!fs.existsSync(resolved))broken.push(`${file}: ${link}`);
    else if(anchor&&resolved.endsWith('.md')&&!anchors(resolved).has(anchor))broken.push(`${file}: ${link} (missing anchor)`);
   }
  }
  assert.deepEqual(broken,[]);
+});
+
+test('no doc names the removed bigbrain or dcouple plugins, apart from the CHANGELOG',()=>{
+ // plugins/orchestra is generated from the dcouple/orchestra GitHub repository and names it as its source.
+ const files=execFileSync('git',['ls-files','*.md','*.html'],{cwd:root,encoding:'utf8'}).split('\n').filter(file=>file&&file!=='CHANGELOG.md'&&!file.startsWith('plugins/orchestra/')&&file!=='scripts/orchestra-guide.html');
+ const named=files.filter(file=>/\b(bigbrain|dcouple)\b/i.test(fs.readFileSync(path.join(root,file),'utf8')));
+ assert.deepEqual(named,[]);
 });

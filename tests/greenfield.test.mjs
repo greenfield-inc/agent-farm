@@ -772,8 +772,6 @@ test('greenfield 0.0.46 tidies the Session as the host\'s rules say: archive wit
  for(const file of ['skills/orchestrate-sessions/SKILL.md','README.md'])assert.doesNotMatch(flatText(file),/Keep going, or stop\?|keep going, or stop\?|"Stop" leaves/,file);
  includesAll(['instructions/standing-rules.md'],['plans, PRs and mock-ups are otherwise linked from the status page, not opened','except the status page, which stays open until the Session wraps up','with the host\'s own close command','When the host\'s injected instructions give cleanup rules, they are the source']);
  for(const file of ['instructions/coordination.md','skills/orchestrate-sessions/SKILL.md'])assert.doesNotMatch(flatText(file),/after offering the end-of-Session sweep|you have offered the end-of-Session sweep|Always offer the sweep before/,file);
- const bigbrain=fs.readFileSync(path.join(root,'../bigbrain/skills/orchestrate/SKILL.md'),'utf8').replace(/\s+/g,' ');
- for(const rule of ['Archive a feature\'s workspace without asking','with the host\'s close command','When the host gives its own cleanup rules, they are the source'])assert.ok(bigbrain.includes(rule),rule);
 });
 
 test('greenfield 0.0.47 lets rare bugs stop blocking merge, weighs every fix by its cost, and gives each PR one fix-round budget QA and review share',()=>{
@@ -990,9 +988,9 @@ test('greenfield 0.0.51: the instructions say questions live only in the host\'s
  }
 });
 
-test('Greenfield and Bigbrain carry no Pane-specific instructions: a host supplies its own through its injected instructions or host_policy (D-398)',()=>{
+test('Greenfield carries no Pane-specific instructions: a host supplies its own through its injected instructions or host_policy (D-398)',()=>{
  const walk=dir=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(entry=>{const file=path.join(dir,entry.name);return entry.isDirectory()?walk(file):[file];});
- for(const plugin of ['greenfield','bigbrain'])for(const file of walk(path.join(root,'..',plugin))){
+ for(const file of walk(root)){
   if(!/\.(md|mjs|js|json|yaml|html)$/.test(file))continue;
   assert.doesNotMatch(fs.readFileSync(file,'utf8'),/\bpanes?\b|runpane|PANE_|pane:\/\/|"Asking the person in Pane"|Keep the Session tidy|secrets_request|"asked": "(relay \| )?notify"|through Notify|panel_id|panels wait/i,path.relative(path.join(root,'..'),file));
  }

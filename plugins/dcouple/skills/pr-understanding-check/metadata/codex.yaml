@@ -1,6 +1,0 @@
-interface:
-  display_name: PR understanding check
-  short_description: Map a finished PR or a plan as an iceberg, review the plan tables first, and quiz the person
-  default_prompt: Use $pr-understanding-check on this pull request or plan before I review it.
-policy:
-  allow_implicit_invocation: true
