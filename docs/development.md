@@ -38,8 +38,12 @@ Run the suite against scratch directories:
 pnpm build
 env -u CODEX_HOME -u AGENT_FARM_NATIVE_CODEX_HOME \
   HOME="$(mktemp -d)" AGENT_FARM_CONFIG_ROOT="$(mktemp -d)" \
-  node --test tests/*.test.mjs
+  node --import ./tests/clean-env.mjs --test tests/*.test.mjs
 ```
+
+`tests/clean-env.mjs` drops the `AGENT_FARM_PARENT`, `AGENT_FARM_SNAPSHOT` and
+`AGENT_FARM_CLI` a shell inherits from an agent launch (a Pane tab, a launch
+link), so the suite runs the same inside one.
 
 `pnpm test` runs the same tests after a build, using your real `HOME`. Don't
 combine `pnpm test` with a temporary `HOME`: pnpm then looks for its store and
@@ -56,8 +60,8 @@ and `~/.cache`, so set `HOME` to a temporary directory for those too.
 This repository tracks `.agent-farm/workspace.yaml`, which configures agents
 launched here. Until you approve it, `inspect`, `--explain`, and headless runs
 fail with a trust error. Run `agent-farm workspace trust`, or pass
-`--no-workspace`. Launches write bundles to `.agent-farm/generated/`, which is
-gitignored.
+`--no-workspace`. Launches write bundles to `.agent-farm/generated/` and
+snapshots to `.agent-farm/snapshots/`, which are both gitignored.
 
 ## Layout
 
