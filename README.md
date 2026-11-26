@@ -29,16 +29,17 @@ Codex CLI installed and authenticated. On Windows, turn on Developer Mode
 npm install --global @greenfieldco/agent-farm
 agent-farm init
 agent-farm plugin install orchestra    # optional: the overseer profile below
-agent-farm plugin install bigbrain     # optional: the one-front-door workflow below
 agent-farm plugin install machine-security  # optional: audit and harden this Mac or PC
 ```
 
 `agent-farm init` checks your prerequisites, installs the default `greenfield`
 plugin (its profiles and skills), explains how everything fits together, and
-offers to launch your first session. The `orchestra`, `bigbrain` and `machine-security` plugins ship in the same
+offers to launch your first session. The `orchestra` and `machine-security` plugins ship in the same
 package but are installed only when you ask for them. After
 upgrading Agent Farm, rerun `agent-farm plugin install` and
-`agent-farm plugin install NAME` for each plugin you use, to pick up new profiles.
+`agent-farm plugin install NAME` for each other bundled plugin you use (`orchestra`,
+`machine-security`), to pick up new profiles. A plugin that is no longer in the
+package stays installed as it is until you run `agent-farm plugin uninstall NAME`.
 
 Launched agents run without permission prompts (Claude
 `--dangerously-skip-permissions`, Codex `--yolo`). Read
@@ -97,16 +98,9 @@ and `seo-orchestrator` for running the whole SEO loop on a product (measure what
 shipped, investigate drops, rank quick wins, write pages as draft PRs) through
 five SEO roles.
 
-These profiles used to live in the `dcouple` plugin, which still ships for
-existing installs. `dcouple/raw` became `greenfield/implementer`; `dcouple/ideate`
-and `dcouple/implementer` were not moved. An installed `dcouple` keeps working
-until you run `agent-farm plugin uninstall dcouple`.
-
-**bigbrain** — An opt-in alternative to greenfield (`agent-farm plugin install bigbrain`): you talk only to `bigbrain/orchestrator`, which relays every worker's questions to you, every plan carries a control flow the implementer runs step by step, reviews happen only at planned points or on your word, and every document passes a bundled checker. See [plugins/bigbrain/README.md](plugins/bigbrain/README.md).
-
 **machine-security** — `machine-security/audit` scans the Mac or Windows PC you're working on (updates, disk encryption, antivirus and firewall, sharing and remote access, startup persistence, secrets on disk, SSH keys, package-manager and agent settings, MCP servers), reports what to fix first, and applies only the fixes you approve, one command at a time. The scans are read-only, never use sudo or elevation, and never print a secret value. See [plugins/machine-security/README.md](plugins/machine-security/README.md).
 
-**Guides** — The workflow plugins each have a one-page visual guide to their profiles and how work is routed: [greenfield](plugins/greenfield/index.html), [orchestra](plugins/orchestra/index.html), [bigbrain](plugins/bigbrain/index.html), and [dcouple](plugins/dcouple/index.html). They're also on Grain: [greenfield](https://rungrain.com/share/49gtyr7fi7hm75n71itmmlgl), [orchestra](https://rungrain.com/share/dmnwnvk2hbvsxcart76f29jk), and [dcouple](https://rungrain.com/share/6uxd73wjm97a2n2shyg5m6xz).
+**Guides** — The workflow plugins each have a one-page visual guide to their profiles and how work is routed: [greenfield](plugins/greenfield/index.html) and [orchestra](plugins/orchestra/index.html). They're also on Grain: [greenfield](https://rungrain.com/share/49gtyr7fi7hm75n71itmmlgl) and [orchestra](https://rungrain.com/share/dmnwnvk2hbvsxcart76f29jk).
 
 **Variants** — Some profiles come in more than one version, such as a Claude
 and a Codex planner. They're one profile with variants, and the menu shows
@@ -146,8 +140,8 @@ agent-farm run greenfield/reviewer:codex --message "Review PR #42"
 ```
 
 Several plugins can be installed together. Use `plugin/profile` when plugins
-publish the same name: both `dcouple` and `greenfield` have an `implementer`,
-so with both installed `agent-farm run implementer` stops and asks you to qualify it. Setting
+publish the same name: if another installed plugin also has an `implementer`,
+`agent-farm run implementer` stops and asks you to qualify it. Setting
 `"default_plugin": "greenfield"` in `settings.json` makes bare names prefer that plugin.
 
 `--arg` values are declared by each agent; `agent-farm inspect PROFILE` lists
@@ -201,7 +195,6 @@ of these files: connections name environment variables instead of holding values
 ```sh
 agent-farm plugin install                 # bundled greenfield
 agent-farm plugin install orchestra
-agent-farm plugin install bigbrain
 agent-farm plugin install machine-security
 agent-farm plugin install /path/to/plugin
 agent-farm plugin list
@@ -226,9 +219,8 @@ plugins, workspaces and trust, launch arguments, telemetry, and providers.
 - [Development](docs/development.md): build, test, and contribute
 - [Runbook](RUNBOOK.md): releases and bundled-plugin updates
 - [Example configurations](examples/)
-- Plugin guides: [greenfield](plugins/greenfield/README.md), [orchestra](plugins/orchestra/README.md), [bigbrain](plugins/bigbrain/README.md), [machine-security](plugins/machine-security/README.md), [dcouple](plugins/dcouple/index.html)
+- Plugin guides: [greenfield](plugins/greenfield/README.md), [orchestra](plugins/orchestra/README.md), [machine-security](plugins/machine-security/README.md)
 
-The bundled plugins are not all edited here. Maintainers publish `plugins/dcouple/`
-from a separate source repository, and `plugins/orchestra/` is generated from
-upstream by a script, so hand edits to either are overwritten. `plugins/greenfield/`
-is written here, and so are `plugins/machine-security/` and `plugins/bigbrain/`, except bigbrain's pinned copies of greenfield skills, which a script refreshes. See [RUNBOOK.md](RUNBOOK.md#update-bundled-plugins).
+The bundled plugins are not all edited here. `plugins/orchestra/` is generated
+from upstream by a script, so hand edits to it are overwritten. `plugins/greenfield/`
+and `plugins/machine-security/` are written here. See [RUNBOOK.md](RUNBOOK.md#update-bundled-plugins).

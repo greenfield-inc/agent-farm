@@ -1,6 +1,0 @@
-variants:
-  claude:
-    agent: claude-pr-reviewer
-  codex:
-    agent: codex-pr-reviewer
-default: claude

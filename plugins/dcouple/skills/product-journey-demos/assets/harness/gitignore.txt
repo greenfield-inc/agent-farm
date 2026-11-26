@@ -1,9 +1,0 @@
-# Copy to <project>/.gitignore. Sessions, recordings and audits never go in git.
-.auth/
-.video/
-recordings/
-audit/
-demo-files/
-harness/node_modules/
-*.webm
-*.tmp

@@ -1,6 +1,0 @@
-variants:
-  claude:
-    agent: standup-prep
-  codex:
-    agent: standup-prep-codex
-default: claude

@@ -47,12 +47,6 @@ same way: revert it, then release a new CLI version.
 The package ships everything under `plugins/`. CLI and plugin versions are
 independent; each plugin's version is in its `plugin.yaml`.
 
-- **dcouple**: maintainers publish `plugins/dcouple/` into this repository from
-  a separate source repository, and the publish procedure is documented there.
-  The publish replaces the whole folder and opens a pull request here. Never edit
-  `plugins/dcouple/` directly, because the next publish overwrites it. Before
-  merging that pull request, run the isolated test suite from
-  [docs/development.md](docs/development.md#keep-tests-off-your-real-config).
 - **orchestra**: generated from pinned upstream commits. Edit
   `scripts/orchestra-guide.html` for the guide page, and put any text changes in
   the script's patch list, never in the vendored files. Then regenerate:
@@ -73,19 +67,6 @@ independent; each plugin's version is in its `plugin.yaml`.
   compatible with Windows PowerShell 5.1. Both scripts' fixture tests are in
   `tests/machine-security.test.mjs`. The Windows ones need `pwsh` (or Windows
   PowerShell), and CI runs them on all three OSes.
-
-- **bigbrain**: authored in this repository, except its 16 copies of greenfield
-  skills, which are pinned to a greenfield commit. Never hand-edit a copy. Every
-  file under its `profiles/`, `agents/`, `skills/` and `instructions/` is
-  checksummed in `plugin.yaml`, so after any edit to a bigbrain file, and to move
-  the copies to a newer greenfield, run:
-
-  ```sh
-  node scripts/sync-bigbrain-from-greenfield.mjs [--commit <greenfield commit>]
-  ```
-
-  `--check` (run it before committing) fails on an edited copy or stale checksums and
-  reports drift from the current greenfield as information.
 
 Check a plugin before release with
 `node dist/cli.js plugin validate plugins/<name> --config-root "$(mktemp -d)"`.
