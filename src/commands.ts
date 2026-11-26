@@ -37,6 +37,7 @@ export const commands: Command[] = [
       {name: 'print-launch', description: 'Prepare a headless launch and print argv, cwd, bundle and env overrides as JSON. Consumers spawn the printed argv verbatim and must never assume argv[0] is the harness binary; it may be a wrapper with prefix arguments before the harness flags.', type: 'boolean'},
       {name: 'print-acp', description: 'Print the launch for an ACP client (an adapter command under the telemetry wrapper, cwd, env overrides, session/new settings and the session mode) as JSON. Interactive: LAUNCH CONTEXT says headless: false. See CONFIGURATION.md, ACP sessions.', type: 'boolean'},
       {name: 'acp-adapter', description: 'With --print-acp: the ACP adapter to run (a .js entry runs with Node.js); defaults to claude-agent-acp or codex-acp on PATH', type: 'string'},
+      {name: 'agent-only', description: 'Look NAME up as an agent, even when a profile has the same name (the commands in profiles list --json trees use it)', type: 'boolean'},
       {name: 'parent', description: 'The parent token (PLUGIN/NAME[:VARIANT]@LAUNCH-ID) of the agent starting this one; NAME must be one of its launch or process links. Defaults to AGENT_FARM_PARENT. See CONFIGURATION.md, Launch links.', type: 'string'},
       {name: 'resume', description: 'Reopen an earlier interactive session by the ID Agent Farm reported (AGENT_FARM_SESSION_ID) or a native session ID, on the variant that started it', type: 'string'},
       {name: 'strict-mcp', description: 'Leave out your own Claude MCP servers, and your own Codex ones under a host provider; the default (overrides settings.json mcp)', type: 'boolean'},
@@ -71,14 +72,31 @@ export const commands: Command[] = [
   },
   {
     name: 'profiles list',
-    usage: 'agent-farm profiles list',
+    usage: 'agent-farm profiles list [--json]',
     group: 'inspect',
-    description: 'List local and installed profiles with qualified name, plugin/version, ambiguity, agent, harness, and model.',
+    description: 'List local and installed profiles with qualified name, plugin/version, ambiguity, agent, harness, and model. --json adds each profile\'s title, description, SVG photo path (local overrides merged in), variants and subagent tree, for hosts such as Pane.',
     flags: [
+      {name: 'json', description: 'Print the listing as JSON (schema 1), with display fields and the subagent tree', type: 'boolean'},
       {name: 'config-root', description: 'Configuration directory', type: 'string', default: '~/.config/agent-farm'},
     ],
     examples: [
       'agent-farm profiles list',
+      'agent-farm profiles list --json',
+    ],
+  },
+  {
+    name: 'profiles set',
+    usage: 'agent-farm profiles set [PLUGIN/]NAME [--title TEXT] [--description TEXT] [--photo FILE.svg]',
+    group: 'configure',
+    description: 'Change a profile\'s title, description or SVG photo. A local profile\'s file is edited; an installed plugin\'s profile gets a local display override in the config root, which survives plugin reinstalls. An empty value removes the field. Photos must pass the SVG check (CONFIGURATION.md, Profile display fields).',
+    flags: [
+      {name: 'title', description: 'One line, at most 80 characters', type: 'string'},
+      {name: 'description', description: 'At most 1000 characters', type: 'string'},
+      {name: 'photo', description: 'An SVG file, at most 64 KB, that passes the allowlist check', type: 'string'},
+      {name: 'config-root', description: 'Configuration directory', type: 'string', default: '~/.config/agent-farm'},
+    ],
+    examples: [
+      'agent-farm profiles set greenfield/orchestrator --title "Orchestrator" --photo ./orchestrator.svg',
     ],
   },
   {

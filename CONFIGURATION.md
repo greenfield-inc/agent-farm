@@ -116,11 +116,65 @@ args:
   mode: fast
 ```
 
-Only `agent`, `model`, and `args` are accepted. A model preset may contain any
+Besides the optional display fields below, only `agent`, `model`, and `args` are accepted. A model preset may contain any
 of `name`, `reasoning`, and `speed`; omitted fields keep the agent value. A
 profile still cannot override the harness, tools, instructions, skills,
 connections, or children. Command-line flags take precedence over the profile
 preset, which takes precedence over agent defaults.
+
+### Profile display fields
+
+A profile may also carry what a host shows for it. All three are optional:
+
+```yaml
+# profiles/orchestrator.yaml
+title: Orchestrator          # one line, at most 80 characters; defaults to the name
+description: Software work. Plans, builds and reviews through its team.   # defaults to the agent's
+photo: orchestrator.svg      # next to this file; SVG only
+variants: …
+```
+
+The photo travels with the plugin (everything under `profiles/` is packed and
+checksummed). It must pass an allowlist check, which `plugin validate`,
+`profiles list --json`, `profiles set` and `agent-farm ui` run before using it
+(a launch never reads the photo), with no extra dependency; when in doubt it
+refuses and names the reason. A photo is UTF-8, at most 64 KB, with a root
+`<svg>` that has a `viewBox`. It may use only shapes (`path`, `rect`, `circle`,
+`ellipse`, `line`, `polyline`, `polygon`), `text` and `tspan`, `g`, gradients
+(`linearGradient`, `radialGradient`, `stop`), `title`, `desc`, `defs`, `style`
+and `use`. It may not contain `<script>`, `<foreignObject>`, `<image>`, an `on…`
+attribute, a DOCTYPE or entity declaration, an `href` or `xlink:href` other than
+`#fragment`, or, in a style, a CSS escape or comment, `@import`, `image-set(`,
+`src(` or an external `url(`. Character references are decoded before these
+checks, so `&#x75;rl(` counts as `url(`. The photo must be a regular file (not a
+link) next to the profile, read with its size bounded. Hosts should show
+photos only as `<img>`, which runs no script and loads nothing; `agent-farm ui`
+does.
+
+`agent-farm profiles set REF --title … --description … --photo FILE.svg`
+changes them. For a local profile it edits the profile file (keeping its
+comments and permissions) and copies the photo next to it as `<name>.svg`, or
+`<name>-2.svg` when another local profile uses that file; nothing changes if the
+edit fails. For an installed plugin's profile it
+writes a display override to `profile-overrides/<plugin>/<name>.json` (and the
+photo beside it) in the config root, so the edit survives a reinstall of the
+plugin, which never sees it. An empty value removes the field.
+
+`agent-farm profiles list --json` is the listing for hosts such as Pane. It
+prints `{"schema": 1, "profiles": [...]}`, one entry per profile:
+
+| Field | Meaning |
+| --- | --- |
+| `ref`, `name`, `plugin`, `version` | Identity |
+| `title`, `description`, `photo` | Display fields with overrides merged in; `photo` is an absolute path, or null when there is none or it fails its check (then `photo_error` says why) |
+| `sources` | For each display field: `plugin`, `file` (a local profile), `override`, or `default` |
+| `editable` | `via: file` (a local profile) or `override`, and the profile file |
+| `variants`, `default` | Each variant's agent, harness and model, default first; `null` for a single-agent profile, which has `agent`, `harness` and `model` instead |
+| `command` | `agent-farm run REF` |
+| `tree` | The default variant's subagents: each node has `alias`, `agent`, `mode` (`native`, `process` or `launch`), its `variant` or `variants` and `default`, `description`, a `command` for process and launch nodes (no `--parent`: a person needs none), and `children`. A link back to an agent already on the path has `cycle: true` and no children; an `any: true` link has `any` and `plugin`; a target that doesn't resolve has `error` |
+
+An entry that fails to resolve has `ref`, `name`, `plugin`, `version` and `error` only. The text output of
+`profiles list` is unchanged.
 
 ### Variants
 
@@ -791,6 +845,9 @@ the selected project. The project determines trusted workspace context when
 resolving a profile. Profile inspection and validation still enforce workspace
 trust, even when `--directory` bypasses workspace discovery for telemetry.
 
+- Each profile shows its title, description and photo (as an `<img>`), with any
+  local display override merged in, and the `profiles set` command that changes
+  them. The list shows a title next to the name when it differs.
 - **New profile** creates a launch preset referencing an existing agent, with an
   optional model override. Define agents through `agent-farm init` or configuration
   files first; this version does not edit shared agent definitions.

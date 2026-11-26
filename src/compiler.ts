@@ -43,9 +43,23 @@ function selectVariant(definition:Record<string,unknown>,shown:string,requested?
  const entry=mapping(table[variant]);if(typeof entry.agent!=='string')throw new Error(`${shown} variant ${variant} requires an agent`);return {variants,default:definition.default,variant,entry};
 }
 
+export interface ProfileDisplay{title?:string;description?:string;photo?:string}
+/** A profile's display fields: an optional one-line title, a description, and the path of an SVG photo next to
+ *  the profile file. Returns undefined when none is set. */
+export function profileDisplay(input:{title?:unknown;description?:unknown;photo?:unknown},file:string,shown:string):ProfileDisplay|undefined{
+ const result:ProfileDisplay={};
+ if(input.title!==undefined){if(typeof input.title!=='string'||!input.title.trim()||input.title.length>80||/[\r\n]/.test(input.title))throw new Error(`${shown} title must be one line of text, at most 80 characters`);result.title=input.title;}
+ if(input.description!==undefined){if(typeof input.description!=='string'||!input.description.trim()||input.description.length>1000)throw new Error(`${shown} description must be text, at most 1000 characters`);result.description=input.description;}
+ // Only the name is checked here: resolving runs on every launch, so the photo itself is read and checked by
+ // plugin validate, profiles list --json, profiles set and the UI (svg.ts readPhoto), never by a launch.
+ if(input.photo!==undefined){if(typeof input.photo!=='string'||!/^[A-Za-z0-9][A-Za-z0-9._-]{0,95}\.svg$/.test(input.photo))throw new Error(`${shown} photo must name an .svg file next to the profile, such as ${path.basename(file,'.yaml')}.svg (photos are SVG only)`);result.photo=path.join(path.dirname(file),input.photo);}
+ return Object.keys(result).length?result:undefined;
+}
 export interface Resolution{nodes:Record<string,Agent>;profile:string;profile_name:string;
  /** profile: the name is a profile file; agent: an agent or an agent variant set. */
- entry_kind:'profile'|'agent';set_file?:string;variant?:string;variants?:string[];default_variant?:string;profile_file?:string;plugin?:string;plugin_version?:string;namespace_root:string;cross_plugin_dependencies:Array<{plugin:string;version?:string;references:string[]}>;}
+ entry_kind:'profile'|'agent';set_file?:string;
+ /** A profile's title, description and photo (an absolute path), as its file states them. */
+ display?:ProfileDisplay;variant?:string;variants?:string[];default_variant?:string;profile_file?:string;plugin?:string;plugin_version?:string;namespace_root:string;cross_plugin_dependencies:Array<{plugin:string;version?:string;references:string[]}>;}
 export interface ResolveOptions{hostRoot?:string;namespace?:Namespace;profileDocument?:Record<string,unknown>;
  /** Look the name up as an agent only, as a launch link's target is. */
  agentOnly?:boolean;
@@ -69,7 +83,9 @@ export function resolveProfile(root:string,requested:string,workspace?:ResolvedW
  let profileDefinition:Record<string,unknown>|undefined,profileModel:Record<string,unknown>|undefined,profileArguments:unknown,preset:string|undefined,variant:string|undefined,variants:string[]|undefined,defaultVariant:string|undefined;
  const shown=selected.plugin?`${selected.plugin}/${entryName}`:entryName,setFile=selectedProfileFile?undefined:variantSetFile(selected,entryName);
  if(variantRequest!==undefined&&!selectedProfileFile&&!setFile)throw new Error(`${shown} is a single agent with no variants; run it without :${variantRequest}`);
+ let display:ProfileDisplay|undefined;
  if(selectedProfileFile||setFile){profileDefinition=selectedProfileFile?(options.profileDocument??read(selectedProfileFile)):read(setFile!);
+  if(selectedProfileFile){const {title,description,photo,...rest}=profileDefinition;display=profileDisplay({title,description,photo},selectedProfileFile,`Profile ${shown}`);profileDefinition=rest;}
   if(profileDefinition.variants!==undefined){const chosen=selectVariant(profileDefinition,selectedProfileFile?`Profile ${shown}`:`Agent ${shown}`,variantRequest);variants=chosen.variants;defaultVariant=chosen.default;variant=chosen.variant;profileDefinition=chosen.entry;}
   else if(variantRequest!==undefined)throw new Error(`Profile ${shown} has no variants`);
   fields(profileDefinition,['agent','model','args']);if(profileDefinition.model!==undefined){profileModel=mapping(profileDefinition.model);fields(profileModel,['name','reasoning','speed']);}if(profileDefinition.args!==undefined)profileArguments=profileDefinition.args;if(profileDefinition.model!==undefined||profileDefinition.args!==undefined)preset=variant?`${entryName}:${variant}`:entryName;}
@@ -110,7 +126,7 @@ export function resolveProfile(root:string,requested:string,workspace?:ResolvedW
  }
  if(profileDefinition)visit(profileDefinition.agent,selected,[],'main');else visit(entryName,selected,[],'main');
  if(variant&&nodes.main!.harness!==variant)throw new Error(`${selectedProfileFile?'Profile':'Agent'} ${shown} variant ${variant} names ${nodes.main!.harness} agent ${nodes.main!.qualified_name}; a ${variant} variant must name a ${variant} agent`);
- const profile=selected.plugin?`${selected.plugin}/${entryName}`:entryName,cross_plugin_dependencies=[...dependencyMap].sort(([a],[b])=>a.localeCompare(b)).map(([plugin,value])=>({plugin,version:value.version,references:[...value.references].sort()}));return {nodes,profile,profile_name:entryName,entry_kind:selectedProfileFile?'profile':'agent',...(setFile?{set_file:setFile}:{}),...(variant?{variant,variants,default_variant:defaultVariant}:{}),profile_file:selectedProfileFile,plugin:selected.plugin,plugin_version:selected.version,namespace_root:selected.root,cross_plugin_dependencies};
+ const profile=selected.plugin?`${selected.plugin}/${entryName}`:entryName,cross_plugin_dependencies=[...dependencyMap].sort(([a],[b])=>a.localeCompare(b)).map(([plugin,value])=>({plugin,version:value.version,references:[...value.references].sort()}));return {nodes,profile,profile_name:entryName,...(display?{display}:{}),entry_kind:selectedProfileFile?'profile':'agent',...(setFile?{set_file:setFile}:{}),...(variant?{variant,variants,default_variant:defaultVariant}:{}),profile_file:selectedProfileFile,plugin:selected.plugin,plugin_version:selected.version,namespace_root:selected.root,cross_plugin_dependencies};
 }
 
 /** Variant names with the default first, the order every picker and listing uses. */

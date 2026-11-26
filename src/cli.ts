@@ -13,6 +13,7 @@ import {spawnSync} from 'node:child_process';
 import {loginCommand,loginPlan} from './mcp-auth.js';
 import {loadWorkspace,unloadWorkspace,loadedWorkspaces} from './user-workspaces.js';
 import {inspectProfile,listProfiles} from './inspect.js';
+import {profilesJson,setProfileDisplay} from './profile-display.js';
 import {loadProfile,unloadProfile,loadedProfiles,globalSkills,globalSkillWarning,saveGlobalSkills} from './user-skills.js';
 import {configurationName,loadHostSettings} from './config.js';
 
@@ -88,7 +89,7 @@ try {
     'config-root':{type:'string',default:path.join(os.homedir(),'.config/agent-farm')},
     save:{type:'string'},model:{type:'string'},reasoning:{type:'string'},speed:{type:'string'},arg:{type:'string',multiple:true},harness:{type:'string'},'no-workspace':{type:'boolean'},yes:{type:'boolean'},directory:{type:'string',default:process.cwd()},'base-url':{type:'string'},'api-key-env':{type:'string'},
     build:{type:'boolean'},exec:{type:'boolean'},message:{type:'string'},explain:{type:'boolean'},
-    'print-launch':{type:'boolean'},'print-acp':{type:'boolean'},'acp-adapter':{type:'string'},'native-arg':{type:'string',multiple:true},resume:{type:'string'},'strict-mcp':{type:'boolean'},'inherit-mcp':{type:'boolean'},parent:{type:'string'}
+    'print-launch':{type:'boolean'},'print-acp':{type:'boolean'},'acp-adapter':{type:'string'},'native-arg':{type:'string',multiple:true},resume:{type:'string'},'strict-mcp':{type:'boolean'},'inherit-mcp':{type:'boolean'},parent:{type:'string'},'agent-only':{type:'boolean'},json:{type:'boolean'},title:{type:'string'},description:{type:'string'},photo:{type:'string'}
   }});
   const separator=tokens.find(t=>t.kind==='option-terminator')?.index ?? rawArgs.length;
   const positionals=tokens.flatMap(t=>t.kind==='positional' && t.index<separator ? [t.value] : []);
@@ -97,6 +98,9 @@ try {
   if ((values['print-launch'] || values['print-acp'] || values['acp-adapter']!==undefined || values['native-arg'] || values.resume!==undefined || separator<rawArgs.length) && !['run','agent'].includes(positionals[0] ?? '')) throw new Error('Prepared launches, --resume and native arguments require run or agent');
   if ((values['strict-mcp'] || values['inherit-mcp']) && !['run','agent'].includes(positionals[0] ?? '')) throw new Error('--strict-mcp and --inherit-mcp require run or agent');
   if (values.parent!==undefined && !runCommand) throw new Error('--parent requires run or agent');
+  if (values['agent-only'] && !runCommand) throw new Error('--agent-only requires run or agent');
+  if (values.json && !(positionals[0]==='profiles' && positionals[1]==='list')) throw new Error('--json is only supported by profiles list');
+  if ((values.title!==undefined || values.description!==undefined || values.photo!==undefined) && !(positionals[0]==='profiles' && positionals[1]==='set')) throw new Error('--title, --description and --photo are only supported by profiles set');
   const globalCommand=['set','unset','status'].includes(positionals[0] ?? '') && positionals[1]==='global';
   if(values.yes && !(positionals[0]==='workspace'&&positionals[1]==='trust'))throw new Error('--yes is only supported by workspace trust');
   if(values['no-workspace'] && !runCommand && positionals[0]!=='inspect' && !(positionals[0]==='mcp'&&positionals[1]==='login') && !(positionals[0]==='workspace'&&positionals[1]==='show'))throw new Error('--no-workspace is supported by run, inspect, mcp login, and workspace show');
@@ -220,13 +224,20 @@ try {
     else if(operation==='uninstall'&&positionals.length===3)console.log(JSON.stringify(uninstallPlugin(positionals[2]!,path.resolve(values['config-root']!)),null,2));
     else throw new Error('Use: agent-farm plugin validate SOURCE | pack SOURCE OUTPUT | install [SOURCE|BUNDLED-NAME] | list | uninstall NAME');
   } else if (positionals[0]==='profiles' || positionals[0]==='inspect') {
-    if (positionals.length!==2 || (positionals[0]==='profiles' && positionals[1]!=='list')) throw new Error('Use: agent-farm profiles list or agent-farm inspect NAME');
+    if (positionals[0]==='profiles' && positionals[1]==='set') {
+      if (positionals.length!==3) throw new Error('Use: agent-farm profiles set REF [--title TEXT] [--description TEXT] [--photo FILE.svg]');
+      if (values.harness || values.message!==undefined || values.build || values.exec || values.explain) throw new Error('profiles set does not accept launch options');
+      console.log(JSON.stringify(setProfileDisplay(path.resolve(values['config-root']!),positionals[2]!,{title:values.title,description:values.description,photo:values.photo}),null,2));
+    } else {
+    if (positionals.length!==2 || (positionals[0]==='profiles' && positionals[1]!=='list')) throw new Error('Use: agent-farm profiles list [--json], profiles set REF, or agent-farm inspect NAME');
     if (values.harness || values.message!==undefined || values.build || values.exec || values.explain) throw new Error('Inspection does not accept launch options');
     const root=path.resolve(values['config-root']!);
     if (positionals[0]==='inspect') console.log(JSON.stringify(inspectProfile(root,positionals[1]!,{directory:values.directory,noWorkspace:values['no-workspace']}),null,2));
+    else if (values.json) console.log(JSON.stringify(profilesJson(root),null,2));
     else {
       const profiles=listProfiles(root);
       console.log(profiles.length ? profiles.map(p=>`${p.qualified}${variantLabel(p)} -> ${p.agent}${p.ambiguous?' [ambiguous bare name]':''} | plugin ${p.plugin??'local'} ${p.plugin_version??'-'} | ${p.harness} | ${p.model.name} ${p.model.reasoning ?? 'default'} | ${p.model.speed}`).join('\n') : 'No launch profiles found.');
+    }
     }
   } else if (['load','unload','loaded'].includes(positionals[0] ?? '')) {
     const operation=positionals[0];
@@ -273,7 +284,8 @@ try {
       const args=['--exec',...launchArguments(values,nativeArgs)];
       run(bundle,checked.route,args,undefined,root,true,{context,cli});
     } else {
-    const resolveOptions=checked?.kind==='entry' ? checked.options : linked?.options ?? {};
+    // --agent-only looks NAME up as an agent even when a profile has its name (the commands a profile tree prints).
+    const resolveOptions={...(checked?.kind==='entry' ? checked.options : linked?.options ?? {}),...(values['agent-only']?{agentOnly:true}:{})};
     if (checked?.kind==='entry') requested=checked.requested;
     const launches=!values.build && !values.explain && !values['print-launch'] && !values['print-acp'];
     if (launches && values.resume===undefined) launching={root,requested,workspace};
