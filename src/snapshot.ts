@@ -118,7 +118,9 @@ export function createSnapshot(configRoot:string,directory:string):Snapshot{
     fs.writeFileSync(path.join(staging,'checksums.json'),JSON.stringify(contents(staging),null,2));
     // A folder at the name that holds other files (damaged, or planted) is moved aside and replaced in one rename.
     if(fs.existsSync(target)&&!reuse()){const aside=path.join(parent,`.replaced-${randomUUID()}`);try{fs.renameSync(target,aside);fs.rmSync(aside,{recursive:true,force:true});}catch{/* Another launch replaced it first. */}}
-    try{fs.renameSync(staging,target);}catch(error){if(!fs.existsSync(target))throw error;/* Another launch wrote it first; check that copy below. */}
+    // A lost race (another launch's copy is in place, or is being swapped) falls through to the wait below; EPERM is
+    // the Windows form.
+    try{fs.renameSync(staging,target);}catch(error){if(!['ENOTEMPTY','EEXIST','EPERM'].includes((error as NodeJS.ErrnoException).code!)&&!fs.existsSync(target))throw error;}
   }finally{fs.rmSync(staging,{recursive:true,force:true});}
   // Launches racing to replace a bad folder can briefly leave the name empty or mid-swap; wait for the winner's copy.
   for(let attempt=0;attempt<40;attempt++){const found=reuse();if(found)return found;Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,50);}
@@ -153,7 +155,9 @@ function receipts(root:string):Record<string,string>{
 }
 
 /** True when a snapshot's plugins differ from those installed in a config root: a plugin added, removed, or with any
- *  file changed (receipts compare by checksum, so an edit without a version bump counts). */
+ *  file changed (receipts compare by checksum, so an edit without a version bump counts), or a different
+ *  default_plugin, which decides what a bare name resolves to. */
 export function differsFromInstalled(snapshot:string,configRoot:string):boolean{
-  return canonical(receipts(snapshot))!==canonical(receipts(configRoot));
+  const preferred=(root:string)=>{try{return loadHostSettings(root).default_plugin;}catch{return 'unreadable';}};
+  return canonical(receipts(snapshot))!==canonical(receipts(configRoot))||preferred(snapshot)!==preferred(configRoot);
 }

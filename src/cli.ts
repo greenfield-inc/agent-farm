@@ -298,7 +298,7 @@ try {
       // An inherited snapshot wins over --config-root. Say so only when it differs from what that root has installed
       // (D-7): a Pane Session tab passes --config-root and a matching snapshot, and stays quiet; a check against
       // another plugin version is warned.
-      : inherited ? (()=>{const opened=openSnapshot(inherited,directory);if(differsFromInstalled(opened.path,realRoot))console.error(`Resolving from ${snapshotVariable}=${inherited}, whose plugins differ from those installed in ${realRoot} (set ${snapshotVariable}= to resolve from --config-root)`);return opened;})()
+      : inherited ? (()=>{const opened=openSnapshot(inherited,directory);if(differsFromInstalled(opened.path,realRoot))console.error(`Resolving from ${snapshotVariable}=${inherited}, which differs from what is installed in ${realRoot} (set ${snapshotVariable}= to resolve from --config-root)`);return opened;})()
       : createSnapshot(realRoot,directory);
     const root=snapshot.path,built={snapshot:{path:snapshot.path,digest:snapshot.digest}};
     // A resume whose recorded name no longer resolves (a removed profile, agent or variant) starts nothing: there is

@@ -238,7 +238,7 @@ test('an inherited snapshot says so on stderr, since it wins over --config-root 
  const f=fixture(t),v1=createSnapshot(f.root,f.target);f.install(2);
  const r=f.invoke(['team/reviewer','--explain'],{AGENT_FARM_SNAPSHOT:v1.path});assert.equal(r.status,0,r.stderr);
  assert.equal(JSON.parse(r.stdout).plugin_version,'1.0.0');
- assert.ok(r.stderr.includes(`Resolving from AGENT_FARM_SNAPSHOT=${v1.path}, whose plugins differ from those installed in ${f.root} (set AGENT_FARM_SNAPSHOT= to resolve from --config-root)`),r.stderr);
+ assert.ok(r.stderr.includes(`Resolving from AGENT_FARM_SNAPSHOT=${v1.path}, which differs from what is installed in ${f.root} (set AGENT_FARM_SNAPSHOT= to resolve from --config-root)`),r.stderr);
  const flag=f.invoke(['team/reviewer','--explain','--snapshot',v1.path]);assert.doesNotMatch(flag.stderr,/Resolving from AGENT_FARM_SNAPSHOT/);
  // An explicit --snapshot wins over a broken inherited one.
  assert.equal(f.invoke(['team/reviewer','--explain','--snapshot',v1.path],{AGENT_FARM_SNAPSHOT:path.join(f.base,'gone')}).status,0);
@@ -309,6 +309,10 @@ test('the inherited-snapshot line prints only when the snapshot differs from wha
  fs.writeFileSync(path.join(extra,'plugin.yaml'),'name: extra\nversion: 1.0.0\ncli_major: 0\n');fs.writeFileSync(path.join(extra,'agents/solo.md'),'---\nharness: claude\nmodel: claude-opus-5-5\n---\nSolo.\n');fs.mkdirSync(path.join(extra,'profiles'));fs.writeFileSync(path.join(extra,'profiles/solo.yaml'),'agent: solo\n');
  installPlugin(extra,f.root);
  assert.match(f.invoke(['team/reviewer','--explain'],{AGENT_FARM_SNAPSHOT:v2.path}).stderr,line);
+ // So does a different default_plugin.
+ const v3=createSnapshot(f.root,f.target);assert.doesNotMatch(f.invoke(['team/reviewer','--explain'],{AGENT_FARM_SNAPSHOT:v3.path}).stderr,line);
+ fs.writeFileSync(path.join(f.root,'settings.json'),JSON.stringify({default_plugin:'extra'}));
+ assert.match(f.invoke(['team/reviewer','--explain'],{AGENT_FARM_SNAPSHOT:v3.path}).stderr,line);
 });
 
 test('a moved resume whose snapshot is gone everywhere names the current directory',t=>{
@@ -320,13 +324,18 @@ test('a moved resume whose snapshot is gone everywhere names the current directo
  assert.ok(r.stderr.includes(`Snapshot ${path.join(moved,record.snapshot)} is missing`),r.stderr);
 });
 
-test('concurrent fresh launches over a damaged folder never crash with a raw ENOENT (review note a)',async t=>{
+test('concurrent fresh launches over a damaged folder never crash with a raw ENOENT or ENOTEMPTY (review notes)',async t=>{
  const f=fixture(t),{spawn}=await import('node:child_process');
+ // About 300 skill files widen the race window enough to show a lost rename (review round 3).
+ const bulk=path.join(f.base,'plugin-1/skills/bulk');fs.mkdirSync(bulk,{recursive:true});fs.writeFileSync(path.join(bulk,'SKILL.md'),'---\nname: bulk\ndescription: Bulk.\n---\nBulk.\n');
+ for(let i=0;i<300;i++)fs.writeFileSync(path.join(bulk,`part-${i}.md`),`Part ${i}.\n`);
+ installPlugin(path.join(f.base,'plugin-1'),f.root);
  for(let round=0;round<6;round++){
   const info=createSnapshot(f.root,f.target);fs.appendFileSync(path.join(info.path,'plugins/team/agents/lead.md'),'\nDamaged.\n');
-  const one=()=>new Promise(resolve=>{const c=spawn(process.execPath,[cli,'snapshot','create','--json','--config-root',f.root,'--directory',f.target],{env:f.env});let err='';c.stderr.on('data',d=>err+=d);c.on('close',code=>resolve({code,err}));});
+  // Fresh launches, as the reviewer's repro ran them: each also builds a bundle, so they overlap the way real launches do.
+  const one=()=>new Promise(resolve=>{const c=spawn(process.execPath,[cli,'run','team/lead','--explain','--no-workspace','--config-root',f.root,'--directory',f.target],{env:f.env});let err='';c.stderr.on('data',d=>err+=d);c.stdout.resume();c.on('close',code=>resolve({code,err}));});
   const results=await Promise.all(Array.from({length:8},one));
-  for(const r of results){assert.doesNotMatch(r.err,/ENOENT/,r.err);assert.equal(r.code,0,r.err);}
+  for(const r of results){assert.doesNotMatch(r.err,/ENOENT|ENOTEMPTY|EEXIST|EPERM/,r.err);assert.equal(r.code,0,r.err);}
   assert.doesNotMatch(fs.readFileSync(path.join(info.path,'plugins/team/agents/lead.md'),'utf8'),/Damaged/);
  }
 });

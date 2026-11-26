@@ -406,8 +406,8 @@ this order:
 3. An inherited `AGENT_FARM_SNAPSHOT` (empty counts as unset). It wins over
    `--config-root`, so when its plugins differ from those installed in the
    config root in use (a plugin added, removed, or with any file changed, by its
-   receipt's checksums), the launch prints `Resolving from AGENT_FARM_SNAPSHOT=PATH,
-   whose plugins differ from those installed in ROOT (set AGENT_FARM_SNAPSHOT= to
+   receipt's checksums), or its `default_plugin` differs, the launch prints `Resolving from AGENT_FARM_SNAPSHOT=PATH,
+   which differs from what is installed in ROOT (set AGENT_FARM_SNAPSHOT= to
    resolve from --config-root)` on stderr. A snapshot that matches stays quiet.
 4. Otherwise a new snapshot of what is installed, in the launch directory.
 
