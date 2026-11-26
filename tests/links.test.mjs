@@ -138,7 +138,8 @@ test('any: true lets an agent start any agent in its plugin',t=>{
 test('a process link started by name runs the same compiled route its dispatcher runs',t=>{
  const f=fixture(t),parent='team/lead@abc';
  const byName=f.invoke(['helper','--explain','--parent',parent]);assert.equal(byName.status,0,byName.stderr);
- const bundle=build(f.root,'team/lead',f.target);
+ // The lead built the way the CLI builds it: from a snapshot of what is installed, the same one the helper used.
+ const bundle=f.invoke(['team/lead','--build']).stdout.trim();
  const dispatched=spawnSync(process.execPath,[path.join(bundle,'main/dispatch/helper'),'--explain'],{encoding:'utf8',env:{...f.env,AGENT_FARM_CONFIG_ROOT:f.root}});
  assert.equal(dispatched.status,0,dispatched.stderr);
  const [a,b]=[JSON.parse(byName.stdout),JSON.parse(dispatched.stdout)];

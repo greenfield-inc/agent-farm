@@ -20,7 +20,7 @@
   "scripts": {
     "build": "tsc && node -e \"fs.chmodSync('dist/cli.js',0o755)\"",
     "typecheck": "tsc --noEmit",
-    "test": "pnpm build && node --test tests/*.test.mjs",
+    "test": "pnpm build && node --import ./tests/clean-env.mjs --test tests/*.test.mjs",
     "prepack": "pnpm build",
     "prepare": "npm run build"
   },

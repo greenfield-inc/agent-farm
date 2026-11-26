@@ -237,12 +237,13 @@ export function showWorkspace(root:string,options:WorkspaceOptions={}){
   }
   return resolveWorkspace(root,options);
 }
-export function generatedHint(directory:string,home=os.homedir()){
+/** Asks once to git-ignore an Agent Farm output folder: generated bundles, or snapshots. */
+export function generatedHint(directory:string,home=os.homedir(),folder:'generated'|'snapshots'='generated'){
   const repo=repository(directory);if(!repo)return;
-  const generated=path.join(directory,'.agent-farm/generated'),relative=path.relative(repo.root,generated);
+  const generated=path.join(directory,'.agent-farm',folder),relative=path.relative(repo.root,generated);
   try{execFileSync('git',['-C',repo.root,'check-ignore','-q',relative+'/probe'],{stdio:'ignore'});return;}catch{/* Show once if the output is not ignored. */}
   const marker=path.join(home,'.local/state/agent-farm/generated-hints',hash(generated));
   if(fs.existsSync(marker))return;
-  console.error(`Hint: add /${relative}/ to ${path.join(repo.root,'.gitignore')} to ignore generated Agent Farm bundles.`);
+  console.error(`Hint: add /${relative}/ to ${path.join(repo.root,'.gitignore')} to ignore ${folder==='generated'?'generated Agent Farm bundles':'Agent Farm snapshots'}.`);
   fs.mkdirSync(path.dirname(marker),{recursive:true,mode:0o700});fs.writeFileSync(marker,'',{mode:0o600});
 }

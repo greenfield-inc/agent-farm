@@ -39,7 +39,9 @@ export const commands: Command[] = [
       {name: 'acp-adapter', description: 'With --print-acp: the ACP adapter to run (a .js entry runs with Node.js); defaults to claude-agent-acp or codex-acp on PATH', type: 'string'},
       {name: 'agent-only', description: 'Look NAME up as an agent, even when a profile has the same name (the commands in profiles list --json trees use it)', type: 'boolean'},
       {name: 'parent', description: 'The parent token (PLUGIN/NAME[:VARIANT]@LAUNCH-ID) of the agent starting this one; NAME must be one of its launch or process links. Defaults to AGENT_FARM_PARENT. See CONFIGURATION.md, Launch links.', type: 'string'},
-      {name: 'resume', description: 'Reopen an earlier interactive session by the ID Agent Farm reported (AGENT_FARM_SESSION_ID) or a native session ID, on the variant that started it', type: 'string'},
+      {name: 'resume', description: 'Reopen an earlier interactive session by the ID Agent Farm reported (AGENT_FARM_SESSION_ID) or a native session ID, on the variant that started it, from the snapshot it recorded', type: 'string'},
+      {name: 'snapshot', description: 'Resolve from this snapshot folder (relative to --directory, or absolute) instead of the installed plugins. Defaults to the resumed record\'s snapshot, then AGENT_FARM_SNAPSHOT, else a new snapshot. See CONFIGURATION.md, Session snapshots.', type: 'string'},
+      {name: 'reload', description: 'With --resume: take a new snapshot of what is installed now and record it, instead of the recorded one', type: 'boolean'},
       {name: 'strict-mcp', description: 'Leave out your own Claude MCP servers, and your own Codex ones under a host provider; the default (overrides settings.json mcp)', type: 'boolean'},
       {name: 'inherit-mcp', description: 'Also load your own Claude or Codex MCP servers (overrides settings.json mcp)', type: 'boolean'},
       {name: 'native-arg', description: 'Repeatable native argument, before the message; use --native-arg=--flag for flags', type: 'string'},
@@ -54,6 +56,7 @@ export const commands: Command[] = [
       'agent-farm run planner --directory ~/repos/my-app --print-launch',
       'agent-farm run greenfield/implementer:claude --print-acp --acp-adapter ./node_modules/@agentclientprotocol/claude-agent-acp/dist/index.js',
       'agent-farm run greenfield/implementer --resume 4f07cdb3-6e0d-4926-b680-917e38acccc4',
+      'agent-farm run greenfield/implementer --resume 4f07cdb3-6e0d-4926-b680-917e38acccc4 --reload',
       'agent-farm run implementer --print-launch --message "Continue" -- exec resume THREAD --json',
     ],
   },
@@ -253,6 +256,18 @@ export const commands: Command[] = [
     examples: [
       'agent-farm plugin validate /path/to/config',
     ],
+  },
+  {
+    name: 'snapshot create',
+    usage: 'agent-farm snapshot create [--directory DIR] [--json] [--config-root DIR]',
+    group: 'plugins',
+    description: 'Copy every installed plugin, and the config root\'s own agents and profiles, into DIR/.agent-farm/snapshots/<digest>/ and print its path. The same installed files give the same folder. Pass it to run --snapshot. --json prints {path, digest, plugins}.',
+    flags: [
+      {name: 'directory', description: 'The launch directory that holds the snapshot', type: 'string', default: 'current directory'},
+      {name: 'json', description: 'Print {path, digest, plugins} as JSON', type: 'boolean'},
+      {name: 'config-root', description: 'Configuration directory whose plugins are copied', type: 'string', default: '~/.config/agent-farm'},
+    ],
+    examples: ['agent-farm snapshot create --directory ~/sessions/s1 --json'],
   },
   {
     name: 'plugin pack',

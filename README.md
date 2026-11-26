@@ -159,8 +159,12 @@ duplicate read-only plugin profiles. It opens a browser, not an agent session.
 Choose a profile to select an agent's harness, model, and instructions. Agent Farm
 combines that definition with shared skills, child agent definitions, and optional
 workspace MCP connections into a launch bundle in `.agent-farm/generated/` under
-the launch directory, then opens Claude Code or Codex to work there. Add
-`.agent-farm/generated/` to your repository's `.gitignore`.
+the launch directory, then opens Claude Code or Codex to work there. It first
+saves a snapshot of the installed plugins in `.agent-farm/snapshots/`, which the
+agents it starts and its resumes reuse, so a plugin update doesn't change a
+running team ([Session snapshots](CONFIGURATION.md#session-snapshots)). Add
+`.agent-farm/generated/` and `.agent-farm/snapshots/` to your repository's
+`.gitignore`.
 
 **Your own MCP servers stay out by default.** A launch loads only the profile's
 and workspace's connections, so the MCP servers and connectors you set up in

@@ -40,7 +40,7 @@ test('print-launch prepares Codex bundle and home exactly as exec, without launc
  const f=fixture(t),result=f.invoke(['--print-launch']);
  assert.equal(result.status,0,result.stderr);assert.equal(result.stderr,'');
  const launch=JSON.parse(result.stdout);
- assert.deepEqual(Object.keys(launch).sort(),['argv','bundle','cross_plugin_dependencies','cwd','env','launch','mcp','profile','telemetry','telemetry_access','trace_identity','workspace_source']);
+ assert.deepEqual(Object.keys(launch).sort(),['argv','bundle','cross_plugin_dependencies','cwd','env','launch','mcp','profile','snapshot','snapshot_path','telemetry','telemetry_access','trace_identity','workspace_source']);
  assert.equal(launch.telemetry_access,false);assert.deepEqual(launch.mcp,{mode:'strict',user_servers:[],overridden:[]});
  assert.equal(launch.trace_identity,'local/planner@local');
  assert.equal(launch.cwd,f.target);assert.ok(fs.statSync(launch.bundle).isDirectory());
@@ -331,7 +331,7 @@ test('Codex provider configuration routes the profile without copying native con
  fs.unlinkSync(path.join(f.root,'settings.json'));assert.equal(loadProvider(f.root),undefined);
  const restored=f.invoke(['--print-launch'],'implementer');assert.equal(restored.status,0,restored.stderr);
  assertLinked(config,native);assert.equal(fs.readFileSync(config,'utf8'),nativeText);
- assert.deepEqual(Object.keys(JSON.parse(restored.stdout).env).sort(),['AGENT_FARM_CLI','AGENT_FARM_CONFIG_ROOT','AGENT_FARM_NATIVE_CODEX_HOME','AGENT_FARM_PARENT','CODEX_HOME']);
+ assert.deepEqual(Object.keys(JSON.parse(restored.stdout).env).sort(),['AGENT_FARM_CLI','AGENT_FARM_CONFIG_ROOT','AGENT_FARM_NATIVE_CODEX_HOME','AGENT_FARM_PARENT','AGENT_FARM_SNAPSHOT','CODEX_HOME']);
  configureProvider(f);
  const again=f.invoke(['--print-launch'],'implementer');assert.equal(again.status,0,again.stderr);
  assert.equal(fs.lstatSync(config).isSymbolicLink(),false);assert.equal(fs.readFileSync(native,'utf8'),nativeText);
@@ -424,7 +424,7 @@ test('Claude passthrough keeps strict MCP and caller streaming, resume, hooks an
  const native=['-p','--output-format','stream-json','--verbose','--resume','session id','--settings','hooks with spaces.json','--max-turns','3','--max-budget-usd','2'];
  const result=f.invoke(['--print-launch','--message',message,'--',...native]);
  assert.equal(result.status,0,result.stderr);const launch=JSON.parse(result.stdout);
- assert.deepEqual(stable(launch.env),{AGENT_FARM_CONFIG_ROOT:f.root,AGENT_FARM_HEADLESS:'1'});assert.ok(launch.argv.includes('--strict-mcp-config'));
+ assert.deepEqual(stable(launch.env),{AGENT_FARM_CONFIG_ROOT:f.root,AGENT_FARM_HEADLESS:'1',AGENT_FARM_SNAPSHOT:launch.snapshot_path});assert.ok(launch.argv.includes('--strict-mcp-config'));
  assert.deepEqual(launch.argv.slice(-native.length-2),[...native,'--',message]);
  assert.equal(launch.argv.filter(a=>a==='--output-format').length,1);assert.equal(launch.argv.includes('--print'),false);
  assert.equal(fs.existsSync(f.record),false);
