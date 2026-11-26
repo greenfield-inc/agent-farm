@@ -238,7 +238,7 @@ test('an inherited snapshot says so on stderr, since it wins over --config-root 
  const f=fixture(t),v1=createSnapshot(f.root,f.target);f.install(2);
  const r=f.invoke(['team/reviewer','--explain'],{AGENT_FARM_SNAPSHOT:v1.path});assert.equal(r.status,0,r.stderr);
  assert.equal(JSON.parse(r.stdout).plugin_version,'1.0.0');
- assert.match(r.stderr,new RegExp(`Resolving from AGENT_FARM_SNAPSHOT=${v1.path.replace(/[\\^$.*+?()[\]{}|]/g,'\\$&')} \\(set AGENT_FARM_SNAPSHOT= to resolve from --config-root\\)`));
+ assert.ok(r.stderr.includes(`Resolving from AGENT_FARM_SNAPSHOT=${v1.path}, whose plugins differ from those installed in ${f.root} (set AGENT_FARM_SNAPSHOT= to resolve from --config-root)`),r.stderr);
  const flag=f.invoke(['team/reviewer','--explain','--snapshot',v1.path]);assert.doesNotMatch(flag.stderr,/Resolving from AGENT_FARM_SNAPSHOT/);
  // An explicit --snapshot wins over a broken inherited one.
  assert.equal(f.invoke(['team/reviewer','--explain','--snapshot',v1.path],{AGENT_FARM_SNAPSHOT:path.join(f.base,'gone')}).status,0);
@@ -295,11 +295,20 @@ test('OS metadata a receipt lists is left out, and a receipt-listed file missing
  const r=f.invoke(['team/reviewer','--exec']);assert.equal(r.status,0,r.stderr);assert.doesNotMatch(r.stderr,/ENOENT/);
 });
 
-test('the inherited-snapshot line prints only with an explicit --config-root (D-4 tabs stay quiet)',t=>{
- const f=fixture(t),v1=createSnapshot(f.root,f.target);
- const quiet=spawnSync(process.execPath,[cli,'run','team/reviewer','--explain','--directory',f.target,'--no-workspace'],{encoding:'utf8',env:{...f.env,AGENT_FARM_SNAPSHOT:v1.path}});
- assert.equal(quiet.status,0,quiet.stderr);assert.doesNotMatch(quiet.stderr,/Resolving from AGENT_FARM_SNAPSHOT/);
- assert.match(f.invoke(['team/reviewer','--explain'],{AGENT_FARM_SNAPSHOT:v1.path}).stderr,/Resolving from AGENT_FARM_SNAPSHOT=/);
+test('the inherited-snapshot line prints only when the snapshot differs from what --config-root has installed (D-7)',t=>{
+ const f=fixture(t),v1=createSnapshot(f.root,f.target),line=/Resolving from AGENT_FARM_SNAPSHOT=/;
+ // A Pane Session tab: its shim always passes --config-root, and its snapshot matches what is installed.
+ const same=f.invoke(['team/reviewer','--explain'],{AGENT_FARM_SNAPSHOT:v1.path});assert.equal(same.status,0,same.stderr);assert.doesNotMatch(same.stderr,line);
+ // An edit to an installed file without a version bump still counts as different: receipts compare by checksum.
+ f.install(2);
+ const differs=f.invoke(['team/reviewer','--explain'],{AGENT_FARM_SNAPSHOT:v1.path});assert.equal(differs.status,0,differs.stderr);assert.match(differs.stderr,line);
+ assert.equal(JSON.parse(differs.stdout).plugin_version,'1.0.0');
+ // A plugin installed in the root but missing from the snapshot also differs.
+ const v2=createSnapshot(f.root,f.target);assert.doesNotMatch(f.invoke(['team/reviewer','--explain'],{AGENT_FARM_SNAPSHOT:v2.path}).stderr,line);
+ const extra=path.join(f.base,'extra-plugin');fs.mkdirSync(path.join(extra,'agents'),{recursive:true});
+ fs.writeFileSync(path.join(extra,'plugin.yaml'),'name: extra\nversion: 1.0.0\ncli_major: 0\n');fs.writeFileSync(path.join(extra,'agents/solo.md'),'---\nharness: claude\nmodel: claude-opus-5-5\n---\nSolo.\n');fs.mkdirSync(path.join(extra,'profiles'));fs.writeFileSync(path.join(extra,'profiles/solo.yaml'),'agent: solo\n');
+ installPlugin(extra,f.root);
+ assert.match(f.invoke(['team/reviewer','--explain'],{AGENT_FARM_SNAPSHOT:v2.path}).stderr,line);
 });
 
 test('a moved resume whose snapshot is gone everywhere names the current directory',t=>{

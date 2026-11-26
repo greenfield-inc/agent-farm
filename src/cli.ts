@@ -8,7 +8,7 @@ import {parseArgs} from 'node:util';
 import {resolveWorkspace,resolveInteractiveWorkspace,trustWorkspace,untrustWorkspace,showWorkspace} from './workspaces.js';
 import {build,variantCommands,variantLabel,resolveProfile,splitVariant} from './compiler.js';
 import {run,execute,nativeCommand,readLaunchRecord,parentVariable,snapshotVariable,type LaunchContext} from './runtime.js';
-import {createSnapshot,openSnapshot,SnapshotUnreadable,type Snapshot} from './snapshot.js';
+import {createSnapshot,differsFromInstalled,openSnapshot,SnapshotUnreadable,type Snapshot} from './snapshot.js';
 import {checkParent,resumeLink} from './links.js';
 import {spawnSync} from 'node:child_process';
 import {loginCommand,loginPlan} from './mcp-auth.js';
@@ -291,13 +291,14 @@ try {
     const record=values.resume!==undefined ? readLaunchRecord(values.resume) : undefined;
     // The snapshot this launch resolves from (D-2): --snapshot, the resumed record's, an inherited AGENT_FARM_SNAPSHOT,
     // else a new one of what is installed. --reload always takes a new one. One that can't be read is refused (D-3).
-    const inherited=process.env[snapshotVariable] || undefined,explicitRoot=tokens.some(t=>t.kind==='option' && t.name==='config-root');
+    const inherited=process.env[snapshotVariable] || undefined;
     const snapshot:Snapshot=values.reload ? createSnapshot(realRoot,directory)
       : values.snapshot!==undefined ? openSnapshot(values.snapshot,directory)
       : record?.snapshot ? recordedSnapshot(record.snapshot,directory,record.directory)
-      // Said only when --config-root was passed, the one case where the person expects another source; a Pane
-      // Session sets the variable in every tab (D-4), where it is meant.
-      : inherited ? (explicitRoot && console.error(`Resolving from ${snapshotVariable}=${inherited} (set ${snapshotVariable}= to resolve from --config-root)`),openSnapshot(inherited,directory))
+      // An inherited snapshot wins over --config-root. Say so only when it differs from what that root has installed
+      // (D-7): a Pane Session tab passes --config-root and a matching snapshot, and stays quiet; a check against
+      // another plugin version is warned.
+      : inherited ? (()=>{const opened=openSnapshot(inherited,directory);if(differsFromInstalled(opened.path,realRoot))console.error(`Resolving from ${snapshotVariable}=${inherited}, whose plugins differ from those installed in ${realRoot} (set ${snapshotVariable}= to resolve from --config-root)`);return opened;})()
       : createSnapshot(realRoot,directory);
     const root=snapshot.path,built={snapshot:{path:snapshot.path,digest:snapshot.digest}};
     // A resume whose recorded name no longer resolves (a removed profile, agent or variant) starts nothing: there is

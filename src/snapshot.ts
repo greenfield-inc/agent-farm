@@ -140,3 +140,20 @@ export function openSnapshot(reference:string,directory:string):Snapshot{
   if(canonical(contents(location))!==canonical(expected))refuse(location,'failed its checksum (a file in it was changed, added or removed)');
   return {path:fs.realpathSync(location),digest:info.digest,plugins:info.plugins as Record<string,string>};
 }
+
+/** Each installed plugin's receipt checksums by name, from a config root or a snapshot (both keep receipts in
+ *  `.plugins/`). A missing folder means nothing is installed. */
+function receipts(root:string):Record<string,string>{
+  const folder=path.join(root,'.plugins'),result:Record<string,string>={};
+  for(const file of fs.existsSync(folder)?fs.readdirSync(folder).filter(name=>name.endsWith('.json')).sort():[]){
+    try{const receipt=JSON.parse(fs.readFileSync(path.join(folder,file),'utf8')) as {name?:unknown;layout?:unknown;checksums?:unknown};
+      if(receipt.layout===2&&typeof receipt.name==='string')result[receipt.name]=canonical(receipt.checksums??{});}catch{/* An unreadable receipt differs from anything. */result[file]='unreadable';}
+  }
+  return result;
+}
+
+/** True when a snapshot's plugins differ from those installed in a config root: a plugin added, removed, or with any
+ *  file changed (receipts compare by checksum, so an edit without a version bump counts). */
+export function differsFromInstalled(snapshot:string,configRoot:string):boolean{
+  return canonical(receipts(snapshot))!==canonical(receipts(configRoot));
+}

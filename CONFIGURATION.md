@@ -403,10 +403,12 @@ this order:
 
 1. `--snapshot PATH`.
 2. On `--resume ID`, the snapshot in the launch record.
-3. An inherited `AGENT_FARM_SNAPSHOT` (empty counts as unset). When the command
-   also passes `--config-root`, the launch prints `Resolving from
-   AGENT_FARM_SNAPSHOT=PATH (set AGENT_FARM_SNAPSHOT= to resolve from
-   --config-root)` on stderr, because the snapshot wins over it.
+3. An inherited `AGENT_FARM_SNAPSHOT` (empty counts as unset). It wins over
+   `--config-root`, so when its plugins differ from those installed in the
+   config root in use (a plugin added, removed, or with any file changed, by its
+   receipt's checksums), the launch prints `Resolving from AGENT_FARM_SNAPSHOT=PATH,
+   whose plugins differ from those installed in ROOT (set AGENT_FARM_SNAPSHOT= to
+   resolve from --config-root)` on stderr. A snapshot that matches stays quiet.
 4. Otherwise a new snapshot of what is installed, in the launch directory.
 
 `--resume ID --reload` skips the first three and takes a new snapshot of what

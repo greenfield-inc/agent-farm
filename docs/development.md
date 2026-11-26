@@ -35,8 +35,8 @@ under `HOME`, and some inherit the whole environment, so an exported
 A shell an agent launch started (a Pane tab, a launch link) also inherits
 `AGENT_FARM_SNAPSHOT`, and an inherited snapshot wins over `--config-root` when a
 launch resolves names, so a manual check would run the parent's plugin version.
-A launch that passes `--config-root` prints `Resolving from AGENT_FARM_SNAPSHOT=…`
-when that happens. Run
+When the inherited snapshot's plugins differ from those installed in that config
+root, the launch prints `Resolving from AGENT_FARM_SNAPSHOT=…` on stderr. Run
 manual checks with `AGENT_FARM_SNAPSHOT=` (empty), for example
 `AGENT_FARM_SNAPSHOT= node dist/cli.js run … --config-root "$tmp"`.
 
