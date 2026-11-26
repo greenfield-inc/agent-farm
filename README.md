@@ -119,7 +119,7 @@ and a host that runs Agent Farm in its own terminals can use it to restore them
 agent-farm init         # First-time setup — the starting point
 agent-farm              # Interactive — pick a profile, create one, launch
 agent-farm help         # Reference — every command, for humans and agents
-agent-farm doctor       # Diagnostic — check prerequisites, config, profiles, MCP sign-ins
+agent-farm doctor       # Diagnostic — check prerequisites, gcloud, config, profiles, MCP sign-ins
 ```
 
 `agent-farm init` is where you start, and `agent-farm` runs it for you on

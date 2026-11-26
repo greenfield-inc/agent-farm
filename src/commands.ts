@@ -280,7 +280,7 @@ export const commands: Command[] = [
     name: 'doctor',
     usage: 'agent-farm doctor',
     group: 'inspect',
-    description: 'Check your setup: prerequisites, config directory, profiles, skills, and MCP sign-ins for the current directory\'s workspace.',
+    description: 'Check your setup: prerequisites, config directory, profiles, skills, gcloud identities in the environment, and MCP sign-ins for the current directory\'s workspace.',
     examples: [
       'agent-farm doctor',
     ],

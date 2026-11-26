@@ -7,7 +7,7 @@ import * as p from '@clack/prompts';
 import {listProfiles, inspectProfile} from './inspect.js';
 import {build,modelSummary,orderedVariants,resolveProfile,splitVariant} from './compiler.js';
 import type {ResolvedWorkspace} from './workspaces.js';
-import {nativeCommand,run,type SignInCheck} from './runtime.js';
+import {nativeCommand,nativeGcloud,run,type SignInCheck} from './runtime.js';
 import {signInGaps} from './mcp-auth.js';
 import {installPlugin} from './plugins.js';
 import {fileURLToPath} from 'node:url';
@@ -541,6 +541,21 @@ export function doctorCommand(configRoot: string, directory = process.cwd(), che
   console.log(`    Node        ${nodeOk ? green('✓') : yellow('✗')} ${nodeVersion}${nodeOk ? '' : dim(' (need 22.15+)')}`);
   console.log(`    claude      ${hasClaude ? green('✓') : yellow('–')} ${hasClaude ? 'found' : dim('not found')}`);
   console.log(`    codex       ${hasCodex ? green('✓') : yellow('–')} ${hasCodex ? 'found' : dim('not found')}`);
+  console.log('');
+
+  // gcloud identities this environment selects: the launch check, asked afresh rather than read from its cache.
+  console.log(`  ${bold('gcloud')}`);
+  if (process.env.AGENT_FARM_GCLOUD_CHECK === 'off') console.log(`    ${yellow('–')} Check turned off (AGENT_FARM_GCLOUD_CHECK=off)`);
+  else {
+    const identities = nativeGcloud(process.env, os.homedir(), {refresh: true});
+    if (!identities.length) console.log(`    ${yellow('–')} No gcloud identity in this environment ${dim('(CLOUDSDK_ACTIVE_CONFIG_NAME and GOOGLE_APPLICATION_CREDENTIALS are unset)')}`);
+    for (const identity of identities) {
+      const name = identity.kind === 'cli' ? `configuration "${identity.name}"${identity.account ? ` (${identity.account})` : ''}` : `application-default credentials ${identity.name}`;
+      if (identity.state === 'ok') console.log(`    ${green('✓')} ${name}: ok`);
+      else if (identity.state === 'lapsed') console.log(`    ${yellow('✗')} ${name}: lapsed; sign in again with your own gcloud sign-in command`);
+      else console.log(`    ${yellow('?')} ${name}: could not check (gcloud missing, no answer, or an unrecognised error); launches add no note`);
+    }
+  }
   console.log('');
 
   // Config directory
