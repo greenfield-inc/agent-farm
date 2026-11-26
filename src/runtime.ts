@@ -776,7 +776,7 @@ export function validateTelemetry(value:unknown,host=false):TelemetrySettings|un
     if(!a||typeof a!=='object'||Array.isArray(a)||Object.keys(a).some(k=>!['enabled','scope','profiles'].includes(k)))throw fail();
     if(a.enabled!==undefined&&typeof a.enabled!=='boolean')throw fail();
     if(a.scope!==undefined&&a.scope!=='project'&&!(host&&a.scope==='machine'))throw new Error('agent_access.scope must be project; machine scope is allowed only in host settings');
-    if(a.profiles!==undefined&&(!Array.isArray(a.profiles)||a.profiles.some(p=>typeof p!=='string'||!/^(?:[a-z][a-z0-9_-]{0,63}\/)?[a-z][a-z0-9_-]{0,63}$/.test(p))||new Set(a.profiles).size!==a.profiles.length))throw new Error('agent_access.profiles must be a unique list of exact resolved profile names');
+    if(a.profiles!==undefined&&(!Array.isArray(a.profiles)||a.profiles.some(p=>typeof p!=='string'||!/^(?:[a-z][a-z0-9_-]{0,63}\/)?[a-z][a-z0-9_-]{0,63}$/.test(p))||new Set(a.profiles).size!==a.profiles.length))throw new Error('agent_access.profiles must be a unique list of exact entry names (profile or agent)');
     access={...(a.enabled===undefined?{}:{enabled:a.enabled as boolean}),...(a.scope===undefined?{}:{scope:a.scope as 'project'|'machine'}),...(a.profiles===undefined?{}:{profiles:a.profiles as string[]})};
   }
   return {...(data.enabled===undefined?{}:{enabled:data.enabled as boolean}),...(data.directory===undefined?{}:{directory:data.directory as string}),...(data.capture_content===undefined?{}:{capture_content:data.capture_content as boolean}),...(access===undefined?{}:{agent_access:access})};
@@ -914,7 +914,7 @@ function claudeAgents(resolved: ResolvedLaunch): Record<string,unknown> {
   }));
 }
 /** Wraps a prepared launch the way every consumer must spawn it: provider secrets resolve in the child, then telemetry. */
-function wrapLaunch(resolved: ResolvedLaunch, argv: string[], acp?: {adapter: string}, launchId?: string): string[] {
+function wrapLaunch(resolved: ResolvedLaunch, argv: string[], acp?: {adapter: string}, launchId?: string, context?: LaunchContext): string[] {
   const {provider,agent,bundle,telemetry}=resolved;
   if (provider && agent.harness==='claude') {
     // Claude treats AUTH_TOKEN literally. Resolve only inside the launched child,
@@ -925,7 +925,7 @@ function wrapLaunch(resolved: ResolvedLaunch, argv: string[], acp?: {adapter: st
   if (telemetry.enabled) {
     // The receiver starts only when this command executes, including when a
     // consumer spawns --print-launch or --print-acp output. No ports or session IDs at build time.
-    const descriptor={directory:telemetry.directory,bundle,route:resolved.route,harness:agent.harness,launch:resolved.launch,captureContent:telemetry.capture_content===true,...(acp?{acp}:{}),...(launchId?{launchId}:{})};
+    const descriptor={directory:telemetry.directory,bundle,route:resolved.route,harness:agent.harness,launch:resolved.launch,captureContent:telemetry.capture_content===true,...(acp?{acp}:{}),...(launchId?{launchId}:{}),...(context?.entry_kind?{entryKind:context.entry_kind}:{}),...(context?.parent?{parentLaunchId:context.parent.launch_id,parentRef:context.parent.ref}:{}),...(context?.link?{link:context.link}:{})};
     argv=[process.execPath,path.join(bundle,'telemetry.mjs'),JSON.stringify(descriptor),'--',...argv];
   }
   return argv;
@@ -970,7 +970,7 @@ export function command(bundle: string, route: string, options: LaunchOptions = 
   argv.push(...nativeArgs);
   if (options.message!==undefined) argv.push('--',options.message);
   Object.assign(env,envOverrides);
-  argv=wrapLaunch(resolved,argv,undefined,options.launchId);
+  argv=wrapLaunch(resolved,argv,undefined,options.launchId,options.context);
   return {argv,env,envOverrides,cwd:manifest.directory,launch,telemetry:resolved.telemetry,telemetry_access:resolved.access,unavailable:resolved.unavailable,mcp:resolved.mcp};
 }
 /** Launch-time MCP note for the inherit opt-in: a profile connection shadows a user server. The default prints nothing. Names only, never configuration. */
@@ -992,7 +992,7 @@ export function findExecutable(name: string, environment: NodeJS.ProcessEnv): st
     try { fs.accessSync(p,fs.constants.X_OK); return fs.statSync(p).isFile(); } catch { return false; }
   });
 }
-export interface AcpLaunchOptions extends Pick<LaunchOptions,'env'|'home'|'configRoot'|'model'|'reasoning'|'speed'|'args'|'signIns'|'mcp'|'launchId'|'cli'> { adapter?: string }
+export interface AcpLaunchOptions extends Pick<LaunchOptions,'env'|'home'|'configRoot'|'model'|'reasoning'|'speed'|'args'|'signIns'|'mcp'|'launchId'|'cli'|'context'> { adapter?: string }
 /** The same worker as `command`, described for an ACP client: the adapter command under the telemetry
  *  wrapper, its cwd and environment, and the parameters for session/new and session/load. */
 export function acpLaunch(bundle: string, route: string, options: AcpLaunchOptions = {}) {
@@ -1040,7 +1040,7 @@ export function acpLaunch(bundle: string, route: string, options: AcpLaunchOptio
     envOverrides.CODEX_CONFIG=JSON.stringify(config);
   }
   Object.assign(env,envOverrides);
-  argv=wrapLaunch(resolved,argv,{adapter:adapter.bin},options.launchId);
+  argv=wrapLaunch(resolved,argv,{adapter:adapter.bin},options.launchId,options.context);
   return {harness:agent.harness,adapter:{package:adapter.package,version:adapter.version},argv,cwd:manifest.directory,env:envOverrides,
     session,model:launch.model.name,...(launch.model.reasoning?{effort:launch.model.reasoning}:{}),mode:adapter.mode,
     launch,telemetry:resolved.telemetry,telemetry_access:resolved.access,unavailable:resolved.unavailable};
@@ -1116,6 +1116,11 @@ function reportUnavailable(unavailable: UnavailableConnection[]): void {
 }
 /** `dispatched` marks a parent agent's process child: given --message, it gets no stdin, so a parent that leaves
  *  stdin open (a background shell) cannot stall a harness that reads stdin to EOF before starting, as `codex exec` does. */
+/** How a launch without a record started: what `agent-farm run` checked, else the parent token this process inherited. */
+function launchContext(manifest: Manifest, route: string, checked?: LaunchContext): LaunchContext {
+  const parent=checked?.parent ?? environmentParent(process.env);
+  return {entry_kind:checked?.entry_kind ?? (route==='main' ? manifest.entry_kind : 'agent'),...(parent ? {parent} : {}),...(checked?.link ? {link:checked.link} : {})};
+}
 /** `start` is what `agent-farm run` checked about this launch (its entry kind, parent and link) and the CLI argv for
  *  launch-link command lines. A dispatched process child passes none; its parent then comes from AGENT_FARM_PARENT. */
 export function run(bundle: string, route: string, args: string[], launchCommand: typeof command = command, configRoot?: string, dispatched = false, start: {context?: LaunchContext; cli?: string[]} = {}): ChildProcess | undefined {
@@ -1137,7 +1142,7 @@ export function run(bundle: string, route: string, args: string[], launchCommand
   if (values['print-acp']) {
     const metadata={workspace_source:manifest.workspace_source,profile:manifest.profile,...(manifest.variant?{variant:manifest.variant}:{}),plugin:manifest.plugin,plugin_version:manifest.plugin_version,trace_identity:manifest.trace_identity,cross_plugin_dependencies:manifest.cross_plugin_dependencies};
     // An ACP host spawns this later and loads sessions itself: it gets a launch ID for its children and telemetry, but no record to resume.
-    const acp=acpLaunch(bundle,route,{...requested,configRoot,adapter:values['acp-adapter'],mcp,launchId:randomUUID(),cli:start.cli});
+    const acp=acpLaunch(bundle,route,{...requested,configRoot,adapter:values['acp-adapter'],mcp,launchId:randomUUID(),cli:start.cli,context:launchContext(manifest,route,start.context)});
     reportUnavailable(acp.unavailable);
     console.log(JSON.stringify({...metadata,bundle,...acp},null,2));
     return undefined;
@@ -1148,7 +1153,10 @@ export function run(bundle: string, route: string, args: string[], launchCommand
   const session=launchSession(manifest,selected.harness,values.resume,{interactive:!requested.headless && !values.explain,headless:!!values.exec && !values.explain,nativeArgs,route,launch:started});
   // A printed launch is spawned by its consumer: it gets an ID for its children's parent token and telemetry, but no record.
   const launchId=session.launch ?? (values['print-launch'] ? randomUUID() : undefined);
-  const launch=launchCommand(bundle,route,{...requested,nativeArgs,message:values.message,prepare:!values.explain,configRoot,resume:session.resume,sessionId:session.sessionId,launchId,cli:start.cli,mcp});
+  // Telemetry carries how this launch started: from its record (a resume keeps its first parent), else from the check.
+  const record=session.record ?? (values.resume ? readLaunchRecord(values.resume) : undefined);
+  const context=record ? {entry_kind:record.entry_kind ?? manifest.entry_kind,...(record.parent_launch_id && record.parent_ref ? {parent:{launch_id:record.parent_launch_id,ref:record.parent_ref}} : {}),...(record.link ? {link:record.link} : {})} : launchContext(manifest,route,started);
+  const launch=launchCommand(bundle,route,{...requested,nativeArgs,message:values.message,prepare:!values.explain,configRoot,resume:session.resume,sessionId:session.sessionId,launchId,cli:start.cli,context,mcp});
   if (session.record && !values.explain) {
     if (session.record.harness==='codex') session.record.codex_home=launch.env.CODEX_HOME;
     writeLaunchRecord(session.record);

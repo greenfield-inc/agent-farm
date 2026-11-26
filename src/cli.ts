@@ -79,6 +79,8 @@ function launchArguments(values:Record<string,string|boolean|string[]|undefined>
   if (nativeArgs.length) args.push('--',...nativeArgs);
   return args;
 }
+/** A resume that can't be honoured; printed as is, without the variant hint. */
+class StartFresh extends Error {}
 let launching:{root:string;requested:string;workspace:Parameters<typeof resolveProfile>[2]}|undefined;
 
 try {
@@ -268,6 +270,12 @@ try {
     // reopens the variant that started the session.
     // A launch that started through a link resumes as the agent it recorded, even when the host replays the alias.
     const record=values.resume!==undefined ? readLaunchRecord(values.resume) : undefined;
+    // A resume whose recorded name no longer resolves (a removed profile, agent or variant) starts nothing: there is
+    // no fallback to the old bundle, because the record does not say which one it used (T-83 D10).
+    if (record) {
+      const recorded=`${record.profile}${record.variant?':'+record.variant:''}`;
+      try { resolveProfile(root,recorded,workspace,{agentOnly:record.entry_kind==='agent'}); } catch { throw new StartFresh(`Session ${values.resume} was started as ${recorded}, which this Agent Farm no longer has. Start a fresh Session.`); }
+    }
     const linked=record ? resumeLink(root,positionals[1]!,record,workspace) : undefined;
     let requested=linked ? linked.requested : values.resume!==undefined ? resumedProfile(root,positionals[1]!,values.resume,workspace) : positionals[1]!;
     // A launch with a parent must be one of its links (D2). The flag wins over the token this shell inherited.
@@ -308,7 +316,7 @@ try {
   }
   }
 } catch (error) {
-  const message=error instanceof Error ? error.message : String(error),variant=launching && variantHint(launching.root,launching.requested,launching.workspace);
+  const message=error instanceof Error ? error.message : String(error),variant=!(error instanceof StartFresh) && launching && variantHint(launching.root,launching.requested,launching.workspace);
   console.error('error:',variant ? `${variant.failed} failed to start: ${message.replace(/\.$/,'')}.${variant.hint}` : message);
   process.exitCode=1;
 }

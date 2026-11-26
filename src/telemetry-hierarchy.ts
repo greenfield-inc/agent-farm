@@ -33,7 +33,7 @@ export function buildHierarchy(datasets:Dataset[]){
   for(const n of [...nodes]){
     if(n.kind==='session'){
       const s=datasets.find(d=>d.session.id===n.session_id)!.session;
-      const parent=s.parent_session_id?byId.get('session:'+s.parent_session_id):undefined;
+      const parentId=s.launch_parent_session_id??s.parent_session_id,parent=parentId?byId.get('session:'+parentId):undefined;
       const span=lookup(s.trace_id,s.parent_span_id,parent?.session_id);
       n.parent_id=span&&span.id!==n.id?span.id:parent?.id;
     }else{

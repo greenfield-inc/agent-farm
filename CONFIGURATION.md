@@ -551,6 +551,14 @@ a native session ID. `--resume` works only for interactive launches, and it
 cannot be combined with native resume arguments such as `-- --continue`; those
 leave session identity to the harness.
 
+A launch started through a [launch link](#launch-links) resumes as the agent it
+recorded (see that section). When the recorded name
+no longer resolves (a removed profile, agent or variant), the resume starts
+nothing and exits non-zero with `Session ID was started as
+greenfield/implementer:opus, which this Agent Farm no longer has. Start a fresh
+Session.` There is no fallback to the session's old generated bundle, because the
+record does not say which bundle it used.
+
 A host that runs `agent-farm run` in a terminal it owns can restore that
 terminal into the same conversation. When the host sets
 `AGENT_FARM_REPORT_SESSION_ID=1`, each interactive launch prints
@@ -666,7 +674,17 @@ the inherited environment are not recorded. Non-Git directories are supported.
 
 `agent_farm.session.id`, `agent_farm.session.trace_id`, and
 `agent_farm.session.span_id` correlate native resources with their launch.
-Process children inherit the parent session ID and W3C trace context. Native trace
+Process children inherit the parent session ID and W3C trace context. Every
+launch also records `agent_farm.launch.id`, `agent_farm.entry.kind` (`profile` or
+`agent`) and, when it has a [parent](#launch-links), `agent_farm.parent.launch.id`,
+`agent_farm.parent.ref` and `agent_farm.link`. `agent_farm.profile` holds the entry
+name, a profile's or an agent's. A launch started in another terminal with
+`--parent` (a host tab) inherits no session ID, so the run list, the explorer and
+the hierarchy nest its session under the first session recorded with the parent's
+launch ID. They do the same when the inherited session belongs to another launch than
+the recorded parent (`--parent` named a different launch than the shell's). `telemetry export --launch ID` still exports only that launch's own
+sessions and the children that inherited its session ID; exporting a launch with
+its tabs is not supported. Native trace
 IDs are preserved: harnesses may start independent traces, particularly interactive
 Claude sessions, so use the session attributes to join those traces.
 
@@ -764,7 +782,8 @@ telemetry:
     scope: project
 ```
 
-Optionally restrict access to exact resolved profile names:
+Optionally restrict access to exact entry names (a profile's or an agent's, as
+`agent-farm run` resolved it):
 
 ```yaml
 telemetry:
