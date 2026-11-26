@@ -71,7 +71,9 @@ test('the children block gives each launch link a command with --parent and the 
  const launch=command(bundle,'main',{prepare:false,home:f.home,configRoot:f.root,launchId:'abc-123',cli:['/opt/agent-farm']});
  const prompt=launch.argv[launch.argv.indexOf('--append-system-prompt')+1];
  assert.ok(prompt.includes(`reviewer: /opt/agent-farm run team/reviewer --config-root ${quoteArgument(f.root)} --parent team/lead@abc-123 (Reviews a PR); variants claude, codex, default claude: append :codex`),prompt);
- assert.equal(quoteArgument('C:\\Users\\me\\config'),'C:\\Users\\me\\config');assert.equal(quoteArgument('/a b/"c"'),'"/a b/\\"c\\""');
+ assert.equal(quoteArgument('C:\\Users\\me\\config'),'C:\\Users\\me\\config');
+ // Literal in the shell: no $(…), backticks or $name expand.
+ assert.equal(quoteArgument('/a b/$(touch x)/it\'s','linux'),"'/a b/$(touch x)/it'\\''s'");assert.equal(quoteArgument('C:\\a b\\it\'s','win32'),"'C:\\a b\\it''s'");
  assert.match(prompt,/builder: \/opt\/agent-farm run team\/implementer:codex --config-root \S+ --parent team\/lead@abc-123$/m);
  assert.match(prompt,/helper: node "[^"]+dispatch[\\/]helper"/);
  assert.equal(launch.env.AGENT_FARM_PARENT,'team/lead@abc-123');assert.equal(launch.env.AGENT_FARM_CLI,'["/opt/agent-farm"]');
@@ -127,8 +129,9 @@ test('a background launch from an agent shell inherits its parent, and the revie
 test('any: true lets an agent start any agent in its plugin',t=>{
  const f=fixture(t),parent='team/scout@abc';
  assert.equal(f.invoke(['writer','--exec','--parent',parent]).status,0);
+ // Agents only: team/lead is also a profile, but any: true starts the lead agent.
  assert.equal(f.invoke(['team/lead','--exec','--parent',parent]).status,0);
- const rec=f.records().find(r=>r.profile==='team/lead');assert.deepEqual([rec.entry_kind,rec.link],['profile','anyone']);
+ const rec=f.records().find(r=>r.profile==='team/lead');assert.deepEqual([rec.entry_kind,rec.link],['agent','anyone']);
  assert.equal(f.invoke(['other/writer','--exec','--parent',parent]).status,1);
 });
 
@@ -156,4 +159,46 @@ test('a child resumes after its parent closed and the parent record is gone',t=>
  const resumed=f.invoke(['reviewer','--resume',rec.id,'--parent',`team/lead@${lead.id}`]);
  assert.equal(resumed.status,0,resumed.stderr);
  const after=f.records().find(r=>r.id===rec.id);assert.deepEqual([after.parent_launch_id,after.link],[lead.id,'reviewer']);
+});
+
+test('a resume by link alias reopens the recorded agent, with the link model only while the link still points there',t=>{
+ const f=fixture(t);
+ assert.equal(f.invoke(['team/lead']).status,0);
+ const lead=f.records()[0],parent=`team/lead@${lead.id}`;
+ assert.equal(f.invoke(['builder','--parent',parent]).status,0);
+ const child=f.records().find(r=>r.link==='builder');assert.deepEqual([child.profile,child.variant],['team/implementer','codex']);
+ const explain=()=>{const r=f.invoke(['builder','--parent',parent,'--resume',child.id]);assert.equal(r.status,0,r.stderr);return f.launched().at(-1);};
+ assert.equal(explain().harness,'codex');
+ // A writer agent named like the alias does not capture the resume.
+ f.put('agents/builder.md','---\nharness: claude\nmodel: claude-opus-5-5\n---\nNot the implementer.\n');installPlugin(f.source,f.root);
+ assert.equal(explain().harness,'codex');
+ assert.match(f.invoke(['builder:claude','--parent',parent,'--resume',child.id]).stderr,/error:/);
+});
+
+test('a dispatched process child records itself as an agent with its link',t=>{
+ const f=fixture(t),bundle=build(f.root,'team/lead',f.target);
+ const r=spawnSync(process.execPath,[path.join(bundle,'main/dispatch/helper'),'--message','go'],{encoding:'utf8',env:{...f.env,AGENT_FARM_CONFIG_ROOT:f.root,AGENT_FARM_PARENT:'team/lead@abc'}});
+ assert.equal(r.status,0,r.stderr);
+ const rec=f.records().find(x=>x.profile==='team/helper');assert.deepEqual([rec.entry_kind,rec.link,rec.parent_ref,rec.headless],['agent','helper','team/lead',true]);
+});
+
+test('an alias wins over another link to the same agent, and duplicate targets print their aliases',t=>{
+ const f=fixture(t);
+ f.put('agents/lead.md','---\nharness: claude\nmodel: claude-opus-5-5\nsubagents:\n  fast: {agent: writer, mode: launch, model: {reasoning: low}, description: Quick writer}\n  careful: {agent: writer, mode: launch, model: {reasoning: high}}\n  writer: {agent: writer, mode: launch, model: {reasoning: medium}}\n---\nLead.\n');installPlugin(f.source,f.root);
+ const parent='team/lead@abc',effort=name=>JSON.parse(f.invoke([name,'--explain','--parent',parent]).stdout).launch.model.reasoning;
+ assert.deepEqual([effort('fast'),effort('careful'),effort('writer'),effort('team/writer')],['low','high','medium','low']);
+ const bundle=build(f.root,'team/lead',f.target),prompt=(l=>l.argv[l.argv.indexOf('--append-system-prompt')+1])(command(bundle,'main',{prepare:false,home:f.home,configRoot:f.root,launchId:'id',cli:['af']}));
+ assert.match(prompt,/^fast: af run fast /m);assert.match(prompt,/^careful: af run careful /m);
+ // The link's description replaces the agent's on the launched entry.
+ const built=f.invoke(['fast','--build','--parent',parent]);assert.equal(built.status,0,built.stderr);
+ assert.equal(JSON.parse(fs.readFileSync(path.join(built.stdout.trim(),'manifest.json'),'utf8')).nodes.main.description,'Quick writer');
+});
+
+test('a parent ref that names a profile and an agent with different links is refused',t=>{
+ const f=fixture(t);
+ f.put('profiles/reviewer.yaml','agent: writer\n');installPlugin(f.source,f.root);
+ const r=f.invoke(['implementer','--exec','--parent','team/reviewer@abc']);
+ assert.equal(r.status,1);assert.match(r.stderr,/Parent team\/reviewer names both a profile and an agent with different links/);
+ // The usual case, a profile whose agent has its name, is not ambiguous.
+ assert.equal(f.invoke(['reviewer','--explain','--parent','team/lead@abc']).status,0);
 });

@@ -644,7 +644,11 @@ export function shellArgument(text: string, placeholder: string, platform=proces
 }
 /** What a bundled child is told to read: its instructions, then its skill files and references. */
 /** A command-line word as a person would paste it: bare when safe, else double-quoted. */
-export function quoteArgument(text: string): string { return /^[\w@+=:,./~\\-]+$/.test(text) ? text : '"'+text.replace(/"/g,'\\"')+'"'; }
+export function quoteArgument(text: string, platform=process.platform): string {
+  if (/^[\w@+=:,./~\\-]+$/.test(text)) return text;
+  // Single quotes are literal in a POSIX shell and in PowerShell; only the quote itself needs escaping.
+  return platform==='win32' ? `'${text.replace(/'/g,"''")}'` : `'${text.replace(/'/g,"'\\''")}'`;
+}
 /** What a bundled child is told to read: its instructions, then its skill files and references. */
 export function childPrompt(bundle: string, childRoute: string, child: Agent): string {
   return [child.instructions??'','Selected skill files (read these before doing the assigned work; resolve their links relative to each skill directory):',...child.skills.map(skill=>path.join(bundle,childRoute,'skills',skill,'SKILL.md')),...(child.references?['',referencesNote(path.join(bundle,childRoute,'references'))]:[])].join('\n');
@@ -858,11 +862,11 @@ export function resolveLaunchFor(bundle: string, route: string, options: LaunchO
   const links=Object.entries(selected.links ?? {});
   if (links.length) {
     const defaultRoot=path.join(options.home ?? os.homedir(),'.config/agent-farm');
-    const run=[...(cli ?? ['agent-farm']).map(quoteArgument),'run'].join(' '),suffix=[...(configRoot===defaultRoot ? [] : ['--config-root',quoteArgument(configRoot)]),'--parent',token ?? parentToken(launchRef(manifest,route),'<launch-id>')].join(' ');
+    const run=[...(cli ?? ["agent-farm"]).map(a=>quoteArgument(a)),'run'].join(' '),suffix=[...(configRoot===defaultRoot ? [] : ['--config-root',quoteArgument(configRoot)]),'--parent',token ?? parentToken(launchRef(manifest,route),'<launch-id>')].join(' ');
     instructions+='\nLaunch links (start each with its command, as a host tab or with --exec --message "…" in the background; a name not listed here is refused):\n';
     instructions+=links.map(([alias,link])=>link.any
       ? `${alias}: any agent in ${link.plugin}: ${run} ${link.plugin}/<agent> ${suffix}${link.description?` (${link.description})`:''}`
-      : `${alias}: ${run} ${link.agent}${link.variant?':'+link.variant:''} ${suffix}${link.description?` (${link.description})`:''}${!link.variant && link.variants ? `; variants ${link.variants.join(', ')}, default ${link.default_variant}: append :${link.variants.find(v=>v!==link.default_variant) ?? link.default_variant} to the name for the other` : ''}`).join('\n');
+      : `${alias}: ${run} ${links.filter(([,other])=>other.agent===link.agent).length>1 ? alias : link.agent+(link.variant?':'+link.variant:'')} ${suffix}${link.description?` (${link.description})`:''}${!link.variant && link.variants ? `; variants ${link.variants.join(', ')}, default ${link.default_variant}: append :${link.variants.find(v=>v!==link.default_variant) ?? link.default_variant} to the name for the other` : ''}`).join('\n');
   }
   const context=['LAUNCH CONTEXT',`headless: ${launch.headless}`,...Object.entries(launch.arguments).map(([key,value])=>`${key}: ${value}`)].join('\n');
   instructions=[instructions,context].filter(Boolean).join('\n\n');
@@ -1139,7 +1143,9 @@ export function run(bundle: string, route: string, args: string[], launchCommand
     return undefined;
   }
   const nativeArgs=[...(values['native-arg'] ?? []),...args.slice(separator+1)];
-  const session=launchSession(manifest,selected.harness,values.resume,{interactive:!requested.headless && !values.explain,headless:!!values.exec && !values.explain,nativeArgs,route,launch:start.context});
+  // A dispatcher passes no context: its child is an agent, started through the process link its route names.
+  const started=start.context ?? (route==='main' ? undefined : {entry_kind:'agent' as const,link:route.slice(route.lastIndexOf('/')+1)});
+  const session=launchSession(manifest,selected.harness,values.resume,{interactive:!requested.headless && !values.explain,headless:!!values.exec && !values.explain,nativeArgs,route,launch:started});
   // A printed launch is spawned by its consumer: it gets an ID for its children's parent token and telemetry, but no record.
   const launchId=session.launch ?? (values['print-launch'] ? randomUUID() : undefined);
   const launch=launchCommand(bundle,route,{...requested,nativeArgs,message:values.message,prepare:!values.explain,configRoot,resume:session.resume,sessionId:session.sessionId,launchId,cli:start.cli,mcp});

@@ -251,26 +251,32 @@ subagents:
 
 A link names an agent or a variant set, in this plugin or another
 (`plugin/agent`). It may pin `variant` (only on a set), and set `model` and
-`description`. `any: true`, with no `agent`, lets this agent start any profile or
-agent in its own plugin. `plugin validate` checks that every link target exists
+`description`. `any: true`, with no `agent`, lets this agent start any agent in
+its own plugin (agents only, as a named link). `plugin validate` checks that every link target exists
 and that it and each of its variants resolve.
 
 **The parent check.** Every launch gets a launch ID, and its harness gets
 `AGENT_FARM_PARENT=<ref>@<launch id>` in its environment, for example
 `greenfield/orchestrator:claude@3f2a…`. When `agent-farm run NAME` has a parent,
 from `--parent TOKEN` or else from an inherited `AGENT_FARM_PARENT`, NAME must
-match one of the parent's launch or process links, by alias or by the agent it
-names (bare or qualified). Otherwise the launch fails before any harness starts,
+match one of the parent's launch or process links: by alias first, then by the
+agent it names (bare or qualified). Otherwise the launch fails before any harness starts,
 and the error lists the parent's links with the command for each. A name that is
 the parent's native subagent is refused with "runs inside your harness, use
 native delegation". The parent is checked by resolving its ref here, so a token
 whose launch ID this machine never saw still works when the ref resolves. A
 `--resume` is not checked again: it keeps the parent and link recorded at its
-first launch. With no parent (a person typing the command, or a host's New
+first launch. A host that replays the command it ran (`run builder --parent …
+--resume ID`) reopens the agent the launch recorded, even if `builder` names
+something else by now, with the link's model while the parent's link still points
+at that agent. With no parent (a person typing the command, or a host's New
 Session), any profile or agent runs.
 
 A matching launch link applies its pinned variant (naming another variant is
-refused) and its model. Precedence, highest first: a command-line flag, the link,
+refused), its model, and its description (which replaces the agent's). The
+target is looked up as an agent, even when a profile has its name. A parent ref
+that names both a profile and an agent with different links is refused, because
+the token can't say which one started the parent. Precedence, highest first: a command-line flag, the link,
 the profile or set preset, the agent's own setting. A name matching a process
 link runs the parent's compiled route headless, exactly as its dispatcher does.
 
@@ -283,7 +289,10 @@ planner: "/usr/local/bin/agent-farm" run greenfield/planner --parent greenfield/
 ```
 
 The command uses the CLI that started this launch (passed on to children in
-`AGENT_FARM_CLI`), and `--config-root` when it isn't the default. A host that
+`AGENT_FARM_CLI`), and `--config-root` when it isn't the default; a path that
+needs quoting is single-quoted, literal in a POSIX shell and in PowerShell. When
+two links name the same agent, each line runs its alias instead, so the right
+link's settings apply. A host that
 opens a tab for a child runs that line as the tab's command.
 
 **Not a security boundary.** An agent with a shell can unset

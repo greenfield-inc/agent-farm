@@ -8,7 +8,7 @@ import {parseArgs} from 'node:util';
 import {resolveWorkspace,resolveInteractiveWorkspace,trustWorkspace,untrustWorkspace,showWorkspace} from './workspaces.js';
 import {build,variantCommands,variantLabel,resolveProfile,splitVariant} from './compiler.js';
 import {run,execute,nativeCommand,readLaunchRecord,parentVariable,type LaunchContext} from './runtime.js';
-import {checkParent} from './links.js';
+import {checkParent,resumeLink} from './links.js';
 import {spawnSync} from 'node:child_process';
 import {loginCommand,loginPlan} from './mcp-auth.js';
 import {loadWorkspace,unloadWorkspace,loadedWorkspaces} from './user-workspaces.js';
@@ -255,7 +255,10 @@ try {
     const workspace=interactive?await resolveInteractiveWorkspace(root,options):resolveWorkspace(root,options);
     // A name without a variant launches the profile's default and never asks. A resume
     // reopens the variant that started the session.
-    let requested=values.resume!==undefined ? resumedProfile(root,positionals[1]!,values.resume,workspace) : positionals[1]!;
+    // A launch that started through a link resumes as the agent it recorded, even when the host replays the alias.
+    const record=values.resume!==undefined ? readLaunchRecord(values.resume) : undefined;
+    const linked=record ? resumeLink(root,positionals[1]!,record,workspace) : undefined;
+    let requested=linked ? linked.requested : values.resume!==undefined ? resumedProfile(root,positionals[1]!,values.resume,workspace) : positionals[1]!;
     // A launch with a parent must be one of its links (D2). The flag wins over the token this shell inherited.
     // A resume keeps the parent and link recorded at its first launch, so it is not checked again.
     if (values.parent==='') throw new Error('--parent needs a parent token (PLUGIN/NAME[:VARIANT]@LAUNCH-ID)');
@@ -268,9 +271,9 @@ try {
       if (values.build) throw new Error(`${requested} is a process link of ${checked.parent}; it has no bundle of its own to build`);
       const bundle=build(root,checked.parent,directory,workspace);
       const args=['--exec',...launchArguments(values,nativeArgs)];
-      run(bundle,checked.route,args,undefined,root,false,{context,cli});
+      run(bundle,checked.route,args,undefined,root,true,{context,cli});
     } else {
-    const resolveOptions=checked?.kind==='entry' ? checked.options : {};
+    const resolveOptions=checked?.kind==='entry' ? checked.options : linked?.options ?? {};
     if (checked?.kind==='entry') requested=checked.requested;
     const launches=!values.build && !values.explain && !values['print-launch'] && !values['print-acp'];
     if (launches && values.resume===undefined) launching={root,requested,workspace};
