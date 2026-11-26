@@ -38,7 +38,8 @@ const launches=()=>fs.existsSync(record)?fs.readFileSync(record,'utf8').trim().s
 
 assert.match(agentFarm('doctor'),/claude\s.*found/);
 agentFarm('plugin','install');
-assert.match(agentFarm('profiles','list'),/greenfield\/implementer/);
+// greenfield's three profiles; its other roles, such as implementer and reviewer, are agents and run by name below.
+assert.deepEqual(agentFarm('profiles','list').trim().split('\n').map(line=>line.split(' ')[0]),['greenfield/business','greenfield/orchestrator','greenfield/seo']);
 for(const [profile,flag] of [['greenfield/implementer:claude','--append-system-prompt'],['greenfield/implementer:codex','developer_instructions']]){
  const before=launches().length;
  agentFarm('run',profile,'--exec','--message','hello from the smoke test');
