@@ -19,7 +19,7 @@ Wherever the coordination rules and `orchestrate-sessions` say planner, implemen
 | (none) | measurer | `greenfield/seo-measurer:claude` | history read-back and deep dive, due 21 and 42 day reads, agent discovery and the answer panel | its bundle; `.seo/` only, on its own branch and draft PR |
 | (none) | investigator | `greenfield/seo-investigator:claude` | one unexplained drop per run, read-only, hypothesis-ranked | its bundle only |
 
-The measurer and the investigator report like a planner: they take `source`, `parent` and `docs` arguments as the strategist does, keep their status file, and raise questions as `needs_you` blocks. The writer and the reviewer take everything in the starting message, as the implementer and reviewer do. The review that starts on its own when a writer reports done is `greenfield/seo-reviewer:claude`, in place of `greenfield/reviewer:codex`. Code work that is not SEO (a site bug, a broken build, a product feature) goes to `greenfield/planner:claude` and `greenfield/implementer:opus` as `orchestrate-sessions` says.
+The measurer and the investigator report like a planner: they take `source`, `parent` and `docs` arguments as the strategist does, keep their status file, and raise questions as `needs_you` blocks. The writer and the reviewer take everything in the starting message, as the implementer and reviewer do. The review that starts on its own when a writer reports done is `greenfield/seo-reviewer:claude`, in place of `greenfield/reviewer:codex`. Code work that is not SEO (a site bug, a broken build, a product feature) goes to `greenfield/planner:claude` and `greenfield/implementer:claude` as `orchestrate-sessions` says.
 
 ## Rules for the whole loop
 

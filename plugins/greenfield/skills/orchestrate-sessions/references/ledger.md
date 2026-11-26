@@ -49,7 +49,7 @@ Use host durable state when available; otherwise `.agent/ledger.json`. Keep one 
         {
           "role": "planner | implementer | reviewer | bug-reporter | simplify-and-refactor",
           "host_worker_id": null,
-          "profile": "greenfield/implementer:opus",
+          "profile": "greenfield/implementer:claude",
           "status_file": "../worktrees/invoice-pdf/.agent/status.json",
           "native_session": { "harness": "claude | codex", "launch_id": "the session ID Agent Farm reported for the worker's launch", "id": null, "log": null },
           "started": "<ISO 8601 time>",

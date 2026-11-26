@@ -1,14 +1,6 @@
 variants:
-  opus:
+  claude:
     agent: raw-claude
-  astra:
-    agent: raw-codex
-  sol:
-    agent: raw-codex
-    model:
-      name: gpt-6.2-sol
-      reasoning: medium
-      speed: ultrafast
   codex:
-    agent: implementer-codex
-default: opus
+    agent: raw-codex
+default: claude

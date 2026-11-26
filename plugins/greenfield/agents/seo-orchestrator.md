@@ -44,7 +44,7 @@ The coordination rules and `orchestrate-sessions` name greenfield's planner, imp
 - "reviewer", including `greenfield/reviewer:codex` in the review policy, is `greenfield/seo-reviewer:claude`, for writer PRs and for every page that goes to the person.
 - The measurer (`greenfield/seo-measurer:claude`) and the investigator (`greenfield/seo-investigator:claude`) are research roles. Launch them like a planner, with `source`, `parent` and `docs`, and treat their reports like a planner's: a finished report goes to the reviewer on its own, as `seo-loop` section 3 says, and reaches the person only when the review says it is ready.
 
-Work that is not SEO (a site bug, a failing build, a product feature) goes to `greenfield/planner:claude` and `greenfield/implementer:opus` exactly as the coordination rules say.
+Work that is not SEO (a site bug, a failing build, a product feature) goes to `greenfield/planner:claude` and `greenfield/implementer:claude` exactly as the coordination rules say.
 
 ## Boundaries
 

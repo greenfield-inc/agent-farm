@@ -37,9 +37,9 @@ test('a profile resolves its default variant or the one named after a colon',t=>
 
 test('variant mistakes fail with the accepted choices',t=>{
  const f=fixture(t);
- assert.throws(()=>resolveProfile(f.root,'planner:gemini'),/no variant gemini; choose one of: claude, codex/);
+ assert.throws(()=>resolveProfile(f.root,'planner:gemini'),/no variant gemini; choose claude or codex/);
  assert.throws(()=>resolveProfile(f.root,'plain:codex'),/Profile plain has no variants/);
- assert.throws(()=>resolveProfile(f.root,'planner-claude:codex'),/is an agent, not a profile with variants/);
+ assert.throws(()=>resolveProfile(f.root,'planner-claude:codex'),/is a single agent with no variants; run it without :codex/);
  f.put('profiles/planner.yaml','variants:\n  claude:\n    agent: planner-claude\ndefault: codex\n');
  assert.throws(()=>resolveProfile(f.root,'planner'),/default must name one of its variants: claude/);
  f.put('profiles/planner.yaml','agent: planner-claude\nvariants:\n  claude:\n    agent: planner-claude\ndefault: claude\n');
@@ -151,7 +151,7 @@ test('a named variant launches without the default notice',t=>{
 test('an unknown variant fails listing the valid ones',t=>{
  const f=launcher(t),r=f.invoke('planner:gemini');
  assert.equal(r.status,1);assert.equal(r.launched,undefined);
- assert.match(r.stderr,/error: planner:gemini failed to start: Profile planner has no variant gemini; choose one of: claude, codex\. Try another variant: agent-farm run planner:codex or agent-farm run planner:claude/);
+ assert.match(r.stderr,/error: planner:gemini failed to start: Profile planner has no variant gemini; choose claude or codex\. Try another variant: agent-farm run planner:codex or agent-farm run planner:claude/);
 });
 
 test('a variant that cannot start suggests the others',t=>{
@@ -171,4 +171,78 @@ test('no variant hint for a profile without variants, a resume, or a harness tha
  writeHarness(path.join(f.base,'bin'),'codex','process.exit(3);\n');
  const exited=f.invoke('planner');
  assert.equal(exited.status,3);assert.doesNotMatch(exited.stderr,/error:|Try another variant/);
+});
+
+/** An agent variant set (agents/reviewer.yaml) next to its members, plus a parent that binds it as a process child. */
+function setFixture(t){
+ const f=fixture(t);
+ f.put('agents/reviewer-claude.md','---\nharness: claude\nmodel: claude-fable-5-1\ndescription: Claude reviewer\n---\nClaude reviewer.\n');
+ f.put('agents/reviewer-codex.md','---\nharness: codex\nmodel: gpt-6-astra\n---\nCodex reviewer.\n');
+ f.put('agents/reviewer.yaml','variants:\n  claude:\n    agent: reviewer-claude\n  codex:\n    agent: reviewer-codex\n    model: {reasoning: low, speed: ultrafast}\ndefault: claude\n');
+ f.put('agents/lead.md','---\nharness: claude\nmodel: claude-fable-5-1\nsubagents:\n  reviewer: {agent: reviewer, mode: process}\n  fast-reviewer: {agent: reviewer, mode: process, model: {reasoning: high}}\n---\nLead.\n');
+ return f;
+}
+
+test('an agent variant set runs its default or the named member, as a profile does',t=>{
+ const f=setFixture(t);
+ const byDefault=resolveProfile(f.root,'reviewer');
+ assert.equal(byDefault.entry_kind,'agent');assert.equal(byDefault.variant,'claude');assert.deepEqual(byDefault.variants,['claude','codex']);
+ assert.equal(byDefault.nodes.main.name,'reviewer-claude');assert.equal(byDefault.profile,'reviewer');
+ const codex=resolveProfile(f.root,'reviewer:codex'),main=codex.nodes.main;
+ assert.deepEqual([main.name,main.harness,main.reasoning_effort,main.speed],['reviewer-codex','codex','low','ultrafast']);
+ assert.equal(main.launch.preset,'reviewer:codex');
+ assert.equal(resolveProfile(f.root,'planner').entry_kind,'profile');
+ const bundle=build(f.root,'reviewer:codex',f.target);assert.match(path.basename(bundle),/^reviewer--codex-/);
+ assert.equal(JSON.parse(fs.readFileSync(path.join(bundle,'manifest.json'),'utf8')).trace_identity,'local/reviewer:codex@local');
+ assert.throws(()=>resolveProfile(f.root,'reviewer:opus'),/Agent reviewer has no variant opus; choose claude or codex/);
+ assert.throws(()=>resolveProfile(f.root,'lead:codex'),/lead is a single agent with no variants; run it without :codex/);
+});
+
+test('a child bound to a variant set runs the default member, with the binding model over the member preset',t=>{
+ const f=setFixture(t);
+ f.put('agents/reviewer.yaml','variants:\n  claude:\n    agent: reviewer-claude\n    model: {reasoning: low}\n  codex:\n    agent: reviewer-codex\ndefault: claude\n');
+ const {nodes}=resolveProfile(f.root,'lead');
+ const plain=nodes[nodes.main.children.reviewer],tuned=nodes[nodes.main.children['fast-reviewer']];
+ assert.deepEqual([plain.name,plain.reasoning_effort,plain.variant_set],['reviewer-claude','low',{agent:'local/reviewer',variant:'claude'}]);
+ assert.equal(tuned.reasoning_effort,'high');
+ build(f.root,'lead',f.target);
+});
+
+test('variant names are only claude and codex, and each names an agent of that harness',t=>{
+ const f=setFixture(t);
+ f.put('plugin.yaml','name: fixture\nversion: 1.0.0\ncli_major: 0\n');
+ validatePlugin(f.root);
+ f.put('profiles/planner.yaml','variants:\n  opus:\n    agent: planner-claude\ndefault: opus\n');
+ assert.throws(()=>resolveProfile(f.root,'planner'),/Profile fixture\/planner has a variant named opus; variant names are claude or codex/);
+ assert.throws(()=>validatePlugin(f.root),/variant named opus/);
+ f.put('profiles/planner.yaml','variants:\n  claude:\n    agent: planner-codex\ndefault: claude\n');
+ assert.throws(()=>resolveProfile(f.root,'planner'),/Profile fixture\/planner variant claude names codex agent fixture\/planner-codex; a claude variant must name a claude agent/);
+ f.put('profiles/planner.yaml','agent: planner-claude\n');
+ // A set no profile names is still checked, on every variant.
+ f.put('agents/reviewer.yaml','variants:\n  claude:\n    agent: reviewer-claude\n  codex:\n    agent: reviewer-claude\ndefault: claude\n');
+ assert.throws(()=>validatePlugin(f.root),/Agent fixture\/reviewer variant codex names claude agent fixture\/reviewer-claude/);
+ f.put('agents/reviewer.yaml','variants:\n  sol:\n    agent: reviewer-codex\ndefault: sol\n');
+ assert.throws(()=>validatePlugin(f.root),/Agent fixture\/reviewer has a variant named sol; variant names are claude or codex/);
+ f.put('agents/reviewer.yaml','variants:\n  claude:\n    agent: reviewer\ndefault: claude\n');
+ assert.throws(()=>resolveProfile(f.root,'reviewer'),/is an agent variant set; a variant must name a single agent/);
+});
+
+test('plugin validate checks a set even when a profile shares its name',t=>{
+ const f=setFixture(t);
+ f.put('plugin.yaml','name: fixture\nversion: 1.0.0\ncli_major: 0\n');
+ f.put('profiles/reviewer.yaml','agent: reviewer-claude\n');
+ validatePlugin(f.root);
+ f.put('agents/reviewer.yaml','variants:\n  claude:\n    agent: reviewer-claude\n  codex:\n    agent: missing-codex\ndefault: claude\n');
+ assert.throws(()=>validatePlugin(f.root),/missing agent fixture\/missing-codex/);
+});
+
+test('a child bound to a set gets the member variant arguments, and its binding model keys are checked',t=>{
+ const f=setFixture(t);
+ f.put('agents/reviewer-claude.md','---\nharness: claude\nmodel: claude-fable-5-1\nargs:\n  mode: {values: [draft, audit], default: draft}\n---\nClaude reviewer.\n');
+ f.put('agents/reviewer.yaml','variants:\n  claude:\n    agent: reviewer-claude\n    args: {mode: audit}\n  codex:\n    agent: reviewer-codex\ndefault: claude\n');
+ const {nodes}=resolveProfile(f.root,'lead');
+ assert.deepEqual(nodes[nodes.main.children.reviewer].launch.arguments,{mode:'audit'});
+ assert.deepEqual(resolveProfile(f.root,'reviewer').nodes.main.launch.arguments,{mode:'audit'});
+ f.put('agents/lead.md','---\nharness: claude\nmodel: claude-fable-5-1\nsubagents:\n  reviewer: {agent: reviewer, mode: process, model: {reasonning: high}}\n---\nLead.\n');
+ assert.throws(()=>resolveProfile(f.root,'lead'),/Unsupported prototype fields: reasonning/);
 });

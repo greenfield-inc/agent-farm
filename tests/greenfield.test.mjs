@@ -17,7 +17,7 @@ test('the implementer is the former dcouple raw profile on Opus, Astra or Sol, w
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
  validatePlugin(root);
  assert.equal(resolveProfile(root,'implementer').nodes.main.model,'claude-opus-5-5');
- for(const [profile,harness,model] of [['implementer:opus','claude','claude-opus-5-5'],['implementer:astra','codex','gpt-6.2-sol'],['implementer:sol','codex','gpt-6.2-sol']]){
+ for(const [profile,harness,model] of [['implementer:claude','claude','claude-opus-5-5'],['implementer:codex','codex','gpt-6.2-sol']]){
   const resolved=resolveProfile(root,profile),main=resolved.nodes.main;
   assert.deepEqual([main.harness,main.model,main.reasoning_effort],[harness,model,'medium']);
   assert.deepEqual(Object.keys(main.children).sort(),['cold-reader','explorer','qa-and-verify','second-opinion']);
@@ -172,7 +172,7 @@ test('orchestrated reviewers post one COMMENT review and apply no fixes, and orc
   for(const rule of ['reconciled findings to that file','post exactly one review','event `COMMENT` (never approve or request changes)','Apply no fixes','reads the lines that fix round changed for regressions first, then checks only the findings it was sent'])assert.ok(instructions.includes(rule),`${profile}: ${rule}`);
  }
  const skill=flat(fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8'));
- for(const rule of ['no agent in it is working','1 feature = 1 worktree = 1 branch = 1 workspace','launch every later worker for that feature as a new agent in the same workspace','agent-farm run greenfield/<role>:<variant>','Always name the variant','`greenfield/implementer:opus`','whether it explicitly grants conversation capture','a personal fallback workspace grants nothing'])assert.ok(skill.includes(rule),rule);
+ for(const rule of ['no agent in it is working','1 feature = 1 worktree = 1 branch = 1 workspace','launch every later worker for that feature as a new agent in the same workspace','agent-farm run greenfield/<role>:<variant>','Always name the variant','`greenfield/implementer:claude`','whether it explicitly grants conversation capture','a personal fallback workspace grants nothing'])assert.ok(skill.includes(rule),rule);
  assert.doesNotMatch(skill,/\[:variant\]/);
  const trace=flat(fs.readFileSync(path.join(root,'skills/session-trace/SKILL.md'),'utf8'));
  for(const rule of ['Naming a document destination is not a grant','trace not authorized','--launch <ID>','`$CODEX_HOME` before `~/.codex`'])assert.ok(trace.includes(rule),rule);
@@ -188,9 +188,9 @@ test('simplify-and-refactor runs the refactor and principled-review skills on So
  const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-refactor-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
  const variants=Object.keys(parse(fs.readFileSync(path.join(root,'profiles/simplify-and-refactor.yaml'),'utf8')).variants);
- assert.deepEqual(variants.sort(),['opus','sol']);
+ assert.deepEqual(variants.sort(),['claude','codex']);
  assert.equal(resolveProfile(root,'simplify-and-refactor').nodes.main.model,'gpt-6.2-sol');
- for(const [profile,agent,harness,model,effort] of [['simplify-and-refactor:sol','simplify-and-refactor','codex','gpt-6.2-sol','medium'],['simplify-and-refactor:opus','simplify-and-refactor-claude','claude','claude-opus-5-5','medium']]){
+ for(const [profile,agent,harness,model,effort] of [['simplify-and-refactor:codex','simplify-and-refactor','codex','gpt-6.2-sol','medium'],['simplify-and-refactor:claude','simplify-and-refactor-claude','claude','claude-opus-5-5','medium']]){
   const resolved=resolveProfile(root,profile),main=resolved.nodes.main;
   assert.deepEqual([main.name,main.harness,main.model,main.reasoning_effort],[agent,harness,model,effort],profile);
   assert.deepEqual([...main.skills].sort(),['excalidraw-pr-diagrams','page','prepare-pr','principled-review','refactor','session-trace'],profile);
@@ -203,7 +203,7 @@ test('simplify-and-refactor runs the refactor and principled-review skills on So
   assert.equal(launch.argv[launch.argv.indexOf('--model')+1],model);
  }
  const orchestrate=fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8');
- for(const text of ['greenfield/simplify-and-refactor:sol','The simplify checkpoint is optional and off by default','it applies only on their approval'])assert.ok(orchestrate.includes(text),text);
+ for(const text of ['greenfield/simplify-and-refactor:codex','The simplify checkpoint is optional and off by default','it applies only on their approval'])assert.ok(orchestrate.includes(text),text);
  const refactor=fs.readFileSync(path.join(root,'skills/refactor/SKILL.md'),'utf8').replace(/\s+/g,' ');
  assert.ok(refactor.includes('run it before QA'));
  for(const agent of ['simplify-and-refactor','simplify-and-refactor-claude']){
@@ -218,7 +218,7 @@ test('reviewers share principled-review with simplify-and-refactor and leave fix
   assert.deepEqual(main.skills.sort(),['android-emulators','ios-simulators','machine-resources','pr-test-automation','principled-review','review'],profile);
   assert.match(fs.readFileSync(main.source_file,'utf8').replace(/\s+/g,' '),/You review; an implementer fixes\. To fix them, suggest launching `greenfield\/implementer` with that file/,profile);
  }
- for(const profile of ['implementer:opus','implementer:astra','implementer:sol'])assert.ok(resolveProfile(root,profile).nodes.main.skills.includes('excalidraw-pr-diagrams'),profile);
+ for(const profile of ['implementer:claude','implementer:codex'])assert.ok(resolveProfile(root,profile).nodes.main.skills.includes('excalidraw-pr-diagrams'),profile);
 });
 
 test('the unused dcouple copies are gone and nothing in the plugin names them',()=>{
@@ -342,10 +342,10 @@ test('codebase-audit runs on Fable with native Sonnet researchers and an Opus cu
  }
 });
 
-test('process-cleanup runs on Opus or Sol with a read-only survey for each OS',t=>{
+test('process-cleanup runs on Claude or Codex with a read-only survey for each OS',t=>{
  const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-cleanup-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
- const expected={opus:['claude','claude-opus-5-5','medium'],sol:['codex','gpt-6.2-sol','medium']};
+ const expected={claude:['claude','claude-opus-5-5','medium'],codex:['codex','gpt-6.2-sol','medium']};
  for(const [variant,model] of Object.entries(expected)){
   const main=resolveProfile(root,'process-cleanup:'+variant).nodes.main;
   assert.deepEqual([main.harness,main.model,main.reasoning_effort],model,variant);
@@ -448,17 +448,18 @@ test('Codex orchestration routes every worker and helper to Codex while retainin
  assert.deepEqual([main.harness,main.model,main.reasoning_effort],['codex','gpt-6.2-sol','medium']);
  const advisor=resolved.nodes[main.children.advisor];
  assert.deepEqual([advisor.mode,advisor.harness,advisor.model,advisor.reasoning_effort],['process','codex','gpt-6.2-sol','medium']);
- const workers=['bug-reporter:codex','planner:codex','implementer:codex','reviewer:codex','qa-and-fix:codex','simplify-and-refactor:sol'];
+ const workers=['bug-reporter:codex','planner:codex','implementer:codex','reviewer:codex','qa-and-fix:codex','simplify-and-refactor:codex'];
  for(const profile of workers){
   assert.ok(main.instructions.includes('greenfield/'+profile),profile);
   const worker=resolveProfile(root,profile);
-  for(const node of Object.values(worker.nodes))assert.equal(node.harness,'codex',`${profile}: ${node.name}`);
+  // implementer:codex is raw-codex, whose opt-in second opinion stays cross-vendor (Claude).
+  for(const node of Object.values(worker.nodes))if(!(profile==='implementer:codex'&&node.name==='pr-reviewer'))assert.equal(node.harness,'codex',`${profile}: ${node.name}`);
   verify(build(root,profile,target));
  }
  const implementer=resolveProfile(root,'implementer:codex');
  assert.deepEqual([implementer.nodes.main.model,implementer.nodes.main.reasoning_effort],['gpt-6.2-sol','medium']);
  const second=implementer.nodes[implementer.nodes.main.children['second-opinion']];
- assert.deepEqual([second.mode,second.harness,second.model,second.reasoning_effort],['process','codex','gpt-6.2-sol','low']);
+ assert.deepEqual([second.mode,second.harness],['process','claude']);
  const bug=resolveProfile(root,'bug-reporter:codex');
  for(const [alias,effort] of [['investigator','medium'],['qa','medium']]){
   const child=bug.nodes[bug.nodes.main.children[alias]];
@@ -493,14 +494,14 @@ const flatText=file=>fs.readFileSync(path.join(root,file),'utf8').replace(/\s+/g
 const COORDINATORS=['orchestrator:claude','orchestrator:codex','customer-insights-loop'];
 const instructionsIncludeAll=(profiles,rules)=>{for(const profile of profiles){const text=resolveProfile(root,profile).nodes.main.instructions.replace(/\s+/g,' ');for(const rule of rules)assert.ok(text.includes(rule),`${profile}: ${rule}`);}};
 const REVIEWERS=['agents/claude-pr-reviewer.md','agents/codex-pr-reviewer.md'];
-const IMPLEMENTERS=['agents/raw-claude.md','agents/raw-codex.md','agents/implementer-codex.md'];
+const IMPLEMENTERS=['agents/raw-claude.md','agents/raw-codex.md'];
 const includesAll=(files,rules)=>{for(const file of files){const text=flatText(file);for(const rule of rules)assert.ok(text.includes(rule),`${file}: ${rule}`);}};
 
 test('workers raise numbered needs_you blocks, standalone workers ask in the same shape, and both orchestrators relay them',()=>{
  const rules=flatText('instructions/standing-rules.md');
  for(const rule of ['## Questions for the person','"needs_you": null','"needs_you": { "id": "Q-3", "kind": "question | choice | approval | fyi"','"files": [','"blocking": true','`answer: Q-n → <answer>. Recorded as D-n.`','`clarify: Q-n → <their question>` is not an answer: keep Q-n open','(`AskUserQuestion`)','wherever there is no question tool, a numbered list (`Files: <paths>`','`Why: <why>`','recommended one first and marked `(recommended)`','Q-n are unique per Session and never reused','write the block with `"id": null` and `"asked": "self"`','A pending result is never a reason to relay','`recorded: Q-n → <answer>. Recorded as D-n.` to you only','When the host says asking is unavailable, set `asked` to `"relay"`','and for every non-blocking question','**When the host turns your blocked report into the person\'s question**','write the block with `"asked": "relay"` and its Q-n (the one the orchestrator assigned, else the next free one), send one blocked report the way the host says, and ask nothing a second way','Pass any question text to a shell command as a literal argument: through an argv API','in single quotes with each `\'` inside it escaped for that shell (`\'\\\'\'` in a POSIX shell, `\'\'` in PowerShell)','never inside double quotes or unquoted','**When the host lets a worker ask the person itself**'])assert.ok(rules.includes(rule),rule);
  assert.doesNotMatch(rules,/"question": null/);
- for(const profile of ['planner:claude','planner:codex','implementer:opus','implementer:astra','implementer:sol','implementer:codex','orchestrator:claude','orchestrator:codex'])assert.ok(resolveProfile(root,profile).nodes.main.instructions.includes('## Questions for the person'),profile);
+ for(const profile of ['planner:claude','planner:codex','implementer:claude','implementer:codex','orchestrator:claude','orchestrator:codex'])assert.ok(resolveProfile(root,profile).nodes.main.instructions.includes('## Questions for the person'),profile);
  instructionsIncludeAll(COORDINATORS,['numbered `needs_you` blocks','labelled with its role and feature and with its files opened beside the person','send it to the asking worker only']);
  includesAll(IMPLEMENTERS,['goes in that status file as a `needs_you` block; run by hand, ask the person directly in the same shape']);
  includesAll(['instructions/planner-identity.md'],['Raise each question for the person as a `needs_you`','record each `answer:` or `recorded:` line\'s D-n']);
