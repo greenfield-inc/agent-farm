@@ -198,8 +198,10 @@ subagents:
     mode: process
 ```
 
-Every child binding declares `mode: native` or `mode: process`; omitted modes
-and shorthand child names are rejected. Native children must use the parent's
+Every child binding declares `mode: native`, `mode: process` or `mode: launch`
+(see [Launch links](#launch-links)); omitted modes and shorthand child names are
+rejected. A native or process binding may also pin `variant: claude|codex` when its
+`agent` names a [variant set](#agent-variant-sets). Native children must use the parent's
 harness and support one level only; cross-harness children use process mode. Shared instruction files may be
 prepended with `instructions_files`. Actual agents live here whether they are
 used as entry points, children, or both. A reference document such as
@@ -229,6 +231,65 @@ A set and a member can't share a file name (`agents/planner.yaml` next to
 `agents/planner.md` is ambiguous), so name the Claude member `<name>-claude`.
 `plugin validate` resolves every variant of every set. A suffix on a single agent
 (`agent-farm run plugin/worker:codex`) is an error.
+
+### Launch links
+
+A launch link names an agent this one may start on demand, as its own launch:
+interactive in a host tab, or headless with `--exec`. Unlike a native or process
+child it is not compiled into the parent's bundle; the target resolves when it
+starts, so links may form cycles (a reviewer may start an implementer that may
+start a reviewer). It does not inherit the parent's connections: it gets its own
+and the workspace's, as a tab does.
+
+```yaml
+subagents:
+  planner:  {agent: planner, mode: launch, description: Writes the plan}
+  builder:  {agent: implementer, mode: launch, variant: codex, model: {reasoning: high}}
+  reviewer: {agent: other-plugin/reviewer, mode: launch}
+  anyone:   {mode: launch, any: true}
+```
+
+A link names an agent or a variant set, in this plugin or another
+(`plugin/agent`). It may pin `variant` (only on a set), and set `model` and
+`description`. `any: true`, with no `agent`, lets this agent start any profile or
+agent in its own plugin. `plugin validate` checks that every link target exists
+and that it and each of its variants resolve.
+
+**The parent check.** Every launch gets a launch ID, and its harness gets
+`AGENT_FARM_PARENT=<ref>@<launch id>` in its environment, for example
+`greenfield/orchestrator:claude@3f2a…`. When `agent-farm run NAME` has a parent,
+from `--parent TOKEN` or else from an inherited `AGENT_FARM_PARENT`, NAME must
+match one of the parent's launch or process links, by alias or by the agent it
+names (bare or qualified). Otherwise the launch fails before any harness starts,
+and the error lists the parent's links with the command for each. A name that is
+the parent's native subagent is refused with "runs inside your harness, use
+native delegation". The parent is checked by resolving its ref here, so a token
+whose launch ID this machine never saw still works when the ref resolves. A
+`--resume` is not checked again: it keeps the parent and link recorded at its
+first launch. With no parent (a person typing the command, or a host's New
+Session), any profile or agent runs.
+
+A matching launch link applies its pinned variant (naming another variant is
+refused) and its model. Precedence, highest first: a command-line flag, the link,
+the profile or set preset, the agent's own setting. A name matching a process
+link runs the parent's compiled route headless, exactly as its dispatcher does.
+
+Agents see the exact command for each link in their instructions, after the
+bundled children:
+
+```text
+Launch links (start each with its command, …):
+planner: "/usr/local/bin/agent-farm" run greenfield/planner --parent greenfield/orchestrator:claude@3f2a… (Writes the plan); variants claude, codex, default claude: append :codex to the name for the other
+```
+
+The command uses the CLI that started this launch (passed on to children in
+`AGENT_FARM_CLI`), and `--config-root` when it isn't the default. A host that
+opens a tab for a child runs that line as the tab's command.
+
+**Not a security boundary.** An agent with a shell can unset
+`AGENT_FARM_PARENT` or leave out `--parent`. The check catches wrong and stale
+names, keeps a host's tree of who started whom truthful, and records the
+parent, which is all it is for.
 
 Agents may also declare launch arguments in frontmatter:
 
@@ -402,9 +463,14 @@ The check ignores caches a skill leaves in its bundled folder (`.venv`,
 
 ### Resuming a session
 
-Every interactive launch gets a session ID, recorded with the profile, variant,
-harness and directory under `~/.local/state/agent-farm/launches/`. Claude uses
-that ID as its own session ID. Codex picks its own, so Agent Farm finds the
+Every launch gets a launch ID, recorded with the profile or agent name, its
+variant, harness, directory, entry kind (`profile` or `agent`), and the parent
+launch ID, parent ref and link when it has a parent, under
+`~/.local/state/agent-farm/launches/`. Headless launches (`--exec`, process
+children) are recorded with `headless: true` so they can be found; they can't be
+resumed. `--explain` writes nothing, and `--print-launch` and `--print-acp` give
+the printed launch an ID for its parent token and telemetry without a record.
+Claude uses an interactive launch's ID as its own session ID. Codex picks its own, so Agent Farm finds the
 top-level Codex session the launch started in its runtime Codex home.
 `--resume ID` reopens that conversation:
 

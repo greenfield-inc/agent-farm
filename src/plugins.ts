@@ -25,6 +25,12 @@ export function validatePlugin(root:string,hostRoot?:string){
  // Every variant of every agent variant set must resolve, even one no profile names yet.
  const agentsDirectory=path.join(root,'agents'),context={root,plugin:info.name,version:info.version,local:false};
  for(const entry of fs.existsSync(agentsDirectory)?fs.readdirSync(agentsDirectory,{withFileTypes:true}):[]){const name=entry.isFile()&&entry.name.endsWith('.yaml')?entry.name.slice(0,-5):entry.isDirectory()?entry.name:undefined;if(!name||!/^[a-z][a-z0-9_-]{0,63}$/.test(name)||!variantSetFile(context,name))continue;const resolved=resolveProfile(root,`${info.name}/${name}`,undefined,{hostRoot,agentOnly:true});for(const variant of resolved.variants??[])resolveProfile(root,`${info.name}/${name}:${variant}`,undefined,{hostRoot,agentOnly:true});}
+ // Launch links are not compiled into their parent, so follow them here: every target, and every variant of it, must resolve.
+ const seen=new Set<string>(),pending:Array<[string,boolean]>=names.map(name=>[`${info.name}/${name}`,false]);
+ for(const entry of fs.existsSync(agentsDirectory)?fs.readdirSync(agentsDirectory):[]){const name=entry.replace(/\.(md|yaml)$/,'');if(/^[a-z][a-z0-9_-]{0,63}$/.test(name))pending.push([`${info.name}/${name}`,true]);}
+ while(pending.length){const [ref,agentOnly]=pending.pop()!,key=(agentOnly?'agent:':'profile:')+ref;if(seen.has(key))continue;seen.add(key);let resolved;try{resolved=resolveProfile(root,ref,undefined,{hostRoot,agentOnly});}catch(error){if(!agentOnly||ref.includes(':'))throw error;continue;}
+  if(!ref.includes(':'))for(const variant of resolved.variants??[])pending.push([`${ref}:${variant}`,agentOnly]);
+  for(const node of Object.values(resolved.nodes))for(const [alias,link] of Object.entries(node.links??{})){if(link.any)continue;const target=link.agent!+(link.variant?':'+link.variant:'');try{resolveProfile(root,target,undefined,{hostRoot,agentOnly:true});}catch(error){throw new Error(`Launch link ${alias} of ${node.qualified_name} names ${target}, which does not resolve: ${error instanceof Error?error.message:error}`);}pending.push([target,true]);}}
  return {info,checksums,profiles};
 }
 
