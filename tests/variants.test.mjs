@@ -203,7 +203,7 @@ test('a child bound to a variant set runs the default member, with the binding m
  f.put('agents/reviewer.yaml','variants:\n  claude:\n    agent: reviewer-claude\n    model: {reasoning: low}\n  codex:\n    agent: reviewer-codex\ndefault: claude\n');
  const {nodes}=resolveProfile(f.root,'lead');
  const plain=nodes[nodes.main.children.reviewer],tuned=nodes[nodes.main.children['fast-reviewer']];
- assert.deepEqual([plain.name,plain.reasoning_effort,plain.variant_set],['reviewer-claude','low',{agent:'local/reviewer',variant:'claude'}]);
+ assert.deepEqual([plain.name,plain.reasoning_effort,plain.variant_set],['reviewer-claude','low',{agent:'reviewer',variant:'claude'}]);
  assert.equal(tuned.reasoning_effort,'high');
  build(f.root,'lead',f.target);
 });

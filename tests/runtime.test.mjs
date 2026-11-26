@@ -9,6 +9,9 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 import {build} from '../dist/compiler.js';
 import {command,codexHome,codexServerTables,hardLinked,loadProvider,fileMap,verify} from '../dist/runtime.js';
 import {parse as parseToml} from 'smol-toml';
+/** A printed launch's env without the per-launch keys: the parent token (it holds a fresh launch ID) and the CLI argv. */
+const stable=env=>Object.fromEntries(Object.entries(env).filter(([key])=>key!=='AGENT_FARM_PARENT'&&key!=='AGENT_FARM_CLI'));
+const assertToken=(env,ref)=>assert.match(env.AGENT_FARM_PARENT,new RegExp(`^${ref}@[0-9a-f-]{36}$`));
 import {writeHarness,writeLink,fileIdentity,isLinked,assertLinked} from './harness.mjs';
 
 const cli=fileURLToPath(new URL('../dist/cli.js',import.meta.url));
@@ -46,7 +49,7 @@ test('print-launch prepares Codex bundle and home exactly as exec, without launc
  assertLinked(path.join(launch.env.CODEX_HOME,'auth.json'),path.join(f.home,'.codex/auth.json'));
  assert.equal(fs.readFileSync(path.join(launch.env.CODEX_HOME,'skills/proof/SKILL.md'),'utf8'),'Proof skill');
  const expected=command(launch.bundle,'main',{headless:true,home:f.home,env:f.env});
- assert.deepEqual(launch.argv,expected.argv);assert.deepEqual(launch.env,expected.envOverrides);
+ assert.deepEqual(launch.argv,expected.argv);assert.deepEqual(stable(launch.env),stable(expected.envOverrides));assertToken(launch.env,'planner');
  assert.equal(fs.existsSync(f.record),false);verify(launch.bundle);
  for(const secret of ['AUTH-SECRET-FIXTURE','LINEAR-SECRET-FIXTURE','PROXY-SECRET-FIXTURE','GITHUB-SECRET-FIXTURE']) {
   assert.equal(result.stdout.includes(secret),false);
@@ -262,7 +265,7 @@ for(const harness of ['codex','claude'])for(const match of [undefined,'all','sla
   const result=f.invoke(['--print-launch']);assert.equal(result.status,0,result.stderr);
   const launch=JSON.parse(result.stdout),applied=match!=='slash-models' || slash;
   const direct=command(launch.bundle,'main',{headless:true,home:f.home,env:f.env,configRoot:f.root});
-  assert.deepEqual(launch.argv,direct.argv);assert.deepEqual(launch.env,direct.envOverrides);
+  assert.deepEqual(launch.argv,direct.argv);assert.deepEqual(stable(launch.env),stable(direct.envOverrides));
   assert.equal(launch.argv[launch.argv.indexOf('--model')+1],model);
   if(harness==='codex') {
    const config=path.join(launch.env.CODEX_HOME,'config.toml');
@@ -291,7 +294,7 @@ for(const parentSlash of [false,true])for(const childSlash of [false,true]) {
   const child=spawnSync(process.execPath,[path.join(parent.bundle,'main/dispatch/worker'),'--print-launch'],{env:{...f.env,...parent.env},encoding:'utf8'});
   assert.equal(child.status,0,child.stderr);const launch=JSON.parse(child.stdout);
   const direct=command(parent.bundle,'main/children/worker',{headless:true,home:f.home,env:{...f.env,...parent.env}});
-  assert.deepEqual(launch.argv,direct.argv);assert.deepEqual(launch.env,direct.envOverrides);
+  assert.deepEqual(launch.argv,direct.argv);assert.deepEqual(stable(launch.env),stable(direct.envOverrides));
   const config=path.join(launch.env.CODEX_HOME,'config.toml');
   assert.equal(isLinked(config,path.join(f.home,'.codex/config.toml')),!childSlash);
   if(childSlash)assert.equal(parseToml(fs.readFileSync(config,'utf8')).model_provider,provider.name);
@@ -328,7 +331,7 @@ test('Codex provider configuration routes the profile without copying native con
  fs.unlinkSync(path.join(f.root,'settings.json'));assert.equal(loadProvider(f.root),undefined);
  const restored=f.invoke(['--print-launch'],'implementer');assert.equal(restored.status,0,restored.stderr);
  assertLinked(config,native);assert.equal(fs.readFileSync(config,'utf8'),nativeText);
- assert.deepEqual(Object.keys(JSON.parse(restored.stdout).env).sort(),['AGENT_FARM_CONFIG_ROOT','AGENT_FARM_NATIVE_CODEX_HOME','CODEX_HOME']);
+ assert.deepEqual(Object.keys(JSON.parse(restored.stdout).env).sort(),['AGENT_FARM_CLI','AGENT_FARM_CONFIG_ROOT','AGENT_FARM_NATIVE_CODEX_HOME','AGENT_FARM_PARENT','CODEX_HOME']);
  configureProvider(f);
  const again=f.invoke(['--print-launch'],'implementer');assert.equal(again.status,0,again.stderr);
  assert.equal(fs.lstatSync(config).isSymbolicLink(),false);assert.equal(fs.readFileSync(native,'utf8'),nativeText);
@@ -421,7 +424,7 @@ test('Claude passthrough keeps strict MCP and caller streaming, resume, hooks an
  const native=['-p','--output-format','stream-json','--verbose','--resume','session id','--settings','hooks with spaces.json','--max-turns','3','--max-budget-usd','2'];
  const result=f.invoke(['--print-launch','--message',message,'--',...native]);
  assert.equal(result.status,0,result.stderr);const launch=JSON.parse(result.stdout);
- assert.deepEqual(launch.env,{AGENT_FARM_CONFIG_ROOT:f.root,AGENT_FARM_HEADLESS:'1'});assert.ok(launch.argv.includes('--strict-mcp-config'));
+ assert.deepEqual(stable(launch.env),{AGENT_FARM_CONFIG_ROOT:f.root,AGENT_FARM_HEADLESS:'1'});assert.ok(launch.argv.includes('--strict-mcp-config'));
  assert.deepEqual(launch.argv.slice(-native.length-2),[...native,'--',message]);
  assert.equal(launch.argv.filter(a=>a==='--output-format').length,1);assert.equal(launch.argv.includes('--print'),false);
  assert.equal(fs.existsSync(f.record),false);

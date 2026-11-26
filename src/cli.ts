@@ -7,7 +7,8 @@ import os from 'node:os';
 import {parseArgs} from 'node:util';
 import {resolveWorkspace,resolveInteractiveWorkspace,trustWorkspace,untrustWorkspace,showWorkspace} from './workspaces.js';
 import {build,variantCommands,variantLabel,resolveProfile,splitVariant} from './compiler.js';
-import {run,execute,nativeCommand,readLaunchRecord} from './runtime.js';
+import {run,execute,nativeCommand,readLaunchRecord,parentVariable,type LaunchContext} from './runtime.js';
+import {checkParent,resumeLink} from './links.js';
 import {spawnSync} from 'node:child_process';
 import {loginCommand,loginPlan} from './mcp-auth.js';
 import {loadWorkspace,unloadWorkspace,loadedWorkspaces} from './user-workspaces.js';
@@ -62,6 +63,21 @@ function variantHint(root:string,requested:string,workspace:Parameters<typeof re
     return others.length ? {failed:`${name}:${failed}`,hint:` Try another variant: ${others.join(' or ')}`} : undefined;
   } catch { return undefined; }
 }
+/** The launch flags `run` passes on to the bundle's runtime, minus --exec, which the caller decides. */
+function launchArguments(values:Record<string,string|boolean|string[]|undefined>,nativeArgs:string[]):string[]{
+  const args:string[]=[];
+  if (values.explain) args.push('--explain');
+  if (values['print-launch']) args.push('--print-launch');
+  if (values['print-acp']) args.push('--print-acp');
+  for (const key of ['acp-adapter','model','reasoning','speed']) if (values[key]!==undefined) args.push(`--${key}=${values[key]}`);
+  for (const value of (values.arg as string[]|undefined) ?? []) args.push('--arg='+value);
+  if (values.message!==undefined) args.push('--message='+values.message);
+  if (values.resume!==undefined) args.push('--resume='+values.resume);
+  if (values['strict-mcp']) args.push('--strict-mcp');
+  if (values['inherit-mcp']) args.push('--inherit-mcp');
+  if (nativeArgs.length) args.push('--',...nativeArgs);
+  return args;
+}
 let launching:{root:string;requested:string;workspace:Parameters<typeof resolveProfile>[2]}|undefined;
 
 try {
@@ -72,7 +88,7 @@ try {
     'config-root':{type:'string',default:path.join(os.homedir(),'.config/agent-farm')},
     save:{type:'string'},model:{type:'string'},reasoning:{type:'string'},speed:{type:'string'},arg:{type:'string',multiple:true},harness:{type:'string'},'no-workspace':{type:'boolean'},yes:{type:'boolean'},directory:{type:'string',default:process.cwd()},'base-url':{type:'string'},'api-key-env':{type:'string'},
     build:{type:'boolean'},exec:{type:'boolean'},message:{type:'string'},explain:{type:'boolean'},
-    'print-launch':{type:'boolean'},'print-acp':{type:'boolean'},'acp-adapter':{type:'string'},'native-arg':{type:'string',multiple:true},resume:{type:'string'},'strict-mcp':{type:'boolean'},'inherit-mcp':{type:'boolean'}
+    'print-launch':{type:'boolean'},'print-acp':{type:'boolean'},'acp-adapter':{type:'string'},'native-arg':{type:'string',multiple:true},resume:{type:'string'},'strict-mcp':{type:'boolean'},'inherit-mcp':{type:'boolean'},parent:{type:'string'}
   }});
   const separator=tokens.find(t=>t.kind==='option-terminator')?.index ?? rawArgs.length;
   const positionals=tokens.flatMap(t=>t.kind==='positional' && t.index<separator ? [t.value] : []);
@@ -80,6 +96,7 @@ try {
   const runCommand=['run','agent'].includes(positionals[0] ?? '');
   if ((values['print-launch'] || values['print-acp'] || values['acp-adapter']!==undefined || values['native-arg'] || values.resume!==undefined || separator<rawArgs.length) && !['run','agent'].includes(positionals[0] ?? '')) throw new Error('Prepared launches, --resume and native arguments require run or agent');
   if ((values['strict-mcp'] || values['inherit-mcp']) && !['run','agent'].includes(positionals[0] ?? '')) throw new Error('--strict-mcp and --inherit-mcp require run or agent');
+  if (values.parent!==undefined && !runCommand) throw new Error('--parent requires run or agent');
   const globalCommand=['set','unset','status'].includes(positionals[0] ?? '') && positionals[1]==='global';
   if(values.yes && !(positionals[0]==='workspace'&&positionals[1]==='trust'))throw new Error('--yes is only supported by workspace trust');
   if(values['no-workspace'] && !runCommand && positionals[0]!=='inspect' && !(positionals[0]==='mcp'&&positionals[1]==='login') && !(positionals[0]==='workspace'&&positionals[1]==='show'))throw new Error('--no-workspace is supported by run, inspect, mcp login, and workspace show');
@@ -238,14 +255,34 @@ try {
     const workspace=interactive?await resolveInteractiveWorkspace(root,options):resolveWorkspace(root,options);
     // A name without a variant launches the profile's default and never asks. A resume
     // reopens the variant that started the session.
-    const requested=values.resume!==undefined ? resumedProfile(root,positionals[1]!,values.resume,workspace) : positionals[1]!;
+    // A launch that started through a link resumes as the agent it recorded, even when the host replays the alias.
+    const record=values.resume!==undefined ? readLaunchRecord(values.resume) : undefined;
+    const linked=record ? resumeLink(root,positionals[1]!,record,workspace) : undefined;
+    let requested=linked ? linked.requested : values.resume!==undefined ? resumedProfile(root,positionals[1]!,values.resume,workspace) : positionals[1]!;
+    // A launch with a parent must be one of its links (D2). The flag wins over the token this shell inherited.
+    // A resume keeps the parent and link recorded at its first launch, so it is not checked again.
+    if (values.parent==='') throw new Error('--parent needs a parent token (PLUGIN/NAME[:VARIANT]@LAUNCH-ID)');
+    const token=values.parent ?? (process.env[parentVariable] || undefined);
+    const checked=token!==undefined && values.resume===undefined ? checkParent(root,requested,token,workspace,values.parent!==undefined?'--parent':'AGENT_FARM_PARENT') : undefined;
+    const cli=path.basename(process.argv[1] ?? '')==='agent-farm' ? [path.resolve(process.argv[1]!)] : [process.execPath,path.resolve(process.argv[1] ?? fileURLToPath(import.meta.url))];
+    let context:LaunchContext|undefined=checked?.context;
+    if (checked?.kind==='process') {
+      // A process link by name runs the parent's compiled route, as its dispatcher would (D4).
+      if (values.build) throw new Error(`${requested} is a process link of ${checked.parent}; it has no bundle of its own to build`);
+      const bundle=build(root,checked.parent,directory,workspace);
+      const args=['--exec',...launchArguments(values,nativeArgs)];
+      run(bundle,checked.route,args,undefined,root,true,{context,cli});
+    } else {
+    const resolveOptions=checked?.kind==='entry' ? checked.options : linked?.options ?? {};
+    if (checked?.kind==='entry') requested=checked.requested;
     const launches=!values.build && !values.explain && !values['print-launch'] && !values['print-acp'];
     if (launches && values.resume===undefined) launching={root,requested,workspace};
     if (launches && values.resume===undefined && splitVariant(requested).variant===undefined) {
-      const resolution=resolveProfile(root,requested,workspace),others=variantCommands(requested,resolution,resolution.default_variant);
+      const resolution=resolveProfile(root,requested,workspace,resolveOptions),others=variantCommands(requested,resolution,resolution.default_variant);
       if (others.length) console.error(`Using ${requested}:${resolution.default_variant} (default). Other variants: ${others.join(', ')}`);
     }
-    const bundle=build(root,requested,directory,workspace);
+    const bundle=build(root,requested,directory,workspace,resolveOptions);
+    context??={entry_kind:JSON.parse(fs.readFileSync(path.join(bundle,'manifest.json'),'utf8')).entry_kind};
     if (launches) {
       const manifest=JSON.parse(fs.readFileSync(path.join(bundle,'manifest.json'),'utf8'));
       try {
@@ -254,23 +291,7 @@ try {
       } catch(error) { console.error('Warning: unable to inspect global skills:',error instanceof Error?error.message:error); }
     }
     if (values.build) console.log(bundle);
-    else {
-      const args: string[]=[];
-      if (values.exec) args.push('--exec');
-      if (values.explain) args.push('--explain');
-      if (values['print-launch']) args.push('--print-launch');
-      if (values['print-acp']) args.push('--print-acp');
-      if (values['acp-adapter']!==undefined) args.push('--acp-adapter='+values['acp-adapter']);
-      if (values.model!==undefined) args.push('--model='+values.model);
-      if (values.reasoning!==undefined) args.push('--reasoning='+values.reasoning);
-      if (values.speed!==undefined) args.push('--speed='+values.speed);
-      for (const value of values.arg ?? []) args.push('--arg='+value);
-      if (values.message!==undefined) args.push('--message='+values.message);
-      if (values.resume!==undefined) args.push('--resume='+values.resume);
-      if (values['strict-mcp']) args.push('--strict-mcp');
-      if (values['inherit-mcp']) args.push('--inherit-mcp');
-      if (nativeArgs.length) args.push('--',...nativeArgs);
-      run(bundle,'main',args,undefined,path.resolve(values['config-root']!));
+    else run(bundle,'main',[...(values.exec?['--exec']:[]),...launchArguments(values,nativeArgs)],undefined,root,false,{context,cli});
     }
   }
   }
