@@ -1,6 +1,6 @@
 variants:
-  sol:
+  codex:
     agent: simplify-and-refactor
-  opus:
+  claude:
     agent: simplify-and-refactor-claude
-default: sol
+default: codex

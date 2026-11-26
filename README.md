@@ -133,7 +133,7 @@ commands. `agent-farm doctor` tells you what's working and what's not.
 agent-farm run greenfield/planner
 agent-farm run greenfield/planner:codex
 agent-farm run greenfield/implementer --directory ~/repos/my-project --message "Fix the failing tests"
-agent-farm run greenfield/implementer:sol
+agent-farm run greenfield/implementer:codex
 agent-farm run greenfield/reviewer:codex --message "Review PR #42"
 ```
 

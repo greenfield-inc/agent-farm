@@ -187,6 +187,8 @@ export interface Agent {
   references?: {name:string;plugin?:string;version?:string;source:string};
   connections: Record<string, Connection>; children: Record<string, string>;
   argument_definitions?: Record<string, ArgumentDefinition>; launch?: LaunchMetadata;
+  /** Set when a child binding named an agent variant set: the set and the member variant it runs. */
+  variant_set?: {agent: string; variant: string};
 }
 export interface Manifest { profile: string; variant?: string; plugin?: string; plugin_version?: string; trace_identity:string; directory: string; workspace_source?: WorkspaceMetadata; workspace_telemetry?: TelemetrySettings; nodes: Record<string, Agent>; cross_plugin_dependencies?: Array<{plugin:string;version?:string;references:string[]}> }
 export interface WorkspaceMetadata {source:string;overlay?:string;trust:'none'|'personal'|'trusted'|'untrusted'|'declined';repository?:string;common?:string;sha256?:string}

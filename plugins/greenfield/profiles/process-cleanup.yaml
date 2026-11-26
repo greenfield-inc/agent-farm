@@ -1,6 +1,6 @@
 variants:
-  opus:
+  claude:
     agent: process-cleanup
-  sol:
+  codex:
     agent: process-cleanup-codex
-default: opus
+default: claude

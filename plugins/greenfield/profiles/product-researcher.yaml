@@ -1,6 +1,6 @@
 variants:
-  astra:
+  codex:
     agent: astra-researcher
-  opus:
+  claude:
     agent: product-researcher-claude
-default: astra
+default: codex

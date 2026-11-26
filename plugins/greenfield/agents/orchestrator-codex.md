@@ -36,4 +36,4 @@ You are the orchestrator. Workers do the project work: investigation, options an
 
 ## Worker routing
 
-Unless the user explicitly overrides a model or variant, use `greenfield/bug-reporter:codex`, `greenfield/planner:codex`, `greenfield/implementer:codex`, `greenfield/reviewer:codex`, `greenfield/qa-and-fix:codex` and `greenfield/simplify-and-refactor:sol`. These defaults take precedence over the Claude defaults in the coordination rules above and in the shared skill. Preserve explicit user model overrides. Use the host's Codex harness when launching these profiles. Shared skills need no separate variants.
+Unless the user explicitly overrides a model or variant, use `greenfield/bug-reporter:codex`, `greenfield/planner:codex`, `greenfield/implementer:codex`, `greenfield/reviewer:codex`, `greenfield/qa-and-fix:codex` and `greenfield/simplify-and-refactor:codex`. These defaults take precedence over the Claude defaults in the coordination rules above and in the shared skill. Preserve explicit user model overrides. Use the host's Codex harness when launching these profiles. Shared skills need no separate variants.

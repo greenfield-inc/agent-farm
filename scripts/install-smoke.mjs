@@ -39,7 +39,7 @@ const launches=()=>fs.existsSync(record)?fs.readFileSync(record,'utf8').trim().s
 assert.match(agentFarm('doctor'),/claude\s.*found/);
 agentFarm('plugin','install');
 assert.match(agentFarm('profiles','list'),/greenfield\/implementer/);
-for(const [profile,flag] of [['greenfield/implementer:opus','--append-system-prompt'],['greenfield/implementer:astra','developer_instructions']]){
+for(const [profile,flag] of [['greenfield/implementer:claude','--append-system-prompt'],['greenfield/implementer:codex','developer_instructions']]){
  const before=launches().length;
  agentFarm('run',profile,'--exec','--message','hello from the smoke test');
  const launch=launches()[before];
@@ -52,8 +52,8 @@ for(const [profile,flag] of [['greenfield/implementer:opus','--append-system-pro
 const bundle=agentFarm('run','greenfield/reviewer:claude','--build').trim();
 const dispatch=spawnSync(process.execPath,[path.join(bundle,'main','dispatch','codebase-explorer'),'--print-launch'],{cwd:repo,env,encoding:'utf8'});
 assert.equal(dispatch.status,0,dispatch.stderr);
-agentFarm('set','global','greenfield/implementer:opus','--harness','claude');
+agentFarm('set','global','greenfield/implementer:claude','--harness','claude');
 assert.match(agentFarm('status','global'),/managed/i);
-agentFarm('unset','global','greenfield/implementer:opus','--harness','claude');
+agentFarm('unset','global','greenfield/implementer:claude','--harness','claude');
 fs.rmSync(base,{recursive:true,force:true});
 console.log('Install smoke passed');

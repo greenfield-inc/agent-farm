@@ -52,7 +52,7 @@ development workflow.
 
 Use `plugin/profile` to select an installed profile unambiguously, for example
 `agent-farm run greenfield/implementer`. Append `:variant` to pick one of a
-profile's [variants](#variants), as in `greenfield/implementer:sol`. Qualified names contain exactly one slash;
+profile's [variants](#variants), as in `greenfield/implementer:codex`. Qualified names contain exactly one slash;
 both components use lowercase letters, digits, `_`, and `-`, beginning with a
 letter. `run`, `inspect`, `load`, and `unload` all accept qualified names.
 
@@ -140,9 +140,12 @@ default: claude
 
 Each variant accepts exactly the fields above (`agent`, `model`, `args`). A
 profile with `variants` has no top-level `agent`, `model`, or `args`, and
-`default` must name one of its variants. Variant names follow the configuration
-name rule. The Claude and Codex variants still point at separate agent files,
-because instructions are tuned per harness; the profile only groups them.
+`default` must name one of its variants. The only variant names are `claude`
+and `codex`, and each must point at an agent of that harness: a `claude` variant
+that names a Codex agent, or a variant named anything else (such as `opus`),
+fails to resolve and fails `plugin validate`. The Claude and Codex variants
+still point at separate agent files, because instructions are tuned per harness;
+the profile only groups them.
 
 Select a variant with `NAME:VARIANT`, for example `agent-farm run
 greenfield/planner:codex`. `agent-farm run` with a name and no variant launches
@@ -171,7 +174,7 @@ telemetry `agent_access.profiles` entries and Codex resume state are shared by
 a profile's variants. Codex variants of one profile also share one private
 Codex home, so don't run two of them with different skill sets in the same
 directory at the same time. Plugin validation resolves every variant, not only
-the default. The profile editor in `agent-farm ui` edits single-agent profiles;
+the default, for profiles and [agent variant sets](#agent-variant-sets) alike. The profile editor in `agent-farm ui` edits single-agent profiles;
 edit variants in the YAML source.
 
 `agent-farm run NAME` launches the complete identity. `agent-farm set global NAME` loads
@@ -202,6 +205,30 @@ prepended with `instructions_files`. Actual agents live here whether they are
 used as entry points, children, or both. A reference document such as
 `skills/create-ticket/references/socrates.md` is a reusable rubric, not another
 agent definition.
+
+### Agent variant sets
+
+An agent that is not a profile can still have a Claude and a Codex version under
+one name. Write an agent YAML file that holds only `variants` and `default`, with
+the same schema and rules as [profile variants](#variants):
+
+```yaml
+# agents/reviewer.yaml
+variants:
+  claude: { agent: claude-pr-reviewer }
+  codex:  { agent: codex-pr-reviewer, model: { name: gpt-6.2-sol, reasoning: low, speed: ultrafast } }
+default: claude
+```
+
+`agent-farm run plugin/reviewer:codex` runs the Codex member, and a bare
+`agent-farm run plugin/reviewer` runs the default with the same `Using …
+(default)` line a profile prints. A child binding whose `agent` names a set runs
+the set's default member; the member's `model` preset applies, and the binding's
+own `model` wins over it. A set's members must be single agents, not other sets.
+A set and a member can't share a file name (`agents/planner.yaml` next to
+`agents/planner.md` is ambiguous), so name the Claude member `<name>-claude`.
+`plugin validate` resolves every variant of every set. A suffix on a single agent
+(`agent-farm run plugin/worker:codex`) is an error.
 
 Agents may also declare launch arguments in frontmatter:
 
@@ -429,7 +456,7 @@ subagents and MCP servers as `agent-farm run`. Nothing is launched while
 printing, and `--model`, `--reasoning`, `--speed` and `--arg` apply as usual.
 
 ```bash
-agent-farm run greenfield/implementer:opus --print-acp --acp-adapter /path/to/claude-agent-acp/dist/index.js
+agent-farm run greenfield/implementer:claude --print-acp --acp-adapter /path/to/claude-agent-acp/dist/index.js
 ```
 
 Like `--print-launch`, the JSON reports the profile and variant, plugin, trace
@@ -1098,11 +1125,10 @@ reports the preset, resolved arguments, resolved model, and the agent/preset
 source of each model field. `--explain`, `--print-launch` and `--print-acp` add the actual
 launch metadata, including any flag sources and `ad hoc` override marker.
 
-`greenfield/implementer` has four variants: `opus` (the default), `astra`,
-`sol`, and `codex`. `astra`, `sol` and `codex` all use GPT-6.2 Sol at medium
-effort on the ultrafast speed; `codex` also keeps
-its opt-in second opinion on Codex. See the [Greenfield guide](plugins/greenfield/README.md#orchestration)
-for Codex worker routing.
+`greenfield/implementer` has two variants: `claude` (the default, Claude Opus
+5.5) and `codex` (GPT-6.2 Sol at medium effort on the ultrafast speed). See the
+[Greenfield guide](plugins/greenfield/README.md#orchestration) for Codex worker
+routing.
 
 ## Local MCP servers and native sign-in
 
