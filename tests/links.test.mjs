@@ -7,7 +7,7 @@ import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {resolveProfile,build} from '../dist/compiler.js';
 import {validatePlugin,installPlugin} from '../dist/plugins.js';
-import {command} from '../dist/runtime.js';
+import {command,quoteArgument} from '../dist/runtime.js';
 import {writeHarness} from './harness.mjs';
 const cli=fileURLToPath(new URL('../dist/cli.js',import.meta.url));
 
@@ -70,7 +70,8 @@ test('the children block gives each launch link a command with --parent and the 
  const f=fixture(t),bundle=build(f.root,'team/lead',f.target);
  const launch=command(bundle,'main',{prepare:false,home:f.home,configRoot:f.root,launchId:'abc-123',cli:['/opt/agent-farm']});
  const prompt=launch.argv[launch.argv.indexOf('--append-system-prompt')+1];
- assert.match(prompt,new RegExp(`reviewer: /opt/agent-farm run team/reviewer --config-root ${f.root.replace(/[/.]/g,'\\$&')} --parent team/lead@abc-123 \\(Reviews a PR\\); variants claude, codex, default claude: append :codex`));
+ assert.ok(prompt.includes(`reviewer: /opt/agent-farm run team/reviewer --config-root ${quoteArgument(f.root)} --parent team/lead@abc-123 (Reviews a PR); variants claude, codex, default claude: append :codex`),prompt);
+ assert.equal(quoteArgument('C:\\Users\\me\\config'),'C:\\Users\\me\\config');assert.equal(quoteArgument('/a b/"c"'),'"/a b/\\"c\\""');
  assert.match(prompt,/builder: \/opt\/agent-farm run team\/implementer:codex --config-root \S+ --parent team\/lead@abc-123$/m);
  assert.match(prompt,/helper: node "[^"]+dispatch\/helper"/);
  assert.equal(launch.env.AGENT_FARM_PARENT,'team/lead@abc-123');assert.equal(launch.env.AGENT_FARM_CLI,'["/opt/agent-farm"]');

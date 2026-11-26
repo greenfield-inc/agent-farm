@@ -644,7 +644,7 @@ export function shellArgument(text: string, placeholder: string, platform=proces
 }
 /** What a bundled child is told to read: its instructions, then its skill files and references. */
 /** A command-line word as a person would paste it: bare when safe, else double-quoted. */
-export function quoteArgument(text: string): string { return /^[\w@+=:,./~-]+$/.test(text) ? text : JSON.stringify(text); }
+export function quoteArgument(text: string): string { return /^[\w@+=:,./~\\-]+$/.test(text) ? text : '"'+text.replace(/"/g,'\\"')+'"'; }
 /** What a bundled child is told to read: its instructions, then its skill files and references. */
 export function childPrompt(bundle: string, childRoute: string, child: Agent): string {
   return [child.instructions??'','Selected skill files (read these before doing the assigned work; resolve their links relative to each skill directory):',...child.skills.map(skill=>path.join(bundle,childRoute,'skills',skill,'SKILL.md')),...(child.references?['',referencesNote(path.join(bundle,childRoute,'references'))]:[])].join('\n');
