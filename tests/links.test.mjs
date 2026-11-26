@@ -73,7 +73,7 @@ test('the children block gives each launch link a command with --parent and the 
  assert.ok(prompt.includes(`reviewer: /opt/agent-farm run team/reviewer --config-root ${quoteArgument(f.root)} --parent team/lead@abc-123 (Reviews a PR); variants claude, codex, default claude: append :codex`),prompt);
  assert.equal(quoteArgument('C:\\Users\\me\\config'),'C:\\Users\\me\\config');assert.equal(quoteArgument('/a b/"c"'),'"/a b/\\"c\\""');
  assert.match(prompt,/builder: \/opt\/agent-farm run team\/implementer:codex --config-root \S+ --parent team\/lead@abc-123$/m);
- assert.match(prompt,/helper: node "[^"]+dispatch\/helper"/);
+ assert.match(prompt,/helper: node "[^"]+dispatch[\\/]helper"/);
  assert.equal(launch.env.AGENT_FARM_PARENT,'team/lead@abc-123');assert.equal(launch.env.AGENT_FARM_CLI,'["/opt/agent-farm"]');
 });
 
