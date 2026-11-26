@@ -291,7 +291,7 @@ A set and a member can't share a file name (`agents/planner.yaml` next to
 A launch link names an agent this one may start on demand, as its own launch:
 interactive in a host tab, or headless with `--exec`. Unlike a native or process
 child it is not compiled into the parent's bundle; the target resolves when it
-starts, so links may form cycles (a reviewer may start an implementer that may
+starts, from the parent's [snapshot](#session-snapshots), so links may form cycles (a reviewer may start an implementer that may
 start a reviewer). It does not inherit the parent's connections: it gets its own
 and the workspace's, as a tab does.
 
@@ -318,7 +318,9 @@ agent it names (bare or qualified). Otherwise the launch fails before any harnes
 and the error lists the parent's links with the command for each. A name that is
 the parent's native subagent is refused with "runs inside your harness, use
 native delegation". The parent is checked by resolving its ref here, so a token
-whose launch ID this machine never saw still works when the ref resolves. A
+whose launch ID this machine never saw still works when the ref resolves. The
+parent and the name are both looked up in the launch's snapshot, so a name the
+installed plugin gained after the snapshot was taken is refused until a reload. A
 `--resume` is not checked again: it keeps the parent and link recorded at its
 first launch. A host that replays the command it ran (`run builder --parent …
 --resume ID`) reopens the agent the launch recorded, even if `builder` names
@@ -339,11 +341,12 @@ bundled children:
 
 ```text
 Launch links (start each with its command, …):
-planner: "/usr/local/bin/agent-farm" run greenfield/planner --parent greenfield/orchestrator:claude@3f2a… (Writes the plan); variants claude, codex, default claude: append :codex to the name for the other
+planner: "/usr/local/bin/agent-farm" run greenfield/planner --snapshot /work/session/.agent-farm/snapshots/9c41… --parent greenfield/orchestrator:claude@3f2a… (Writes the plan); variants claude, codex, default claude: append :codex to the name for the other
 ```
 
 The command uses the CLI that started this launch (passed on to children in
-`AGENT_FARM_CLI`), and `--config-root` when it isn't the default; a path that
+`AGENT_FARM_CLI`), `--config-root` when it isn't the default, and `--snapshot`
+with the launch's snapshot folder as an absolute path; a path that
 needs quoting is single-quoted, literal in a POSIX shell and in PowerShell. When
 two links name the same agent, each line runs its alias instead, so the right
 link's settings apply. A host that
@@ -377,6 +380,59 @@ free-form `type: string`/`type: path`. `default` and `description` are optional;
 an enum default must be one of its values. Argument names use the same lowercase
 configuration-name rule as agents. Paths are passed through literally and are
 not resolved or checked for existence.
+
+### Session snapshots
+
+A snapshot is a frozen copy of what a launch can resolve, so a team of agents
+runs one version of its plugins while the installed copy is updated. It holds
+every installed plugin folder and its receipt, the config root's own `agents/`,
+`profiles/`, `skills/`, `instructions/` and `references/`, and `default_plugin`.
+It lives at `<launch directory>/.agent-farm/snapshots/<digest>/`, reads as a
+config root, and is never changed once written: the same installed files give
+the same folder. It sits outside `.agent-farm/generated/`, so a Pane Session move
+copies it with the Session folder. Workspaces, overlays, connections, provider,
+telemetry settings, records and trust still come from the real config root.
+
+`agent-farm run` and `agent-farm agent` pick the snapshot they resolve from in
+this order:
+
+1. `--snapshot PATH`.
+2. On `--resume ID`, the snapshot in the launch record.
+3. An inherited `AGENT_FARM_SNAPSHOT` (empty counts as unset).
+4. Otherwise a new snapshot of what is installed, in the launch directory.
+
+`--resume ID --reload` skips the first three and takes a new snapshot of what
+is installed. `--reload` needs `--resume`, and can't be combined with
+`--snapshot`. A relative `PATH` or `AGENT_FARM_SNAPSHOT` resolves against the
+launch directory (`--directory`), so a host can name a snapshot inside a Session
+folder that has moved. A record stores the snapshot relative to its launch
+directory when it is inside it.
+
+Everything a launch resolves comes from its snapshot: the parent check, its own
+bundle, a process link started by name, and a resume. Its harness gets
+`AGENT_FARM_SNAPSHOT` with the snapshot's absolute path (empty for a bundle
+built without one), and each launch-link line carries `--snapshot`, so children
+and grandchildren share the parent's folder rather than copying it. The trace
+identity's version comes from the snapshot's `plugin.yaml`. `--explain`,
+`--print-launch` and `--print-acp` add `snapshot` (the digest) and
+`snapshot_path`, and telemetry adds `agent_farm.snapshot`.
+
+A snapshot is checked against its `checksums.json` on every use. One that is
+missing, fails its checksum, or was written in a newer format than this CLI
+reads is refused with an error that names Reload profile and `--resume ID
+--reload`. Agent Farm never falls back to the installed plugins for it.
+
+A host creates one before it launches:
+
+```bash
+agent-farm snapshot create --directory /work/session --json
+# {"path": "/work/session/.agent-farm/snapshots/9c41…", "digest": "9c41…", "plugins": {"greenfield": "0.1.0"}}
+```
+
+Without `--json` it prints the path. Agent Farm deletes no snapshots: they go
+with their folder, and deleting one is safe for any launch that doesn't name it.
+In a repository, add `/.agent-farm/snapshots/` to `.gitignore`, as for
+`.agent-farm/generated/`; Agent Farm prints a hint once.
 
 ## Launch overrides and context
 
@@ -528,7 +584,8 @@ The check ignores caches a skill leaves in its bundled folder (`.venv`,
 ### Resuming a session
 
 Every launch gets a launch ID, recorded with the profile or agent name, its
-variant, harness, directory, entry kind (`profile` or `agent`), and the parent
+variant, harness, directory, entry kind (`profile` or `agent`), the
+[snapshot](#session-snapshots) it resolved from, and the parent
 launch ID, parent ref and link when it has a parent, under
 `~/.local/state/agent-farm/launches/`. Headless launches (`--exec`, process
 children) are recorded with `headless: true` so they can be found; they can't be
@@ -553,12 +610,14 @@ cannot be combined with native resume arguments such as `-- --continue`; those
 leave session identity to the harness.
 
 A launch started through a [launch link](#launch-links) resumes as the agent it
-recorded (see that section). When the recorded name
-no longer resolves (a removed profile, agent or variant), the resume starts
-nothing and exits non-zero with `Session ID was started as
-greenfield/implementer:opus, which this Agent Farm no longer has. Start a fresh
-Session.` There is no fallback to the session's old generated bundle, because the
-record does not say which bundle it used.
+recorded (see that section). A resume resolves from the snapshot in its record,
+so a profile, agent or variant removed from the installed plugin since then
+still resumes, with the files it started with. `--resume ID --reload` instead
+takes a new snapshot of what is installed and records it. A record written
+before snapshots (Agent Farm 0.3.0 and older) resolves from what is installed:
+when its name no longer resolves there, the resume starts nothing and exits
+non-zero with `Session ID was started as greenfield/implementer:opus, which this
+Agent Farm no longer has. Start a fresh Session.`
 
 A host that runs `agent-farm run` in a terminal it owns can restore that
 terminal into the same conversation. When the host sets
@@ -1263,8 +1322,9 @@ Overlay edits affect subsequent builds, not existing child snapshots.
 `inspect`, `--explain`, `--print-launch`, `--print-acp`, and bundle manifests report
 `workspace_source`: its `source` is `repository:<path>`, `user:<path>`, or `none`,
 with an overlay path when present and a trust state. Generated bundles stay under
-`.agent-farm/generated/` in the launch directory. Ignore that generated directory
-in Git; Agent Farm prints a one-time hint if it is not ignored.
+`.agent-farm/generated/` in the launch directory, and [snapshots](#session-snapshots)
+under `.agent-farm/snapshots/`. Ignore both folders in Git; Agent Farm prints a
+one-time hint for each that is not ignored.
 
 ## Inspection and compatibility names
 

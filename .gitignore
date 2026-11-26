@@ -6,3 +6,4 @@ tmp/
 __pycache__/
 *.pyc
 /.agent-farm/generated/
+/.agent-farm/snapshots/

@@ -7,7 +7,8 @@ import os from 'node:os';
 import {parseArgs} from 'node:util';
 import {resolveWorkspace,resolveInteractiveWorkspace,trustWorkspace,untrustWorkspace,showWorkspace} from './workspaces.js';
 import {build,variantCommands,variantLabel,resolveProfile,splitVariant} from './compiler.js';
-import {run,execute,nativeCommand,readLaunchRecord,parentVariable,type LaunchContext} from './runtime.js';
+import {run,execute,nativeCommand,readLaunchRecord,parentVariable,snapshotVariable,type LaunchContext} from './runtime.js';
+import {createSnapshot,openSnapshot,SnapshotUnreadable,type Snapshot} from './snapshot.js';
 import {checkParent,resumeLink} from './links.js';
 import {spawnSync} from 'node:child_process';
 import {loginCommand,loginPlan} from './mcp-auth.js';
@@ -91,7 +92,7 @@ try {
     'config-root':{type:'string',default:path.join(os.homedir(),'.config/agent-farm')},
     save:{type:'string'},model:{type:'string'},reasoning:{type:'string'},speed:{type:'string'},arg:{type:'string',multiple:true},harness:{type:'string'},'no-workspace':{type:'boolean'},yes:{type:'boolean'},directory:{type:'string',default:process.cwd()},'base-url':{type:'string'},'api-key-env':{type:'string'},
     build:{type:'boolean'},exec:{type:'boolean'},message:{type:'string'},explain:{type:'boolean'},
-    'print-launch':{type:'boolean'},'print-acp':{type:'boolean'},'acp-adapter':{type:'string'},'native-arg':{type:'string',multiple:true},resume:{type:'string'},'strict-mcp':{type:'boolean'},'inherit-mcp':{type:'boolean'},parent:{type:'string'},'agent-only':{type:'boolean'},json:{type:'boolean'},title:{type:'string'},description:{type:'string'},photo:{type:'string'}
+    'print-launch':{type:'boolean'},'print-acp':{type:'boolean'},'acp-adapter':{type:'string'},'native-arg':{type:'string',multiple:true},resume:{type:'string'},'strict-mcp':{type:'boolean'},'inherit-mcp':{type:'boolean'},parent:{type:'string'},'agent-only':{type:'boolean'},snapshot:{type:'string'},reload:{type:'boolean'},json:{type:'boolean'},title:{type:'string'},description:{type:'string'},photo:{type:'string'}
   }});
   const separator=tokens.find(t=>t.kind==='option-terminator')?.index ?? rawArgs.length;
   const positionals=tokens.flatMap(t=>t.kind==='positional' && t.index<separator ? [t.value] : []);
@@ -101,7 +102,9 @@ try {
   if ((values['strict-mcp'] || values['inherit-mcp']) && !['run','agent'].includes(positionals[0] ?? '')) throw new Error('--strict-mcp and --inherit-mcp require run or agent');
   if (values.parent!==undefined && !runCommand) throw new Error('--parent requires run or agent');
   if (values['agent-only'] && !runCommand) throw new Error('--agent-only requires run or agent');
-  if (values.json && !(positionals[0]==='profiles' && positionals[1]==='list')) throw new Error('--json is only supported by profiles list');
+  if ((values.snapshot!==undefined || values.reload) && !runCommand) throw new Error('--snapshot and --reload require run or agent');
+  const snapshotCommand=positionals[0]==='snapshot';
+  if (values.json && !(positionals[0]==='profiles' && positionals[1]==='list') && !snapshotCommand) throw new Error('--json is only supported by profiles list and snapshot create');
   if ((values.title!==undefined || values.description!==undefined || values.photo!==undefined) && !(positionals[0]==='profiles' && positionals[1]==='set')) throw new Error('--title, --description and --photo are only supported by profiles set');
   const globalCommand=['set','unset','status'].includes(positionals[0] ?? '') && positionals[1]==='global';
   if(values.yes && !(positionals[0]==='workspace'&&positionals[1]==='trust'))throw new Error('--yes is only supported by workspace trust');
@@ -159,6 +162,11 @@ try {
       const entry=operation==='load' ? loadWorkspace(root,directory,{harness:values.harness}) : unloadWorkspace(directory,{harness:values.harness});
       console.log(`${operation==='load'?'Loaded':'Unloaded'} workspace ${entry.workspace} (${entry.harness}). Start a fresh native session.`);
     }
+  } else if (snapshotCommand) {
+    if (positionals.length!==2 || positionals[1]!=='create') throw new Error('Use: agent-farm snapshot create [--directory PATH] [--json]');
+    if (values.harness || values.message!==undefined || values.build || values.exec || values.explain || values['no-workspace']) throw new Error('snapshot create does not accept launch options');
+    const snapshot=createSnapshot(path.resolve(values['config-root']!),path.resolve(values.directory!));
+    console.log(values.json ? JSON.stringify(snapshot,null,2) : snapshot.path);
   } else if (positionals[0]==='provider') {
     const operation=positionals[1];
     const root=path.resolve(values['config-root']!);
@@ -263,18 +271,35 @@ try {
     if (values['acp-adapter']!==undefined && !values['print-acp']) throw new Error('--acp-adapter requires --print-acp');
     if (values.build && nativeArgs.length) throw new Error('--build does not accept native arguments');
     if (values.build && (values.model!==undefined || values.reasoning!==undefined || values.speed!==undefined || values.arg!==undefined || values.resume!==undefined || values['strict-mcp'] || values['inherit-mcp'])) throw new Error('--build does not accept launch overrides, arguments or --resume');
-    const root=path.resolve(values['config-root']!),directory=path.resolve(values.directory!),options={directory,noWorkspace:values['no-workspace']};
+    if (values.reload && values.resume===undefined) throw new Error('--reload takes a new snapshot for a resume; use it with --resume ID');
+    if (values.reload && values.snapshot!==undefined) throw new Error('Choose only one of --snapshot or --reload');
+    if (values.snapshot==='') throw new Error('--snapshot needs the path of a snapshot folder');
+    const realRoot=path.resolve(values['config-root']!),directory=path.resolve(values.directory!),options={directory,noWorkspace:values['no-workspace']};
     const interactive=!values.exec&&!values['print-launch']&&!values['print-acp']&&!values.build&&!values.explain&&!!process.stdin.isTTY&&!!process.stderr.isTTY;
-    const workspace=interactive?await resolveInteractiveWorkspace(root,options):resolveWorkspace(root,options);
+    // Workspaces, provider, telemetry, records and trust come from the real config root; names resolve from the snapshot.
+    const workspace=interactive?await resolveInteractiveWorkspace(realRoot,options):resolveWorkspace(realRoot,options);
     // A name without a variant launches the profile's default and never asks. A resume
     // reopens the variant that started the session.
     // A launch that started through a link resumes as the agent it recorded, even when the host replays the alias.
     const record=values.resume!==undefined ? readLaunchRecord(values.resume) : undefined;
+    // The snapshot this launch resolves from (D-2): --snapshot, the resumed record's, an inherited AGENT_FARM_SNAPSHOT,
+    // else a new one of what is installed. --reload always takes a new one. One that can't be read is refused (D-3).
+    const inherited=process.env[snapshotVariable] || undefined;
+    const snapshot:Snapshot=values.reload ? createSnapshot(realRoot,directory)
+      : values.snapshot!==undefined ? openSnapshot(values.snapshot,directory)
+      : record?.snapshot ? openSnapshot(record.snapshot,record.directory ?? directory)
+      : inherited ? openSnapshot(inherited,directory)
+      : createSnapshot(realRoot,directory);
+    const root=snapshot.path,built={snapshot:{path:snapshot.path,digest:snapshot.digest}};
     // A resume whose recorded name no longer resolves (a removed profile, agent or variant) starts nothing: there is
     // no fallback to the old bundle, because the record does not say which one it used (T-83 D10).
     if (record) {
       const recorded=`${record.profile}${record.variant?':'+record.variant:''}`;
-      try { resolveProfile(root,recorded,workspace,{agentOnly:record.entry_kind==='agent'}); } catch { throw new StartFresh(`Session ${values.resume} was started as ${recorded}, which this Agent Farm no longer has. Start a fresh Session.`); }
+      try { resolveProfile(root,recorded,workspace,{agentOnly:record.entry_kind==='agent'}); } catch (error) {
+        // A recorded snapshot holds every name the launch could use, so failing there means this CLI rejects its files.
+        if (record.snapshot && !values.reload) throw new StartFresh(`Session ${values.resume} was started as ${recorded}, which its snapshot ${snapshot.path} no longer resolves with this Agent Farm: ${error instanceof Error ? error.message : error}. Use Reload profile (in Pane), or --resume ${values.resume} --reload, to take a new snapshot of what is installed now.`);
+        throw new StartFresh(`Session ${values.resume} was started as ${recorded}, which this Agent Farm no longer has. Start a fresh Session.`);
+      }
     }
     const linked=record ? resumeLink(root,positionals[1]!,record,workspace) : undefined;
     let requested=linked ? linked.requested : values.resume!==undefined ? resumedProfile(root,positionals[1]!,values.resume,workspace) : positionals[1]!;
@@ -288,9 +313,9 @@ try {
     if (checked?.kind==='process') {
       // A process link by name runs the parent's compiled route, as its dispatcher would (D4).
       if (values.build) throw new Error(`${requested} is a process link of ${checked.parent}; it has no bundle of its own to build`);
-      const bundle=build(root,checked.parent,directory,workspace);
+      const bundle=build(root,checked.parent,directory,workspace,built);
       const args=['--exec',...launchArguments(values,nativeArgs)];
-      run(bundle,checked.route,args,undefined,root,true,{context,cli});
+      run(bundle,checked.route,args,undefined,realRoot,true,{context,cli});
     } else {
     // --agent-only looks NAME up as an agent even when a profile has its name (the commands a profile tree prints).
     const resolveOptions={...(checked?.kind==='entry' ? checked.options : linked?.options ?? {}),...(values['agent-only']?{agentOnly:true}:{})};
@@ -301,7 +326,7 @@ try {
       const resolution=resolveProfile(root,requested,workspace,resolveOptions),others=variantCommands(requested,resolution,resolution.default_variant);
       if (others.length) console.error(`Using ${requested}:${resolution.default_variant} (default). Other variants: ${others.join(', ')}`);
     }
-    const bundle=build(root,requested,directory,workspace,resolveOptions);
+    const bundle=build(root,requested,directory,workspace,{...resolveOptions,...built});
     context??={entry_kind:JSON.parse(fs.readFileSync(path.join(bundle,'manifest.json'),'utf8')).entry_kind};
     if (launches) {
       const manifest=JSON.parse(fs.readFileSync(path.join(bundle,'manifest.json'),'utf8'));
@@ -311,12 +336,12 @@ try {
       } catch(error) { console.error('Warning: unable to inspect global skills:',error instanceof Error?error.message:error); }
     }
     if (values.build) console.log(bundle);
-    else run(bundle,'main',[...(values.exec?['--exec']:[]),...launchArguments(values,nativeArgs)],undefined,root,false,{context,cli});
+    else run(bundle,'main',[...(values.exec?['--exec']:[]),...launchArguments(values,nativeArgs)],undefined,realRoot,false,{context,cli});
     }
   }
   }
 } catch (error) {
-  const message=error instanceof Error ? error.message : String(error),variant=!(error instanceof StartFresh) && launching && variantHint(launching.root,launching.requested,launching.workspace);
+  const message=error instanceof Error ? error.message : String(error),variant=!(error instanceof StartFresh) && !(error instanceof SnapshotUnreadable) && launching && variantHint(launching.root,launching.requested,launching.workspace);
   console.error('error:',variant ? `${variant.failed} failed to start: ${message.replace(/\.$/,'')}.${variant.hint}` : message);
   process.exitCode=1;
 }

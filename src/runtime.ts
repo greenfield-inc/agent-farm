@@ -194,7 +194,9 @@ export interface Agent {
 }
 /** A launch link: a named agent (or, with `any`, any agent in `plugin`) started on demand as its own launch. */
 export interface LaunchLink { agent?: string; variant?: string; variants?: string[]; default_variant?: string; model?: {name?: string; reasoning?: string; speed?: string}; description?: string; any?: true; plugin?: string }
-export interface Manifest { profile: string; entry_kind?: 'profile'|'agent'; variant?: string; plugin?: string; plugin_version?: string; trace_identity:string; directory: string; workspace_source?: WorkspaceMetadata; workspace_telemetry?: TelemetrySettings; nodes: Record<string, Agent>; cross_plugin_dependencies?: Array<{plugin:string;version?:string;references:string[]}> }
+export interface Manifest { profile: string; entry_kind?: 'profile'|'agent'; variant?: string; plugin?: string; plugin_version?: string; trace_identity:string; directory: string; workspace_source?: WorkspaceMetadata; workspace_telemetry?: TelemetrySettings; nodes: Record<string, Agent>; cross_plugin_dependencies?: Array<{plugin:string;version?:string;references:string[]}>;
+  /** The snapshot this bundle was built from (absolute path and digest), which its launches pass on to their children. */
+  snapshot?: {path: string; digest: string} }
 export interface WorkspaceMetadata {source:string;overlay?:string;trust:'none'|'personal'|'trusted'|'untrusted'|'declined';repository?:string;common?:string;sha256?:string}
 export function trustFile(workspace:WorkspaceMetadata,home=os.homedir()):string {
   return path.join(home,'.local/state/agent-farm/workspace-trust',hash(workspace.common!),workspace.sha256!+'.json');
@@ -692,11 +694,21 @@ export interface LaunchRecord { id: string; profile: string; variant?: string; h
   /** The launch that started this one, from --parent or the AGENT_FARM_PARENT token, and the link it used. */
   parent_launch_id?: string; parent_ref?: string; link?: string;
   /** A headless launch (--exec, a process child): recorded so it can be found, never resumed. */
-  headless?: boolean }
+  headless?: boolean;
+  /** The snapshot it resolved from: relative to `directory` when inside it, else absolute. A resume reads it again. */
+  snapshot?: string }
 /** How a launch was started, as `agent-farm run` checked it (see links.ts). */
 export interface LaunchContext { entry_kind?: 'profile'|'agent'; parent?: {launch_id: string; ref: string}; link?: string }
 /** The environment variable that carries a launch's parent token to everything started from its shell. */
 export const parentVariable='AGENT_FARM_PARENT';
+/** The environment variable that carries a launch's snapshot to everything started from its shell. Empty means unset. */
+export const snapshotVariable='AGENT_FARM_SNAPSHOT';
+/** How a record names a snapshot: relative to the launch directory when it lies inside it, so the reference still
+ *  resolves after that directory (a Pane Session folder) moves; absolute otherwise. */
+export function snapshotReference(snapshot: string, directory: string): string {
+  const relative=path.relative(directory,snapshot);
+  return relative && relative!=='..' && !relative.startsWith('..'+path.sep) && !path.isAbsolute(relative) ? relative : snapshot;
+}
 const refPattern=/^(?:[a-z][a-z0-9_-]{0,63}\/)?[a-z][a-z0-9_-]{0,63}(?::[a-z][a-z0-9_-]{0,63})?$/;
 /** `ref@launch-id`: who a child launch's parent is. It holds the parent's ref, so a machine without the parent's record can still check the link. */
 export function parentToken(ref: string, id: string): string { return `${ref}@${id}`; }
@@ -831,6 +843,8 @@ export function resolveLaunchFor(bundle: string, route: string, options: LaunchO
   // Everything started from this agent's shell inherits its parent token; a launch without an ID passes none on.
   const token=options.launchId ? parentToken(launchRef(manifest,route),options.launchId) : undefined;
   envOverrides[parentVariable]=token ?? '';
+  // Children resolve from the same snapshot; a bundle built without one clears an inherited path.
+  envOverrides[snapshotVariable]=manifest.snapshot?.path ?? '';
   const cli=options.cli ?? (()=>{ try { const value=JSON.parse(env.AGENT_FARM_CLI ?? ''); return Array.isArray(value) && value.every(v=>typeof v==='string') && value.length ? value as string[] : undefined; } catch { return undefined; } })();
   if (cli) envOverrides.AGENT_FARM_CLI=JSON.stringify(cli);
   // A connection the harness holds no sign-in for is left out, and both the agent and the person are told.
@@ -862,7 +876,7 @@ export function resolveLaunchFor(bundle: string, route: string, options: LaunchO
   const links=Object.entries(selected.links ?? {});
   if (links.length) {
     const defaultRoot=path.join(options.home ?? os.homedir(),'.config/agent-farm');
-    const run=[...(cli ?? ["agent-farm"]).map(a=>quoteArgument(a)),'run'].join(' '),suffix=[...(configRoot===defaultRoot ? [] : ['--config-root',quoteArgument(configRoot)]),'--parent',token ?? parentToken(launchRef(manifest,route),'<launch-id>')].join(' ');
+    const run=[...(cli ?? ["agent-farm"]).map(a=>quoteArgument(a)),'run'].join(' '),suffix=[...(configRoot===defaultRoot ? [] : ['--config-root',quoteArgument(configRoot)]),...(manifest.snapshot ? ['--snapshot',quoteArgument(manifest.snapshot.path)] : []),'--parent',token ?? parentToken(launchRef(manifest,route),'<launch-id>')].join(' ');
     instructions+='\nLaunch links (start each with its command, as a host tab or with --exec --message "…" in the background; a name not listed here is refused):\n';
     instructions+=links.map(([alias,link])=>link.any
       ? `${alias}: any agent in ${link.plugin}: ${run} ${link.plugin}/<agent> ${suffix}${link.description?` (${link.description})`:''}`
@@ -1083,10 +1097,10 @@ export interface LaunchSession { resume?: string; sessionId?: string; report?: s
 export function launchSession(manifest: Manifest, harness: 'claude'|'codex', resume: string|undefined, context: {interactive: boolean; nativeArgs: string[]; env?: NodeJS.ProcessEnv; home?: string;
   /** A headless launch (--exec, a process child) gets an ID and a record too, but no native session to resume. */
   headless?: boolean; route?: string; launch?: LaunchContext}): LaunchSession {
-  const env=context.env ?? process.env,home=context.home ?? os.homedir();
+  const env=context.env ?? process.env,home=context.home ?? os.homedir(),snapshot=manifest.snapshot ? snapshotReference(manifest.snapshot.path,manifest.directory) : undefined;
   // The parent comes from what `agent-farm run` checked, else from the token this process inherited.
   const parent=context.launch?.parent ?? environmentParent(env),[profile,variant]=(()=>{const ref=launchRef(manifest,context.route ?? 'main'),i=ref.indexOf(':');return i<0?[ref,undefined]:[ref.slice(0,i),ref.slice(i+1)];})();
-  const record=(id:string):LaunchRecord=>({id,profile,...(variant?{variant}:{}),harness,directory:manifest.directory,started_at:new Date().toISOString(),...(context.launch?.entry_kind?{entry_kind:context.launch.entry_kind}:{}),...(parent?{parent_launch_id:parent.launch_id,parent_ref:parent.ref}:{}),...(context.launch?.link?{link:context.launch.link}:{})});
+  const record=(id:string):LaunchRecord=>({id,profile,...(variant?{variant}:{}),harness,directory:manifest.directory,started_at:new Date().toISOString(),...(context.launch?.entry_kind?{entry_kind:context.launch.entry_kind}:{}),...(parent?{parent_launch_id:parent.launch_id,parent_ref:parent.ref}:{}),...(context.launch?.link?{link:context.launch.link}:{}),...(snapshot?{snapshot}:{})});
   const fresh=(id:string=randomUUID()):LaunchSession=>({report:id,launch:id,...(harness==='claude'?{sessionId:id}:{}),record:record(id)});
   if (resume===undefined) {
     if (nativeResume(context.nativeArgs)) return {};
@@ -1106,9 +1120,11 @@ export function launchSession(manifest: Manifest, harness: 'claude'|'codex', res
   if (!native) {
     // Nothing was said before the panel closed; start fresh under the same ID so the host keeps one handle.
     console.error(`agent-farm: no saved conversation for ${resume}; starting a new one`);
-    return {...fresh(saved.id),record:{...saved,started_at:new Date().toISOString()}};
+    return {...fresh(saved.id),record:{...saved,started_at:new Date().toISOString(),...(snapshot?{snapshot}:{})}};
   }
-  return {resume:native,report:resume,launch:saved.id,record:saved.native_session_id ? undefined : {...saved,native_session_id:native}};
+  // A resume keeps its record's snapshot; --reload (or a record from before snapshots) records the one it used now.
+  const updated={...saved,native_session_id:native,...(snapshot?{snapshot}:{})};
+  return {resume:native,report:resume,launch:saved.id,record:canonical(updated)===canonical(saved) ? undefined : updated};
 }
 /** One line on stderr per connection a launch left out, with the command that signs in. */
 function reportUnavailable(unavailable: UnavailableConnection[]): void {
@@ -1140,7 +1156,7 @@ export function run(bundle: string, route: string, args: string[], launchCommand
   const selected=manifest.nodes[route]; if (!selected) throw new Error('Unknown bundled child');
   bundle=materializeLaunch(bundle,route,resolveLaunch(selected,requested));
   if (values['print-acp']) {
-    const metadata={workspace_source:manifest.workspace_source,profile:manifest.profile,...(manifest.variant?{variant:manifest.variant}:{}),plugin:manifest.plugin,plugin_version:manifest.plugin_version,trace_identity:manifest.trace_identity,cross_plugin_dependencies:manifest.cross_plugin_dependencies};
+    const metadata={workspace_source:manifest.workspace_source,profile:manifest.profile,...(manifest.variant?{variant:manifest.variant}:{}),plugin:manifest.plugin,plugin_version:manifest.plugin_version,trace_identity:manifest.trace_identity,cross_plugin_dependencies:manifest.cross_plugin_dependencies,...snapshotMetadata(manifest)};
     // An ACP host spawns this later and loads sessions itself: it gets a launch ID for its children and telemetry, but no record to resume.
     const acp=acpLaunch(bundle,route,{...requested,configRoot,adapter:values['acp-adapter'],mcp,launchId:randomUUID(),cli:start.cli,context:launchContext(manifest,route,start.context)});
     reportUnavailable(acp.unavailable);
@@ -1165,7 +1181,7 @@ export function run(bundle: string, route: string, args: string[], launchCommand
   // A host restores a terminal with `{command} --resume <id>` once the CLI reports this line (CONFIGURATION.md, Resuming a session).
   const reportLine=sessionReportLine(process.env);
   if (session.report && !values.explain && reportLine) console.error(`${reportLine}=${session.report}`);
-  const metadata={workspace_source:manifest.workspace_source,telemetry:launch.telemetry,telemetry_access:launch.telemetry_access,profile:manifest.profile,...(manifest.variant?{variant:manifest.variant}:{}),plugin:manifest.plugin,plugin_version:manifest.plugin_version,trace_identity:manifest.trace_identity,cross_plugin_dependencies:manifest.cross_plugin_dependencies,mcp:launch.mcp};
+  const metadata={workspace_source:manifest.workspace_source,telemetry:launch.telemetry,telemetry_access:launch.telemetry_access,profile:manifest.profile,...(manifest.variant?{variant:manifest.variant}:{}),plugin:manifest.plugin,plugin_version:manifest.plugin_version,trace_identity:manifest.trace_identity,cross_plugin_dependencies:manifest.cross_plugin_dependencies,...snapshotMetadata(manifest),mcp:launch.mcp};
   if (!values.explain && !values['print-launch']) for (const warning of mcpWarnings(launch.mcp)) console.error(warning);
   if (values.explain) console.log(JSON.stringify({...metadata,argv:launch.argv,cwd:launch.cwd,bundle,launch:launch.launch},null,2));
   else if (values['print-launch']) console.log(JSON.stringify({...metadata,argv:launch.argv,cwd:launch.cwd,bundle,env:launch.envOverrides,launch:launch.launch},null,2));
@@ -1173,6 +1189,10 @@ export function run(bundle: string, route: string, args: string[], launchCommand
   return undefined;
 }
 
+/** The snapshot a printed launch resolved from: its digest, and its folder. */
+function snapshotMetadata(manifest: Manifest): {snapshot?: string; snapshot_path?: string} {
+  return manifest.snapshot ? {snapshot:manifest.snapshot.digest,snapshot_path:manifest.snapshot.path} : {};
+}
 /** The stderr line name a host asked for: AGENT_FARM_SESSION_ID when it sets AGENT_FARM_REPORT_SESSION_ID=1,
  *  PANE_AGENT_SESSION_ID for older Pane builds that set only PANE_PANEL_ID, otherwise none. */
 export function sessionReportLine(env:NodeJS.ProcessEnv):string|undefined{

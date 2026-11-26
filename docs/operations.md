@@ -85,8 +85,9 @@ configured connections, not whether they are authenticated or reachable.
 ## Generated bundles and isolation
 
 Launch bundles live in `.agent-farm/generated/` under the launch directory
-(`--directory`, or the current directory). Ignore that directory in Git, and
-keep bundles that running sessions still use.
+(`--directory`, or the current directory), and snapshots in
+`.agent-farm/snapshots/`. Ignore both in Git, and keep bundles and snapshots
+that running sessions still use: a launch refuses a deleted snapshot.
 
 Generated Codex runtime homes link native configuration and authentication
 files, and native global skills and tools may remain visible. Bundles let
