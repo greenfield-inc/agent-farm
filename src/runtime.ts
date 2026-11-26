@@ -707,7 +707,8 @@ export const snapshotVariable='AGENT_FARM_SNAPSHOT';
  *  resolves after that directory (a Pane Session folder) moves; absolute otherwise. */
 export function snapshotReference(snapshot: string, directory: string): string {
   const relative=path.relative(directory,snapshot);
-  return relative && relative!=='..' && !relative.startsWith('..'+path.sep) && !path.isAbsolute(relative) ? relative : snapshot;
+  // With / on every OS, so a record still reads after a move to another one.
+  return relative && relative!=='..' && !relative.startsWith('..'+path.sep) && !path.isAbsolute(relative) ? relative.split(path.sep).join('/') : snapshot;
 }
 const refPattern=/^(?:[a-z][a-z0-9_-]{0,63}\/)?[a-z][a-z0-9_-]{0,63}(?::[a-z][a-z0-9_-]{0,63})?$/;
 /** `ref@launch-id`: who a child launch's parent is. It holds the parent's ref, so a machine without the parent's record can still check the link. */

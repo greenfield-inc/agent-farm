@@ -80,6 +80,12 @@ function launchArguments(values:Record<string,string|boolean|string[]|undefined>
   if (nativeArgs.length) args.push('--',...nativeArgs);
   return args;
 }
+/** A record's snapshot. A relative one resolves against this launch's directory first, so a resume still finds it
+ *  after the directory (a Pane Session folder) moved, then against the directory the record saved. */
+function recordedSnapshot(reference:string,directory:string,recorded:string|undefined):Snapshot{
+  if (path.isAbsolute(reference) || !recorded || fs.existsSync(path.resolve(directory,reference))) return openSnapshot(reference,directory);
+  return openSnapshot(reference,recorded);
+}
 /** A resume that can't be honoured; printed as is, without the variant hint. */
 class StartFresh extends Error {}
 let launching:{root:string;requested:string;workspace:Parameters<typeof resolveProfile>[2]}|undefined;
@@ -287,8 +293,8 @@ try {
     const inherited=process.env[snapshotVariable] || undefined;
     const snapshot:Snapshot=values.reload ? createSnapshot(realRoot,directory)
       : values.snapshot!==undefined ? openSnapshot(values.snapshot,directory)
-      : record?.snapshot ? openSnapshot(record.snapshot,record.directory ?? directory)
-      : inherited ? openSnapshot(inherited,directory)
+      : record?.snapshot ? recordedSnapshot(record.snapshot,directory,record.directory)
+      : inherited ? (console.error(`Resolving from ${snapshotVariable}=${inherited} (set ${snapshotVariable}= to resolve from --config-root)`),openSnapshot(inherited,directory))
       : createSnapshot(realRoot,directory);
     const root=snapshot.path,built={snapshot:{path:snapshot.path,digest:snapshot.digest}};
     // A resume whose recorded name no longer resolves (a removed profile, agent or variant) starts nothing: there is

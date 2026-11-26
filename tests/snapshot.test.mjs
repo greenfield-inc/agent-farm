@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import {randomUUID} from 'node:crypto';
+import {randomUUID,createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {installPlugin} from '../dist/plugins.js';
@@ -102,7 +102,7 @@ test('a resume after an update reopens the recorded snapshot; a record from befo
  assert.equal(f.invoke(['team/lead']).status,0);
  assert.equal(f.invoke(['team/implementer:codex']).status,0);
  const record=f.records().find(r=>r.profile==='team/lead'),codex=f.records().find(r=>r.variant==='codex'),[snapshot]=f.snapshots();
- assert.equal(record.snapshot,path.join('.agent-farm','snapshots',snapshot),'recorded relative to the launch directory');
+ assert.equal(record.snapshot,'.agent-farm/snapshots/'+snapshot,'recorded relative to the launch directory');
  f.install(2);
  // v2 dropped the codex variant and changed the lead's instructions.
  const variant=f.invoke(['team/implementer','--resume',codex.id]);
@@ -177,7 +177,7 @@ test('a missing, damaged or too-new snapshot is refused naming Reload; it never 
 
 test('a moved Session: a snapshot path relative to the launch directory still resolves after the folder is copied elsewhere (D-3)',t=>{
  const f=fixture(t);
- const info=JSON.parse(f.invoke(['snapshot','create','--json']).stdout),relative=path.relative(f.target,info.path);
+ const info=JSON.parse(f.invoke(['snapshot','create','--json']).stdout),relative=path.relative(f.target,info.path).split(path.sep).join('/');
  assert.equal(f.invoke(['team/lead','--snapshot',relative]).status,0);
  const [record]=f.records();assert.equal(record.snapshot,relative);
  f.install(2);
@@ -194,7 +194,7 @@ test('a run with no parent and no snapshot resolves from what is installed and s
  const f=fixture(t);
  const r=f.invoke(['team/lead','--exec','--message','go']);assert.equal(r.status,0,r.stderr);
  const [snapshot]=f.snapshots(),[record]=f.records();
- assert.equal(record.snapshot,path.join('.agent-farm','snapshots',snapshot));
+ assert.equal(record.snapshot,'.agent-farm/snapshots/'+snapshot);
  const folder=path.join(f.target,record.snapshot);
  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(folder,'snapshot.json'),'utf8')).plugins,{team:'1.0.0'});
  for(const file of ['.plugins/team.json','plugins/team/plugin.yaml','settings.json','checksums.json'])assert.ok(fs.existsSync(path.join(folder,file)),file);
@@ -210,4 +210,75 @@ test('telemetry carries the snapshot digest beside a trace identity read from th
  const r=f.invoke(['team/reviewer','--exec','--message','go','--snapshot',info.path],{AGENT_FARM_TELEMETRY:'on'});assert.equal(r.status,0,r.stderr);
  const dir=path.join(f.home,'.local/state/agent-farm/telemetry'),[session]=fs.readdirSync(dir).map(id=>JSON.parse(fs.readFileSync(path.join(dir,id,'session.json'),'utf8')).attributes);
  assert.deepEqual([session['agent_farm.trace_identity'],session['agent_farm.snapshot']],['team/reviewer@1.0.0',info.digest]);
+});
+
+test('a planted folder under the expected digest is replaced, not trusted (F-1)',t=>{
+ const f=fixture(t),good=createSnapshot(f.root,f.target);
+ // An attacker commits .agent-farm/snapshots/<digest>/ with edited agents and checksums to match.
+ const lead=path.join(good.path,'plugins/team/agents/lead.md');
+ fs.writeFileSync(lead,fs.readFileSync(lead,'utf8').replace('Lead v1.','PLANTED instructions.'));
+ const sums=path.join(good.path,'checksums.json'),map=JSON.parse(fs.readFileSync(sums,'utf8'));
+ map['plugins/team/agents/lead.md']=createHash('sha256').update(fs.readFileSync(lead)).digest('hex');fs.writeFileSync(sums,JSON.stringify(map));
+ assert.equal(openSnapshot(good.path,f.target).digest,good.digest,'the planted folder passes its own checksums');
+ const out=f.explain(['team/lead']);
+ assert.equal(out.snapshot,good.digest);assert.match(f.bundleOf(out).nodes.main.instructions,/Lead v1\./);
+ assert.doesNotMatch(fs.readFileSync(lead,'utf8'),/PLANTED/);
+});
+
+test('a resume after the launch directory moves finds its snapshot in the new place (F-2)',t=>{
+ const f=fixture(t);
+ assert.equal(f.invoke(['team/lead']).status,0);
+ const [record]=f.records(),moved=path.join(f.base,'moved-session');
+ fs.renameSync(f.target,moved);f.install(2);
+ const r=f.invoke(['team/lead','--resume',record.id],{},moved);assert.equal(r.status,0,r.stderr);
+ assert.match(f.prompt(f.launched().at(-1)),/Lead v1\./);assert.equal(f.launched().at(-1).snapshot,path.join(moved,record.snapshot));
+});
+
+test('an inherited snapshot says so on stderr, since it wins over --config-root (F-3)',t=>{
+ const f=fixture(t),v1=createSnapshot(f.root,f.target);f.install(2);
+ const r=f.invoke(['team/reviewer','--explain'],{AGENT_FARM_SNAPSHOT:v1.path});assert.equal(r.status,0,r.stderr);
+ assert.equal(JSON.parse(r.stdout).plugin_version,'1.0.0');
+ assert.match(r.stderr,new RegExp(`Resolving from AGENT_FARM_SNAPSHOT=${v1.path.replace(/[\\^$.*+?()[\]{}|]/g,'\\$&')} \\(set AGENT_FARM_SNAPSHOT= to resolve from --config-root\\)`));
+ const flag=f.invoke(['team/reviewer','--explain','--snapshot',v1.path]);assert.doesNotMatch(flag.stderr,/Resolving from AGENT_FARM_SNAPSHOT/);
+ // An explicit --snapshot wins over a broken inherited one.
+ assert.equal(f.invoke(['team/reviewer','--explain','--snapshot',v1.path],{AGENT_FARM_SNAPSHOT:path.join(f.base,'gone')}).status,0);
+});
+
+test('symlinks in a local section are copied as their content, and only receipt files of a plugin are copied (F-4)',{skip:process.platform==='win32'},t=>{
+ const f=fixture(t),dotfiles=path.join(f.base,'dotfiles/myskill');fs.mkdirSync(dotfiles,{recursive:true});
+ fs.writeFileSync(path.join(dotfiles,'SKILL.md'),'---\nname: myskill\ndescription: Mine.\n---\nMine.\n');
+ fs.mkdirSync(path.join(f.root,'skills'));fs.symlinkSync(dotfiles,path.join(f.root,'skills/myskill'));
+ const plugin=path.join(f.root,'plugins/team');fs.mkdirSync(path.join(plugin,'.venv/bin'),{recursive:true});fs.symlinkSync(process.execPath,path.join(plugin,'.venv/bin/node'));
+ fs.writeFileSync(path.join(plugin,'.DS_Store'),'junk');
+ const r=f.invoke(['team/lead','--explain']);assert.equal(r.status,0,r.stderr);
+ const snap=JSON.parse(r.stdout).snapshot_path;
+ assert.equal(fs.readFileSync(path.join(snap,'skills/myskill/SKILL.md'),'utf8'),fs.readFileSync(path.join(dotfiles,'SKILL.md'),'utf8'));
+ assert.equal(fs.lstatSync(path.join(snap,'skills/myskill')).isSymbolicLink(),false);
+ assert.equal(fs.existsSync(path.join(snap,'plugins/team/.venv')),false);assert.equal(fs.existsSync(path.join(snap,'plugins/team/.DS_Store')),false);
+});
+
+test('OS metadata files in a snapshot are ignored; checksum keys and records use / on every OS; no personal paths or widened modes (F-5, F-6, F-7, F-9)',t=>{
+ const f=fixture(t);
+ if(process.platform!=='win32'){fs.mkdirSync(path.join(f.root,'agents'));fs.writeFileSync(path.join(f.root,'agents/private.md'),'---\nharness: claude\nmodel: claude-opus-5-5\n---\nPrivate.\n',{mode:0o600});}
+ const info=createSnapshot(f.root,f.target);
+ for(const junk of ['.DS_Store','plugins/team/Thumbs.db','plugins/desktop.ini'])fs.writeFileSync(path.join(info.path,junk),'x');
+ assert.equal(f.invoke(['team/lead','--exec','--snapshot',info.path]).status,0);
+ const sums=Object.keys(JSON.parse(fs.readFileSync(path.join(info.path,'checksums.json'),'utf8')));
+ assert.ok(sums.includes('plugins/team/agents/lead.md'));assert.ok(sums.every(k=>!k.includes('\\')));
+ const meta=JSON.parse(fs.readFileSync(path.join(info.path,'snapshot.json'),'utf8'));assert.equal(meta.source_root,undefined);
+ assert.equal(JSON.parse(fs.readFileSync(path.join(info.path,'.plugins/team.json'),'utf8')).source,undefined,'the copied receipt drops its source path');
+ assert.equal(fs.readFileSync(path.join(info.path,'snapshot.json'),'utf8').includes(f.base),false);
+ if(process.platform!=='win32')assert.equal(fs.statSync(path.join(info.path,'agents/private.md')).mode&0o777,0o600);
+ assert.equal(f.invoke(['team/lead']).status,0);assert.equal(f.records().at(-1).snapshot.includes('\\'),false);
+});
+
+test('two launches creating the same snapshot at once agree; create repairs a damaged folder (F-10)',async t=>{
+ const f=fixture(t),{spawn}=await import('node:child_process');
+ const one=()=>new Promise(resolve=>{const c=spawn(process.execPath,[cli,'snapshot','create','--json','--config-root',f.root,'--directory',f.target],{env:f.env});let out='';c.stdout.on('data',d=>out+=d);c.on('close',code=>resolve({code,out}));});
+ const results=await Promise.all([one(),one(),one(),one()]);
+ for(const r of results)assert.equal(r.code,0);
+ assert.equal(new Set(results.map(r=>JSON.parse(r.out).path)).size,1);assert.equal(f.snapshots().length,1);
+ assert.deepEqual(fs.readdirSync(path.join(f.target,'.agent-farm/snapshots')).filter(n=>n.startsWith('.')),[],'no staging folders left');
+ const info=JSON.parse(results[0].out);fs.rmSync(path.join(info.path,'plugins/team/agents/helper.md'));
+ assert.equal(createSnapshot(f.root,f.target).path,info.path);assert.ok(fs.existsSync(path.join(info.path,'plugins/team/agents/helper.md')));
 });

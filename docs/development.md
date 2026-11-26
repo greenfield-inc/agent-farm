@@ -32,6 +32,13 @@ variable; only generated launch bundles read it. The bare `agent-farm` menu,
 under `HOME`, and some inherit the whole environment, so an exported
 `AGENT_FARM_CONFIG_ROOT` or `CODEX_HOME` in your shell can change their results.
 
+A shell an agent launch started (a Pane tab, a launch link) also inherits
+`AGENT_FARM_SNAPSHOT`, and an inherited snapshot wins over `--config-root` when a
+launch resolves names, so a manual check would run the parent's plugin version.
+The launch prints `Resolving from AGENT_FARM_SNAPSHOT=…` when that happens. Run
+manual checks with `AGENT_FARM_SNAPSHOT=` (empty), for example
+`AGENT_FARM_SNAPSHOT= node dist/cli.js run … --config-root "$tmp"`.
+
 Run the suite against scratch directories:
 
 ```sh

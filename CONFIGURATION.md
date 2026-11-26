@@ -385,8 +385,11 @@ not resolved or checked for existence.
 
 A snapshot is a frozen copy of what a launch can resolve, so a team of agents
 runs one version of its plugins while the installed copy is updated. It holds
-every installed plugin folder and its receipt, the config root's own `agents/`,
-`profiles/`, `skills/`, `instructions/` and `references/`, and `default_plugin`.
+the files each installed plugin's receipt lists, and the receipt without its
+source path; the config root's own `agents/`, `profiles/`, `skills/`,
+`instructions/` and `references/`, with a symlink copied as the file or folder
+it points to; and `default_plugin`. Files left in a plugin folder that its
+receipt doesn't list (caches, a `.venv`) are not copied.
 It lives at `<launch directory>/.agent-farm/snapshots/<digest>/`, reads as a
 config root, and is never changed once written: the same installed files give
 the same folder. It sits outside `.agent-farm/generated/`, so a Pane Session move
@@ -398,7 +401,10 @@ this order:
 
 1. `--snapshot PATH`.
 2. On `--resume ID`, the snapshot in the launch record.
-3. An inherited `AGENT_FARM_SNAPSHOT` (empty counts as unset).
+3. An inherited `AGENT_FARM_SNAPSHOT` (empty counts as unset). The launch then
+   prints `Resolving from AGENT_FARM_SNAPSHOT=PATH (set AGENT_FARM_SNAPSHOT= to
+   resolve from --config-root)` on stderr, because the snapshot wins over
+   `--config-root`.
 4. Otherwise a new snapshot of what is installed, in the launch directory.
 
 `--resume ID --reload` skips the first three and takes a new snapshot of what
@@ -406,7 +412,9 @@ is installed. `--reload` needs `--resume`, and can't be combined with
 `--snapshot`. A relative `PATH` or `AGENT_FARM_SNAPSHOT` resolves against the
 launch directory (`--directory`), so a host can name a snapshot inside a Session
 folder that has moved. A record stores the snapshot relative to its launch
-directory when it is inside it.
+directory when it is inside it, with `/` separators; a resume resolves it against
+its current `--directory` first, so it still finds the snapshot after the
+folder moved, then against the directory it recorded.
 
 Everything a launch resolves comes from its snapshot: the parent check, its own
 bundle, a process link started by name, and a resume. Its harness gets
@@ -417,8 +425,13 @@ identity's version comes from the snapshot's `plugin.yaml`. `--explain`,
 `--print-launch` and `--print-acp` add `snapshot` (the digest) and
 `snapshot_path`, and telemetry adds `agent_farm.snapshot`.
 
-A snapshot is checked against its `checksums.json` on every use. One that is
-missing, fails its checksum, or was written in a newer format than this CLI
+A snapshot is checked against its `checksums.json` on every use, ignoring the
+`.DS_Store`, `Thumbs.db` and `desktop.ini` files a file browser leaves.
+`checksums.json` uses `/` separators, so a snapshot moves between operating
+systems. A launch that would take a new snapshot reuses a folder of the same name
+only when it holds exactly the files hashed now; otherwise it replaces it, so a
+folder committed to a repository can't stand in for the installed plugins. One
+that is missing, fails its checksum, or was written in a newer format than this CLI
 reads is refused with an error that names Reload profile and `--resume ID
 --reload`. Agent Farm never falls back to the installed plugins for it.
 
