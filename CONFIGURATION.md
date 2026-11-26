@@ -217,8 +217,8 @@ Farm's process, so a harness that exits on its own (for example, not signed in)
 gets no hint. Only the interactive menu (bare `agent-farm`) asks which variant
 to launch. The
 menu and `profiles list` show each variant with its model and reasoning,
-default first: `greenfield/planner (claude: claude-opus-5-5 high · codex:
-gpt-6.2-sol medium ultrafast)`. `run`, `inspect`, `load`, and `set
+default first: `greenfield/orchestrator (claude: claude-opus-5-5 medium ·
+codex: gpt-6.2-sol medium ultrafast)`. `run`, `inspect`, `load`, and `set
 global` all accept `NAME:VARIANT`; `unload` and `unset global` also take it,
 and remove whichever variant of that profile is loaded.
 

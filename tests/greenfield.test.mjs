@@ -92,11 +92,14 @@ test('greenfield 0.1.0 has exactly three profiles; every helper is a linked agen
  const links=ref=>{const main=resolveProfile(root,ref).nodes.main;return Object.fromEntries(Object.entries(main.links??{}).map(([alias,link])=>[alias,link.agent]));};
  const orchestrator=links('orchestrator:claude');
  assert.deepEqual(orchestrator,links('orchestrator:codex'));
- assert.deepEqual(Object.keys(orchestrator).sort(),['audits','bug-reporter','code-smell-fixes','codebase-audit','customer-insights-loop','implementer','planner','planning-and-prioritization','product-researcher','qa-and-fix','reviewer','simplify-and-refactor','ui-polish']);
+ // Each alias names the greenfield agent of the same name.
+ const same=aliases=>Object.fromEntries(aliases.map(alias=>[alias,'greenfield/'+alias]));
+ assert.deepEqual(orchestrator,same(['planner','implementer','reviewer','qa-and-fix','bug-reporter','simplify-and-refactor','audits','code-smell-fixes','codebase-audit','ui-polish','customer-insights-loop','product-researcher','planning-and-prioritization']));
  assert.deepEqual(Object.keys(resolveProfile(root,'orchestrator').nodes.main.children),['advisor']);
  assert.deepEqual(links('business:claude'),links('business:codex'));
  assert.deepEqual(Object.keys(links('business')).sort(),['planning-and-prioritization','product-researcher']);
- assert.deepEqual(Object.keys(links('seo')).sort(),['implementer','planner','reviewer','seo-investigator','seo-measurer','seo-reviewer','seo-strategist','seo-writer']);
+ assert.deepEqual(links('seo'),same(['seo-investigator','seo-measurer','seo-strategist','seo-writer','seo-reviewer','planner','implementer','reviewer']));
+ assert.deepEqual(links('business'),same(['product-researcher','planning-and-prioritization']));
  for(const [agent,expected] of [['customer-insights-loop',['implementer','planner','reviewer']],['planning-and-prioritization',['planner']],['raw-claude',['reviewer']],['raw-codex',['reviewer']],['claude-pr-reviewer',['implementer']],['codex-pr-reviewer',['implementer']],['seo-strategist',['seo-writer']],['seo-reviewer',['seo-strategist','seo-writer']]])
   assert.deepEqual(Object.keys(links(agent)).sort(),expected,agent);
  // No link uses any: true, and every agent file is reached from a profile through native, process or launch links.
