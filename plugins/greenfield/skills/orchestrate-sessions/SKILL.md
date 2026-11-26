@@ -31,7 +31,7 @@ Every piece of work follows the same three roles, each a fresh agent in that wor
 | --- | --- |
 | Idea, open product or architecture decision, investigation, or anything of uncertain size | `greenfield/planner`: investigate, present options, produce the HTML cover sheet, or ask the necessary question |
 | Bug needing a reproducible report | `greenfield/bug-reporter` |
-| Approved cover sheet | `greenfield/implementer` (use the orchestrator's routing default; otherwise `opus`) |
+| Approved cover sheet | `greenfield/implementer` (use the orchestrator's routing default; otherwise `claude`) |
 | Clearly straightforward, authorized fix | `greenfield/implementer` directly, with the original task and a `no-plan` label |
 | Implementer done, when the user turned on the simplify checkpoint | `greenfield/simplify-and-refactor:codex` on that PR's branch, before QA and review (see Review policy) |
 | Implementer done on a PR (any work), or the person asks for a review | `greenfield/reviewer:codex`, one per review, one `COMMENT` review, no fixes (see Review policy) |

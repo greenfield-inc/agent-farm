@@ -226,3 +226,23 @@ test('variant names are only claude and codex, and each names an agent of that h
  f.put('agents/reviewer.yaml','variants:\n  claude:\n    agent: reviewer\ndefault: claude\n');
  assert.throws(()=>resolveProfile(f.root,'reviewer'),/is an agent variant set; a variant must name a single agent/);
 });
+
+test('plugin validate checks a set even when a profile shares its name',t=>{
+ const f=setFixture(t);
+ f.put('plugin.yaml','name: fixture\nversion: 1.0.0\ncli_major: 0\n');
+ f.put('profiles/reviewer.yaml','agent: reviewer-claude\n');
+ validatePlugin(f.root);
+ f.put('agents/reviewer.yaml','variants:\n  claude:\n    agent: reviewer-claude\n  codex:\n    agent: missing-codex\ndefault: claude\n');
+ assert.throws(()=>validatePlugin(f.root),/missing agent fixture\/missing-codex/);
+});
+
+test('a child bound to a set gets the member variant arguments, and its binding model keys are checked',t=>{
+ const f=setFixture(t);
+ f.put('agents/reviewer-claude.md','---\nharness: claude\nmodel: claude-fable-5-1\nargs:\n  mode: {values: [draft, audit], default: draft}\n---\nClaude reviewer.\n');
+ f.put('agents/reviewer.yaml','variants:\n  claude:\n    agent: reviewer-claude\n    args: {mode: audit}\n  codex:\n    agent: reviewer-codex\ndefault: claude\n');
+ const {nodes}=resolveProfile(f.root,'lead');
+ assert.deepEqual(nodes[nodes.main.children.reviewer].launch.arguments,{mode:'audit'});
+ assert.deepEqual(resolveProfile(f.root,'reviewer').nodes.main.launch.arguments,{mode:'audit'});
+ f.put('agents/lead.md','---\nharness: claude\nmodel: claude-fable-5-1\nsubagents:\n  reviewer: {agent: reviewer, mode: process, model: {reasonning: high}}\n---\nLead.\n');
+ assert.throws(()=>resolveProfile(f.root,'lead'),/Unsupported prototype fields: reasonning/);
+});

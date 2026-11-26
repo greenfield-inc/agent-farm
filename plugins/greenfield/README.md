@@ -15,7 +15,7 @@ For a one-page visual map of how work is routed, open [index.html](index.html). 
 | `planner` (`planner:claude`) | Opus 5.5 high | Discussion, brief/options when needed, then the approved cover sheet |
 | `planner:codex` | Sol 6.2 medium ultrafast | The same planner workflow on Codex |
 | `implementer` (`implementer:claude`) | Opus 5.5 medium | Builds a plan or a clear task with its skills, opens a draft PR, and watches it until checks are green |
-| `implementer:codex` / `implementer:codex` / `implementer:codex` | Sol 6.2 medium ultrafast (all three) | The same implementer on Codex; `:codex` also keeps its second opinion on Codex |
+| `implementer:codex` | Sol 6.2 medium ultrafast | The same implementer on Codex; its opt-in second opinion runs on Claude (cross-vendor) |
 | `reviewer` (`reviewer:claude`) / `reviewer:codex` | Opus 5.5 high / Sol 6.2 low ultrafast | Reviews a pull request from many angles and ranks what to fix |
 | `simplify-and-refactor` (`simplify-and-refactor:codex`) / `simplify-and-refactor:claude` | Sol 6.2 medium ultrafast / Opus 5.5 medium | Asks whether an open pull request could be simpler, plans the cleanup, and applies only what you approve |
 | `qa-and-fix` (`qa-and-fix:claude`) / `qa-and-fix:codex` | Opus 5.5 medium / Sol 6.2 medium ultrafast | Tests a finished pull request and fixes small safe problems |
