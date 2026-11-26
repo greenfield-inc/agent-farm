@@ -1,3 +1,6 @@
+title: Orchestrator
+description: Software work. Plans, builds and reviews through its team, one workspace per feature.
+photo: orchestrator.svg
 variants:
   claude:
     agent: orchestrator

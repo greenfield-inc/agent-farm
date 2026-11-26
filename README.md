@@ -50,16 +50,17 @@ To work on Agent Farm itself, see [docs/development.md](docs/development.md).
 
 ## Profiles
 
-Agent Farm ships with profiles ready to use. With `greenfield` and `orchestra`
-installed, `agent-farm` shows a menu like this (abridged):
+Agent Farm ships with profiles ready to use. A profile is what you start a
+Session with; every other role is an agent that a profile links to and starts
+for you. With `greenfield` and `orchestra` installed, `agent-farm` shows a menu
+like this (abridged):
 
 ```
 ◆  What would you like to do? Tab: show all descriptions
-│  ● greenfield/planner (2) (Help you understand a problem, decide what to do, and write the plan. Doesn't write code.)
+│  ● greenfield/orchestrator (2) (Coordinate planners, implementers and reviewers as fresh agents in one workspace per feature, …)
+│  ○ greenfield/business (2)
+│  ○ greenfield/seo
 │  ○ orchestra/overseer (2)
-│  ○ greenfield/implementer (4)
-│  ○ greenfield/qa-and-fix (2)
-│  ○ greenfield/reviewer (2)
 │  ─────────────────────
 │  + Create new profile
 ```
@@ -67,44 +68,40 @@ installed, `agent-farm` shows a menu like this (abridged):
 Highlight a profile to see what it's for, or press Tab to show every
 profile's description at once.
 
-**Plan** — `greenfield/planner` helps you understand a problem, decide what
-to do, and write the plan. Start here.
+**Orchestrator** — `greenfield/orchestrator` runs software work: it plans with
+you, then starts a planner, an implementer and a reviewer for each feature, one
+workspace per feature, and keeps a status page that says what is next.
+`orchestra/overseer` builds, tests, and reviews a task into a pull request with
+little hand-holding.
 
-**Build** — `greenfield/implementer` is the AI model on its own plus a few good
-habits: it builds a plan or a clear task into a pull request and watches it until
-checks are green. `orchestra/overseer` builds, tests, and reviews a task into a
-pull request with little hand-holding.
+**Business** — `greenfield/business` writes proposals, plans and memos, from
+research and discussion to a reviewed final draft.
 
-**Check** — `greenfield/reviewer` reviews a pull request from many angles at
-once. `greenfield/qa-and-fix` tests a finished pull request, fixes small safe
-problems, and tells you when it's ready. `greenfield/simplify-and-refactor`
-asks whether an open pull request could be simpler and applies only the
-cleanup you approve.
-
-**More** (all in `greenfield`) — `product-researcher` for research write-ups,
-`business` for business documents, `seo` for search content, `audits` for
-finding outdated issues and docs, `code-smell-fixes` for an unattended
-whole-codebase hunt for confusing code that ends in fix PRs and issues,
-`codebase-audit` for one visual map of where a codebase is polished and
-where it is thin, with 50 verified opportunities, `ui-polish` for exploring
-a running app, fixing its hover, focus and layout rough edges, and showing
-before and after screenshots,
-`customer-insights-loop` for turning a product's own usage data into ranked
-directions, then building the ones you pick and handing back every PR together,
-`process-cleanup` for finding and stopping the leftover processes that
-slow down a machine running agents for days, including one you reach
-remotely,
-and `seo-orchestrator` for running the whole SEO loop on a product (measure what
+**SEO** — `greenfield/seo` runs the whole SEO loop on a product (measure what
 shipped, investigate drops, rank quick wins, write pages as draft PRs) through
 five SEO roles.
+
+**Agents** (all in `greenfield`) — the orchestrator's team also runs on its own:
+`planner` helps you understand a problem, decide what to do, and write the plan;
+`implementer` is the AI model on its own plus a few good habits, building a plan
+or a clear task into a pull request and watching it until checks are green;
+`reviewer` reviews a pull request from many angles at once; `qa-and-fix` tests a
+finished pull request and fixes small safe problems; `simplify-and-refactor`
+asks whether an open pull request could be simpler. There are also
+`bug-reporter`, `product-researcher`, `audits`, `code-smell-fixes`,
+`codebase-audit`, `ui-polish`, `customer-insights-loop` and
+`planning-and-prioritization`. Run any of them with `agent-farm run
+greenfield/<agent>`; the [greenfield guide](plugins/greenfield/README.md#agents)
+lists them all.
 
 **machine-security** — `machine-security/audit` scans the Mac or Windows PC you're working on (updates, disk encryption, antivirus and firewall, sharing and remote access, startup persistence, secrets on disk, SSH keys, package-manager and agent settings, MCP servers), reports what to fix first, and applies only the fixes you approve, one command at a time. The scans are read-only, never use sudo or elevation, and never print a secret value. See [plugins/machine-security/README.md](plugins/machine-security/README.md).
 
 **Guides** — The workflow plugins each have a one-page visual guide to their profiles and how work is routed: [greenfield](plugins/greenfield/index.html) and [orchestra](plugins/orchestra/index.html). They're also on Grain: [greenfield](https://rungrain.com/share/49gtyr7fi7hm75n71itmmlgl) and [orchestra](https://rungrain.com/share/dmnwnvk2hbvsxcart76f29jk).
 
-**Variants** — Some profiles come in more than one version, such as a Claude
-and a Codex planner. They're one profile with variants, and the menu shows
-how many: `greenfield/planner (2)`, and asks which one you want.
+**Variants** — Some profiles and agents come in a Claude and a Codex
+version, the only two variant names. They're one profile (or agent) with
+variants, and the menu shows how many: `greenfield/orchestrator (2)`, and asks
+which one you want.
 `agent-farm run` never asks: without a variant name it launches the profile's
 default and prints the commands for the others. Add the variant name to run
 another, as in `greenfield/planner:codex`. If a variant fails to start, the
@@ -132,8 +129,9 @@ commands. `agent-farm doctor` tells you what's working and what's not.
 ### For power users
 
 ```sh
+agent-farm run greenfield/orchestrator
+agent-farm run greenfield/orchestrator:codex
 agent-farm run greenfield/planner
-agent-farm run greenfield/planner:codex
 agent-farm run greenfield/implementer --directory ~/repos/my-project --message "Fix the failing tests"
 agent-farm run greenfield/implementer:codex
 agent-farm run greenfield/reviewer:codex --message "Review PR #42"

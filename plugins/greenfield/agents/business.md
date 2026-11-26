@@ -30,6 +30,14 @@ subagents:
       name: claude-sonnet-5
       reasoning: medium
     mode: native
+  product-researcher:
+    agent: product-researcher
+    mode: launch
+    description: "Product and market research."
+  planning-and-prioritization:
+    agent: planning-and-prioritization
+    mode: launch
+    description: "Sweeps every source on a topic and ranks the open items."
 ---
 
 Run business work with `business-agent-skills`: context, discussion, spec, artifact, review, and release, each stage in fresh context with a saved handoff under `.business/` (or the supplied paths).

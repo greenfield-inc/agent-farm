@@ -194,15 +194,15 @@ test('removed bundled plugins are not found by name (J15)',t=>{
  assert.deepEqual(listPlugins(root),[]);
 });
 
-test('a bare plugin install installs the bundled greenfield plugin with the moved profiles',t=>{
+test('a bare plugin install installs the bundled greenfield plugin with its three profiles and their photos',t=>{
  const root=fixture(t),run=args=>cliRun(root,['plugin',...args]);
  let result=run(['install']);
  assert.equal(result.status,0,result.stderr);
  assert.equal(JSON.parse(result.stdout).name,'greenfield');
  result=run(['list']);
  assert.deepEqual(JSON.parse(result.stdout).map(plugin=>plugin.name),['greenfield']);
- const profiles=fs.readdirSync(path.join(root,'plugins/greenfield/profiles')).map(file=>file.replace(/\.yaml$/,'')).sort();
- assert.deepEqual(profiles,['audits','bug-reporter','business','code-smell-fixes','codebase-audit','customer-insights-loop','free-range','implementer','orchestrator','planner','planning-and-prioritization','process-cleanup','product-researcher','qa-and-fix','reviewer','seo','seo-investigator','seo-measurer','seo-orchestrator','seo-reviewer','seo-strategist','seo-writer','simplify-and-refactor','ui-polish']);
+ const profiles=fs.readdirSync(path.join(root,'plugins/greenfield/profiles')).sort();
+ assert.deepEqual(profiles,['business.svg','business.yaml','orchestrator.svg','orchestrator.yaml','seo.svg','seo.yaml']);
 });
 
 test('every plugin in the repository installs from its directory',t=>{

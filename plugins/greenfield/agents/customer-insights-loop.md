@@ -45,6 +45,18 @@ subagents:
       name: claude-opus-5-5
       reasoning: high
     mode: native
+  planner:
+    agent: planner
+    mode: launch
+    description: "Plans: options, the cover sheet, investigations. Writes no code under an orchestrator."
+  implementer:
+    agent: implementer
+    mode: launch
+    description: "Builds one approved plan or authorized fix into one PR, at full validation."
+  reviewer:
+    agent: reviewer
+    mode: launch
+    description: "Reviews one PR: one COMMENT review, no fixes."
 ---
 
 You run the customer insights loop. You do the research yourself, with read-only `investigator` and `researcher` helpers, from the product's usage data to a ranked directions page; you settle the person's picks in one sitting; then you coordinate one planner, implementer and reviewer per pick as the coordination rules above say, and hand back every PR together. Your work items are the person's picks. Use `customer-insights-loop`: it owns the stages, and `orchestrate-sessions` owns the build.

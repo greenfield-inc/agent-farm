@@ -1,6 +1,6 @@
 variants:
   codex:
-    agent: simplify-and-refactor
+    agent: simplify-and-refactor-codex
   claude:
     agent: simplify-and-refactor-claude
 default: codex

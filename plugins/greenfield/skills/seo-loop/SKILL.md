@@ -9,17 +9,17 @@ You take one product from "what access do we have" to a reviewed ranked page, pi
 
 ## Roles
 
-Wherever the coordination rules and `orchestrate-sessions` say planner, implementer and reviewer, use the SEO role in the same row. Every SEO profile has one variant, `claude`; always name it.
+Wherever the coordination rules and `orchestrate-sessions` say planner, implementer and reviewer, use the SEO role in the same row, and start it through its launch link, with the command your Launch links list gives for it. The SEO roles are single Claude agents, so their names take no variant.
 
-| Coordination rules say | SEO role | Profile | Does | Writes |
+| Coordination rules say | SEO role | Launch link | Does | Writes |
 | --- | --- | --- | --- | --- |
-| planner | strategist | `greenfield/seo-strategist:claude` | foundations for a new site, the ranked quick-wins page with its rerun and gap check, the evidence merge, page briefs, and a cover sheet for any workstream that changes site code | its bundle; `.seo/` foundations, briefing, strategy and `facts.md`, only on its own branch |
-| implementer | writer | `greenfield/seo-writer:claude` | builds one picked brief or approved cover sheet: pages, metadata, links, indexing steps, the experiment record, a draft PR | its branch and draft PR |
-| reviewer | reviewer | `greenfield/seo-reviewer:claude` | claims check and cold read of every page that goes to the person, and a principled review plus claims check of every writer PR | one findings file; one `COMMENT` review on a PR |
-| (none) | measurer | `greenfield/seo-measurer:claude` | history read-back and deep dive, due 21 and 42 day reads, agent discovery and the answer panel | its bundle; `.seo/` only, on its own branch and draft PR |
-| (none) | investigator | `greenfield/seo-investigator:claude` | one unexplained drop per run, read-only, hypothesis-ranked | its bundle only |
+| planner | strategist | `seo-strategist` | foundations for a new site, the ranked quick-wins page with its rerun and gap check, the evidence merge, page briefs, and a cover sheet for any workstream that changes site code | its bundle; `.seo/` foundations, briefing, strategy and `facts.md`, only on its own branch |
+| implementer | writer | `seo-writer` | builds one picked brief or approved cover sheet: pages, metadata, links, indexing steps, the experiment record, a draft PR | its branch and draft PR |
+| reviewer | reviewer | `seo-reviewer` | claims check and cold read of every page that goes to the person, and a principled review plus claims check of every writer PR | one findings file; one `COMMENT` review on a PR |
+| (none) | measurer | `seo-measurer` | history read-back and deep dive, due 21 and 42 day reads, agent discovery and the answer panel | its bundle; `.seo/` only, on its own branch and draft PR |
+| (none) | investigator | `seo-investigator` | one unexplained drop per run, read-only, hypothesis-ranked | its bundle only |
 
-The measurer and the investigator report like a planner: they take `source`, `parent` and `docs` arguments as the strategist does, keep their status file, and raise questions as `needs_you` blocks. The writer and the reviewer take everything in the starting message, as the implementer and reviewer do. The review that starts on its own when a writer reports done is `greenfield/seo-reviewer:claude`, in place of `greenfield/reviewer:codex`. Code work that is not SEO (a site bug, a broken build, a product feature) goes to `greenfield/planner:claude` and `greenfield/implementer:claude` as `orchestrate-sessions` says.
+The measurer and the investigator report like a planner: they take `source`, `parent` and `docs` arguments as the strategist does, keep their status file, and raise questions as `needs_you` blocks. The writer and the reviewer take everything in the starting message, as the implementer and reviewer do. The review that starts on its own when a writer reports done is your `seo-reviewer` link, in place of `reviewer:codex`. Code work that is not SEO (a site bug, a broken build, a product feature) goes to your `planner` and `implementer` links, as `planner:claude` and `implementer:claude`, as `orchestrate-sessions` says.
 
 ## Rules for the whole loop
 
@@ -93,7 +93,7 @@ A first run goes 1 to 8 in order; steps 2 and 3 run in parallel, and step 4 star
 
 ## 3. Review every page and every PR
 
-The review starts on its own for every writer PR, as `orchestrate-sessions`' review policy says, and, by this skill's own rule, for every page that goes to the person: the deep dive, each investigation, the evidence merge and the ranked page. A page brief goes straight to the writer; the review of the writer's PR checks the page it produced. Launch `greenfield/seo-reviewer:claude` as a new agent in the item's workspace. Its starting message names the target (the PR and range, or the page path and its revision), the findings file in the Session folder, the access tier, and this section. Findings use greenfield's routing fields, so `orchestrate-sessions`' After a review section, the fix-round budget and the status page all work unchanged. For a page, a Must-Fix goes back to the role that wrote it as a revision of the same page, and the follow-up checks only the findings sent. A page reaches the person only when its latest review says `Ready for the person: yes`.
+The review starts on its own for every writer PR, as `orchestrate-sessions`' review policy says, and, by this skill's own rule, for every page that goes to the person: the deep dive, each investigation, the evidence merge and the ranked page. A page brief goes straight to the writer; the review of the writer's PR checks the page it produced. Launch your `seo-reviewer` link as a new agent in the item's workspace. Its starting message names the target (the PR and range, or the page path and its revision), the findings file in the Session folder, the access tier, and this section. Findings use greenfield's routing fields, so `orchestrate-sessions`' After a review section, the fix-round budget and the status page all work unchanged. For a page, a Must-Fix goes back to the role that wrote it as a revision of the same page, and the follow-up checks only the findings sent. A page reaches the person only when its latest review says `Ready for the person: yes`.
 
 ## 4. Picks
 
@@ -107,7 +107,7 @@ When the picks' review loops close, write one handover in the run's bundle, link
 - every PR with its state in one line (draft, CI, review) and a suggested merge order; nothing is merged;
 - the experiments these PRs start, each with its 21 and 42 day read dates;
 - the next due date and the exact command to run on or after it:
-  `agent-farm run greenfield/seo-orchestrator:claude --directory <repo> --message "Run the SEO loop for <url>. Start with what is due."`, and the loop's schedule when one is set up ([references/ticks.md](references/ticks.md), Set up the loop);
+  `agent-farm run greenfield/seo --directory <repo> --message "Run the SEO loop for <url>. Start with what is due."`, and the loop's schedule when one is set up ([references/ticks.md](references/ticks.md), Set up the loop);
 - lessons this run found that `seo-evidence` lacks, each with its number and source, proposed as a reviewed change to those references; the person decides;
 - open questions and missing sources, with what each would unlock.
 

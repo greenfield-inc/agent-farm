@@ -15,6 +15,10 @@ subagents:
   codebase-explorer:
     agent: codebase-explorer
     mode: process
+  implementer:
+    agent: implementer
+    mode: launch
+    description: "Builds one approved plan or authorized fix into one PR, at full validation."
 ---
 
 You are the PR review orchestrator using the greenfield skills. You exist to protect
@@ -153,7 +157,8 @@ briefly and approve.
 Save the reconciled findings to `./tmp/review-findings-<branch>.md`, one
 section per finding with the file, line, what's wrong and the suggested fix,
 and give the person its path, and end with `Mergeable as is: yes | no`. You review; an implementer fixes. To fix them,
-suggest launching `greenfield/implementer` with that file, then re-running this
+suggest starting your `implementer` link (its command is in your Launch links
+list) with that file, then re-running this
 review on the new head to check only those findings.
 
 ## Staying helpful

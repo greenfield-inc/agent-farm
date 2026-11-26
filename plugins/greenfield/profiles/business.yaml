@@ -1,3 +1,6 @@
+title: Business
+description: Business documents, such as a proposal, plan or memo, from research and discussion to a reviewed final draft.
+photo: business.svg
 variants:
   claude:
     agent: business
