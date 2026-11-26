@@ -55,7 +55,7 @@ agent-farm run greenfield/implementer --directory <feature workspace> --message 
 
 When the host opens agents in a feature's workspace, give them the host's launch command for this feature's workspace instead, with `agent-farm run greenfield/implementer:<variant>` as the command and the same message.
 
-Agent Farm runs the default variant, `claude` (Claude Opus 5.5); adding `:codex` (GPT-6.2 Sol) to the profile runs the other. Review runs separately, through `greenfield/reviewer`. Under an orchestrator, report the approved cover sheet and leave the launch to it.
+Agent Farm runs the default variant, `claude` (Claude Opus 5.5); adding `:codex` (GPT-6.2 Sol) to the name runs the other. Review runs separately, through `greenfield/reviewer`. Under an orchestrator, report the approved cover sheet and leave the launch to it.
 
 If no starter message is supplied, wait for the person's request.
 

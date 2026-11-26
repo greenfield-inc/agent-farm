@@ -538,7 +538,7 @@ top-level Codex session the launch started in its runtime Codex home.
 `--resume ID` reopens that conversation:
 
 ```bash
-agent-farm run greenfield/free-range --resume 0c6d0d57-2f8b-4c8e-9a47-5b1f9e2f3a10
+agent-farm run greenfield/orchestrator --resume 0c6d0d57-2f8b-4c8e-9a47-5b1f9e2f3a10
 ```
 
 With a bare profile name, a resume uses the variant

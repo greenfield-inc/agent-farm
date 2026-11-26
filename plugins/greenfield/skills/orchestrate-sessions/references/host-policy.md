@@ -8,7 +8,7 @@ Read only the relevant host guidance. A useful host policy identifies:
 
 - Supported discovery commands or tools, and the correct app instance.
 - Workspace and worktree creation, reuse, ownership and association rules.
-- How to launch the chosen Greenfield profile, send it context, and message or resume a worker.
+- How to launch the chosen Greenfield agent (a launch link's command), send it context, and message or resume a worker.
 - How workers report to their parent: completion and blocker events, yielding, and bounded waits.
 - Where durable state lives, concurrency and usage limits, and cleanup permissions.
 

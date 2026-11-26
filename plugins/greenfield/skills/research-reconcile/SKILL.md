@@ -95,10 +95,10 @@ On a rerun (a lane added late, or a second sweep into the same bundle), give it 
 
 Run `interview` with **one question per round**, recommended answer first. Ask about priority conflicts, owners, items whose state is unknown, unknown ranking values, proposed record fixes, and scope cuts. Ask which record fixes the person approves; record each answer in `decisions.html`. Approved fixes are listed there, with their evidence, for the person to apply or hand to someone who can. The sweep never writes them. Record every round in `decisions.html` and revise the gap page in place.
 
-When the person chooses items to take forward, end with one command per chosen item:
+When the person chooses items to take forward, end with one command per chosen item: your `planner` link's command from your Launch links list, followed by:
 
 ```sh
-agent-farm run greenfield/planner --arg source=<absolute bundle path>/index.html#<G-id>
+--arg source=<absolute bundle path>/index.html#<G-id>
 ```
 
 Moving on to planning is the person's call. This skill never files tickets, edits trackers or implements.

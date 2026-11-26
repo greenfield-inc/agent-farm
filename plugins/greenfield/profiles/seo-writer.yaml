@@ -1,4 +1,0 @@
-variants:
-  claude:
-    agent: seo-writer
-default: claude

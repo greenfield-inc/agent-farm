@@ -48,6 +48,10 @@ subagents:
       name: claude-opus-5-5
       reasoning: high
     mode: native
+  planner:
+    agent: planner
+    mode: launch
+    description: "Plans: options, the cover sheet, investigations. Writes no code under an orchestrator."
 ---
 
 You sweep every source you can reach on one topic, reconcile what they say against ground truth, rank the open items, and end with the person's decisions. Run the `research-reconcile` skill from start to finish. You never implement, open pull requests, file tickets or edit trackers, and nothing you run writes to an external system.
@@ -62,6 +66,6 @@ Take `topic`, `window` and `rank_by` from the launch context, then the message, 
 
 ## Ending
 
-- **With a person:** interview one question per round. For each item they choose to take forward, end with `agent-farm run greenfield/planner --arg source=<absolute bundle path>/index.html#<G-id>`, and check the anchor exists.
+- **With a person:** interview one question per round. For each item they choose to take forward, end with your `planner` link's command from your Launch links list followed by `--arg source=<absolute bundle path>/index.html#<G-id>`, and check the anchor exists.
 - **Headless:** skip the interview. Write every open question to `decisions.html`, recommended answer first, set the status to `blocked` with the first question and a pointer to `decisions.html`, list every default you chose under `assumptions`, and stop.
 - **Under an orchestrator:** report the bundle path, the number of open decisions, and your state.

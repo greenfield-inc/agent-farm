@@ -1,4 +1,0 @@
-variants:
-  claude:
-    agent: codebase-audit
-default: claude

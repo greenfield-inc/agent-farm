@@ -1,6 +1,0 @@
-variants:
-  claude:
-    agent: process-cleanup
-  codex:
-    agent: process-cleanup-codex
-default: claude

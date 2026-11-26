@@ -11,18 +11,18 @@ import {verify} from '../dist/runtime.js';
 const root=fileURLToPath(new URL('../plugins/greenfield/',import.meta.url));
 const tempDir=(t,prefix)=>{const dir=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),prefix)));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));return dir;};
 
-test('the six SEO roles resolve on Claude with the model and effort of the greenfield role each mirrors, and each builds a bundle',t=>{
+test('the SEO profile and its five roles resolve on Claude with the model and effort of the greenfield role each mirrors, and each builds a bundle',t=>{
  const target=tempDir(t,'greenfield-seo-');
- for(const [role,effort] of [['seo-orchestrator','medium'],['seo-strategist','high'],['seo-writer','medium'],['seo-reviewer','high'],['seo-measurer','high'],['seo-investigator','high']]){
+ for(const [role,effort] of [['seo','medium'],['seo-strategist','high'],['seo-writer','medium'],['seo-reviewer','high'],['seo-measurer','high'],['seo-investigator','high']]){
   const main=resolveProfile(root,role).nodes.main;
   assert.deepEqual([main.harness,main.model,main.reasoning_effort],['claude','claude-opus-5-5',effort],role);
   assert.ok(main.skills.includes('seo-evidence'),`${role} bundles the evidence base`);
-  const dir=path.join(target,role);fs.mkdirSync(dir);verify(build(root,role+':claude',dir));
+  const dir=path.join(target,role);fs.mkdirSync(dir);verify(build(root,role==='seo'?'seo:claude':role,dir));
  }
 });
 
 test('the SEO orchestrator coordinates with greenfield\'s rules and the loop, and the research roles take source, parent and docs like a planner',()=>{
- const orchestrator=resolveProfile(root,'seo-orchestrator').nodes.main;
+ const orchestrator=resolveProfile(root,'seo').nodes.main;
  for(const heading of ['# Standing rules','# Coordination'])assert.ok(orchestrator.instructions.includes(heading),heading);
  for(const skill of ['orchestrate-sessions','seo-loop','seo-experiments'])assert.ok(orchestrator.skills.includes(skill),skill);
  for(const role of ['seo-strategist','seo-measurer','seo-investigator']){

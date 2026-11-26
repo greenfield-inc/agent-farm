@@ -1,6 +1,6 @@
 variants:
   claude:
-    agent: planner
+    agent: planner-claude
   codex:
     agent: planner-codex
 default: claude

@@ -1,4 +1,0 @@
-variants:
-  claude:
-    agent: seo-reviewer
-default: claude

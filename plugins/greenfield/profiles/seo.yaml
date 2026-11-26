@@ -1,6 +1,7 @@
+title: SEO
+description: The search and AI-discovery loop for one product. Measures what shipped, ranks quick wins, writes and reviews pages through its SEO team.
+photo: seo.svg
 variants:
   claude:
     agent: seo
-  codex:
-    agent: seo-codex
 default: claude

@@ -71,7 +71,7 @@ Record each tick's cost from the host when it reports one. With no budget saved,
 
 At the end of a first run started by a person, when the host offers scheduled runs and neither memory nor `.seo/access.md` records a loop decision, ask once (the loop setup approval). An idle tick costs one short turn, so say that on each option. Before creating, look for a scheduled run whose Session already runs this profile on this repository, and adopt it. On weekly or daily, set it up with the host's commands, then read it back and record its id, Session, schedule and next run:
 
-1. **The Session:** a new host Session named `SEO loop: <site>`, whose agent is `agent-farm run greenfield/seo-orchestrator:claude --directory <repo>`.
+1. **The Session:** a new host Session named `SEO loop: <site>`, whose agent is `agent-farm run greenfield/seo --directory <repo>`.
 2. **The first tick:** send that Session the message below once, so it starts with its memory and a conversation.
 3. **The schedule:** a scheduled run on that Session with the message below, weekly on Monday at 09:00 local (`0 9 * * 1`) or daily at 09:00 (`0 9 * * *`). Stagger sites by an hour or more so full reviews do not coincide.
 4. **Unattended permissions:** when the host says the Session's agent must restart before unattended runs, restart it once (it resumes the same conversation).

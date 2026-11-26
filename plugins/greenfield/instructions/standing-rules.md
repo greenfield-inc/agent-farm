@@ -1,6 +1,6 @@
 # Standing rules
 
-These apply to every profile that includes this file. Skills add detail. They do not override these.
+These apply to every agent that includes this file. Skills add detail. They do not override these.
 
 ## Documents are the interface
 

@@ -1,6 +1,6 @@
 variants:
   claude:
-    agent: audits
+    agent: audits-claude
   codex:
     agent: astra-audits
 default: claude

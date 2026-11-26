@@ -1,6 +1,6 @@
 variants:
   claude:
-    agent: bug-reporter
+    agent: bug-reporter-claude
   codex:
     agent: bug-reporter-codex
 default: claude

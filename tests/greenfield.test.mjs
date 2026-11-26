@@ -12,6 +12,21 @@ import {parse} from 'yaml';
 
 const root=fileURLToPath(new URL('../plugins/greenfield/',import.meta.url));
 
+// Every runnable greenfield entry: the three profiles and, through their launch links, every agent they reach,
+// each with every variant. A link target is looked up as an agent, as Agent Farm does when it starts one.
+function entries(){
+ const result=[],seen=new Set(),queue=fs.readdirSync(path.join(root,'profiles')).filter(file=>file.endsWith('.yaml')).map(file=>({name:file.replace(/\.yaml$/,''),kind:'profile'}));
+ while(queue.length){
+  const {name,kind}=queue.shift(),key=kind+':'+name;if(seen.has(key))continue;seen.add(key);
+  const options=kind==='agent'?{agentOnly:true}:{},base=resolveProfile(root,name,undefined,options);
+  for(const ref of base.variants?[name,...base.variants.map(variant=>name+':'+variant)]:[name]){
+   const resolved=ref===name?base:resolveProfile(root,ref,undefined,options);result.push({ref,kind,resolved});
+   for(const link of Object.values(resolved.nodes.main.links??{}))if(link.agent)queue.push({name:link.agent.replace(/^greenfield\//,''),kind:'agent'});
+  }
+ }
+ return result;
+}
+
 test('the implementer is the former dcouple raw profile on Opus, Astra or Sol, with only an opt-in cross-vendor second-opinion reviewer',t=>{
  const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-profile-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
@@ -25,7 +40,7 @@ test('the implementer is the former dcouple raw profile on Opus, Astra or Sol, w
   assert.deepEqual([second.name,second.mode,second.harness,second.model],['pr-reviewer','process',...(harness==='claude'?['codex','gpt-6.2-sol']:['claude','claude-opus-5-5'])],profile);
   assert.ok(second.skills.includes('review'),profile);
   const prompt=fs.readFileSync(main.source_file,'utf8').replace(/\s+/g,' ');
-  for(const rule of ['Use it only when you run standalone (no orchestrator) or when the person asks','Under an orchestrator, review stays with `greenfield/reviewer`'])assert.ok(prompt.includes(rule),`${profile}: ${rule}`);
+  for(const rule of ['Use it only when you run standalone (no orchestrator) or when the person asks','Under an orchestrator, review stays with the `reviewer` agent'])assert.ok(prompt.includes(rule),`${profile}: ${rule}`);
   assert.equal(resolved.nodes[main.children['qa-and-verify']].name,'pr-qa');
   for(const skill of ['prepare-pr','babysit-pr','tdd','quick-verify','pr-test-automation','session-trace'])assert.ok(main.skills.includes(skill),`${profile}: ${skill}`);
   const bundle=build(root,profile,target);verify(bundle);
@@ -48,7 +63,7 @@ test('the reviewer is the former dcouple reviewer, with its Codex variant on Sol
  }
 });
 
-test('profiles moved from dcouple resolve from greenfield, and the dropped ones do not',()=>{
+test('agents moved from dcouple resolve from greenfield, and the dropped ones do not',()=>{
  for(const profile of ['audits','business','product-researcher','qa-and-fix','reviewer','seo','implementer'])assert.ok(resolveProfile(root,profile).nodes.main);
  for(const profile of ['ideate','pipeline','raw'])assert.throws(()=>resolveProfile(root,profile));
  const qa=resolveProfile(root,'qa-and-fix'),bug=resolveProfile(root,'bug-reporter');
@@ -57,12 +72,8 @@ test('profiles moved from dcouple resolve from greenfield, and the dropped ones 
 });
 
 test('every greenfield Codex role runs gpt-6.2-sol ultrafast, low for review roles and medium otherwise',()=>{
- const profiles=fs.readdirSync(path.join(root,'profiles')).map(file=>{
-  const name=file.replace(/\.yaml$/,''),variants=Object.keys(parse(fs.readFileSync(path.join(root,'profiles',file),'utf8')).variants??{});
-  return [name,...variants.map(variant=>name+':'+variant)];
- }).flat();
  let codexNodes=0;
- for(const profile of profiles)for(const node of Object.values(resolveProfile(root,profile).nodes)){
+ for(const {ref:profile,resolved} of entries())for(const node of Object.values(resolved.nodes)){
   if(node.harness!=='codex')continue;codexNodes++;
   const effort=['codex-pr-reviewer','pr-reviewer','business-spec-reviewer','business-artifact-reviewer'].includes(node.name)?'low':'medium';
   assert.deepEqual([node.model,node.reasoning_effort,node.speed],['gpt-6.2-sol',effort,'ultrafast'],`${profile} ${node.name}`);
@@ -70,10 +81,37 @@ test('every greenfield Codex role runs gpt-6.2-sol ultrafast, low for review rol
  assert.ok(codexNodes>20,`expected many Codex nodes, saw ${codexNodes}`);
 });
 
-test('free-range defaults to Opus 5.5 and keeps a Codex variant',()=>{
- for(const [profile,harness,model] of [['free-range','claude','claude-opus-5-5'],['free-range:claude','claude','claude-opus-5-5'],['free-range:codex','codex','gpt-6.2-sol']]){
-  const main=resolveProfile(root,profile).nodes.main;assert.deepEqual([main.harness,main.model],[harness,model]);
+test('greenfield 0.1.0 has exactly three profiles; every helper is a linked agent, the two orchestrators link the same agents, and no removed name or old variant survives',()=>{
+ const profiles=fs.readdirSync(path.join(root,'profiles')).filter(file=>file.endsWith('.yaml')).map(file=>file.replace(/\.yaml$/,'')).sort();
+ assert.deepEqual(profiles,['business','orchestrator','seo']);
+ for(const [name,title] of [['orchestrator','Orchestrator'],['business','Business'],['seo','SEO']]){
+  const resolved=resolveProfile(root,name);
+  assert.equal(resolved.display.title,title,name);assert.ok(resolved.display.description,name);
+  assert.equal(resolved.display.photo,path.join(fs.realpathSync(root),'profiles',name+'.svg'),name);
  }
+ const links=ref=>{const main=resolveProfile(root,ref).nodes.main;return Object.fromEntries(Object.entries(main.links??{}).map(([alias,link])=>[alias,link.agent]));};
+ const orchestrator=links('orchestrator:claude');
+ assert.deepEqual(orchestrator,links('orchestrator:codex'));
+ assert.deepEqual(Object.keys(orchestrator).sort(),['audits','bug-reporter','code-smell-fixes','codebase-audit','customer-insights-loop','implementer','planner','planning-and-prioritization','product-researcher','qa-and-fix','reviewer','simplify-and-refactor','ui-polish']);
+ assert.deepEqual(Object.keys(resolveProfile(root,'orchestrator').nodes.main.children),['advisor']);
+ assert.deepEqual(links('business:claude'),links('business:codex'));
+ assert.deepEqual(Object.keys(links('business')).sort(),['planning-and-prioritization','product-researcher']);
+ assert.deepEqual(Object.keys(links('seo')).sort(),['implementer','planner','reviewer','seo-investigator','seo-measurer','seo-reviewer','seo-strategist','seo-writer']);
+ for(const [agent,expected] of [['customer-insights-loop',['implementer','planner','reviewer']],['planning-and-prioritization',['planner']],['raw-claude',['reviewer']],['raw-codex',['reviewer']],['claude-pr-reviewer',['implementer']],['codex-pr-reviewer',['implementer']],['seo-strategist',['seo-writer']],['seo-reviewer',['seo-strategist','seo-writer']]])
+  assert.deepEqual(Object.keys(links(agent)).sort(),expected,agent);
+ // No link uses any: true, and every agent file is reached from a profile through native, process or launch links.
+ const all=entries(),reached=new Set(all.flatMap(({resolved})=>Object.values(resolved.nodes).map(node=>node.name)));
+ for(const {resolved} of all)for(const link of Object.values(resolved.nodes.main.links??{}))assert.equal(link.any,undefined);
+ const agentFiles=fs.readdirSync(path.join(root,'agents')).filter(file=>file.endsWith('.md')).map(file=>file.replace(/\.md$/,''));
+ assert.deepEqual(agentFiles.filter(agent=>!reached.has(agent)),[]);
+ // The removed names are gone, and only claude and codex name variants.
+ const walk=dir=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(entry=>{const file=path.join(dir,entry.name);return entry.isDirectory()?walk(file):[file];});
+ for(const file of walk(root)){
+  const relative=path.relative(root,file);assert.doesNotMatch(relative,/free-range|seo-orchestrator|implementer-codex|process-cleanup/,relative);
+  assert.doesNotMatch(fs.readFileSync(file,'utf8'),/free-range|seo-orchestrator|implementer-codex|process-cleanup/,relative);
+  if(/^(profiles|agents)\/[^/]+\.yaml$/.test(relative)){const variants=Object.keys(parse(fs.readFileSync(file,'utf8')).variants??{});for(const variant of variants)assert.ok(['claude','codex'].includes(variant),relative+': '+variant);}
+ }
+ for(const removed of ['free-range','process-cleanup','seo-orchestrator','implementer-codex','seo-codex'])assert.throws(()=>resolveProfile(root,removed),undefined,removed);
 });
 
 test('bug-reporter, orchestrator and the Claude planner\'s Socrates run Opus 5.5',()=>{
@@ -157,7 +195,7 @@ test('the plugin names no destination service: no Greenfield instruction names G
 
 test('the orchestrator routes planner, implementer and end-of-workstream reviewer through the host\'s workspaces, with safe cleanup',()=>{
  const skill=fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8');
- for(const text of ['the host\'s own workspace-create and agent-launch commands','greenfield/planner','greenfield/implementer','greenfield/reviewer:codex','one `COMMENT` review, no fixes','agent-farm inspect greenfield/<profile> --directory <repo>'])assert.ok(skill.includes(text),text);
+ for(const text of ['the host\'s own workspace-create and agent-launch commands','| `planner`: investigate','| `implementer` (use','| `reviewer:codex`, one per review','one `COMMENT` review, no fixes','agent-farm inspect greenfield/<agent> --directory <repo>','Never type the name by hand or drop `--parent`'])assert.ok(skill.includes(text),text);
  assert.deepEqual(Object.keys(resolveProfile(root,'orchestrator').nodes.main.children),['advisor']);
 });
 
@@ -172,7 +210,7 @@ test('orchestrated reviewers post one COMMENT review and apply no fixes, and orc
   for(const rule of ['reconciled findings to that file','post exactly one review','event `COMMENT` (never approve or request changes)','Apply no fixes','reads the lines that fix round changed for regressions first, then checks only the findings it was sent'])assert.ok(instructions.includes(rule),`${profile}: ${rule}`);
  }
  const skill=flat(fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8'));
- for(const rule of ['no agent in it is working','1 feature = 1 worktree = 1 branch = 1 workspace','launch every later worker for that feature as a new agent in the same workspace','agent-farm run greenfield/<role>:<variant>','Always name the variant','`greenfield/implementer:claude`','whether it explicitly grants conversation capture','a personal fallback workspace grants nothing'])assert.ok(skill.includes(rule),rule);
+ for(const rule of ['no agent in it is working','1 feature = 1 worktree = 1 branch = 1 workspace','launch every later worker for that feature as a new agent in the same workspace','the role\'s line from your Launch links list as the command','Always name the variant','`implementer:claude`','whether it explicitly grants conversation capture','a personal fallback workspace grants nothing'])assert.ok(skill.includes(rule),rule);
  assert.doesNotMatch(skill,/\[:variant\]/);
  const trace=flat(fs.readFileSync(path.join(root,'skills/session-trace/SKILL.md'),'utf8'));
  for(const rule of ['Naming a document destination is not a grant','trace not authorized','--launch <ID>','`$CODEX_HOME` before `~/.codex`'])assert.ok(trace.includes(rule),rule);
@@ -187,10 +225,10 @@ test('orchestrated reviewers post one COMMENT review and apply no fixes, and orc
 test('simplify-and-refactor runs the refactor and principled-review skills on Sol by default or Opus, with a refactor child per analysis',t=>{
  const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-refactor-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
- const variants=Object.keys(parse(fs.readFileSync(path.join(root,'profiles/simplify-and-refactor.yaml'),'utf8')).variants);
+ const variants=Object.keys(parse(fs.readFileSync(path.join(root,'agents/simplify-and-refactor.yaml'),'utf8')).variants);
  assert.deepEqual(variants.sort(),['claude','codex']);
  assert.equal(resolveProfile(root,'simplify-and-refactor').nodes.main.model,'gpt-6.2-sol');
- for(const [profile,agent,harness,model,effort] of [['simplify-and-refactor:codex','simplify-and-refactor','codex','gpt-6.2-sol','medium'],['simplify-and-refactor:claude','simplify-and-refactor-claude','claude','claude-opus-5-5','medium']]){
+ for(const [profile,agent,harness,model,effort] of [['simplify-and-refactor:codex','simplify-and-refactor-codex','codex','gpt-6.2-sol','medium'],['simplify-and-refactor:claude','simplify-and-refactor-claude','claude','claude-opus-5-5','medium']]){
   const resolved=resolveProfile(root,profile),main=resolved.nodes.main;
   assert.deepEqual([main.name,main.harness,main.model,main.reasoning_effort],[agent,harness,model,effort],profile);
   assert.deepEqual([...main.skills].sort(),['excalidraw-pr-diagrams','page','prepare-pr','principled-review','refactor','session-trace'],profile);
@@ -203,10 +241,10 @@ test('simplify-and-refactor runs the refactor and principled-review skills on So
   assert.equal(launch.argv[launch.argv.indexOf('--model')+1],model);
  }
  const orchestrate=fs.readFileSync(path.join(root,'skills/orchestrate-sessions/SKILL.md'),'utf8');
- for(const text of ['greenfield/simplify-and-refactor:codex','The simplify checkpoint is optional and off by default','it applies only on their approval'])assert.ok(orchestrate.includes(text),text);
+ for(const text of ['`simplify-and-refactor:codex`','The simplify checkpoint is optional and off by default','it applies only on their approval'])assert.ok(orchestrate.includes(text),text);
  const refactor=fs.readFileSync(path.join(root,'skills/refactor/SKILL.md'),'utf8').replace(/\s+/g,' ');
  assert.ok(refactor.includes('run it before QA'));
- for(const agent of ['simplify-and-refactor','simplify-and-refactor-claude']){
+ for(const agent of ['simplify-and-refactor-codex','simplify-and-refactor-claude']){
   const text=fs.readFileSync(path.join(root,'agents',agent+'.md'),'utf8').replace(/\s+/g,' ');
   for(const rule of ['Analysis is read-only','only after the person approves the merged plan','no other worker is writing the branch','before QA'])assert.ok(text.includes(rule),`${agent}: ${rule}`);
  }
@@ -216,7 +254,7 @@ test('reviewers share principled-review with simplify-and-refactor and leave fix
  for(const profile of ['reviewer:claude','reviewer:codex']){
   const main=resolveProfile(root,profile).nodes.main;
   assert.deepEqual(main.skills.sort(),['android-emulators','ios-simulators','machine-resources','pr-test-automation','principled-review','review'],profile);
-  assert.match(fs.readFileSync(main.source_file,'utf8').replace(/\s+/g,' '),/You review; an implementer fixes\. To fix them, suggest launching `greenfield\/implementer` with that file/,profile);
+  assert.match(fs.readFileSync(main.source_file,'utf8').replace(/\s+/g,' '),/You review; an implementer fixes\. To fix them, suggest starting your `implementer` link \(its command is in your Launch links list\) with that file/,profile);
  }
  for(const profile of ['implementer:claude','implementer:codex'])assert.ok(resolveProfile(root,profile).nodes.main.skills.includes('excalidraw-pr-diagrams'),profile);
 });
@@ -245,16 +283,14 @@ const unbundledMentions={
  'research-and-product-design -> ui-mockup':'the orchestrator runs several features through it; the feature agents it launches draw the UI rounds with ui-mockup',
 };
 
-test('every Greenfield skill and agent is bundled by a profile, and every skill named in bundled text is bundled with it',()=>{
+test('every Greenfield skill and agent is reached from a profile, and every skill named in bundled text is bundled with it',()=>{
  const walk=dir=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(entry=>{const file=path.join(dir,entry.name);return entry.isDirectory()?walk(file):[file];});
- const skills=fs.readdirSync(path.join(root,'skills')),agents=fs.readdirSync(path.join(root,'agents')).map(file=>file.replace(/\.md$/,''));
+ const skills=fs.readdirSync(path.join(root,'skills')),agents=fs.readdirSync(path.join(root,'agents')).filter(file=>file.endsWith('.md')).map(file=>file.replace(/\.md$/,''));
  const pattern=name=>{const n=name.replace(/-/g,'\\-');return new RegExp('`'+n+'`|(?<![\\w-])'+n+' skill|skill `?'+n+'(?![\\w-])|\\.\\./'+n+'/SKILL\\.md');};
  const skillText=Object.fromEntries(skills.map(skill=>[skill,walk(path.join(root,'skills',skill)).map(file=>fs.readFileSync(file,'utf8')).join('\n')]));
  const reachedSkills=new Set(),reachedAgents=new Set(),usedExceptions=new Set(),unresolved=new Set();
- for(const file of fs.readdirSync(path.join(root,'profiles'))){
-  const name=file.replace(/\.yaml$/,''),variants=Object.keys(parse(fs.readFileSync(path.join(root,'profiles',file),'utf8')).variants??{});
-  for(const profile of [name,...variants.map(variant=>name+':'+variant)]){
-   const nodes=resolveProfile(root,profile).nodes;
+ for(const {ref:profile,resolved} of entries()){{
+   const nodes=resolved.nodes;
    for(const node of Object.values(nodes)){
     reachedAgents.add(node.name);node.skills.forEach(skill=>reachedSkills.add(skill));
     const available=new Set([...node.skills,...Object.values(node.children).flatMap(child=>nodes[child].skills)]);
@@ -304,9 +340,8 @@ test('every agent whose own text or skills point to the standing rules loads the
  const walk=dir=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(entry=>{const file=path.join(dir,entry.name);return entry.isDirectory()?walk(file):[file];});
  const skillText=skill=>walk(path.join(root,'skills',skill)).map(file=>fs.readFileSync(file,'utf8')).join('\n');
  const missing=new Set();
- for(const file of fs.readdirSync(path.join(root,'profiles'))){
-  const name=file.replace(/\.yaml$/,''),variants=Object.keys(parse(fs.readFileSync(path.join(root,'profiles',file),'utf8')).variants??{});
-  for(const profile of [name,...variants.map(variant=>name+':'+variant)])for(const node of Object.values(resolveProfile(root,profile).nodes)){
+ for(const {resolved} of entries()){
+  for(const node of Object.values(resolved.nodes)){
    const text=[fs.readFileSync(node.source_file,'utf8'),...node.skills.map(skillText)].join('\n');
    if(/standing rules/i.test(text)&&!node.instructions?.includes('# Standing rules')&&!Object.hasOwn(withoutStandingRules,node.name))missing.add(node.name);
   }
@@ -342,104 +377,6 @@ test('codebase-audit runs on Fable with native Sonnet researchers and an Opus cu
  }
 });
 
-test('process-cleanup runs on Claude or Codex with a read-only survey for each OS',t=>{
- const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-cleanup-')));
- t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
- const expected={claude:['claude','claude-opus-5-5','medium'],codex:['codex','gpt-6.2-sol','medium']};
- for(const [variant,model] of Object.entries(expected)){
-  const main=resolveProfile(root,'process-cleanup:'+variant).nodes.main;
-  assert.deepEqual([main.harness,main.model,main.reasoning_effort],model,variant);
-  assert.deepEqual(main.skills,['process-cleanup'],variant);
-  assert.deepEqual(main.launch.arguments,{machine:'local',authorized:'none'},variant);
-  assert.ok(main.instructions.includes('# Standing rules'),variant);
-  verify(build(root,'process-cleanup:'+variant,target));
- }
- const scripts=path.join(root,'skills','process-cleanup','scripts');
- const code=file=>fs.readFileSync(path.join(scripts,file),'utf8').split('\n').filter(line=>!/^\s*#/.test(line)).join('\n');
- assert.doesNotMatch(code('survey.sh'),/\b(kill -(KILL|9)|pkill|killall|sudo|rm -rf \/|fsmonitor--daemon stop)\b/);
- assert.doesNotMatch(code('survey.ps1'),/\b(Stop-Process|taskkill|Stop-Service|Set-Service|Start-Process)\b/i);
- const classes=fs.readFileSync(path.join(root,'skills','process-cleanup','references','classes.md'),'utf8');
- for(const id of ['fsmonitor-orphaned','fsmonitor-idle','app-renderers','app-duplicates','dev-servers-orphaned','shells-orphaned','agents-orphaned','host-live','git-in-progress'])assert.ok(classes.includes('`'+id+'`'),id);
-});
-
-// Git Bash on Windows runners can resolve `bash` to WSL, which wouldn't see the shims.
-test('the Linux survey counts an app\'s main processes, so duplicate instances show',{skip:process.platform==='win32'},t=>{
- const bin=fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-survey-'));
- t.after(()=>fs.rmSync(bin,{recursive:true,force:true}));
- // Two real Chrome windows (one from launchd-like pid 1, one from a shell), a utility child running
- // the main binary under the first, and one renderer.
- const rows=[
-  [100,1,'Ss','2-00:00:00',1000,'0.0','pts/0','bash','bash'],
-  [200,1,'S','1-00:00:00',204800,'1.0','?','chrome','/opt/google/chrome/chrome'],
-  [300,100,'S','01:00:00',102400,'1.0','?','chrome','/opt/google/chrome/chrome --new-window'],
-  [210,200,'S','1-00:00:00',51200,'0.0','?','chrome','/opt/google/chrome/chrome --utility-sub-process'],
-  [220,200,'S','3-00:00:00',51200,'0.5','?','chrome','/opt/google/chrome/chrome --type=renderer --lang=en-US'],
- ];
- fs.writeFileSync(path.join(bin,'comm.txt'),rows.map(r=>r.slice(0,8).join(' ')).join('\n')+'\n');
- fs.writeFileSync(path.join(bin,'args.txt'),rows.map(r=>`${r[0]} ${r[8]}`).join('\n')+'\n');
- fs.writeFileSync(path.join(bin,'ps'),`#!/bin/sh\ncase "$*" in *args=*) cat "${bin}/args.txt" ;; *) cat "${bin}/comm.txt" ;; esac\n`,{mode:0o755});
- fs.writeFileSync(path.join(bin,'uname'),'#!/bin/sh\necho Linux\n',{mode:0o755});
- const run=spawnSync('bash',[path.join(root,'skills','process-cleanup','scripts','survey.sh'),'--budget','2'],{encoding:'utf8',timeout:60000,env:{...process.env,PATH:`${bin}${path.delimiter}${process.env.PATH}`}});
- const apps=run.stdout.split('\n== ').find(section=>section.startsWith('apps'));
- assert.ok(apps,run.stdout+run.stderr);
- const chrome=apps.split('\n').find(line=>line.startsWith('chrome\t'))?.split('\t');
- // app, main_binary, launched, renderers, renderers_older_2d, other_helpers, rss_mb
- assert.deepEqual(chrome?.slice(0,7),['chrome','3','2','1','1','0','400'],apps);
-});
-
-test('the survey counts a detached shell\'s children, so a shell running a job is not idle',{skip:process.platform==='win32'},t=>{
- const bin=fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-survey-'));
- t.after(()=>fs.rmSync(bin,{recursive:true,force:true}));
- // pid 400 is an orphaned shell running a build; pid 500 is an orphaned idle shell.
- const rows=[[400,1,'Ss','2-00:00:00',1000,'0.0','?','bash','bash'],[410,400,'R','01:00:00',90000,'95.0','?','make','make -j8'],[500,1,'Ss','2-00:00:00',1000,'0.0','?','bash','bash']];
- fs.writeFileSync(path.join(bin,'comm.txt'),rows.map(r=>r.slice(0,8).join(' ')).join('\n')+'\n');
- fs.writeFileSync(path.join(bin,'args.txt'),rows.map(r=>`${r[0]} ${r[8]}`).join('\n')+'\n');
- fs.writeFileSync(path.join(bin,'ps'),`#!/bin/sh\ncase "$*" in *args=*) cat "${bin}/args.txt" ;; *) cat "${bin}/comm.txt" ;; esac\n`,{mode:0o755});
- fs.writeFileSync(path.join(bin,'uname'),'#!/bin/sh\necho Linux\n',{mode:0o755});
- const run=spawnSync('bash',[path.join(root,'skills','process-cleanup','scripts','survey.sh'),'--budget','2'],{encoding:'utf8',timeout:60000,env:{...process.env,PATH:`${bin}${path.delimiter}${process.env.PATH}`}});
- const lines=run.stdout.split('\n== ').find(section=>section.startsWith('agents-and-shells'))?.split('\n');
- assert.ok(lines,run.stdout+run.stderr);
- const header=lines[1].split('\t'),children=pid=>lines.find(line=>line.startsWith(pid+'\t'))?.split('\t')[header.indexOf('children')];
- assert.deepEqual([children(400),children(500)],['1','0'],lines.join('\n'));
-});
-
-test('the survey marks only serve and watch modes as servers, so a one-shot job is never a safe stop, and prints no credential from a command line',{skip:process.platform==='win32'},t=>{
- const bin=fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-survey-'));
- t.after(()=>fs.rmSync(bin,{recursive:true,force:true}));
- const rows=[[600,1,'S','1-00:00:00',50000,'0.0','?','node','node /srv/jobs/export-customers.js'],[700,1,'S','1-00:00:00',50000,'0.0','?','node','node /app/node_modules/.bin/vite --port 3000'],[800,1,'S','1-00:00:00',50000,'0.0','?','node','node /usr/lib/node_modules/pnpm/bin/pnpm.cjs run dev'],[900,1,'S','1-00:00:00',50000,'0.0','?','node','node /app/node_modules/vite/bin/vite.js build'],[1000,1,'S','1-00:00:00',50000,'0.0','?','node','node /app/node_modules/vitest/vitest.mjs run'],[1100,1,'S','1-00:00:00',50000,'0.0','?','esbuild','esbuild input.js --outfile=output.js'],[1200,1,'S','1-00:00:00',50000,'0.0','?','node','node /srv/jobs/invite-users.js'],[1300,1,'S','1-00:00:00',50000,'0.0','?','node','node /srv/app.js --database-url postgresql://alice:synthetic-example@db.example/test --password horse battery staple'],[1400,1,'S','1-00:00:00',50000,'0.0','?','node','node /srv/export.js EXAMPLE42'],[1500,1,'S','1-00:00:00',50000,'0.0','?','node','node /app/node_modules/typescript/bin/tsc --watch false'],[1600,1,'S','1-00:00:00',50000,'0.0','?','node','node /app/node_modules/typescript/bin/tsc -w false'],[1700,1,'S','1-00:00:00',50000,'0.0','?','node','node /app/node_modules/typescript/bin/tsc --watch=false'],[1800,1,'S','1-00:00:00',50000,'0.0','?','node','node /app/node_modules/typescript/bin/tsc --watch false --watch'],[1900,1,'S','1-00:00:00',50000,'0.0','?','node','node /app/node_modules/typescript/bin/tsc -w --watch=false'],[2000,1,'S','1-00:00:00',50000,'0.0','?','node','node /app/node_modules/typescript/bin/tsc --watch --watch=true']];
- fs.writeFileSync(path.join(bin,'comm.txt'),rows.map(r=>r.slice(0,8).join(' ')).join('\n')+'\n');
- fs.writeFileSync(path.join(bin,'args.txt'),rows.map(r=>`${r[0]} ${r[8]}`).join('\n')+'\n');
- fs.writeFileSync(path.join(bin,'ps'),`#!/bin/sh\ncase "$*" in *args=*) cat "${bin}/args.txt" ;; *) cat "${bin}/comm.txt" ;; esac\n`,{mode:0o755});
- fs.writeFileSync(path.join(bin,'uname'),'#!/bin/sh\necho Linux\n',{mode:0o755});
- const run=spawnSync('bash',[path.join(root,'skills','process-cleanup','scripts','survey.sh'),'--budget','2'],{encoding:'utf8',timeout:60000,env:{...process.env,PATH:`${bin}${path.delimiter}${process.env.PATH}`}});
- const lines=run.stdout.split('\n== ').find(section=>section.startsWith('dev-servers'))?.split('\n');
- assert.ok(lines,run.stdout+run.stderr);
- const header=lines[1].split('\t'),kind=pid=>lines.find(line=>line.startsWith(pid+'\t'))?.split('\t')[header.indexOf('kind')];
- assert.deepEqual([600,700,800,900,1000,1100,1200,1300,1500,1600,1700,1800,1900,2000].map(kind),['runtime','server','server','runtime','runtime','runtime','runtime','runtime','runtime','runtime','runtime','runtime','runtime','server'],lines.join('\n'));
- assert.equal(lines.find(line=>line.startsWith('1300\t')).split('\t')[header.indexOf('args')],'node ...');
- assert.doesNotMatch(run.stdout,/alice|synthetic-example|horse|battery|staple|EXAMPLE42/);
- const classes=fs.readFileSync(path.join(root,'skills','process-cleanup','references','classes.md'),'utf8');
- assert.match(classes.split('\n').find(line=>line.startsWith('| `dev-servers-orphaned`')),/kind `server`/);
-});
-
-// Reads a real process's /proc environment, so it needs Linux.
-test('the Linux survey keeps a detached dev server\'s host ids, so a live terminal protects it',{skip:process.platform!=='linux'},async t=>{
- const bin=fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-survey-'));
- // `exec -a vite` makes the sleeping process look like a vite dev server.
- const child=spawn('bash',['-c','exec -a vite sleep 60'],{cwd:os.tmpdir(),stdio:'ignore',env:{...process.env,HOST_SESSION_ID:'session-1',HOST_TERMINAL_ID:'panel-1'}});
- t.after(()=>{child.kill();fs.rmSync(bin,{recursive:true,force:true});});
- await new Promise(resolve=>setTimeout(resolve,300));
- fs.writeFileSync(path.join(bin,'comm.txt'),`${child.pid} 1 S 1-00:00:00 1000 0.0 ? sleep\n`);
- fs.writeFileSync(path.join(bin,'args.txt'),`${child.pid} vite --port 5173\n`);
- fs.writeFileSync(path.join(bin,'ps'),`#!/bin/sh\ncase "$*" in *args=*) cat "${bin}/args.txt" ;; *) cat "${bin}/comm.txt" ;; esac\n`,{mode:0o755});
- const run=spawnSync('bash',[path.join(root,'skills','process-cleanup','scripts','survey.sh'),'--budget','2','--session-var','HOST_SESSION_ID','--agent-var','HOST_TERMINAL_ID'],{encoding:'utf8',timeout:60000,env:{...process.env,PATH:`${bin}${path.delimiter}${process.env.PATH}`}});
- const rows=run.stdout.split('\n== ').find(section=>section.startsWith('dev-servers'))?.split('\n');
- assert.ok(rows,run.stdout+run.stderr);
- const header=rows[1].split('\t'),row=rows.find(line=>line.startsWith(child.pid+'\t'))?.split('\t');
- assert.ok(row,rows.join('\n'));
- assert.deepEqual([row[header.indexOf('parent')],row[header.indexOf('host_session')],row[header.indexOf('host_agent')]],['orphaned','session-1','panel-1']);
-});
-
 test('Codex orchestration routes every worker and helper to Codex while retaining Claude defaults',t=>{
  const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-codex-orchestrator-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
@@ -450,7 +387,7 @@ test('Codex orchestration routes every worker and helper to Codex while retainin
  assert.deepEqual([advisor.mode,advisor.harness,advisor.model,advisor.reasoning_effort],['process','codex','gpt-6.2-sol','medium']);
  const workers=['bug-reporter:codex','planner:codex','implementer:codex','reviewer:codex','qa-and-fix:codex','simplify-and-refactor:codex'];
  for(const profile of workers){
-  assert.ok(main.instructions.includes('greenfield/'+profile),profile);
+  assert.ok(main.instructions.includes('`'+profile.replace(/:codex$/,'')+'`'),profile);
   const worker=resolveProfile(root,profile);
   // implementer:codex is raw-codex, whose opt-in second opinion stays cross-vendor (Claude).
   for(const node of Object.values(worker.nodes))if(!(profile==='implementer:codex'&&node.name==='pr-reviewer'))assert.equal(node.harness,'codex',`${profile}: ${node.name}`);
@@ -467,6 +404,7 @@ test('Codex orchestration routes every worker and helper to Codex while retainin
  }
  for(const profile of ['orchestrator','orchestrator:claude','bug-reporter','bug-reporter:claude','implementer'])assert.equal(resolveProfile(root,profile).nodes.main.harness,'claude',profile);
  assert.match(main.instructions,/Preserve explicit user model overrides/);
+ assert.match(main.instructions,/links as `:codex`: append `:codex` to the name in each link's command/);
  const launch=command(build(root,'orchestrator:codex',target),'main',{prepare:false});
  assert.equal(launch.argv[launch.argv.indexOf('--model')+1],'gpt-6.2-sol');assert.ok(launch.argv.includes('service_tier="ultrafast"'));
  assert.ok(main.skills.includes('orchestrate-sessions'));
@@ -477,7 +415,7 @@ test('Codex orchestration routes every worker and helper to Codex while retainin
 test('customer-insights-loop runs Opus 5.5 medium on Claude only, coordinates with the orchestrator\'s shared rules, and names no product, host or person',t=>{
  const target=fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(),'greenfield-insights-')));
  t.after(()=>fs.rmSync(target,{recursive:true,force:true}));
- assert.deepEqual(Object.keys(parse(fs.readFileSync(path.join(root,'profiles/customer-insights-loop.yaml'),'utf8')).variants),['claude']);
+ assert.equal(fs.existsSync(path.join(root,'agents/customer-insights-loop.yaml')),false,'a single Claude agent, not a variant set');
  const main=resolveProfile(root,'customer-insights-loop').nodes.main;
  assert.deepEqual([main.harness,main.model,main.reasoning_effort],['claude','claude-opus-5-5','medium']);
  for(const skill of ['customer-insights-loop','orchestrate-sessions','interview','swarm','ui-mockup','page'])assert.ok(main.skills.includes(skill),skill);
@@ -486,7 +424,7 @@ test('customer-insights-loop runs Opus 5.5 medium on Claude only, coordinates wi
  const walk=dir=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(entry=>{const file=path.join(dir,entry.name);return entry.isDirectory()?walk(file):[file];});
  for(const file of [...walk(path.join(root,'skills/customer-insights-loop')),path.join(root,'agents/customer-insights-loop.md')])assert.doesNotMatch(fs.readFileSync(file,'utf8'),/\b(pane|runpane|posthog|hogql|grain|parsa)\b/i,path.relative(root,file));
  includesAll(['skills/customer-insights-loop/SKILL.md'],['Before stage 1, ask how hands-on the person wants to be','record the answer in the ledger as `autonomy`','With no answer, wait']);
- includesAll(['skills/orchestrate-sessions/SKILL.md'],['set concurrency to what free disk and machine load allow','relaunch that review on `greenfield/reviewer:claude` and note the swap on the PR\'s card']);
+ includesAll(['skills/orchestrate-sessions/SKILL.md'],['set concurrency to what free disk and machine load allow','relaunch that review on `reviewer:claude` and note the swap on the PR\'s card']);
  verify(build(root,'customer-insights-loop',target));
 });
 
@@ -521,7 +459,7 @@ test('no Greenfield skill or rule asks for a secret in chat: the host secret pro
 });
 
 test('greenfield 0.0.53: with a host question mechanism, asking and relaying follow the host\'s injected instructions; needs_you carries why and summary (J9)',()=>{
- assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.0\.65$/m);
+ assert.match(fs.readFileSync(path.join(root,'plugin.yaml'),'utf8'),/^version: 0\.1\.0$/m);
  const rules=flatText('instructions/standing-rules.md');
  for(const rule of ['**When the host has its own question mechanism**','its injected instructions decide which mechanism to use','these rules never restate them','"why": "Invoice PDFs are renamed on export','"summary": "/abs/bundle/options.html"',"Follow the host's instructions for any length or display limits.","Use the format the host's instructions accept.",'When the host has its own question mechanism, use it as its instructions say. Otherwise, on Claude, use the harness question tool (`AskUserQuestion`)'])assert.ok(rules.includes(rule),rule);
  // #205's ban on passing the status file is gone, and host card rules are not restated here.
