@@ -93,7 +93,9 @@ test('qualified launches remain isolated and bare names honor default_plugin',t=
  assert.equal(JSON.parse(fs.readFileSync(path.join(own,'manifest.json'))).plugin,'shared');
  assert.equal(inspectProfile(root,'fixture/implementer',{directory:root}).plugin_version,'1.0.0');
  assert.match(fs.readFileSync(path.join(other,'main/instructions.md'),'utf8'),/FIXTURE/);
- assert.doesNotMatch(fs.readFileSync(path.join(other,'main/instructions.md'),'utf8'),/Socratic/);
+ assert.doesNotMatch(fs.readFileSync(path.join(other,'main/instructions.md'),'utf8'),/Socratic|Shared implementer body/);
+ assert.match(fs.readFileSync(path.join(own,'main/instructions.md'),'utf8'),/Shared implementer body\./);
+ assert.doesNotMatch(fs.readFileSync(path.join(own,'main/instructions.md'),'utf8'),/FIXTURE/);
 });
 
 test('updating one plugin leaves every other plugin byte-identical',t=>{
