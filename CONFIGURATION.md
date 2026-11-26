@@ -167,7 +167,7 @@ prints `{"schema": 1, "profiles": [...]}`, one entry per profile:
 | `command` | `agent-farm run REF` |
 | `tree` | The default variant's subagents: each node has `alias`, `agent`, `mode` (`native`, `process` or `launch`), its `variant` or `variants`, `description`, a `command` for process and launch nodes (no `--parent`: a person needs none), and `children`. A link back to an agent already on the path has `cycle: true` and no children; an `any: true` link has `any` and `plugin`; a target that doesn't resolve has `error` |
 
-An entry that fails to resolve has `ref` and `error` only. The text output of
+An entry that fails to resolve has `ref`, `name`, `plugin`, `version` and `error` only. The text output of
 `profiles list` is unchanged.
 
 ### Variants
