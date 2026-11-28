@@ -51,7 +51,9 @@ env -u CODEX_HOME -u AGENT_FARM_NATIVE_CODEX_HOME \
 
 `tests/clean-env.mjs` drops the `AGENT_FARM_PARENT`, `AGENT_FARM_SNAPSHOT` and
 `AGENT_FARM_CLI` a shell inherits from an agent launch (a Pane tab, a launch
-link), so the suite runs the same inside one.
+link), so the suite runs the same inside one. It also drops
+`CLOUDSDK_ACTIVE_CONFIG_NAME`, `GOOGLE_APPLICATION_CREDENTIALS` and
+`AGENT_FARM_GCLOUD_CHECK`, so launches under test never ask your real gcloud.
 
 `pnpm test` runs the same tests after a build, using your real `HOME`. Don't
 combine `pnpm test` with a temporary `HOME`: pnpm then looks for its store and

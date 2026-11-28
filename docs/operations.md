@@ -82,6 +82,32 @@ parent's servers and get the same note.
 lists each missing sign-in with its login command. `agent-farm inspect` reports
 configured connections, not whether they are authenticated or reachable.
 
+### gcloud sign-in before launch
+
+When the launch environment sets `CLOUDSDK_ACTIVE_CONFIG_NAME` or
+`GOOGLE_APPLICATION_CREDENTIALS`, each launch (the same ones as above; not
+`--explain`) asks gcloud whether those identities can still get a token:
+`gcloud auth print-access-token` for the configuration and
+`gcloud auth application-default print-access-token` for the credentials file,
+both at once, each stopped after 10 seconds. The token gcloud prints is discarded
+unread. An identity whose error says it needs a new sign-in, or that its credentials
+file is not valid credentials, is lapsed: the agent's
+instructions (and its native subagents') say gcloud is unavailable, not to run or
+retry it, and to report blocked once asking the person to sign in again, and the
+launch prints one line on stderr naming each lapsed identity. Agent Farm does not
+know your sign-in command; run your own.
+
+Each result is kept for 10 minutes in `~/.cache/agent-farm/gcloud-identities.json`
+(state, time and an error class, never a token or gcloud's output), so a new
+sign-in shows up in launches within 10 minutes. Parallel launches share one probe
+through a lock file next to it. The check fails open: a missing gcloud, a timeout,
+or an error that is not about the sign-in adds no note and prints nothing. Set
+`AGENT_FARM_GCLOUD_CHECK=off` to skip it.
+
+`agent-farm doctor` has a gcloud section with one row per identity in its
+environment: `✓` ok, `✗` lapsed, or `?` could not check. It asks gcloud afresh
+rather than reading the 10-minute cache, and stores what it learns for launches.
+
 ## Generated bundles and isolation
 
 Launch bundles live in `.agent-farm/generated/` under the launch directory
